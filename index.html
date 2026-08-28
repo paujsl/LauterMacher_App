@@ -16,9 +16,10 @@
 
     <title>Lauter Macher</title>
 
+    <!-- v=2 zwingt den Browser, die neue CSS-Version zu laden -->
     <link
         rel="stylesheet"
-        href="style.css"
+        href="style.css?v=2"
     >
 </head>
 
@@ -35,12 +36,14 @@
     >
 
         <img
-            src="Logo_LM.png"
+            src="./Logo_LM.png?v=2"
             alt="Lauter Macher Logo"
             class="logo"
         >
 
-        <h1>Lauter Macher</h1>
+        <h1>
+            Lauter Macher
+        </h1>
 
         <p class="subtitle">
             Schülerfirma
@@ -69,7 +72,6 @@
     </main>
 
 
-
     <!-- =====================================
          VERKAUF
          ===================================== -->
@@ -88,15 +90,14 @@
                 ← Zurück
             </button>
 
-            <h1>🛒 Verkauf</h1>
+            <h1>
+                🛒 Verkauf
+            </h1>
 
         </header>
 
 
-
-        <!-- =================================
-             GETRÄNKE
-             ================================= -->
+        <!-- GETRÄNKE -->
 
         <section class="product-section">
 
@@ -122,10 +123,7 @@
         </section>
 
 
-
-        <!-- =================================
-             BÄCKEREI
-             ================================= -->
+        <!-- BÄCKEREI -->
 
         <section class="product-section">
 
@@ -151,10 +149,7 @@
         </section>
 
 
-
-        <!-- =================================
-             WARENKORB
-             ================================= -->
+        <!-- WARENKORB -->
 
         <section class="cart-section">
 
@@ -204,7 +199,6 @@
     </main>
 
 
-
     <!-- =====================================
          BEZAHLEN
          ===================================== -->
@@ -223,20 +217,18 @@
                 ← Zurück
             </button>
 
-            <h1>💰 Bezahlen</h1>
+            <h1>
+                💰 Bezahlen
+            </h1>
 
         </header>
 
 
         <section class="payment-container">
 
-
-            <!-- ZU ZAHLEN -->
-
             <div class="payment-label">
                 Zu zahlen
             </div>
-
 
             <div
                 id="paymentTotal"
@@ -246,13 +238,9 @@
             </div>
 
 
-
-            <!-- KUNDE GIBT -->
-
             <div class="payment-label">
                 Kunde gibt
             </div>
-
 
             <div
                 id="amountReceived"
@@ -261,9 +249,6 @@
                 0,00 €
             </div>
 
-
-
-            <!-- RÜCKGELD -->
 
             <div class="change-container">
 
@@ -278,8 +263,7 @@
             </div>
 
 
-
-            <!-- CALCULATOR -->
+            <!-- TASTATUR -->
 
             <div class="payment-keypad">
 
@@ -322,7 +306,9 @@
                 </button>
 
 
-                <button class="payment-key decimal-key">
+                <button
+                    class="payment-key decimal-key"
+                >
                     ,
                 </button>
 
@@ -340,9 +326,6 @@
             </div>
 
 
-
-            <!-- BEZAHLT -->
-
             <button
                 id="paidButton"
                 class="paid-button"
@@ -356,9 +339,8 @@
     </main>
 
 
-
     <!-- =====================================
-         BESTÄTIGUNG
+         ERFOLG
          ===================================== -->
 
     <main
@@ -412,7 +394,6 @@
         </div>
 
     </main>
-
 
 
     <!-- =====================================
@@ -526,7 +507,6 @@
         </div>
 
     </div>
-
 
 
     <!-- =====================================
