@@ -12,7 +12,11 @@
 
 <body>
 
-    <main class="home">
+    <!-- ========================================
+         STARTSEITE
+         ======================================== -->
+
+    <main class="home" id="homeScreen">
 
         <img
             src="Logo_LM.png"
@@ -37,6 +41,274 @@
         >
             ⚙️ Admin
         </button>
+
+    </main>
+
+
+    <!-- ========================================
+         VERKAUF
+         ======================================== -->
+
+    <main class="sale-screen" id="saleScreen">
+
+        <!-- HEADER -->
+
+        <header class="sale-header">
+
+            <button
+                class="back-button"
+                id="saleBackButton"
+            >
+                ← Zurück
+            </button>
+
+            <h1>🛒 Verkauf</h1>
+
+        </header>
+
+
+        <!-- ====================================
+             GETRÄNKE
+             ==================================== -->
+
+        <section class="product-section">
+
+            <h2>🥤 Getränke</h2>
+
+            <div class="product-grid">
+
+
+                <!-- COCA -->
+
+                <button
+                    class="product-card"
+                    data-name="Coca-Cola"
+                    data-price="2.00"
+                >
+
+                    <span class="product-icon">🥤</span>
+
+                    <span class="product-name">
+                        Coca-Cola
+                    </span>
+
+                    <span class="product-price">
+                        2,00 €
+                    </span>
+
+                </button>
+
+
+                <!-- FANTA -->
+
+                <button
+                    class="product-card"
+                    data-name="Fanta"
+                    data-price="2.00"
+                >
+
+                    <span class="product-icon">🥤</span>
+
+                    <span class="product-name">
+                        Fanta
+                    </span>
+
+                    <span class="product-price">
+                        2,00 €
+                    </span>
+
+                </button>
+
+
+                <!-- WASSER -->
+
+                <button
+                    class="product-card"
+                    data-name="Wasser"
+                    data-price="1.50"
+                >
+
+                    <span class="product-icon">💧</span>
+
+                    <span class="product-name">
+                        Wasser
+                    </span>
+
+                    <span class="product-price">
+                        1,50 €
+                    </span>
+
+                </button>
+
+
+                <!-- APFELSAFT -->
+
+                <button
+                    class="product-card"
+                    data-name="Apfelsaft"
+                    data-price="2.00"
+                >
+
+                    <span class="product-icon">🧃</span>
+
+                    <span class="product-name">
+                        Apfelsaft
+                    </span>
+
+                    <span class="product-price">
+                        2,00 €
+                    </span>
+
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <!-- ====================================
+             BÄCKEREI
+             ==================================== -->
+
+        <section class="product-section bakery-section">
+
+            <h2>🥨 Bäckerei</h2>
+
+            <div class="product-grid">
+
+
+                <!-- BREZEL -->
+
+                <button
+                    class="product-card bakery-card"
+                    data-name="Brezel"
+                    data-price="1.00"
+                >
+
+                    <span class="product-icon">🥨</span>
+
+                    <span class="product-name">
+                        Brezel
+                    </span>
+
+                    <span class="product-price">
+                        1,00 €
+                    </span>
+
+                </button>
+
+
+                <!-- CROISSANT -->
+
+                <button
+                    class="product-card bakery-card"
+                    data-name="Croissant"
+                    data-price="1.50"
+                >
+
+                    <span class="product-icon">🥐</span>
+
+                    <span class="product-name">
+                        Croissant
+                    </span>
+
+                    <span class="product-price">
+                        1,50 €
+                    </span>
+
+                </button>
+
+
+                <!-- MUFFIN -->
+
+                <button
+                    class="product-card bakery-card"
+                    data-name="Muffin"
+                    data-price="1.50"
+                >
+
+                    <span class="product-icon">🧁</span>
+
+                    <span class="product-name">
+                        Muffin
+                    </span>
+
+                    <span class="product-price">
+                        1,50 €
+                    </span>
+
+                </button>
+
+
+                <!-- KUCHEN -->
+
+                <button
+                    class="product-card bakery-card"
+                    data-name="Kuchen"
+                    data-price="2.00"
+                >
+
+                    <span class="product-icon">🍰</span>
+
+                    <span class="product-name">
+                        Kuchen
+                    </span>
+
+                    <span class="product-price">
+                        2,00 €
+                    </span>
+
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <!-- ====================================
+             PANIER
+             ==================================== -->
+
+        <section class="cart-section">
+
+            <h2>🛒 Warenkorb</h2>
+
+
+            <div
+                class="cart-items"
+                id="cartItems"
+            >
+
+                <p class="empty-cart">
+                    Noch keine Produkte ausgewählt.
+                </p>
+
+            </div>
+
+
+            <!-- TOTAL -->
+
+            <div class="cart-total">
+
+                <span>Gesamt</span>
+
+                <strong id="cartTotal">
+                    0,00 €
+                </strong>
+
+            </div>
+
+
+            <!-- PAIEMENT -->
+
+            <button
+                class="pay-button"
+                id="payButton"
+            >
+                💰 Bezahlen
+            </button>
+
+        </section>
 
     </main>
 
@@ -117,6 +389,8 @@
 
     </div>
 
+
+    <!-- JAVASCRIPT -->
 
     <script src="app.js"></script>
 
