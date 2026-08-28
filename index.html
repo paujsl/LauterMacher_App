@@ -38,7 +38,7 @@
 
         <!-- ADMIN -->
 
-        <button class="main-button admin-button">
+        <button class="main-button admin-button" id="adminButton">
             ⚙️ Admin
         </button>
 
@@ -46,10 +46,10 @@
 
 
     <!-- ==============================
-         ADMIN PIN
+         ADMIN PIN - POP-UP
          ============================== -->
 
-    <section class="pin-screen">
+    <div class="modal" id="pinModal">
 
         <div class="pin-box">
 
@@ -62,10 +62,10 @@
 
             <div class="pin-display">
 
-                <span>•</span>
-                <span>•</span>
-                <span>•</span>
-                <span>•</span>
+                <span id="pin1">○</span>
+                <span id="pin2">○</span>
+                <span id="pin3">○</span>
+                <span id="pin4">○</span>
 
             </div>
 
@@ -74,37 +74,50 @@
 
             <div class="keypad">
 
-                <button>1</button>
-                <button>2</button>
-                <button>3</button>
+                <button class="number-button">1</button>
+                <button class="number-button">2</button>
+                <button class="number-button">3</button>
 
-                <button>4</button>
-                <button>5</button>
-                <button>6</button>
+                <button class="number-button">4</button>
+                <button class="number-button">5</button>
+                <button class="number-button">6</button>
 
-                <button>7</button>
-                <button>8</button>
-                <button>9</button>
+                <button class="number-button">7</button>
+                <button class="number-button">8</button>
+                <button class="number-button">9</button>
 
                 <button class="empty-key"></button>
-                <button>0</button>
-                <button class="delete-key">⌫</button>
+
+                <button class="number-button">0</button>
+
+                <button class="delete-key" id="deleteButton">
+                    ⌫
+                </button>
 
             </div>
 
 
-            <button class="pin-confirm">
+            <!-- CONFIRMER -->
+
+            <button class="pin-confirm" id="confirmButton">
                 OK
             </button>
 
 
-            <button class="pin-cancel">
+            <!-- RETOUR -->
+
+            <button class="pin-cancel" id="cancelButton">
                 ← Zurück
             </button>
 
         </div>
 
-    </section>
+    </div>
+
+
+    <!-- JAVASCRIPT -->
+
+    <script src="app.js"></script>
 
 </body>
 
