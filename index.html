@@ -3,61 +3,87 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link rel="stylesheet" href="style.css">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="theme-color"
+        content="#09436a"
+    >
 
     <title>Lauter Macher</title>
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
 </head>
+
 
 <body>
 
-    <!-- ========================================
+    <!-- =====================================
          STARTSEITE
-         ======================================== -->
+         ===================================== -->
 
-    <main class="home" id="homeScreen">
+    <main
+        id="homeScreen"
+        class="screen home-screen"
+    >
 
         <img
-            src="Logo_LM.png"
+            src="assets/Logo_LM.png"
             alt="Lauter Macher Logo"
             class="logo"
         >
 
         <h1>Lauter Macher</h1>
 
-        <p>Schülerfirma</p>
+        <p class="subtitle">
+            Schülerfirma
+        </p>
 
-        <button
-            class="main-button sale-button"
-            id="saleButton"
-        >
-            🛒 Verkauf
-        </button>
 
-        <button
-            class="main-button admin-button"
-            id="adminButton"
-        >
-            ⚙️ Admin
-        </button>
+        <div class="home-buttons">
+
+            <button
+                id="saleButton"
+                class="main-button sale-main-button"
+            >
+                🛒 Verkauf
+            </button>
+
+
+            <button
+                id="adminButton"
+                class="main-button admin-main-button"
+            >
+                ⚙️ Admin
+            </button>
+
+        </div>
 
     </main>
 
 
-    <!-- ========================================
+
+    <!-- =====================================
          VERKAUF
-         ======================================== -->
+         ===================================== -->
 
-    <main class="sale-screen" id="saleScreen">
+    <main
+        id="saleScreen"
+        class="screen sale-screen"
+    >
 
-        <!-- HEADER -->
-
-        <header class="sale-header">
+        <header class="screen-header">
 
             <button
-                class="back-button"
                 id="saleBackButton"
+                class="back-button"
             >
                 ← Zurück
             </button>
@@ -67,230 +93,96 @@
         </header>
 
 
-        <!-- ====================================
+
+        <!-- =================================
              GETRÄNKE
-             ==================================== -->
+             ================================= -->
 
         <section class="product-section">
 
-            <h2>🥤 Getränke</h2>
+            <div class="section-title">
 
-            <div class="product-grid">
+                <span class="section-icon">
+                    🥤
+                </span>
 
-
-                <!-- COCA -->
-
-                <button
-                    class="product-card"
-                    data-name="Coca-Cola"
-                    data-price="2.00"
-                >
-
-                    <span class="product-icon">🥤</span>
-
-                    <span class="product-name">
-                        Coca-Cola
-                    </span>
-
-                    <span class="product-price">
-                        2,00 €
-                    </span>
-
-                </button>
-
-
-                <!-- FANTA -->
-
-                <button
-                    class="product-card"
-                    data-name="Fanta"
-                    data-price="2.00"
-                >
-
-                    <span class="product-icon">🥤</span>
-
-                    <span class="product-name">
-                        Fanta
-                    </span>
-
-                    <span class="product-price">
-                        2,00 €
-                    </span>
-
-                </button>
-
-
-                <!-- WASSER -->
-
-                <button
-                    class="product-card"
-                    data-name="Wasser"
-                    data-price="1.50"
-                >
-
-                    <span class="product-icon">💧</span>
-
-                    <span class="product-name">
-                        Wasser
-                    </span>
-
-                    <span class="product-price">
-                        1,50 €
-                    </span>
-
-                </button>
-
-
-                <!-- APFELSAFT -->
-
-                <button
-                    class="product-card"
-                    data-name="Apfelsaft"
-                    data-price="2.00"
-                >
-
-                    <span class="product-icon">🧃</span>
-
-                    <span class="product-name">
-                        Apfelsaft
-                    </span>
-
-                    <span class="product-price">
-                        2,00 €
-                    </span>
-
-                </button>
+                <h2>
+                    Getränke
+                </h2>
 
             </div>
-
-        </section>
-
-
-        <!-- ====================================
-             BÄCKEREI
-             ==================================== -->
-
-        <section class="product-section bakery-section">
-
-            <h2>🥨 Bäckerei</h2>
-
-            <div class="product-grid">
-
-
-                <!-- BREZEL -->
-
-                <button
-                    class="product-card bakery-card"
-                    data-name="Brezel"
-                    data-price="1.00"
-                >
-
-                    <span class="product-icon">🥨</span>
-
-                    <span class="product-name">
-                        Brezel
-                    </span>
-
-                    <span class="product-price">
-                        1,00 €
-                    </span>
-
-                </button>
-
-
-                <!-- CROISSANT -->
-
-                <button
-                    class="product-card bakery-card"
-                    data-name="Croissant"
-                    data-price="1.50"
-                >
-
-                    <span class="product-icon">🥐</span>
-
-                    <span class="product-name">
-                        Croissant
-                    </span>
-
-                    <span class="product-price">
-                        1,50 €
-                    </span>
-
-                </button>
-
-
-                <!-- MUFFIN -->
-
-                <button
-                    class="product-card bakery-card"
-                    data-name="Muffin"
-                    data-price="1.50"
-                >
-
-                    <span class="product-icon">🧁</span>
-
-                    <span class="product-name">
-                        Muffin
-                    </span>
-
-                    <span class="product-price">
-                        1,50 €
-                    </span>
-
-                </button>
-
-
-                <!-- KUCHEN -->
-
-                <button
-                    class="product-card bakery-card"
-                    data-name="Kuchen"
-                    data-price="2.00"
-                >
-
-                    <span class="product-icon">🍰</span>
-
-                    <span class="product-name">
-                        Kuchen
-                    </span>
-
-                    <span class="product-price">
-                        2,00 €
-                    </span>
-
-                </button>
-
-            </div>
-
-        </section>
-
-
-        <!-- ====================================
-             PANIER
-             ==================================== -->
-
-        <section class="cart-section">
-
-            <h2>🛒 Warenkorb</h2>
 
 
             <div
-                class="cart-items"
-                id="cartItems"
+                id="drinksGrid"
+                class="product-grid"
             >
+            </div>
 
-                <p class="empty-cart">
-                    Noch keine Produkte ausgewählt.
-                </p>
+        </section>
+
+
+
+        <!-- =================================
+             BÄCKEREI
+             ================================= -->
+
+        <section class="product-section">
+
+            <div class="section-title">
+
+                <span class="section-icon">
+                    🥨
+                </span>
+
+                <h2>
+                    Bäckerei
+                </h2>
 
             </div>
 
 
-            <!-- TOTAL -->
+            <div
+                id="bakeryGrid"
+                class="product-grid"
+            >
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================
+             WARENKORB
+             ================================= -->
+
+        <section class="cart-section">
+
+            <div class="section-title">
+
+                <span class="section-icon">
+                    🛒
+                </span>
+
+                <h2>
+                    Warenkorb
+                </h2>
+
+            </div>
+
+
+            <div
+                id="cartItems"
+                class="cart-items"
+            >
+            </div>
+
 
             <div class="cart-total">
 
-                <span>Gesamt</span>
+                <span>
+                    Gesamt
+                </span>
 
                 <strong id="cartTotal">
                     0,00 €
@@ -299,11 +191,10 @@
             </div>
 
 
-            <!-- PAIEMENT -->
-
             <button
-                class="pay-button"
                 id="payButton"
+                class="pay-button"
+                disabled
             >
                 💰 Bezahlen
             </button>
@@ -313,56 +204,311 @@
     </main>
 
 
-    <!-- ========================================
-         ADMIN PIN POP-UP
-         ======================================== -->
+
+    <!-- =====================================
+         BEZAHLEN
+         ===================================== -->
+
+    <main
+        id="paymentScreen"
+        class="screen payment-screen"
+    >
+
+        <header class="screen-header">
+
+            <button
+                id="paymentBackButton"
+                class="back-button"
+            >
+                ← Zurück
+            </button>
+
+            <h1>💰 Bezahlen</h1>
+
+        </header>
+
+
+        <section class="payment-container">
+
+
+            <!-- ZU ZAHLEN -->
+
+            <div class="payment-label">
+                Zu zahlen
+            </div>
+
+
+            <div
+                id="paymentTotal"
+                class="payment-total"
+            >
+                0,00 €
+            </div>
+
+
+
+            <!-- KUNDE GIBT -->
+
+            <div class="payment-label">
+                Kunde gibt
+            </div>
+
+
+            <div
+                id="amountReceived"
+                class="amount-received"
+            >
+                0,00 €
+            </div>
+
+
+
+            <!-- RÜCKGELD -->
+
+            <div class="change-container">
+
+                <span>
+                    Rückgeld
+                </span>
+
+                <strong id="changeAmount">
+                    0,00 €
+                </strong>
+
+            </div>
+
+
+
+            <!-- CALCULATOR -->
+
+            <div class="payment-keypad">
+
+                <button class="payment-key">
+                    1
+                </button>
+
+                <button class="payment-key">
+                    2
+                </button>
+
+                <button class="payment-key">
+                    3
+                </button>
+
+
+                <button class="payment-key">
+                    4
+                </button>
+
+                <button class="payment-key">
+                    5
+                </button>
+
+                <button class="payment-key">
+                    6
+                </button>
+
+
+                <button class="payment-key">
+                    7
+                </button>
+
+                <button class="payment-key">
+                    8
+                </button>
+
+                <button class="payment-key">
+                    9
+                </button>
+
+
+                <button class="payment-key decimal-key">
+                    ,
+                </button>
+
+                <button class="payment-key">
+                    0
+                </button>
+
+                <button
+                    id="deletePaymentButton"
+                    class="payment-key delete-key"
+                >
+                    ⌫
+                </button>
+
+            </div>
+
+
+
+            <!-- BEZAHLT -->
+
+            <button
+                id="paidButton"
+                class="paid-button"
+                disabled
+            >
+                ✔ Bezahlt
+            </button>
+
+        </section>
+
+    </main>
+
+
+
+    <!-- =====================================
+         BESTÄTIGUNG
+         ===================================== -->
+
+    <main
+        id="successScreen"
+        class="screen success-screen"
+    >
+
+        <div class="success-content">
+
+            <div class="success-icon">
+                ✓
+            </div>
+
+
+            <h1>
+                Zahlung erfolgreich!
+            </h1>
+
+
+            <p>
+                Danke!
+            </p>
+
+
+            <div class="success-change">
+
+                Rückgeld:
+
+                <strong id="successChange">
+                    0,00 €
+                </strong>
+
+            </div>
+
+
+            <button
+                id="newOrderButton"
+                class="new-order-button"
+            >
+                🛒 Neue Bestellung
+            </button>
+
+
+            <button
+                id="successHomeButton"
+                class="secondary-button"
+            >
+                ← Startseite
+            </button>
+
+        </div>
+
+    </main>
+
+
+
+    <!-- =====================================
+         ADMIN PIN MODAL
+         ===================================== -->
 
     <div
-        class="modal"
         id="pinModal"
+        class="modal"
         aria-hidden="true"
     >
 
         <div class="pin-box">
 
-            <h2>🔐 Admin</h2>
+            <button
+                id="cancelButton"
+                class="modal-close"
+            >
+                ×
+            </button>
 
-            <p>PIN eingeben</p>
 
-            <div class="pin-display">
+            <h2>
+                🔐 Admin
+            </h2>
 
-                <span id="pin1">○</span>
-                <span id="pin2">○</span>
-                <span id="pin3">○</span>
-                <span id="pin4">○</span>
+
+            <p>
+                PIN eingeben
+            </p>
+
+
+            <div
+                id="pinDisplay"
+                class="pin-display"
+            >
+
+                <span>○</span>
+                <span>○</span>
+                <span>○</span>
+                <span>○</span>
 
             </div>
 
 
-            <div class="keypad">
+            <div class="pin-keypad">
 
-                <button class="number-button">1</button>
-                <button class="number-button">2</button>
-                <button class="number-button">3</button>
+                <button class="number-button">
+                    1
+                </button>
 
-                <button class="number-button">4</button>
-                <button class="number-button">5</button>
-                <button class="number-button">6</button>
+                <button class="number-button">
+                    2
+                </button>
 
-                <button class="number-button">7</button>
-                <button class="number-button">8</button>
-                <button class="number-button">9</button>
+                <button class="number-button">
+                    3
+                </button>
+
+
+                <button class="number-button">
+                    4
+                </button>
+
+                <button class="number-button">
+                    5
+                </button>
+
+                <button class="number-button">
+                    6
+                </button>
+
+
+                <button class="number-button">
+                    7
+                </button>
+
+                <button class="number-button">
+                    8
+                </button>
+
+                <button class="number-button">
+                    9
+                </button>
+
+
+                <button class="empty-key">
+                </button>
+
+                <button class="number-button">
+                    0
+                </button>
 
                 <button
-                    class="empty-key"
-                    aria-hidden="true"
-                ></button>
-
-                <button class="number-button">0</button>
-
-                <button
-                    class="delete-key"
                     id="deleteButton"
+                    class="delete-key"
                 >
                     ⌫
                 </button>
@@ -371,18 +517,10 @@
 
 
             <button
-                class="pin-confirm"
                 id="confirmButton"
+                class="pin-confirm"
             >
                 OK
-            </button>
-
-
-            <button
-                class="pin-cancel"
-                id="cancelButton"
-            >
-                ← Zurück
             </button>
 
         </div>
@@ -390,7 +528,12 @@
     </div>
 
 
-    <!-- JAVASCRIPT -->
+
+    <!-- =====================================
+         JAVASCRIPT
+         ===================================== -->
+
+    <script src="js/products.js"></script>
 
     <script src="app.js"></script>
 
