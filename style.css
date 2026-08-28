@@ -11,15 +11,10 @@
 :root {
 
     --blau: #09436A;
-
     --blau-hell: #5170FF;
-
     --gruen: #A8C00A;
-
     --gelb: #FEC84D;
-
     --lavendel: #D2C7FF;
-
     --weiss: #FFFFFF;
 
 }
@@ -194,10 +189,10 @@ p {
 
 
 /* ========================================
-   12. ECRAN PIN
+   12. FENETRE POP-UP
    ======================================== */
 
-.pin-screen {
+.modal {
 
     display: none;
 
@@ -211,11 +206,13 @@ p {
 
     height: 100%;
 
-    background-color: var(--weiss);
+    background-color: rgba(9, 67, 106, 0.45);
 
     justify-content: center;
 
     align-items: center;
+
+    z-index: 1000;
 
 }
 
@@ -234,6 +231,12 @@ p {
 
     box-sizing: border-box;
 
+    background-color: var(--weiss);
+
+    border-radius: 25px;
+
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+
 }
 
 
@@ -245,13 +248,28 @@ p {
 
     font-size: 32px;
 
+    margin-top: 0;
+
     margin-bottom: 10px;
 
 }
 
 
 /* ========================================
-   15. AFFICHAGE DU PIN
+   15. TEXTE PIN
+   ======================================== */
+
+.pin-box p {
+
+    font-size: 18px;
+
+    margin-bottom: 20px;
+
+}
+
+
+/* ========================================
+   16. AFFICHAGE DU PIN
    ======================================== */
 
 .pin-display {
@@ -262,9 +280,9 @@ p {
 
     gap: 18px;
 
-    margin: 25px 0;
+    margin: 20px 0 25px 0;
 
-    font-size: 32px;
+    font-size: 30px;
 
     color: var(--blau);
 
@@ -272,7 +290,7 @@ p {
 
 
 /* ========================================
-   16. PAVE NUMERIQUE
+   17. PAVE NUMERIQUE
    ======================================== */
 
 .keypad {
@@ -281,9 +299,9 @@ p {
 
     grid-template-columns: repeat(3, 1fr);
 
-    gap: 12px;
+    gap: 10px;
 
-    max-width: 300px;
+    max-width: 280px;
 
     margin: 0 auto 20px auto;
 
@@ -291,12 +309,12 @@ p {
 
 
 /* ========================================
-   17. TOUCHES
+   18. TOUCHES NUMERIQUES
    ======================================== */
 
 .keypad button {
 
-    height: 65px;
+    height: 60px;
 
     border: none;
 
@@ -306,7 +324,7 @@ p {
 
     color: var(--blau);
 
-    font-size: 24px;
+    font-size: 23px;
 
     font-weight: bold;
 
@@ -316,18 +334,18 @@ p {
 
 
 /* ========================================
-   18. TOUCHES - SOURIS
+   19. EFFET TOUCHES
    ======================================== */
 
 .keypad button:hover {
 
-    background-color: var(--jaune);
+    background-color: var(--gelb);
 
 }
 
 
 /* ========================================
-   19. TOUCHE VIDE
+   20. TOUCHE VIDE
    ======================================== */
 
 .empty-key {
@@ -338,23 +356,23 @@ p {
 
 
 /* ========================================
-   20. TOUCHE SUPPRIMER
+   21. TOUCHE SUPPRIMER
    ======================================== */
 
 .delete-key {
 
-    background-color: var(--jaune) !important;
+    background-color: var(--gelb) !important;
 
 }
 
 
 /* ========================================
-   21. BOUTON OK
+   22. BOUTON OK
    ======================================== */
 
 .pin-confirm {
 
-    width: 300px;
+    width: 280px;
 
     max-width: 100%;
 
@@ -378,14 +396,14 @@ p {
 
 
 /* ========================================
-   22. BOUTON RETOUR
+   23. BOUTON RETOUR
    ======================================== */
 
 .pin-cancel {
 
     display: block;
 
-    margin: 18px auto;
+    margin: 18px auto 0 auto;
 
     border: none;
 
@@ -401,7 +419,7 @@ p {
 
 
 /* ========================================
-   23. RESPONSIVE
+   24. RESPONSIVE
    ======================================== */
 
 @media (max-width: 600px) {
