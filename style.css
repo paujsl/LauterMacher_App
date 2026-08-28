@@ -11,21 +11,14 @@
 :root {
 
     --blue-dark: #09436a;
-
     --blue: #5170ff;
-
     --green: #a8c00a;
-
     --yellow: #fec84d;
-
     --lavender: #d2c7ff;
 
     --white: #ffffff;
-
     --light: #f6f8fb;
-
     --grey: #6d7480;
-
     --border: #e2e6ec;
 
 }
@@ -36,15 +29,19 @@
    ======================================== */
 
 * {
-
     box-sizing: border-box;
+}
 
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
 }
 
 
 body {
-
-    margin: 0;
 
     min-height: 100vh;
 
@@ -53,24 +50,24 @@ body {
         Helvetica,
         sans-serif;
 
-    background:
-        var(--white);
+    background: var(--white);
 
-    color:
-        var(--blue-dark);
+    color: var(--blue-dark);
 
 }
 
 
 /* ========================================
-   SCREEN
+   SCREENS
    ======================================== */
 
 .screen {
 
-    min-height: 100vh;
+    display: none;
 
     width: 100%;
+
+    min-height: 100vh;
 
 }
 
@@ -89,69 +86,98 @@ body {
 
     align-items: center;
 
-    padding: 30px 20px;
+    min-height: 100vh;
+
+    padding: 40px 20px;
 
     text-align: center;
 
 }
 
 
+/* LOGO */
+
 .logo {
 
-    width: min(260px, 70vw);
+    display: block;
+
+    width: min(420px, 75vw);
 
     height: auto;
 
-    margin-bottom: 15px;
+    margin: 0 auto 20px;
 
 }
 
+
+/* TITRE */
 
 .home-screen h1 {
 
     margin: 0;
 
-    font-size: 42px;
+    font-size: 44px;
 
     line-height: 1.1;
 
+    color: var(--blue-dark);
+
 }
 
+
+/* SOUS-TITRE */
 
 .subtitle {
 
-    margin: 8px 0 35px;
+    margin: 10px 0 35px;
 
-    font-size: 20px;
+    font-size: 22px;
 
-    color:
-        var(--grey);
+    color: var(--grey);
 
 }
 
 
+/* ========================================
+   HOME BUTTONS
+   ======================================== */
+
 .home-buttons {
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: center;
 
     width: 100%;
 
-    max-width: 380px;
+    max-width: 430px;
+
+    margin: 0 auto;
 
 }
 
 
 .main-button {
 
+    display: block;
+
     width: 100%;
 
-    min-height: 80px;
+    min-height: 82px;
 
-    margin: 12px 0;
+    margin: 10px 0;
+
+    padding: 15px 25px;
 
     border: none;
 
     border-radius: 22px;
 
-    font-size: 24px;
+    font-size: 25px;
 
     font-weight: 700;
 
@@ -173,22 +199,18 @@ body {
 
 .sale-main-button {
 
-    background:
-        var(--blue-dark);
+    background: var(--blue-dark);
 
-    color:
-        var(--white);
+    color: var(--white);
 
 }
 
 
 .admin-main-button {
 
-    background:
-        var(--lavender);
+    background: var(--lavender);
 
-    color:
-        var(--blue-dark);
+    color: var(--blue-dark);
 
 }
 
@@ -233,8 +255,7 @@ body {
 
     background: transparent;
 
-    color:
-        var(--blue-dark);
+    color: var(--blue-dark);
 
     font-size: 18px;
 
@@ -246,10 +267,12 @@ body {
 
 
 /* ========================================
-   PRODUCT SECTION
+   PRODUCT SECTIONS
    ======================================== */
 
 .product-section {
+
+    width: 100%;
 
     max-width: 1000px;
 
@@ -290,7 +313,7 @@ body {
 
 
 /* ========================================
-   PRODUCT GRID
+   PRODUCTS
    ======================================== */
 
 .product-grid {
@@ -307,22 +330,6 @@ body {
 
 .product-card {
 
-    min-height: 145px;
-
-    padding: 15px;
-
-    border:
-        3px solid
-        var(--blue-dark);
-
-    border-radius: 20px;
-
-    background:
-        var(--white);
-
-    color:
-        var(--blue-dark);
-
     display: flex;
 
     flex-direction: column;
@@ -332,6 +339,18 @@ body {
     align-items: center;
 
     gap: 7px;
+
+    min-height: 145px;
+
+    padding: 15px;
+
+    border: 3px solid var(--blue-dark);
+
+    border-radius: 20px;
+
+    background: var(--white);
+
+    color: var(--blue-dark);
 
     cursor: pointer;
 
@@ -344,16 +363,14 @@ body {
 
 .product-card:hover {
 
-    background:
-        var(--lavender);
+    background: var(--lavender);
 
 }
 
 
 .product-card:active {
 
-    transform:
-        scale(0.96);
+    transform: scale(0.96);
 
 }
 
@@ -387,8 +404,7 @@ body {
 
 .coming-soon {
 
-    grid-column:
-        1 / -1;
+    grid-column: 1 / -1;
 
     padding: 25px;
 
@@ -400,8 +416,7 @@ body {
 
     text-align: center;
 
-    color:
-        var(--grey);
+    color: var(--grey);
 
 }
 
@@ -412,14 +427,15 @@ body {
 
 .cart-section {
 
+    width: 100%;
+
     max-width: 1000px;
 
     margin: 10px auto 0;
 
     padding: 25px 20px 40px;
 
-    background:
-        var(--light);
+    background: var(--light);
 
     border-radius:
         30px 30px 0 0;
@@ -438,8 +454,7 @@ body {
 
     padding: 20px 0;
 
-    color:
-        var(--grey);
+    color: var(--grey);
 
     text-align: center;
 
@@ -491,8 +506,7 @@ body {
 
     font-size: 15px;
 
-    color:
-        var(--grey);
+    color: var(--grey);
 
 }
 
@@ -518,11 +532,9 @@ body {
 
     border-radius: 12px;
 
-    background:
-        var(--lavender);
+    background: var(--lavender);
 
-    color:
-        var(--blue-dark);
+    color: var(--blue-dark);
 
     font-size: 25px;
 
@@ -556,8 +568,7 @@ body {
 
     align-items: center;
 
-    padding:
-        20px 5px;
+    padding: 20px 5px;
 
     border-top:
         3px solid
@@ -589,11 +600,9 @@ body {
 
     border-radius: 18px;
 
-    background:
-        var(--green);
+    background: var(--green);
 
-    color:
-        var(--blue-dark);
+    color: var(--blue-dark);
 
     font-size: 23px;
 
@@ -663,8 +672,7 @@ body {
 
     border-radius: 18px;
 
-    background:
-        var(--lavender);
+    background: var(--lavender);
 
     font-size: 42px;
 
@@ -685,15 +693,13 @@ body {
 
     align-items: center;
 
-    margin:
-        20px 0;
+    margin: 20px 0;
 
     padding: 20px;
 
     border-radius: 18px;
 
-    background:
-        var(--yellow);
+    background: var(--yellow);
 
     font-size: 22px;
 
@@ -724,8 +730,7 @@ body {
 
     max-width: 360px;
 
-    margin:
-        20px auto;
+    margin: 20px auto;
 
 }
 
@@ -738,11 +743,9 @@ body {
 
     border-radius: 15px;
 
-    background:
-        var(--lavender);
+    background: var(--lavender);
 
-    color:
-        var(--blue-dark);
+    color: var(--blue-dark);
 
     font-size: 25px;
 
@@ -755,22 +758,20 @@ body {
 
 .payment-key:active {
 
-    transform:
-        scale(0.96);
+    transform: scale(0.96);
 
 }
 
 
 .delete-key {
 
-    background:
-        var(--yellow);
+    background: var(--yellow);
 
 }
 
 
 /* ========================================
-   PAID
+   PAID BUTTON
    ======================================== */
 
 .paid-button {
@@ -785,11 +786,9 @@ body {
 
     border-radius: 18px;
 
-    background:
-        var(--green);
+    background: var(--green);
 
-    color:
-        var(--blue-dark);
+    color: var(--blue-dark);
 
     font-size: 24px;
 
@@ -821,6 +820,8 @@ body {
 
     align-items: center;
 
+    min-height: 100vh;
+
     padding: 30px 20px;
 
     text-align: center;
@@ -839,6 +840,12 @@ body {
 
 .success-icon {
 
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
     width: 110px;
 
     height: 110px;
@@ -848,17 +855,9 @@ body {
 
     border-radius: 50%;
 
-    display: flex;
+    background: var(--green);
 
-    justify-content: center;
-
-    align-items: center;
-
-    background:
-        var(--green);
-
-    color:
-        var(--blue-dark);
+    color: var(--blue-dark);
 
     font-size: 70px;
 
@@ -869,18 +868,16 @@ body {
 
 .success-content h1 {
 
-    font-size: 32px;
+    margin: 0 0 10px;
 
-    margin:
-        0 0 10px;
+    font-size: 32px;
 
 }
 
 
 .success-content p {
 
-    color:
-        var(--grey);
+    color: var(--grey);
 
     font-size: 19px;
 
@@ -889,15 +886,13 @@ body {
 
 .success-change {
 
-    margin:
-        25px 0;
+    margin: 25px 0;
 
     padding: 20px;
 
     border-radius: 18px;
 
-    background:
-        var(--yellow);
+    background: var(--yellow);
 
     font-size: 21px;
 
@@ -925,11 +920,9 @@ body {
 
     border-radius: 18px;
 
-    background:
-        var(--blue-dark);
+    background: var(--blue-dark);
 
-    color:
-        var(--white);
+    color: var(--white);
 
     font-size: 22px;
 
@@ -950,8 +943,7 @@ body {
 
     background: transparent;
 
-    color:
-        var(--blue-dark);
+    color: var(--blue-dark);
 
     font-size: 18px;
 
@@ -1000,8 +992,7 @@ body {
 
     border-radius: 28px;
 
-    background:
-        var(--white);
+    background: var(--white);
 
     box-shadow:
         0 20px 60px
@@ -1027,8 +1018,7 @@ body {
     margin:
         0 0 20px;
 
-    color:
-        var(--grey);
+    color: var(--grey);
 
     font-size: 17px;
 
@@ -1047,8 +1037,7 @@ body {
 
     background: transparent;
 
-    color:
-        var(--grey);
+    color: var(--grey);
 
     font-size: 30px;
 
@@ -1106,11 +1095,9 @@ body {
 
     border-radius: 14px;
 
-    background:
-        var(--lavender);
+    background: var(--lavender);
 
-    color:
-        var(--blue-dark);
+    color: var(--blue-dark);
 
     font-size: 22px;
 
@@ -1123,8 +1110,7 @@ body {
 
 .pin-keypad .delete-key {
 
-    background:
-        var(--yellow);
+    background: var(--yellow);
 
 }
 
@@ -1152,11 +1138,9 @@ body {
 
     border-radius: 15px;
 
-    background:
-        var(--green);
+    background: var(--green);
 
-    color:
-        var(--blue-dark);
+    color: var(--blue-dark);
 
     font-size: 21px;
 
@@ -1190,11 +1174,34 @@ body {
 }
 
 
-@media (max-width: 450px) {
+@media (max-width: 500px) {
+
+    .logo {
+
+        width: min(340px, 82vw);
+
+    }
+
 
     .home-screen h1 {
 
         font-size: 34px;
+
+    }
+
+
+    .subtitle {
+
+        font-size: 19px;
+
+    }
+
+
+    .main-button {
+
+        min-height: 70px;
+
+        font-size: 22px;
 
     }
 
@@ -1208,9 +1215,9 @@ body {
 
     .back-button {
 
-        font-size: 15px;
-
         left: 12px;
+
+        font-size: 15px;
 
     }
 
