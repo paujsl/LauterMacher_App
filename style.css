@@ -1,0 +1,71 @@
+/* ==============================
+   LAUTER MACHER - DESIGN
+   ============================== */
+
+/* Les couleurs de notre identité */
+:root {
+    --bleu: #09436A;
+    --bleu-clair: #5170FF;
+    --vert: #A8C00A;
+    --jaune: #FEC84D;
+    --lavande: #D2C7FF;
+    --blanc: #FFFFFF;
+}
+
+/* Apparence générale de la page */
+body {
+    margin: 0;
+    min-height: 100vh;
+
+    font-family: Arial, sans-serif;
+
+    background-color: var(--blanc);
+    color: var(--bleu);
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Conteneur principal */
+body {
+    text-align: center;
+}
+
+/* Titre */
+h1 {
+    font-size: 42px;
+    margin-bottom: 5px;
+}
+
+/* Sous-titre */
+p {
+    font-size: 20px;
+    margin-top: 0;
+    margin-bottom: 30px;
+}
+
+/* Nos boutons */
+button {
+    display: block;
+
+    width: 280px;
+    padding: 18px;
+    margin: 15px auto;
+
+    border: none;
+    border-radius: 16px;
+
+    background-color: var(--bleu);
+    color: var(--blanc);
+
+    font-size: 20px;
+    font-weight: bold;
+
+    cursor: pointer;
+}
+
+/* Quand on passe la souris dessus */
+button:hover {
+    background-color: var(--bleu-clair);
+}
