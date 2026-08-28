@@ -1,11 +1,11 @@
 // ========================================
 // LAUTER MACHER
-// Application JavaScript
+// JavaScript
 // ========================================
 
 
 // ========================================
-// 1. ELEMENTS DE LA PAGE
+// ELEMENTS
 // ========================================
 
 const adminButton = document.getElementById("adminButton");
@@ -22,40 +22,55 @@ const numberButtons = document.querySelectorAll(".number-button");
 
 
 // ========================================
-// 2. PIN ACTUELLEMENT SAISI
+// PIN
 // ========================================
 
 let enteredPin = "";
 
 
 // ========================================
-// 3. OUVRIR LA FENETRE ADMIN
+// OUVRIR ADMIN
 // ========================================
 
 adminButton.addEventListener("click", function () {
 
     pinModal.style.display = "flex";
 
+    pinModal.setAttribute("aria-hidden", "false");
+
 });
 
 
 // ========================================
-// 4. FERMER LA FENETRE ADMIN
+// FERMER ADMIN
 // ========================================
 
 cancelButton.addEventListener("click", function () {
 
+    closePinModal();
+
+});
+
+
+// ========================================
+// FONCTION FERMER POP-UP
+// ========================================
+
+function closePinModal() {
+
     pinModal.style.display = "none";
+
+    pinModal.setAttribute("aria-hidden", "true");
 
     enteredPin = "";
 
     updatePinDisplay();
 
-});
+}
 
 
 // ========================================
-// 5. CLIQUER SUR UN CHIFFRE
+// CHIFFRES
 // ========================================
 
 numberButtons.forEach(function (button) {
@@ -76,7 +91,7 @@ numberButtons.forEach(function (button) {
 
 
 // ========================================
-// 6. SUPPRIMER UN CHIFFRE
+// SUPPRIMER
 // ========================================
 
 deleteButton.addEventListener("click", function () {
@@ -89,21 +104,22 @@ deleteButton.addEventListener("click", function () {
 
 
 // ========================================
-// 7. AFFICHER LES POINTS DU PIN
+// AFFICHAGE PIN
 // ========================================
 
 function updatePinDisplay() {
 
-    const pin1 = document.getElementById("pin1");
+    const pins = [
 
-    const pin2 = document.getElementById("pin2");
+        document.getElementById("pin1"),
 
-    const pin3 = document.getElementById("pin3");
+        document.getElementById("pin2"),
 
-    const pin4 = document.getElementById("pin4");
+        document.getElementById("pin3"),
 
+        document.getElementById("pin4")
 
-    const pins = [pin1, pin2, pin3, pin4];
+    ];
 
 
     pins.forEach(function (pin, index) {
@@ -124,7 +140,7 @@ function updatePinDisplay() {
 
 
 // ========================================
-// 8. BOUTON OK
+// CONFIRMATION
 // ========================================
 
 confirmButton.addEventListener("click", function () {
@@ -137,7 +153,6 @@ confirmButton.addEventListener("click", function () {
 
     }
 
-
-    alert("PIN eingegeben: " + enteredPin);
+    alert("PIN eingegeben.");
 
 });
