@@ -1,71 +1,138 @@
-/* ==============================
-   LAUTER MACHER - DESIGN
-   ============================== */
+/* ========================================
+   LAUTER MACHER
+   Hauptdesign
+   ======================================== */
 
-/* Les couleurs de notre identité */
+
+/* ========================================
+   1. FARBEN
+   ======================================== */
+
 :root {
-    --bleu: #09436A;
-    --bleu-clair: #5170FF;
-    --vert: #A8C00A;
-    --jaune: #FEC84D;
-    --lavande: #D2C7FF;
-    --blanc: #FFFFFF;
+    --blau: #09436A;
+    --blau-hell: #5170FF;
+    --gruen: #A8C00A;
+    --gelb: #FEC84D;
+    --lavendel: #D2C7FF;
+    --weiss: #FFFFFF;
 }
 
-/* Apparence générale de la page */
+
+/* ========================================
+   2. GRUNDLAYOUT
+   ======================================== */
+
 body {
     margin: 0;
     min-height: 100vh;
 
     font-family: Arial, sans-serif;
 
-    background-color: var(--blanc);
-    color: var(--bleu);
+    background-color: var(--weiss);
+    color: var(--blau);
 
     display: flex;
     justify-content: center;
     align-items: center;
-}
 
-/* Conteneur principal */
-body {
     text-align: center;
 }
 
-/* Titre */
+
+/* ========================================
+   3. HAUPTBEREICH
+   ======================================== */
+
+.home {
+    width: 100%;
+    max-width: 500px;
+
+    padding: 40px 20px;
+}
+
+
+/* ========================================
+   4. LOGO
+   ======================================== */
+
+.logo {
+    width: 220px;
+    height: auto;
+
+    margin-bottom: 10px;
+}
+
+
+/* ========================================
+   5. TITEL
+   ======================================== */
+
 h1 {
     font-size: 42px;
+
+    margin-top: 0;
     margin-bottom: 5px;
+
+    color: var(--blau);
 }
 
-/* Sous-titre */
+
+/* ========================================
+   6. UNTERTITEL
+   ======================================== */
+
 p {
     font-size: 20px;
+
     margin-top: 0;
     margin-bottom: 30px;
+
+    color: var(--blau);
 }
 
-/* Nos boutons */
+
+/* ========================================
+   7. BUTTONS
+   ======================================== */
+
 button {
     display: block;
 
     width: 280px;
+
     padding: 18px;
+
     margin: 15px auto;
 
     border: none;
+
     border-radius: 16px;
 
-    background-color: var(--bleu);
-    color: var(--blanc);
+    background-color: var(--blau);
+
+    color: var(--weiss);
 
     font-size: 20px;
+
     font-weight: bold;
 
     cursor: pointer;
 }
 
-/* Quand on passe la souris dessus */
+
+/* ========================================
+   8. BUTTON - SOURIS
+   ======================================== */
+
 button:hover {
-    background-color: var(--bleu-clair);
+    background-color: var(--blau-hell);
+}
+
+
+/* ========================================
+   9. BUTTON - CLIC
+   ======================================== */
+
+button:active {
+    transform: scale(0.98);
 }
