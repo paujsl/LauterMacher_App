@@ -9,12 +9,19 @@
    ======================================== */
 
 :root {
+
     --blau: #09436A;
+
     --blau-hell: #5170FF;
+
     --gruen: #A8C00A;
+
     --gelb: #FEC84D;
+
     --lavendel: #D2C7FF;
+
     --weiss: #FFFFFF;
+
 }
 
 
@@ -23,19 +30,19 @@
    ======================================== */
 
 body {
+
     margin: 0;
+
     min-height: 100vh;
 
     font-family: Arial, sans-serif;
 
     background-color: var(--weiss);
+
     color: var(--blau);
 
-    display: flex;
-    justify-content: center;
-    align-items: center;
-
     text-align: center;
+
 }
 
 
@@ -44,10 +51,17 @@ body {
    ======================================== */
 
 .home {
+
     width: 100%;
+
     max-width: 500px;
 
+    margin: 0 auto;
+
     padding: 40px 20px;
+
+    box-sizing: border-box;
+
 }
 
 
@@ -56,83 +70,369 @@ body {
    ======================================== */
 
 .logo {
+
     width: 220px;
+
     height: auto;
 
     margin-bottom: 10px;
+
 }
 
 
 /* ========================================
-   5. TITEL
+   5. TITRE
    ======================================== */
 
 h1 {
+
     font-size: 42px;
 
     margin-top: 0;
+
     margin-bottom: 5px;
 
     color: var(--blau);
+
 }
 
 
 /* ========================================
-   6. UNTERTITEL
+   6. SOUS-TITRE
    ======================================== */
 
 p {
+
     font-size: 20px;
 
     margin-top: 0;
+
     margin-bottom: 30px;
 
     color: var(--blau);
+
 }
 
 
 /* ========================================
-   7. BUTTONS
+   7. BOUTONS PRINCIPAUX
    ======================================== */
 
-button {
+.main-button {
+
     display: block;
 
     width: 280px;
 
+    min-height: 70px;
+
     padding: 18px;
 
-    margin: 15px auto;
+    margin: 18px auto;
 
     border: none;
 
-    border-radius: 16px;
+    border-radius: 18px;
 
-    background-color: var(--blau);
+    color: var(--blanc);
 
-    color: var(--weiss);
-
-    font-size: 20px;
+    font-size: 22px;
 
     font-weight: bold;
 
     cursor: pointer;
+
 }
 
 
 /* ========================================
-   8. BUTTON - SOURIS
+   8. BOUTON VERKAUF
    ======================================== */
 
-button:hover {
+.sale-button {
+
+    background-color: var(--blau);
+
+}
+
+
+/* ========================================
+   9. BOUTON ADMIN
+   ======================================== */
+
+.admin-button {
+
+    background-color: var(--lavendel);
+
+    color: var(--blau);
+
+}
+
+
+/* ========================================
+   10. EFFET SOURIS
+   ======================================== */
+
+.main-button:hover {
+
     background-color: var(--blau-hell);
+
+    color: var(--weiss);
+
 }
 
 
 /* ========================================
-   9. BUTTON - CLIC
+   11. EFFET CLIC
    ======================================== */
 
-button:active {
+.main-button:active {
+
     transform: scale(0.98);
+
+}
+
+
+/* ========================================
+   12. ECRAN PIN
+   ======================================== */
+
+.pin-screen {
+
+    display: none;
+
+    position: fixed;
+
+    top: 0;
+
+    left: 0;
+
+    width: 100%;
+
+    height: 100%;
+
+    background-color: var(--weiss);
+
+    justify-content: center;
+
+    align-items: center;
+
+}
+
+
+/* ========================================
+   13. BOITE PIN
+   ======================================== */
+
+.pin-box {
+
+    width: 90%;
+
+    max-width: 380px;
+
+    padding: 30px;
+
+    box-sizing: border-box;
+
+}
+
+
+/* ========================================
+   14. TITRE PIN
+   ======================================== */
+
+.pin-box h2 {
+
+    font-size: 32px;
+
+    margin-bottom: 10px;
+
+}
+
+
+/* ========================================
+   15. AFFICHAGE DU PIN
+   ======================================== */
+
+.pin-display {
+
+    display: flex;
+
+    justify-content: center;
+
+    gap: 18px;
+
+    margin: 25px 0;
+
+    font-size: 32px;
+
+    color: var(--blau);
+
+}
+
+
+/* ========================================
+   16. PAVE NUMERIQUE
+   ======================================== */
+
+.keypad {
+
+    display: grid;
+
+    grid-template-columns: repeat(3, 1fr);
+
+    gap: 12px;
+
+    max-width: 300px;
+
+    margin: 0 auto 20px auto;
+
+}
+
+
+/* ========================================
+   17. TOUCHES
+   ======================================== */
+
+.keypad button {
+
+    height: 65px;
+
+    border: none;
+
+    border-radius: 15px;
+
+    background-color: var(--lavendel);
+
+    color: var(--blau);
+
+    font-size: 24px;
+
+    font-weight: bold;
+
+    cursor: pointer;
+
+}
+
+
+/* ========================================
+   18. TOUCHES - SOURIS
+   ======================================== */
+
+.keypad button:hover {
+
+    background-color: var(--jaune);
+
+}
+
+
+/* ========================================
+   19. TOUCHE VIDE
+   ======================================== */
+
+.empty-key {
+
+    visibility: hidden;
+
+}
+
+
+/* ========================================
+   20. TOUCHE SUPPRIMER
+   ======================================== */
+
+.delete-key {
+
+    background-color: var(--jaune) !important;
+
+}
+
+
+/* ========================================
+   21. BOUTON OK
+   ======================================== */
+
+.pin-confirm {
+
+    width: 300px;
+
+    max-width: 100%;
+
+    height: 60px;
+
+    border: none;
+
+    border-radius: 15px;
+
+    background-color: var(--gruen);
+
+    color: var(--blau);
+
+    font-size: 22px;
+
+    font-weight: bold;
+
+    cursor: pointer;
+
+}
+
+
+/* ========================================
+   22. BOUTON RETOUR
+   ======================================== */
+
+.pin-cancel {
+
+    display: block;
+
+    margin: 18px auto;
+
+    border: none;
+
+    background: none;
+
+    color: var(--blau);
+
+    font-size: 18px;
+
+    cursor: pointer;
+
+}
+
+
+/* ========================================
+   23. RESPONSIVE
+   ======================================== */
+
+@media (max-width: 600px) {
+
+    .home {
+
+        padding-top: 25px;
+
+    }
+
+
+    .logo {
+
+        width: 180px;
+
+    }
+
+
+    h1 {
+
+        font-size: 34px;
+
+    }
+
+
+    .main-button {
+
+        width: 90%;
+
+        max-width: 320px;
+
+    }
+
 }
