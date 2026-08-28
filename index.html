@@ -12,10 +12,6 @@
 
 <body>
 
-    <!-- ==============================
-         STARTSEITE
-         ============================== -->
-
     <main class="home">
 
         <img
@@ -28,37 +24,38 @@
 
         <p>Schülerfirma</p>
 
-
-        <!-- VERKAUF -->
-
-        <button class="main-button sale-button">
+        <button
+            class="main-button sale-button"
+            id="saleButton"
+        >
             🛒 Verkauf
         </button>
 
-
-        <!-- ADMIN -->
-
-        <button class="main-button admin-button" id="adminButton">
+        <button
+            class="main-button admin-button"
+            id="adminButton"
+        >
             ⚙️ Admin
         </button>
 
     </main>
 
 
-    <!-- ==============================
-         ADMIN PIN - POP-UP
-         ============================== -->
+    <!-- ========================================
+         ADMIN PIN POP-UP
+         ======================================== -->
 
-    <div class="modal" id="pinModal">
+    <div
+        class="modal"
+        id="pinModal"
+        aria-hidden="true"
+    >
 
         <div class="pin-box">
 
             <h2>🔐 Admin</h2>
 
             <p>PIN eingeben</p>
-
-
-            <!-- PIN ANZEIGE -->
 
             <div class="pin-display">
 
@@ -69,8 +66,6 @@
 
             </div>
 
-
-            <!-- NUMERISCHES TASTENFELD -->
 
             <div class="keypad">
 
@@ -86,27 +81,35 @@
                 <button class="number-button">8</button>
                 <button class="number-button">9</button>
 
-                <button class="empty-key"></button>
+                <button
+                    class="empty-key"
+                    aria-hidden="true"
+                ></button>
 
                 <button class="number-button">0</button>
 
-                <button class="delete-key" id="deleteButton">
+                <button
+                    class="delete-key"
+                    id="deleteButton"
+                >
                     ⌫
                 </button>
 
             </div>
 
 
-            <!-- CONFIRMER -->
-
-            <button class="pin-confirm" id="confirmButton">
+            <button
+                class="pin-confirm"
+                id="confirmButton"
+            >
                 OK
             </button>
 
 
-            <!-- RETOUR -->
-
-            <button class="pin-cancel" id="cancelButton">
+            <button
+                class="pin-cancel"
+                id="cancelButton"
+            >
                 ← Zurück
             </button>
 
@@ -114,8 +117,6 @@
 
     </div>
 
-
-    <!-- JAVASCRIPT -->
 
     <script src="app.js"></script>
 
