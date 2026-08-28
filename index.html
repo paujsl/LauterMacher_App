@@ -12,6 +12,10 @@
 
 <body>
 
+    <!-- ==============================
+         STARTSEITE
+         ============================== -->
+
     <main class="home">
 
         <img
@@ -24,15 +28,83 @@
 
         <p>Schülerfirma</p>
 
-        <button>🛒 Verkauf</button>
 
-        <button>📦 Inventar</button>
+        <!-- VERKAUF -->
 
-        <button>📊 Auswertung</button>
+        <button class="main-button sale-button">
+            🛒 Verkauf
+        </button>
 
-        <button>⚙️ Admin</button>
+
+        <!-- ADMIN -->
+
+        <button class="main-button admin-button">
+            ⚙️ Admin
+        </button>
 
     </main>
+
+
+    <!-- ==============================
+         ADMIN PIN
+         ============================== -->
+
+    <section class="pin-screen">
+
+        <div class="pin-box">
+
+            <h2>🔐 Admin</h2>
+
+            <p>PIN eingeben</p>
+
+
+            <!-- PIN ANZEIGE -->
+
+            <div class="pin-display">
+
+                <span>•</span>
+                <span>•</span>
+                <span>•</span>
+                <span>•</span>
+
+            </div>
+
+
+            <!-- NUMERISCHES TASTENFELD -->
+
+            <div class="keypad">
+
+                <button>1</button>
+                <button>2</button>
+                <button>3</button>
+
+                <button>4</button>
+                <button>5</button>
+                <button>6</button>
+
+                <button>7</button>
+                <button>8</button>
+                <button>9</button>
+
+                <button class="empty-key"></button>
+                <button>0</button>
+                <button class="delete-key">⌫</button>
+
+            </div>
+
+
+            <button class="pin-confirm">
+                OK
+            </button>
+
+
+            <button class="pin-cancel">
+                ← Zurück
+            </button>
+
+        </div>
+
+    </section>
 
 </body>
 
