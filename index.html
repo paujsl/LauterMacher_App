@@ -1,522 +1,393 @@
 <!DOCTYPE html>
 <html lang="de">
-
 <head>
     <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <meta
-        name="theme-color"
-        content="#09436a"
-    >
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#09436a">
     <title>Lauter Macher</title>
-
-    <!-- v=2 zwingt den Browser, die neue CSS-Version zu laden -->
-    <link
-        rel="stylesheet"
-        href="style.css?v=2"
-    >
+    <link rel="stylesheet" href="style.css?v=3">
 </head>
-
 
 <body>
 
-    <!-- =====================================
+    <!-- ==============================
          STARTSEITE
-         ===================================== -->
+         ============================== -->
+    <main id="homeScreen" class="screen home-screen">
+        <img src="./Logo_LM.png?v=3" alt="Lauter Macher Logo" class="logo">
 
-    <main
-        id="homeScreen"
-        class="screen home-screen"
-    >
-
-        <img
-            src="./Logo_LM.png?v=2"
-            alt="Lauter Macher Logo"
-            class="logo"
-        >
-
-        <h1>
-            Lauter Macher
-        </h1>
-
-        <p class="subtitle">
-            Schülerfirma
-        </p>
-
+        <h1>Lauter Macher</h1>
+        <p class="subtitle">Schülerfirma</p>
 
         <div class="home-buttons">
-
-            <button
-                id="saleButton"
-                class="main-button sale-main-button"
-            >
+            <button id="saleButton" class="main-button sale-main-button">
                 🛒 Verkauf
             </button>
 
-
-            <button
-                id="adminButton"
-                class="main-button admin-main-button"
-            >
+            <button id="adminButton" class="main-button admin-main-button">
                 ⚙️ Admin
             </button>
-
         </div>
-
     </main>
 
 
-    <!-- =====================================
+    <!-- ==============================
          VERKAUF
-         ===================================== -->
-
-    <main
-        id="saleScreen"
-        class="screen sale-screen"
-    >
-
+         ============================== -->
+    <main id="saleScreen" class="screen">
         <header class="screen-header">
-
-            <button
-                id="saleBackButton"
-                class="back-button"
-            >
-                ← Zurück
-            </button>
-
-            <h1>
-                🛒 Verkauf
-            </h1>
-
+            <button id="saleBackButton" class="back-button">← Startseite</button>
+            <h1>🛒 Verkauf</h1>
         </header>
 
-
-        <!-- GETRÄNKE -->
-
         <section class="product-section">
-
             <div class="section-title">
-
-                <span class="section-icon">
-                    🥤
-                </span>
-
-                <h2>
-                    Getränke
-                </h2>
-
+                <span class="section-icon">🥤</span>
+                <h2>Getränke</h2>
             </div>
-
-
-            <div
-                id="drinksGrid"
-                class="product-grid"
-            >
-            </div>
-
+            <div id="drinksGrid" class="product-grid"></div>
         </section>
 
-
-        <!-- BÄCKEREI -->
-
         <section class="product-section">
-
             <div class="section-title">
-
-                <span class="section-icon">
-                    🥨
-                </span>
-
-                <h2>
-                    Bäckerei
-                </h2>
-
+                <span class="section-icon">🥨</span>
+                <h2>Bäckerei</h2>
             </div>
-
-
-            <div
-                id="bakeryGrid"
-                class="product-grid"
-            >
-            </div>
-
+            <div id="bakeryGrid" class="product-grid"></div>
         </section>
-
-
-        <!-- WARENKORB -->
 
         <section class="cart-section">
-
             <div class="section-title">
-
-                <span class="section-icon">
-                    🛒
-                </span>
-
-                <h2>
-                    Warenkorb
-                </h2>
-
+                <span class="section-icon">🛒</span>
+                <h2>Warenkorb</h2>
             </div>
 
-
-            <div
-                id="cartItems"
-                class="cart-items"
-            >
-            </div>
-
+            <div id="cartItems" class="cart-items"></div>
 
             <div class="cart-total">
-
-                <span>
-                    Gesamt
-                </span>
-
-                <strong id="cartTotal">
-                    0,00 €
-                </strong>
-
+                <span>Gesamt</span>
+                <strong id="cartTotal">0,00 €</strong>
             </div>
 
-
-            <button
-                id="payButton"
-                class="pay-button"
-                disabled
-            >
+            <button id="payButton" class="pay-button" disabled>
                 💰 Bezahlen
             </button>
-
         </section>
-
     </main>
 
 
-    <!-- =====================================
+    <!-- ==============================
          BEZAHLEN
-         ===================================== -->
-
-    <main
-        id="paymentScreen"
-        class="screen payment-screen"
-    >
-
+         ============================== -->
+    <main id="paymentScreen" class="screen">
         <header class="screen-header">
-
-            <button
-                id="paymentBackButton"
-                class="back-button"
-            >
-                ← Zurück
-            </button>
-
-            <h1>
-                💰 Bezahlen
-            </h1>
-
+            <button id="paymentBackButton" class="back-button">← Verkauf</button>
+            <h1>💰 Bezahlen</h1>
         </header>
 
-
         <section class="payment-container">
+            <div class="payment-label">Zu zahlen</div>
+            <div id="paymentTotal" class="payment-total">0,00 €</div>
 
-            <div class="payment-label">
-                Zu zahlen
-            </div>
-
-            <div
-                id="paymentTotal"
-                class="payment-total"
-            >
-                0,00 €
-            </div>
-
-
-            <div class="payment-label">
-                Kunde gibt
-            </div>
-
-            <div
-                id="amountReceived"
-                class="amount-received"
-            >
-                0,00 €
-            </div>
-
+            <div class="payment-label">Kunde gibt</div>
+            <div id="amountReceived" class="amount-received">0,00 €</div>
 
             <div class="change-container">
-
-                <span>
-                    Rückgeld
-                </span>
-
-                <strong id="changeAmount">
-                    0,00 €
-                </strong>
-
+                <span>Rückgeld</span>
+                <strong id="changeAmount">0,00 €</strong>
             </div>
-
-
-            <!-- TASTATUR -->
 
             <div class="payment-keypad">
-
-                <button class="payment-key">
-                    1
-                </button>
-
-                <button class="payment-key">
-                    2
-                </button>
-
-                <button class="payment-key">
-                    3
-                </button>
-
-
-                <button class="payment-key">
-                    4
-                </button>
-
-                <button class="payment-key">
-                    5
-                </button>
-
-                <button class="payment-key">
-                    6
-                </button>
-
-
-                <button class="payment-key">
-                    7
-                </button>
-
-                <button class="payment-key">
-                    8
-                </button>
-
-                <button class="payment-key">
-                    9
-                </button>
-
-
-                <button
-                    class="payment-key decimal-key"
-                >
-                    ,
-                </button>
-
-                <button class="payment-key">
-                    0
-                </button>
-
-                <button
-                    id="deletePaymentButton"
-                    class="payment-key delete-key"
-                >
-                    ⌫
-                </button>
-
+                <button class="payment-key">1</button>
+                <button class="payment-key">2</button>
+                <button class="payment-key">3</button>
+                <button class="payment-key">4</button>
+                <button class="payment-key">5</button>
+                <button class="payment-key">6</button>
+                <button class="payment-key">7</button>
+                <button class="payment-key">8</button>
+                <button class="payment-key">9</button>
+                <button class="payment-key decimal-key">,</button>
+                <button class="payment-key">0</button>
+                <button id="deletePaymentButton" class="payment-key delete-key">⌫</button>
             </div>
 
-
-            <button
-                id="paidButton"
-                class="paid-button"
-                disabled
-            >
+            <button id="paidButton" class="paid-button" disabled>
                 ✔ Bezahlt
             </button>
-
         </section>
-
     </main>
 
 
-    <!-- =====================================
+    <!-- ==============================
          ERFOLG
-         ===================================== -->
-
-    <main
-        id="successScreen"
-        class="screen success-screen"
-    >
-
+         ============================== -->
+    <main id="successScreen" class="screen success-screen">
         <div class="success-content">
-
-            <div class="success-icon">
-                ✓
-            </div>
-
-
-            <h1>
-                Zahlung erfolgreich!
-            </h1>
-
-
-            <p>
-                Danke!
-            </p>
-
+            <div class="success-icon">✓</div>
+            <h1>Zahlung erfolgreich!</h1>
+            <p>Verkauf wurde gespeichert.</p>
 
             <div class="success-change">
-
                 Rückgeld:
-
-                <strong id="successChange">
-                    0,00 €
-                </strong>
-
+                <strong id="successChange">0,00 €</strong>
             </div>
 
-
-            <button
-                id="newOrderButton"
-                class="new-order-button"
-            >
+            <button id="newOrderButton" class="new-order-button">
                 🛒 Neue Bestellung
             </button>
 
-
-            <button
-                id="successHomeButton"
-                class="secondary-button"
-            >
+            <button id="successHomeButton" class="secondary-button">
                 ← Startseite
             </button>
-
         </div>
-
     </main>
 
 
-    <!-- =====================================
-         ADMIN PIN MODAL
-         ===================================== -->
-
-    <div
-        id="pinModal"
-        class="modal"
-        aria-hidden="true"
-    >
-
+    <!-- ==============================
+         ADMIN PIN
+         ============================== -->
+    <div id="pinModal" class="modal" aria-hidden="true">
         <div class="pin-box">
+            <button id="cancelButton" class="modal-close">×</button>
 
-            <button
-                id="cancelButton"
-                class="modal-close"
-            >
-                ×
-            </button>
+            <h2>🔐 Admin</h2>
+            <p>PIN eingeben</p>
 
-
-            <h2>
-                🔐 Admin
-            </h2>
-
-
-            <p>
-                PIN eingeben
-            </p>
-
-
-            <div
-                id="pinDisplay"
-                class="pin-display"
-            >
-
+            <div id="pinDisplay" class="pin-display">
                 <span>○</span>
                 <span>○</span>
                 <span>○</span>
                 <span>○</span>
-
             </div>
-
 
             <div class="pin-keypad">
-
-                <button class="number-button">
-                    1
-                </button>
-
-                <button class="number-button">
-                    2
-                </button>
-
-                <button class="number-button">
-                    3
-                </button>
-
-
-                <button class="number-button">
-                    4
-                </button>
-
-                <button class="number-button">
-                    5
-                </button>
-
-                <button class="number-button">
-                    6
-                </button>
-
-
-                <button class="number-button">
-                    7
-                </button>
-
-                <button class="number-button">
-                    8
-                </button>
-
-                <button class="number-button">
-                    9
-                </button>
-
-
-                <button class="empty-key">
-                </button>
-
-                <button class="number-button">
-                    0
-                </button>
-
-                <button
-                    id="deleteButton"
-                    class="delete-key"
-                >
-                    ⌫
-                </button>
-
+                <button class="number-button">1</button>
+                <button class="number-button">2</button>
+                <button class="number-button">3</button>
+                <button class="number-button">4</button>
+                <button class="number-button">5</button>
+                <button class="number-button">6</button>
+                <button class="number-button">7</button>
+                <button class="number-button">8</button>
+                <button class="number-button">9</button>
+                <button class="empty-key"></button>
+                <button class="number-button">0</button>
+                <button id="deleteButton" class="delete-key">⌫</button>
             </div>
 
-
-            <button
-                id="confirmButton"
-                class="pin-confirm"
-            >
-                OK
-            </button>
-
+            <button id="confirmButton" class="pin-confirm">OK</button>
         </div>
-
     </div>
 
 
-    <!-- =====================================
-         JAVASCRIPT
-         ===================================== -->
+    <!-- ==============================
+         ADMIN HOME
+         ============================== -->
+    <main id="adminScreen" class="screen admin-screen">
+        <header class="screen-header admin-header">
+            <button id="adminBackButton" class="back-button">← Startseite</button>
+            <h1>⚙️ Admin</h1>
+        </header>
 
-    <script src="js/products.js"></script>
+        <section class="admin-dashboard">
+            <div class="admin-welcome">
+                <span>👋</span>
+                <div>
+                    <strong>Willkommen im Admin-Bereich</strong>
+                    <p>Verwalte Verkäufe, Inventar und Produkte.</p>
+                </div>
+            </div>
 
-    <script src="app.js"></script>
+            <div class="admin-menu-grid">
+                <button id="reportsButton" class="admin-menu-card">
+                    <span class="admin-menu-icon">📊</span>
+                    <strong>Berichte</strong>
+                    <small>Tag · Woche · Monat</small>
+                </button>
 
+                <button id="inventoryButton" class="admin-menu-card">
+                    <span class="admin-menu-icon">📦</span>
+                    <strong>Inventar</strong>
+                    <small>Getränkebestand</small>
+                </button>
+
+                <button id="productsButton" class="admin-menu-card">
+                    <span class="admin-menu-icon">🥤</span>
+                    <strong>Produkte</strong>
+                    <small>Produkte & Preise</small>
+                </button>
+            </div>
+
+            <div class="admin-note">
+                💡 Die Daten werden auf diesem Gerät gespeichert.
+            </div>
+        </section>
+    </main>
+
+
+    <!-- ==============================
+         REPORTS
+         ============================== -->
+    <main id="reportsScreen" class="screen admin-page">
+        <header class="screen-header">
+            <button id="reportsBackButton" class="back-button">← Admin</button>
+            <h1>📊 Berichte</h1>
+        </header>
+
+        <section class="admin-content">
+            <div class="period-tabs">
+                <button class="period-tab active" data-period="day">Heute</button>
+                <button class="period-tab" data-period="week">Woche</button>
+                <button class="period-tab" data-period="month">Monat</button>
+            </div>
+
+            <div id="reportDateLabel" class="report-date-label"></div>
+
+            <div class="report-summary-grid">
+                <div class="summary-card">
+                    <span>💶</span>
+                    <small>Umsatz</small>
+                    <strong id="reportRevenue">0,00 €</strong>
+                </div>
+
+                <div class="summary-card">
+                    <span>🧾</span>
+                    <small>Verkäufe</small>
+                    <strong id="reportTransactions">0</strong>
+                </div>
+
+                <div class="summary-card">
+                    <span>🥤</span>
+                    <small>Getränke</small>
+                    <strong id="reportDrinks">0</strong>
+                </div>
+
+                <div class="summary-card">
+                    <span>🥨</span>
+                    <small>Bäckerei</small>
+                    <strong id="reportBakery">0</strong>
+                </div>
+            </div>
+
+            <div class="report-panel">
+                <div class="panel-heading">
+                    <h2>Verkaufte Produkte</h2>
+                </div>
+                <div id="reportProducts" class="report-product-list"></div>
+            </div>
+
+            <div class="report-actions">
+                <button id="exportReportButton" class="primary-action">
+                    📥 Bericht als CSV exportieren
+                </button>
+                <button id="clearReportsButton" class="danger-action">
+                    🗑️ Alle Verkaufsdaten löschen
+                </button>
+            </div>
+        </section>
+    </main>
+
+
+    <!-- ==============================
+         INVENTAR
+         ============================== -->
+    <main id="inventoryScreen" class="screen admin-page">
+        <header class="screen-header">
+            <button id="inventoryBackButton" class="back-button">← Admin</button>
+            <h1>📦 Inventar</h1>
+        </header>
+
+        <section class="admin-content">
+            <div class="inventory-intro">
+                <strong>Getränkebestand</strong>
+                <p>Die Bäckerei hat kein eigenes Inventar in dieser App.</p>
+            </div>
+
+            <div id="inventoryList" class="inventory-list"></div>
+        </section>
+    </main>
+
+
+    <!-- ==============================
+         PRODUKTE
+         ============================== -->
+    <main id="productsScreen" class="screen admin-page">
+        <header class="screen-header">
+            <button id="productsBackButton" class="back-button">← Admin</button>
+            <h1>🥤 Produkte</h1>
+        </header>
+
+        <section class="admin-content">
+            <div class="product-admin-toolbar">
+                <div>
+                    <strong>Produkte verwalten</strong>
+                    <p>Neue Produkte hinzufügen oder Preise ändern.</p>
+                </div>
+                <button id="addProductButton" class="primary-action small-action">
+                    ＋ Produkt
+                </button>
+            </div>
+
+            <div id="adminProductsList" class="admin-products-list"></div>
+        </section>
+    </main>
+
+
+    <!-- ==============================
+         PRODUKT MODAL
+         ============================== -->
+    <div id="productModal" class="modal" aria-hidden="true">
+        <div class="form-box">
+            <button id="closeProductModalButton" class="modal-close">×</button>
+
+            <h2 id="productModalTitle">Produkt hinzufügen</h2>
+
+            <label for="productNameInput">Name</label>
+            <input id="productNameInput" type="text" autocomplete="off">
+
+            <label for="productPriceInput">Preis (€)</label>
+            <input id="productPriceInput" type="number" inputmode="decimal" min="0" step="0.01">
+
+            <label for="productCategoryInput">Kategorie</label>
+            <select id="productCategoryInput">
+                <option value="drink">Getränk</option>
+                <option value="bakery">Bäckerei</option>
+            </select>
+
+            <label for="productIconInput">Symbol / Emoji</label>
+            <input id="productIconInput" type="text" value="🥤" maxlength="4" autocomplete="off">
+
+            <div class="form-actions">
+                <button id="cancelProductButton" class="secondary-action">Abbrechen</button>
+                <button id="saveProductButton" class="primary-action">Speichern</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ==============================
+         INVENTORY ADJUST MODAL
+         ============================== -->
+    <div id="inventoryModal" class="modal" aria-hidden="true">
+        <div class="form-box">
+            <button id="closeInventoryModalButton" class="modal-close">×</button>
+
+            <h2>📦 Bestand ändern</h2>
+            <p id="inventoryProductLabel" class="form-help"></p>
+
+            <label for="inventoryAmountInput">Menge hinzufügen</label>
+            <input id="inventoryAmountInput" type="number" inputmode="numeric" step="1">
+
+            <div class="form-actions">
+                <button id="cancelInventoryButton" class="secondary-action">Abbrechen</button>
+                <button id="saveInventoryButton" class="primary-action">Speichern</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="js/products.js?v=3"></script>
+    <script src="app.js?v=3"></script>
 </body>
-
 </html>
