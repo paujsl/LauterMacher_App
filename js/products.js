@@ -2,26 +2,17 @@
 // LAUTER MACHER
 // PRODUKTE
 // ========================================
-
-
-// ========================================
-// PRODUKTLISTE
-// ========================================
-//
-// WICHTIG:
-// Die Preise sind momentan Platzhalter.
-// Später können sie über den Admin-Bereich
-// geändert werden.
 //
 // category:
 // "drink" = Getränke
 // "bakery" = Bäckerei
 //
+// Die Produktliste dient als Startliste.
+// Änderungen durch den Admin werden lokal
+// auf dem Gerät gespeichert.
 // ========================================
 
-
 const PRODUCTS = [
-
     {
         id: "wasser",
         name: "Wasser",
@@ -29,8 +20,6 @@ const PRODUCTS = [
         category: "drink",
         icon: "💧"
     },
-
-
     {
         id: "apfelsaft",
         name: "Apfelsaft",
@@ -38,8 +27,6 @@ const PRODUCTS = [
         category: "drink",
         icon: "🧃"
     },
-
-
     {
         id: "caprisun",
         name: "Capri-Sun",
@@ -47,8 +34,6 @@ const PRODUCTS = [
         category: "drink",
         icon: "🧃"
     },
-
-
     {
         id: "fake-cola",
         name: "Fake Cola",
@@ -56,8 +41,6 @@ const PRODUCTS = [
         category: "drink",
         icon: "🥤"
     },
-
-
     {
         id: "fake-fanta",
         name: "Fake Fanta",
@@ -65,8 +48,6 @@ const PRODUCTS = [
         category: "drink",
         icon: "🥤"
     },
-
-
     {
         id: "fake-sprite",
         name: "Fake Sprite",
@@ -74,8 +55,6 @@ const PRODUCTS = [
         category: "drink",
         icon: "🥤"
     },
-
-
     {
         id: "isodrink",
         name: "Isodrink",
@@ -83,23 +62,4 @@ const PRODUCTS = [
         category: "drink",
         icon: "⚡"
     }
-
 ];
-
-
-// ========================================
-// SPÄTERE BÄCKEREI-PRODUKTE
-// ========================================
-//
-// Beispiel:
-//
-// {
-//     id: "brezel",
-//     name: "Brezel",
-//     price: 1.00,
-//     category: "bakery",
-//     icon: "🥨"
-// }
-//
-// Die Bäckerei wird später ergänzt.
-// ========================================
