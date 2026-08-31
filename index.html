@@ -2,392 +2,869 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#09436a">
-    <title>Lauter Macher</title>
-    <link rel="stylesheet" href="style.css?v=3">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="theme-color"
+        content="#09436a"
+    >
+
+    <title>LauterMacher</title>
+
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-    <!-- ==============================
-         STARTSEITE
-         ============================== -->
-    <main id="homeScreen" class="screen home-screen">
-        <img src="./Logo_LM.png?v=3" alt="Lauter Macher Logo" class="logo">
+    <!-- ========================================
+         APP
+    ========================================= -->
 
-        <h1>Lauter Macher</h1>
-        <p class="subtitle">Schülerfirma</p>
+    <div id="app">
 
-        <div class="home-buttons">
-            <button id="saleButton" class="main-button sale-main-button">
-                🛒 Verkauf
-            </button>
+        <!-- ========================================
+             STARTSEITE
+        ========================================= -->
 
-            <button id="adminButton" class="main-button admin-main-button">
-                ⚙️ Admin
-            </button>
-        </div>
-    </main>
+        <section id="home-screen" class="screen active">
 
+            <div class="home-container">
 
-    <!-- ==============================
-         VERKAUF
-         ============================== -->
-    <main id="saleScreen" class="screen">
-        <header class="screen-header">
-            <button id="saleBackButton" class="back-button">← Startseite</button>
-            <h1>🛒 Verkauf</h1>
-        </header>
+                <img
+                    src="Logo_LM.png"
+                    alt="LauterMacher Logo"
+                    class="main-logo"
+                >
 
-        <section class="product-section">
-            <div class="section-title">
-                <span class="section-icon">🥤</span>
-                <h2>Getränke</h2>
-            </div>
-            <div id="drinksGrid" class="product-grid"></div>
-        </section>
+                <h1>LauterMacher</h1>
 
-        <section class="product-section">
-            <div class="section-title">
-                <span class="section-icon">🥨</span>
-                <h2>Bäckerei</h2>
-            </div>
-            <div id="bakeryGrid" class="product-grid"></div>
-        </section>
+                <p class="subtitle">
+                    Schülerunternehmen
+                </p>
 
-        <section class="cart-section">
-            <div class="section-title">
-                <span class="section-icon">🛒</span>
-                <h2>Warenkorb</h2>
-            </div>
+                <div class="main-buttons">
 
-            <div id="cartItems" class="cart-items"></div>
+                    <button
+                        id="btn-verkauf"
+                        class="main-button"
+                    >
+                        🛒 Verkauf
+                    </button>
 
-            <div class="cart-total">
-                <span>Gesamt</span>
-                <strong id="cartTotal">0,00 €</strong>
-            </div>
+                    <button
+                        id="btn-admin"
+                        class="main-button"
+                    >
+                        ⚙️ Admin
+                    </button>
 
-            <button id="payButton" class="pay-button" disabled>
-                💰 Bezahlen
-            </button>
-        </section>
-    </main>
-
-
-    <!-- ==============================
-         BEZAHLEN
-         ============================== -->
-    <main id="paymentScreen" class="screen">
-        <header class="screen-header">
-            <button id="paymentBackButton" class="back-button">← Verkauf</button>
-            <h1>💰 Bezahlen</h1>
-        </header>
-
-        <section class="payment-container">
-            <div class="payment-label">Zu zahlen</div>
-            <div id="paymentTotal" class="payment-total">0,00 €</div>
-
-            <div class="payment-label">Kunde gibt</div>
-            <div id="amountReceived" class="amount-received">0,00 €</div>
-
-            <div class="change-container">
-                <span>Rückgeld</span>
-                <strong id="changeAmount">0,00 €</strong>
-            </div>
-
-            <div class="payment-keypad">
-                <button class="payment-key">1</button>
-                <button class="payment-key">2</button>
-                <button class="payment-key">3</button>
-                <button class="payment-key">4</button>
-                <button class="payment-key">5</button>
-                <button class="payment-key">6</button>
-                <button class="payment-key">7</button>
-                <button class="payment-key">8</button>
-                <button class="payment-key">9</button>
-                <button class="payment-key decimal-key">,</button>
-                <button class="payment-key">0</button>
-                <button id="deletePaymentButton" class="payment-key delete-key">⌫</button>
-            </div>
-
-            <button id="paidButton" class="paid-button" disabled>
-                ✔ Bezahlt
-            </button>
-        </section>
-    </main>
-
-
-    <!-- ==============================
-         ERFOLG
-         ============================== -->
-    <main id="successScreen" class="screen success-screen">
-        <div class="success-content">
-            <div class="success-icon">✓</div>
-            <h1>Zahlung erfolgreich!</h1>
-            <p>Verkauf wurde gespeichert.</p>
-
-            <div class="success-change">
-                Rückgeld:
-                <strong id="successChange">0,00 €</strong>
-            </div>
-
-            <button id="newOrderButton" class="new-order-button">
-                🛒 Neue Bestellung
-            </button>
-
-            <button id="successHomeButton" class="secondary-button">
-                ← Startseite
-            </button>
-        </div>
-    </main>
-
-
-    <!-- ==============================
-         ADMIN PIN
-         ============================== -->
-    <div id="pinModal" class="modal" aria-hidden="true">
-        <div class="pin-box">
-            <button id="cancelButton" class="modal-close">×</button>
-
-            <h2>🔐 Admin</h2>
-            <p>PIN eingeben</p>
-
-            <div id="pinDisplay" class="pin-display">
-                <span>○</span>
-                <span>○</span>
-                <span>○</span>
-                <span>○</span>
-            </div>
-
-            <div class="pin-keypad">
-                <button class="number-button">1</button>
-                <button class="number-button">2</button>
-                <button class="number-button">3</button>
-                <button class="number-button">4</button>
-                <button class="number-button">5</button>
-                <button class="number-button">6</button>
-                <button class="number-button">7</button>
-                <button class="number-button">8</button>
-                <button class="number-button">9</button>
-                <button class="empty-key"></button>
-                <button class="number-button">0</button>
-                <button id="deleteButton" class="delete-key">⌫</button>
-            </div>
-
-            <button id="confirmButton" class="pin-confirm">OK</button>
-        </div>
-    </div>
-
-
-    <!-- ==============================
-         ADMIN HOME
-         ============================== -->
-    <main id="adminScreen" class="screen admin-screen">
-        <header class="screen-header admin-header">
-            <button id="adminBackButton" class="back-button">← Startseite</button>
-            <h1>⚙️ Admin</h1>
-        </header>
-
-        <section class="admin-dashboard">
-            <div class="admin-welcome">
-                <span>👋</span>
-                <div>
-                    <strong>Willkommen im Admin-Bereich</strong>
-                    <p>Verwalte Verkäufe, Inventar und Produkte.</p>
                 </div>
+
             </div>
 
-            <div class="admin-menu-grid">
-                <button id="reportsButton" class="admin-menu-card">
-                    <span class="admin-menu-icon">📊</span>
-                    <strong>Berichte</strong>
-                    <small>Tag · Woche · Monat</small>
+        </section>
+
+
+        <!-- ========================================
+             VERKAUF
+        ========================================= -->
+
+        <section id="verkauf-screen" class="screen">
+
+            <header class="page-header">
+
+                <button
+                    class="back-button"
+                    id="btn-back-from-verkauf"
+                >
+                    ←
                 </button>
 
-                <button id="inventoryButton" class="admin-menu-card">
-                    <span class="admin-menu-icon">📦</span>
-                    <strong>Inventar</strong>
-                    <small>Getränkebestand</small>
-                </button>
+                <h2>Verkauf</h2>
 
-                <button id="productsButton" class="admin-menu-card">
-                    <span class="admin-menu-icon">🥤</span>
-                    <strong>Produkte</strong>
-                    <small>Produkte & Preise</small>
-                </button>
-            </div>
+            </header>
 
-            <div class="admin-note">
-                💡 Die Daten werden auf diesem Gerät gespeichert.
-            </div>
+
+            <main class="verkauf-container">
+
+                <!-- PRODUKTE -->
+
+                <div class="section-title">
+                    Getränke
+                </div>
+
+                <div
+                    id="product-grid"
+                    class="product-grid"
+                >
+                    <!-- Produkte werden durch app.js eingefügt -->
+                </div>
+
+
+                <!-- WARENKORB -->
+
+                <div class="cart-section">
+
+                    <div class="section-title">
+                        Warenkorb
+                    </div>
+
+                    <div
+                        id="cart-items"
+                        class="cart-items"
+                    >
+                        <p class="empty-cart">
+                            Noch keine Produkte ausgewählt.
+                        </p>
+                    </div>
+
+
+                    <div class="cart-total-row">
+
+                        <span>
+                            Gesamt
+                        </span>
+
+                        <strong id="cart-total">
+                            0,00 €
+                        </strong>
+
+                    </div>
+
+
+                    <button
+                        id="btn-payment"
+                        class="primary-button"
+                        disabled
+                    >
+                        Bezahlen
+                    </button>
+
+                </div>
+
+            </main>
+
         </section>
-    </main>
 
 
-    <!-- ==============================
-         REPORTS
-         ============================== -->
-    <main id="reportsScreen" class="screen admin-page">
-        <header class="screen-header">
-            <button id="reportsBackButton" class="back-button">← Admin</button>
-            <h1>📊 Berichte</h1>
-        </header>
+        <!-- ========================================
+             ZAHLUNG
+        ========================================= -->
 
-        <section class="admin-content">
-            <div class="period-tabs">
-                <button class="period-tab active" data-period="day">Heute</button>
-                <button class="period-tab" data-period="week">Woche</button>
-                <button class="period-tab" data-period="month">Monat</button>
+        <section id="payment-screen" class="screen">
+
+            <header class="page-header">
+
+                <button
+                    class="back-button"
+                    id="btn-back-from-payment"
+                >
+                    ←
+                </button>
+
+                <h2>Zahlung</h2>
+
+            </header>
+
+
+            <main class="payment-container">
+
+                <div class="payment-total">
+
+                    <span>
+                        Zu bezahlen
+                    </span>
+
+                    <strong id="payment-total">
+                        0,00 €
+                    </strong>
+
+                </div>
+
+
+                <!-- BETRAG EINGEGEBEN -->
+
+                <div class="amount-box">
+
+                    <label>
+                        Erhalten
+                    </label>
+
+                    <div
+                        id="received-amount"
+                        class="amount-display"
+                    >
+                        0,00 €
+                    </div>
+
+                </div>
+
+
+                <!-- TASCHENRECHNER -->
+
+                <div class="calculator">
+
+                    <button class="calc-button" data-value="7">
+                        7
+                    </button>
+
+                    <button class="calc-button" data-value="8">
+                        8
+                    </button>
+
+                    <button class="calc-button" data-value="9">
+                        9
+                    </button>
+
+                    <button class="calc-button" data-value="4">
+                        4
+                    </button>
+
+                    <button class="calc-button" data-value="5">
+                        5
+                    </button>
+
+                    <button class="calc-button" data-value="6">
+                        6
+                    </button>
+
+                    <button class="calc-button" data-value="1">
+                        1
+                    </button>
+
+                    <button class="calc-button" data-value="2">
+                        2
+                    </button>
+
+                    <button class="calc-button" data-value="3">
+                        3
+                    </button>
+
+                    <button class="calc-button" data-value="0">
+                        0
+                    </button>
+
+                    <button class="calc-button" data-value=".">
+                        ,
+                    </button>
+
+                    <button
+                        class="calc-button"
+                        id="calc-clear"
+                    >
+                        C
+                    </button>
+
+                </div>
+
+
+                <!-- RÜCKGELD -->
+
+                <div class="change-box">
+
+                    <span>
+                        Rückgeld
+                    </span>
+
+                    <strong id="change-amount">
+                        0,00 €
+                    </strong>
+
+                </div>
+
+
+                <button
+                    id="btn-confirm-payment"
+                    class="primary-button"
+                    disabled
+                >
+                    Zahlung bestätigen
+                </button>
+
+            </main>
+
+        </section>
+
+
+        <!-- ========================================
+             ZAHLUNG ERFOLGREICH
+        ========================================= -->
+
+        <section id="success-screen" class="screen">
+
+            <div class="success-container">
+
+                <div class="success-icon">
+                    ✓
+                </div>
+
+                <h2>
+                    Zahlung erfolgreich!
+                </h2>
+
+                <p>
+                    Die Zahlung wurde gespeichert.
+                </p>
+
+                <div class="success-summary">
+
+                    <div>
+                        Gesamt
+                        <strong id="success-total">
+                            0,00 €
+                        </strong>
+                    </div>
+
+                    <div>
+                        Erhalten
+                        <strong id="success-received">
+                            0,00 €
+                        </strong>
+                    </div>
+
+                    <div>
+                        Rückgeld
+                        <strong id="success-change">
+                            0,00 €
+                        </strong>
+                    </div>
+
+                </div>
+
+
+                <button
+                    id="btn-new-sale"
+                    class="primary-button"
+                >
+                    Neue Bestellung
+                </button>
+
+
+                <button
+                    id="btn-back-home-success"
+                    class="secondary-button"
+                >
+                    Hauptmenü
+                </button>
+
             </div>
 
-            <div id="reportDateLabel" class="report-date-label"></div>
+        </section>
 
-            <div class="report-summary-grid">
-                <div class="summary-card">
-                    <span>💶</span>
-                    <small>Umsatz</small>
-                    <strong id="reportRevenue">0,00 €</strong>
+
+        <!-- ========================================
+             ADMIN PIN MODAL
+        ========================================= -->
+
+        <div
+            id="admin-pin-modal"
+            class="modal"
+        >
+
+            <div class="modal-content">
+
+                <button
+                    id="btn-close-pin"
+                    class="modal-close"
+                >
+                    ×
+                </button>
+
+                <h2>
+                    Admin
+                </h2>
+
+                <p>
+                    Bitte PIN eingeben.
+                </p>
+
+
+                <div
+                    id="pin-display"
+                    class="pin-display"
+                >
+                    <span>○</span>
+                    <span>○</span>
+                    <span>○</span>
+                    <span>○</span>
                 </div>
 
-                <div class="summary-card">
-                    <span>🧾</span>
-                    <small>Verkäufe</small>
-                    <strong id="reportTransactions">0</strong>
+
+                <div class="pin-keypad">
+
+                    <button class="pin-button" data-pin="1">
+                        1
+                    </button>
+
+                    <button class="pin-button" data-pin="2">
+                        2
+                    </button>
+
+                    <button class="pin-button" data-pin="3">
+                        3
+                    </button>
+
+                    <button class="pin-button" data-pin="4">
+                        4
+                    </button>
+
+                    <button class="pin-button" data-pin="5">
+                        5
+                    </button>
+
+                    <button class="pin-button" data-pin="6">
+                        6
+                    </button>
+
+                    <button class="pin-button" data-pin="7">
+                        7
+                    </button>
+
+                    <button class="pin-button" data-pin="8">
+                        8
+                    </button>
+
+                    <button class="pin-button" data-pin="9">
+                        9
+                    </button>
+
+                    <button
+                        class="pin-button pin-clear"
+                        id="pin-clear"
+                    >
+                        C
+                    </button>
+
+                    <button class="pin-button" data-pin="0">
+                        0
+                    </button>
+
+                    <button
+                        class="pin-button pin-delete"
+                        id="pin-delete"
+                    >
+                        ←
+                    </button>
+
                 </div>
 
-                <div class="summary-card">
-                    <span>🥤</span>
-                    <small>Getränke</small>
-                    <strong id="reportDrinks">0</strong>
-                </div>
 
-                <div class="summary-card">
-                    <span>🥨</span>
-                    <small>Bäckerei</small>
-                    <strong id="reportBakery">0</strong>
-                </div>
+                <p
+                    id="pin-error"
+                    class="pin-error"
+                >
+                    Falsche PIN.
+                </p>
+
             </div>
 
-            <div class="report-panel">
-                <div class="panel-heading">
-                    <h2>Verkaufte Produkte</h2>
-                </div>
-                <div id="reportProducts" class="report-product-list"></div>
-            </div>
+        </div>
 
-            <div class="report-actions">
-                <button id="exportReportButton" class="primary-action">
+
+        <!-- ========================================
+             ADMIN
+        ========================================= -->
+
+        <section id="admin-screen" class="screen">
+
+            <header class="page-header">
+
+                <button
+                    class="back-button"
+                    id="btn-back-from-admin"
+                >
+                    ←
+                </button>
+
+                <h2>
+                    Admin
+                </h2>
+
+            </header>
+
+
+            <main class="admin-container">
+
+                <div class="admin-menu">
+
+                    <button
+                        id="btn-reports"
+                        class="admin-button"
+                    >
+
+                        <span class="admin-icon">
+                            📊
+                        </span>
+
+                        <span>
+                            <strong>
+                                Berichte
+                            </strong>
+
+                            <small>
+                                Verkäufe und Umsatz
+                            </small>
+                        </span>
+
+                    </button>
+
+
+                    <button
+                        id="btn-inventory"
+                        class="admin-button"
+                    >
+
+                        <span class="admin-icon">
+                            📦
+                        </span>
+
+                        <span>
+                            <strong>
+                                Inventar
+                            </strong>
+
+                            <small>
+                                Getränkebestand verwalten
+                            </small>
+                        </span>
+
+                    </button>
+
+
+                    <button
+                        id="btn-products"
+                        class="admin-button"
+                    >
+
+                        <span class="admin-icon">
+                            🥤
+                        </span>
+
+                        <span>
+                            <strong>
+                                Produkte
+                            </strong>
+
+                            <small>
+                                Produkte und Preise verwalten
+                            </small>
+                        </span>
+
+                    </button>
+
+                </div>
+
+            </main>
+
+        </section>
+
+
+        <!-- ========================================
+             REPORTS
+        ========================================= -->
+
+        <section id="reports-screen" class="screen">
+
+            <header class="page-header">
+
+                <button
+                    class="back-button"
+                    id="btn-back-from-reports"
+                >
+                    ←
+                </button>
+
+                <h2>
+                    Berichte
+                </h2>
+
+            </header>
+
+
+            <main class="admin-content">
+
+                <div class="report-period-buttons">
+
+                    <button
+                        class="period-button active"
+                        data-period="day"
+                    >
+                        Heute
+                    </button>
+
+                    <button
+                        class="period-button"
+                        data-period="week"
+                    >
+                        Woche
+                    </button>
+
+                    <button
+                        class="period-button"
+                        data-period="month"
+                    >
+                        Monat
+                    </button>
+
+                </div>
+
+
+                <div class="report-cards">
+
+                    <div class="report-card">
+
+                        <span>
+                            Umsatz
+                        </span>
+
+                        <strong id="report-revenue">
+                            0,00 €
+                        </strong>
+
+                    </div>
+
+
+                    <div class="report-card">
+
+                        <span>
+                            Verkäufe
+                        </span>
+
+                        <strong id="report-sales">
+                            0
+                        </strong>
+
+                    </div>
+
+
+                    <div class="report-card">
+
+                        <span>
+                            Produkte
+                        </span>
+
+                        <strong id="report-products">
+                            0
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <div class="report-section">
+
+                    <h3>
+                        Verkäufe nach Produkt
+                    </h3>
+
+                    <div
+                        id="report-product-list"
+                        class="report-product-list"
+                    >
+                        Keine Verkäufe vorhanden.
+                    </div>
+
+                </div>
+
+
+                <button
+                    id="btn-export-report"
+                    class="primary-button"
+                >
                     📥 Bericht als CSV exportieren
                 </button>
-                <button id="clearReportsButton" class="danger-action">
-                    🗑️ Alle Verkaufsdaten löschen
+
+            </main>
+
+        </section>
+
+
+        <!-- ========================================
+             INVENTAR
+        ========================================= -->
+
+        <section id="inventory-screen" class="screen">
+
+            <header class="page-header">
+
+                <button
+                    class="back-button"
+                    id="btn-back-from-inventory"
+                >
+                    ←
                 </button>
-            </div>
-        </section>
-    </main>
+
+                <h2>
+                    Inventar
+                </h2>
+
+            </header>
 
 
-    <!-- ==============================
-         INVENTAR
-         ============================== -->
-    <main id="inventoryScreen" class="screen admin-page">
-        <header class="screen-header">
-            <button id="inventoryBackButton" class="back-button">← Admin</button>
-            <h1>📦 Inventar</h1>
-        </header>
+            <main class="admin-content">
 
-        <section class="admin-content">
-            <div class="inventory-intro">
-                <strong>Getränkebestand</strong>
-                <p>Die Bäckerei hat kein eigenes Inventar in dieser App.</p>
-            </div>
-
-            <div id="inventoryList" class="inventory-list"></div>
-        </section>
-    </main>
+                <p class="info-text">
+                    Hier wird nur der Bestand der Getränke verwaltet.
+                </p>
 
 
-    <!-- ==============================
-         PRODUKTE
-         ============================== -->
-    <main id="productsScreen" class="screen admin-page">
-        <header class="screen-header">
-            <button id="productsBackButton" class="back-button">← Admin</button>
-            <h1>🥤 Produkte</h1>
-        </header>
-
-        <section class="admin-content">
-            <div class="product-admin-toolbar">
-                <div>
-                    <strong>Produkte verwalten</strong>
-                    <p>Neue Produkte hinzufügen oder Preise ändern.</p>
+                <div
+                    id="inventory-list"
+                    class="inventory-list"
+                >
+                    <!-- Inventar wird durch app.js erstellt -->
                 </div>
-                <button id="addProductButton" class="primary-action small-action">
-                    ＋ Produkt
-                </button>
-            </div>
 
-            <div id="adminProductsList" class="admin-products-list"></div>
+            </main>
+
         </section>
-    </main>
 
 
-    <!-- ==============================
-         PRODUKT MODAL
-         ============================== -->
-    <div id="productModal" class="modal" aria-hidden="true">
-        <div class="form-box">
-            <button id="closeProductModalButton" class="modal-close">×</button>
+        <!-- ========================================
+             PRODUKTE
+        ========================================= -->
 
-            <h2 id="productModalTitle">Produkt hinzufügen</h2>
+        <section id="products-screen" class="screen">
 
-            <label for="productNameInput">Name</label>
-            <input id="productNameInput" type="text" autocomplete="off">
+            <header class="page-header">
 
-            <label for="productPriceInput">Preis (€)</label>
-            <input id="productPriceInput" type="number" inputmode="decimal" min="0" step="0.01">
+                <button
+                    class="back-button"
+                    id="btn-back-from-products"
+                >
+                    ←
+                </button>
 
-            <label for="productCategoryInput">Kategorie</label>
-            <select id="productCategoryInput">
-                <option value="drink">Getränk</option>
-                <option value="bakery">Bäckerei</option>
-            </select>
+                <h2>
+                    Produkte
+                </h2>
 
-            <label for="productIconInput">Symbol / Emoji</label>
-            <input id="productIconInput" type="text" value="🥤" maxlength="4" autocomplete="off">
+            </header>
 
-            <div class="form-actions">
-                <button id="cancelProductButton" class="secondary-action">Abbrechen</button>
-                <button id="saveProductButton" class="primary-action">Speichern</button>
+
+            <main class="admin-content">
+
+                <button
+                    id="btn-add-product"
+                    class="primary-button"
+                >
+                    ＋ Produkt hinzufügen
+                </button>
+
+
+                <div
+                    id="products-admin-list"
+                    class="products-admin-list"
+                >
+                    <!-- Produkte werden durch app.js erstellt -->
+                </div>
+
+            </main>
+
+        </section>
+
+
+        <!-- ========================================
+             PRODUKT MODAL
+        ========================================= -->
+
+        <div
+            id="product-modal"
+            class="modal"
+        >
+
+            <div class="modal-content">
+
+                <button
+                    id="btn-close-product-modal"
+                    class="modal-close"
+                >
+                    ×
+                </button>
+
+                <h2 id="product-modal-title">
+                    Produkt hinzufügen
+                </h2>
+
+
+                <label for="product-name">
+                    Produktname
+                </label>
+
+                <input
+                    type="text"
+                    id="product-name"
+                    placeholder="z. B. Wasser"
+                >
+
+
+                <label for="product-price">
+                    Preis (€)
+                </label>
+
+                <input
+                    type="number"
+                    id="product-price"
+                    min="0"
+                    step="0.10"
+                    placeholder="1,00"
+                >
+
+
+                <label for="product-category">
+                    Kategorie
+                </label>
+
+                <select id="product-category">
+
+                    <option value="drink">
+                        Getränk
+                    </option>
+
+                    <option value="bakery">
+                        Bäckerei
+                    </option>
+
+                </select>
+
+
+                <label for="product-icon">
+                    Symbol
+                </label>
+
+                <input
+                    type="text"
+                    id="product-icon"
+                    maxlength="2"
+                    placeholder="🥤"
+                >
+
+
+                <button
+                    id="btn-save-product"
+                    class="primary-button"
+                >
+                    Speichern
+                </button>
+
             </div>
+
         </div>
+
     </div>
 
 
-    <!-- ==============================
-         INVENTORY ADJUST MODAL
-         ============================== -->
-    <div id="inventoryModal" class="modal" aria-hidden="true">
-        <div class="form-box">
-            <button id="closeInventoryModalButton" class="modal-close">×</button>
+    <!-- ========================================
+         JAVASCRIPT
+    ========================================= -->
 
-            <h2>📦 Bestand ändern</h2>
-            <p id="inventoryProductLabel" class="form-help"></p>
+    <script src="js/products.js"></script>
+    <script src="app.js"></script>
 
-            <label for="inventoryAmountInput">Menge hinzufügen</label>
-            <input id="inventoryAmountInput" type="number" inputmode="numeric" step="1">
-
-            <div class="form-actions">
-                <button id="cancelInventoryButton" class="secondary-action">Abbrechen</button>
-                <button id="saveInventoryButton" class="primary-action">Speichern</button>
-            </div>
-        </div>
-    </div>
-
-
-    <script src="js/products.js?v=3"></script>
-    <script src="app.js?v=3"></script>
 </body>
 </html>
