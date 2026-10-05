@@ -5,40 +5,68 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#09436a">
     <title>Lauter Macher</title>
+
     <link rel="stylesheet" href="style.css?v=4">
 </head>
 
 <body>
 
+    <!-- =========================================================
+         LOGIN — IDENTITÄT
+         ========================================================= -->
 
-    <!-- ==============================
-         LAUTER MACHER LOGIN
-         ============================== -->
     <main id="identityScreen" class="screen login-screen">
+
         <div class="login-card">
-            <img src="./Logo_LM.png?v=3" alt="Lauter Macher Logo" class="login-logo">
+
+            <img
+                src="./Logo_LM.png?v=3"
+                alt="Lauter Macher Logo"
+                class="login-logo"
+            >
 
             <h1>Lauter Macher</h1>
-            <p class="login-subtitle">Wer bist du?</p>
 
-            <div id="peopleGrid" class="people-grid" aria-live="polite"></div>
+            <p class="login-subtitle">
+                Wer bist du?
+            </p>
 
-            <p id="identityError" class="login-error" role="alert"></p>
+            <div
+                id="peopleGrid"
+                class="people-grid"
+                aria-live="polite"
+            ></div>
+
+            <p
+                id="identityError"
+                class="login-error"
+                role="alert"
+            ></p>
+
         </div>
+
     </main>
 
 
-    <!-- ==============================
-         PIN LOGIN
-         ============================== -->
+    <!-- =========================================================
+         LOGIN — PIN
+         ========================================================= -->
+
     <main id="pinLoginScreen" class="screen login-screen">
+
         <div class="login-card pin-login-card">
 
-            <div class="selected-person-icon">🔐</div>
+            <div class="selected-person-icon">
+                🔐
+            </div>
 
-            <p class="login-subtitle">PIN eingeben</p>
+            <p class="login-subtitle">
+                PIN eingeben
+            </p>
 
-            <h2 id="selectedPersonName">-</h2>
+            <h2 id="selectedPersonName">
+                -
+            </h2>
 
             <input
                 id="loginPinInput"
@@ -51,9 +79,14 @@
                 aria-label="PIN"
             >
 
-            <p id="pinLoginError" class="login-error" role="alert"></p>
+            <p
+                id="pinLoginError"
+                class="login-error"
+                role="alert"
+            ></p>
 
             <div class="login-actions">
+
                 <button
                     id="loginBackButton"
                     class="secondary-button"
@@ -69,15 +102,18 @@
                 >
                     Einloggen
                 </button>
+
             </div>
 
         </div>
+
     </main>
 
 
-    <!-- ==============================
+    <!-- =========================================================
          STARTSEITE
-         ============================== -->
+         ========================================================= -->
+
     <main id="homeScreen" class="screen home-screen">
 
         <img
@@ -86,14 +122,22 @@
             class="logo"
         >
 
-        <h1>Lauter Macher</h1>
-        <p class="subtitle">Schülerfirma</p>
+        <h1>
+            Lauter Macher
+        </h1>
+
+        <p class="subtitle">
+            Schülerfirma
+        </p>
+
 
         <div class="session-bar">
 
             <span>
                 Angemeldet als
-                <strong id="currentPersonName">-</strong>
+                <strong id="currentPersonName">
+                    -
+                </strong>
             </span>
 
             <button
@@ -131,9 +175,10 @@
     </main>
 
 
-    <!-- ==============================
+    <!-- =========================================================
          VERKAUF
-         ============================== -->
+         ========================================================= -->
+
     <main id="saleScreen" class="screen">
 
         <header class="screen-header">
@@ -146,18 +191,26 @@
                 ← Startseite
             </button>
 
-            <h1>🛒 Verkauf</h1>
+            <h1>
+                🛒 Verkauf
+            </h1>
 
         </header>
 
+
+        <!-- GETRÄNKE -->
 
         <section class="product-section">
 
             <div class="section-title">
 
-                <span class="section-icon">🥤</span>
+                <span class="section-icon">
+                    🥤
+                </span>
 
-                <h2>Getränke</h2>
+                <h2>
+                    Getränke
+                </h2>
 
             </div>
 
@@ -169,13 +222,19 @@
         </section>
 
 
+        <!-- BÄCKEREI -->
+
         <section class="product-section">
 
             <div class="section-title">
 
-                <span class="section-icon">🥨</span>
+                <span class="section-icon">
+                    🥨
+                </span>
 
-                <h2>Bäckerei</h2>
+                <h2>
+                    Bäckerei
+                </h2>
 
             </div>
 
@@ -187,16 +246,21 @@
         </section>
 
 
+        <!-- WARENKORB -->
+
         <section class="cart-section">
 
             <div class="section-title">
 
-                <span class="section-icon">🛒</span>
+                <span class="section-icon">
+                    🛒
+                </span>
 
-                <h2>Warenkorb</h2>
+                <h2>
+                    Warenkorb
+                </h2>
 
             </div>
-
 
             <div
                 id="cartItems"
@@ -206,7 +270,9 @@
 
             <div class="cart-total">
 
-                <span>Gesamt</span>
+                <span>
+                    Gesamt
+                </span>
 
                 <strong id="cartTotal">
                     0,00 €
@@ -229,9 +295,10 @@
     </main>
 
 
-    <!-- ==============================
-         BEZAHLEN
-         ============================== -->
+    <!-- =========================================================
+         BEZAHLUNG
+         ========================================================= -->
+
     <main id="paymentScreen" class="screen">
 
         <header class="screen-header">
@@ -244,7 +311,9 @@
                 ← Verkauf
             </button>
 
-            <h1>💰 Bezahlen</h1>
+            <h1>
+                💰 Bezahlen
+            </h1>
 
         </header>
 
@@ -277,7 +346,9 @@
 
             <div class="change-container">
 
-                <span>Rückgeld</span>
+                <span>
+                    Rückgeld
+                </span>
 
                 <strong id="changeAmount">
                     0,00 €
@@ -288,17 +359,71 @@
 
             <div class="payment-keypad">
 
-                <button class="payment-key" type="button">1</button>
-                <button class="payment-key" type="button">2</button>
-                <button class="payment-key" type="button">3</button>
+                <button
+                    class="payment-key"
+                    type="button"
+                >
+                    1
+                </button>
 
-                <button class="payment-key" type="button">4</button>
-                <button class="payment-key" type="button">5</button>
-                <button class="payment-key" type="button">6</button>
+                <button
+                    class="payment-key"
+                    type="button"
+                >
+                    2
+                </button>
 
-                <button class="payment-key" type="button">7</button>
-                <button class="payment-key" type="button">8</button>
-                <button class="payment-key" type="button">9</button>
+                <button
+                    class="payment-key"
+                    type="button"
+                >
+                    3
+                </button>
+
+
+                <button
+                    class="payment-key"
+                    type="button"
+                >
+                    4
+                </button>
+
+                <button
+                    class="payment-key"
+                    type="button"
+                >
+                    5
+                </button>
+
+                <button
+                    class="payment-key"
+                    type="button"
+                >
+                    6
+                </button>
+
+
+                <button
+                    class="payment-key"
+                    type="button"
+                >
+                    7
+                </button>
+
+                <button
+                    class="payment-key"
+                    type="button"
+                >
+                    8
+                </button>
+
+                <button
+                    class="payment-key"
+                    type="button"
+                >
+                    9
+                </button>
+
 
                 <button
                     class="payment-key decimal-key"
@@ -307,7 +432,10 @@
                     ,
                 </button>
 
-                <button class="payment-key" type="button">
+                <button
+                    class="payment-key"
+                    type="button"
+                >
                     0
                 </button>
 
@@ -336,9 +464,10 @@
     </main>
 
 
-    <!-- ==============================
-         ERFOLG
-         ============================== -->
+    <!-- =========================================================
+         ZAHLUNG ERFOLGREICH
+         ========================================================= -->
+
     <main id="successScreen" class="screen success-screen">
 
         <div class="success-content">
@@ -389,9 +518,10 @@
     </main>
 
 
-    <!-- ==============================
-         ADMIN PIN
-         ============================== -->
+    <!-- =========================================================
+         ALTES ADMIN-PIN-MODAL
+         ========================================================= -->
+
     <div
         id="pinModal"
         class="modal"
@@ -409,7 +539,9 @@
             </button>
 
 
-            <h2>🔐 Admin</h2>
+            <h2>
+                🔐 Admin
+            </h2>
 
             <p>
                 PIN eingeben
@@ -534,9 +666,10 @@
     </div>
 
 
-    <!-- ==============================
-         ADMIN HOME
-         ============================== -->
+    <!-- =========================================================
+         ADMIN
+         ========================================================= -->
+
     <main id="adminScreen" class="screen admin-screen">
 
         <header class="screen-header admin-header">
@@ -560,7 +693,9 @@
 
             <div class="admin-welcome">
 
-                <span>👋</span>
+                <span>
+                    👋
+                </span>
 
                 <div>
 
@@ -645,9 +780,7 @@
 
 
             <div class="admin-note">
-
                 💡 Die Daten werden auf diesem Gerät gespeichert.
-
             </div>
 
         </section>
@@ -655,9 +788,10 @@
     </main>
 
 
-    <!-- ==============================
-         REPORTS
-         ============================== -->
+    <!-- =========================================================
+         BERICHTE
+         ========================================================= -->
+
     <main id="reportsScreen" class="screen admin-page">
 
         <header class="screen-header">
@@ -718,7 +852,9 @@
 
                 <div class="summary-card">
 
-                    <span>💶</span>
+                    <span>
+                        💶
+                    </span>
 
                     <small>
                         Umsatz
@@ -733,7 +869,9 @@
 
                 <div class="summary-card">
 
-                    <span>🧾</span>
+                    <span>
+                        🧾
+                    </span>
 
                     <small>
                         Verkäufe
@@ -748,7 +886,9 @@
 
                 <div class="summary-card">
 
-                    <span>🥤</span>
+                    <span>
+                        🥤
+                    </span>
 
                     <small>
                         Getränke
@@ -763,7 +903,9 @@
 
                 <div class="summary-card">
 
-                    <span>🥨</span>
+                    <span>
+                        🥨
+                    </span>
 
                     <small>
                         Bäckerei
@@ -806,7 +948,6 @@
                     📥 Bericht als CSV exportieren
                 </button>
 
-
                 <button
                     id="clearReportsButton"
                     class="danger-action"
@@ -822,9 +963,10 @@
     </main>
 
 
-    <!-- ==============================
+    <!-- =========================================================
          INVENTAR
-         ============================== -->
+         ========================================================= -->
+
     <main id="inventoryScreen" class="screen admin-page">
 
         <header class="screen-header">
@@ -869,9 +1011,10 @@
     </main>
 
 
-    <!-- ==============================
+    <!-- =========================================================
          PRODUKTE
-         ============================== -->
+         ========================================================= -->
+
     <main id="productsScreen" class="screen admin-page">
 
         <header class="screen-header">
@@ -929,9 +1072,10 @@
     </main>
 
 
-    <!-- ==============================
-         PRODUKT MODAL
-         ============================== -->
+    <!-- =========================================================
+         PRODUKT-MODAL
+         ========================================================= -->
+
     <div
         id="productModal"
         class="modal"
@@ -1033,9 +1177,10 @@
     </div>
 
 
-    <!-- ==============================
-         INVENTORY ADJUST MODAL
-         ============================== -->
+    <!-- =========================================================
+         INVENTAR-MODAL
+         ========================================================= -->
+
     <div
         id="inventoryModal"
         class="modal"
@@ -1101,16 +1246,14 @@
     </div>
 
 
-    <!-- ==============================
+    <!-- =========================================================
          JAVASCRIPT
-         ============================== -->
+         ========================================================= -->
 
     <script src="js/products.js?v=4"></script>
 
-    <!-- Supabase JavaScript Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    <!-- Application -->
     <script src="app.js?v=5"></script>
 
 </body>
