@@ -9,7 +9,7 @@
 // ========================================
 
 const SUPABASE_URL = "https://gsbkfrjhierqopkwpqjc.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdzYmtmcmpoaWVycW9wa3dwcWpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5MjI3MjgsImV4cCI6MjEwNjQ5ODcyOH0.BV5aYeAO2nE5SjiEOCs3GA1hwQpg0IJzEl5wizApUVU";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzIiwicmVmIjoiZ3Nia2ZyamllcnFvcGt3cHFqYyIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzkwOTIyNzI4LCJleHAiOjIxMDY0OTg3Mjh9.BV5aYeAO2nE5SjiEOCs3GA1hwQpg0IJzEl5wizApUVU";
 
 const supabaseClient = window.supabase.createClient(
     SUPABASE_URL,
@@ -38,8 +38,17 @@ const loginBackButton = document.getElementById("loginBackButton");
 const loginConfirmButton = document.getElementById("loginConfirmButton");
 const currentPersonName = document.getElementById("currentPersonName");
 const logoutButton = document.getElementById("logoutButton");
+const notificationCount = document.getElementById("notificationCount");
+const notificationButton = document.getElementById("notificationButton");
+const homeRoleLabel = document.getElementById("homeRoleLabel");
+const drinksTestBadge = document.getElementById("drinksTestBadge");
+const bakeryTestBadge = document.getElementById("bakeryTestBadge");
+const eventTestBadge = document.getElementById("eventTestBadge");
 
 const adminScreen = document.getElementById("adminScreen");
+const bakeryMenuScreen = document.getElementById("bakeryMenuScreen");
+const eventMenuScreen = document.getElementById("eventMenuScreen");
+const inventoryCountScreen = document.getElementById("inventoryCountScreen");
 const reportsScreen = document.getElementById("reportsScreen");
 const inventoryScreen = document.getElementById("inventoryScreen");
 const productsScreen = document.getElementById("productsScreen");
@@ -92,6 +101,9 @@ const deletePaymentButton = document.getElementById("deletePaymentButton");
 // ========================================
 
 const adminButton = document.getElementById("adminButton");
+const bakeryButton = document.getElementById("bakeryButton");
+const eventButton = document.getElementById("eventButton");
+const reportsHomeButton = document.getElementById("reportsHomeButton");
 const pinModal = document.getElementById("pinModal");
 const cancelButton = document.getElementById("cancelButton");
 const confirmButton = document.getElementById("confirmButton");
@@ -148,6 +160,10 @@ const inventoryProductLabel =
 const inventoryAmountInput =
     document.getElementById("inventoryAmountInput");
 
+const inventoryCountList = document.getElementById("inventoryCountList");
+const inventoryCountBackButton = document.getElementById("inventoryCountBackButton");
+const submitInventoryButton = document.getElementById("submitInventoryButton");
+
 
 // ========================================
 // PRODUCTS ADMIN
@@ -197,52 +213,8 @@ let enteredPin = "";
 let currentReportPeriod = "day";
 let editingProductId = null;
 let inventoryProductId = null;
-
-// ========================================
-// NEUE APP-ARCHITEKTUR — MENÜ / FUNKTIONEN
-// ========================================
-
-let currentArea = null;
-let currentFunction = null;
-let currentTestMode = false;
-
-const AREA_CONFIG = {
-    getraenke: {
-        title: "🥤 Getränke",
-        functions: [
-            { id: "getränke_kasse", title: "Kasse", icon: "💰", description: "Getränke verkaufen und bezahlen" }
-        ]
-    },
-    baeckerei: {
-        title: "🥐 Bäckerei",
-        functions: [
-            { id: "bäckerei_kasse", title: "Kasse", icon: "💰", description: "Bestellungen aufnehmen und bezahlen" },
-            { id: "bäckerei_ausgabe", title: "Ausgabe", icon: "🍽️", description: "Bezahlte Bestellungen vorbereiten und ausgeben" }
-        ]
-    },
-    bearbeiten: {
-        title: "✏️ Bearbeiten",
-        functions: [
-            { id: "bearbeiten_produkte", title: "Produkte", icon: "🥤", description: "Produkte und Preise bearbeiten" },
-            { id: "bearbeiten_inventar", title: "Inventar", icon: "📦", description: "Bestände prüfen und bearbeiten" },
-            { id: "bearbeiten_schüler", title: "Schüler", icon: "👥", description: "Schüler verwalten", teacherOnly: true }
-        ]
-    },
-    sonderveranstaltung: {
-        title: "🎪 Sonderveranstaltung",
-        functions: [
-            { id: "sonder_beginning_inventory", title: "Anfangsbestand", icon: "📦", description: "Bestand vor der Veranstaltung erfassen" },
-            { id: "sonder_products", title: "Produkte & Preise", icon: "🏷️", description: "Produkte und Verkaufspreise festlegen" },
-            { id: "sonder_kasse", title: "Kasse", icon: "💰", description: "Getränke und Essen gemeinsam verkaufen" },
-            { id: "sonder_ausgabe", title: "Ausgabe", icon: "🍽️", description: "Getränke und Essen gemeinsam ausgeben" },
-            { id: "sonder_end_inventory", title: "Endbestand", icon: "📦", description: "Bestand nach der Veranstaltung erfassen" }
-        ]
-    }
-};
-
-let appMenuRoot = null;
-let appMenuTitle = null;
-let appMenuContent = null;
+let saleTestMode = false;
+let currentReturnScreen = homeScreen;
 
 
 // ========================================
@@ -254,7 +226,8 @@ const ADMIN_PIN = "1234";
 const STORAGE_KEYS = {
     products: "lauterMacher_products_v1",
     sales: "lauterMacher_sales_v1",
-    inventory: "lauterMacher_inventory_v1"
+    inventory: "lauterMacher_inventory_v1",
+    inventorySubmissions: "lauterMacher_inventory_submissions_v1"
 };
 
 
@@ -274,7 +247,6 @@ let inventory = loadInventory();
 document.addEventListener("DOMContentLoaded", async function () {
     renderProducts();
     updateCart();
-    ensureMainMenuStructure();
 
     showScreen(identityScreen);
     await initialiseAuthentication();
@@ -483,21 +455,23 @@ async function loadCurrentPerson(session) {
 
 function applyLoggedInState(person) {
     currentPerson = person;
-    currentTestMode = person.person_type === "lehrer";
 
     currentPersonName.textContent = [person.first_name, person.last_name]
         .filter(Boolean)
         .join(" ");
 
-    // Der alte Admin-Einstieg wird durch das neue Bearbeiten-Menü ersetzt.
-    adminButton.style.display = "none";
+    adminButton.style.display = "block";
+    reportsHomeButton.hidden = person.person_type !== "lehrer";
+    addProductButton.style.display = "block";
+    renderEditMenu();
+    updateHomeForPerson();
+    updateNotificationBadge();
 
     selectedLoginPerson = null;
     loginPinInput.value = "";
     pinLoginError.textContent = "";
 
-    buildMainMenu();
-    showMainMenu();
+    showScreen(homeScreen);
 }
 
 
@@ -512,11 +486,9 @@ logoutButton.addEventListener("click", async function () {
 
     currentPerson = null;
     selectedLoginPerson = null;
-    currentTestMode = false;
-    currentArea = null;
-    currentFunction = null;
     currentPersonName.textContent = "-";
     adminButton.style.display = "none";
+    reportsHomeButton.hidden = true;
     resetSale();
     showScreen(identityScreen);
     await loadLoginPeople();
@@ -526,318 +498,11 @@ logoutButton.addEventListener("click", async function () {
 supabaseClient.auth.onAuthStateChange(function (_event, session) {
     if (!session && currentPerson) {
         currentPerson = null;
-        currentTestMode = false;
-        currentArea = null;
-        currentFunction = null;
         adminButton.style.display = "none";
+        reportsHomeButton.hidden = true;
         showScreen(identityScreen);
     }
 });
-
-
-// ========================================
-// HAUPTMENÜ — ARCHITEKTUR
-// ========================================
-
-function ensureMainMenuStructure() {
-    if (appMenuRoot) {
-        return;
-    }
-
-    const existingHomeButtons = homeScreen.querySelector(".home-buttons");
-
-    appMenuRoot = document.createElement("div");
-    appMenuRoot.id = "appMenuRoot";
-    appMenuRoot.className = "app-menu-root";
-
-    appMenuTitle = document.createElement("div");
-    appMenuTitle.className = "app-menu-title";
-
-    appMenuContent = document.createElement("div");
-    appMenuContent.className = "app-menu-content";
-
-    appMenuRoot.appendChild(appMenuTitle);
-    appMenuRoot.appendChild(appMenuContent);
-
-    if (existingHomeButtons) {
-        existingHomeButtons.style.display = "none";
-        existingHomeButtons.insertAdjacentElement("afterend", appMenuRoot);
-    } else {
-        homeScreen.appendChild(appMenuRoot);
-    }
-}
-
-
-function buildMainMenu() {
-    ensureMainMenuStructure();
-
-    appMenuTitle.innerHTML = `
-        <div class="app-menu-kicker">Hauptmenü</div>
-        <h2>Was möchtest du machen?</h2>
-        ${currentTestMode ? '<span class="test-mode-badge">🧪 Testumgebung</span>' : ''}
-    `;
-
-    appMenuContent.innerHTML = "";
-
-    Object.entries(AREA_CONFIG).forEach(function ([areaId, area]) {
-        const button = document.createElement("button");
-        button.type = "button";
-        button.className = "area-menu-card";
-        button.dataset.area = areaId;
-
-        const visibleFunctions = getVisibleFunctions(areaId);
-        const countText = visibleFunctions.length === 1
-            ? "1 Funktion"
-            : `${visibleFunctions.length} Funktionen`;
-
-        button.innerHTML = `
-            <span class="area-menu-icon">${area.title.slice(0, 2)}</span>
-            <span class="area-menu-text">
-                <strong>${escapeHtml(area.title.slice(3))}</strong>
-                <small>${countText}</small>
-            </span>
-            <span class="area-menu-arrow">›</span>
-        `;
-
-        button.addEventListener("click", function () {
-            openAreaMenu(areaId);
-        });
-
-        appMenuContent.appendChild(button);
-    });
-}
-
-
-function getVisibleFunctions(areaId) {
-    const area = AREA_CONFIG[areaId];
-
-    if (!area) {
-        return [];
-    }
-
-    return area.functions.filter(function (item) {
-        if (item.teacherOnly && (!currentPerson || currentPerson.person_type !== "lehrer")) {
-            return false;
-        }
-        return true;
-    });
-}
-
-
-function showMainMenu() {
-    ensureMainMenuStructure();
-    buildMainMenu();
-    appMenuTitle.classList.remove("sub-menu-title");
-    showScreen(homeScreen);
-}
-
-
-function openAreaMenu(areaId) {
-    const area = AREA_CONFIG[areaId];
-
-    if (!area) {
-        return;
-    }
-
-    currentArea = areaId;
-    currentFunction = null;
-
-    appMenuTitle.innerHTML = `
-        <button id="menuBackButton" class="menu-back-button" type="button">← Hauptmenü</button>
-        <h2>${escapeHtml(area.title)}</h2>
-        ${currentTestMode ? '<span class="test-mode-badge">🧪 Testumgebung</span>' : ''}
-    `;
-    appMenuTitle.classList.add("sub-menu-title");
-
-    const content = document.createElement("div");
-    content.className = "function-menu-grid";
-
-    getVisibleFunctions(areaId).forEach(function (item) {
-        const button = document.createElement("button");
-        button.type = "button";
-        button.className = "function-menu-card";
-
-        button.innerHTML = `
-            <span class="function-menu-icon">${item.icon}</span>
-            <span class="function-menu-text">
-                <strong>${escapeHtml(item.title)}</strong>
-                <small>${escapeHtml(item.description)}</small>
-            </span>
-            <span class="area-menu-arrow">›</span>
-        `;
-
-        button.addEventListener("click", function () {
-            openFunction(areaId, item.id);
-        });
-
-        content.appendChild(button);
-    });
-
-    appMenuContent.innerHTML = "";
-    appMenuContent.appendChild(content);
-
-    const backButton = document.getElementById("menuBackButton");
-    backButton.addEventListener("click", showMainMenu);
-}
-
-
-function openFunction(areaId, functionId) {
-    currentArea = areaId;
-    currentFunction = functionId;
-
-    if (functionId === "getränke_kasse") {
-        openDrinkCashRegister();
-        return;
-    }
-
-    if (functionId === "bäckerei_kasse") {
-        openBakeryCashRegister();
-        return;
-    }
-
-    if (functionId === "bearbeiten_produkte") {
-        renderAdminProducts();
-        showScreen(productsScreen);
-        return;
-    }
-
-    if (functionId === "bearbeiten_inventar") {
-        renderInventory();
-        showScreen(inventoryScreen);
-        return;
-    }
-
-    if (functionId === "bearbeiten_schüler") {
-        openArchitecturePlaceholder(
-            "👥 Schüler",
-            "Hier wird die Schülerverwaltung aufgebaut: Schüler hinzufügen, bearbeiten, aktivieren/deaktivieren und PIN zurücksetzen."
-        );
-        return;
-    }
-
-    if (functionId === "bäckerei_ausgabe") {
-        openArchitecturePlaceholder(
-            "🍽️ Bäckerei · Ausgabe",
-            "Die Ausgabe wird in der nächsten Ausbaustufe direkt mit den bezahlten Bäckerei-Bestellungen aus Supabase verbunden."
-        );
-        return;
-    }
-
-    if (functionId === "sonder_beginning_inventory") {
-        openArchitecturePlaceholder("📦 Anfangsbestand", "Der Anfangsbestand einer Sonderveranstaltung wird hier vor Beginn erfasst.");
-        return;
-    }
-
-    if (functionId === "sonder_products") {
-        openArchitecturePlaceholder("🏷️ Produkte & Preise", "Hier werden die Produkte und Preise der jeweiligen Sonderveranstaltung festgelegt.");
-        return;
-    }
-
-    if (functionId === "sonder_kasse") {
-        openArchitecturePlaceholder("💰 Sonderveranstaltung · Kasse", "Eine gemeinsame Kasse für Getränke und Essen. Die genaue Umsetzung bestätigen wir vor dem Bau dieses Bereichs.");
-        return;
-    }
-
-    if (functionId === "sonder_ausgabe") {
-        openArchitecturePlaceholder("🍽️ Sonderveranstaltung · Ausgabe", "Eine gemeinsame Ausgabe für Getränke und Essen. Die genaue Umsetzung bestätigen wir vor dem Bau dieses Bereichs.");
-        return;
-    }
-
-    if (functionId === "sonder_end_inventory") {
-        openArchitecturePlaceholder("📦 Endbestand", "Hier wird der Bestand nach der Sonderveranstaltung erfasst.");
-    }
-}
-
-
-function openDrinkCashRegister() {
-    setSaleArea("getränke");
-    showScreen(saleScreen);
-}
-
-
-function openBakeryCashRegister() {
-    setSaleArea("bäckerei");
-    showScreen(saleScreen);
-}
-
-
-function setSaleArea(area) {
-    currentArea = area;
-    currentFunction = area === "getränke" ? "getränke_kasse" : "bäckerei_kasse";
-
-    const sections = saleScreen.querySelectorAll(".product-section");
-    if (sections.length >= 2) {
-        sections[0].style.display = area === "getränke" ? "block" : "none";
-        sections[1].style.display = area === "bäckerei" ? "block" : "none";
-    }
-
-    const header = saleScreen.querySelector(".screen-header h1");
-    if (header) {
-        header.textContent = area === "getränke" ? "🥤 Getränke · Kasse" : "🥐 Bäckerei · Kasse";
-    }
-
-    renderProducts();
-    resetSale();
-}
-
-
-function openArchitecturePlaceholder(title, description) {
-    ensureArchitecturePlaceholder();
-
-    architecturePlaceholderTitle.textContent = title;
-    architecturePlaceholderText.textContent = description;
-    architecturePlaceholderMode.textContent = currentTestMode
-        ? "🧪 Testumgebung"
-        : "Arbeitsbereich";
-
-    showScreen(architecturePlaceholderScreen);
-}
-
-
-let architecturePlaceholderScreen = null;
-let architecturePlaceholderTitle = null;
-let architecturePlaceholderText = null;
-let architecturePlaceholderMode = null;
-
-
-function ensureArchitecturePlaceholder() {
-    if (architecturePlaceholderScreen) {
-        return;
-    }
-
-    architecturePlaceholderScreen = document.createElement("main");
-    architecturePlaceholderScreen.id = "architecturePlaceholderScreen";
-    architecturePlaceholderScreen.className = "screen architecture-placeholder-screen";
-
-    architecturePlaceholderScreen.innerHTML = `
-        <header class="screen-header">
-            <button id="architecturePlaceholderBack" class="back-button" type="button">← Menü</button>
-            <h1 id="architecturePlaceholderTitle"></h1>
-        </header>
-        <section class="architecture-placeholder-content">
-            <div id="architecturePlaceholderMode" class="test-mode-badge"></div>
-            <div class="architecture-placeholder-icon">🚧</div>
-            <h2>Bereich wird vorbereitet</h2>
-            <p id="architecturePlaceholderText"></p>
-            <button id="architecturePlaceholderHome" class="primary-action" type="button">← Zurück zum Menü</button>
-        </section>
-    `;
-
-    document.body.appendChild(architecturePlaceholderScreen);
-
-    architecturePlaceholderTitle = document.getElementById("architecturePlaceholderTitle");
-    architecturePlaceholderText = document.getElementById("architecturePlaceholderText");
-    architecturePlaceholderMode = document.getElementById("architecturePlaceholderMode");
-
-    document.getElementById("architecturePlaceholderBack").addEventListener("click", showMainMenu);
-    document.getElementById("architecturePlaceholderHome").addEventListener("click", showMainMenu);
-}
-
-
-function returnToMenuFromWorkingScreen() {
-    resetSale();
-    showMainMenu();
-}
 
 
 // ========================================
@@ -942,6 +607,196 @@ function saveInventory() {
 
 
 // ========================================
+// HOME / BERECHTIGUNGEN
+// ========================================
+
+function updateHomeForPerson() {
+    const isTeacher = currentPerson && currentPerson.person_type === "lehrer";
+
+    homeRoleLabel.textContent = isTeacher ? "Lehrkraft" : "Schüler/in";
+
+    drinksTestBadge.hidden = !isTeacher;
+    bakeryTestBadge.hidden = !isTeacher;
+    eventTestBadge.hidden = !isTeacher;
+
+    const inventoryMenuTitle = document.getElementById("inventoryMenuTitle");
+    const inventoryMenuDescription = document.getElementById("inventoryMenuDescription");
+    const editMenuTitle = document.getElementById("editMenuTitle");
+    const editMenuDescription = document.getElementById("editMenuDescription");
+
+    if (isTeacher) {
+        inventoryMenuTitle.textContent = "Inventar";
+        inventoryMenuDescription.textContent = "Bestand verwalten";
+        editMenuTitle.textContent = "Bearbeiten";
+        editMenuDescription.textContent = "Produkte und Inventar verwalten.";
+    } else {
+        inventoryMenuTitle.textContent = "Inventur";
+        inventoryMenuDescription.textContent = "Bestand zählen und an den Professor senden";
+        editMenuTitle.textContent = "Bearbeiten";
+        editMenuDescription.textContent = "Produkte und Preise selbstständig bearbeiten.";
+    }
+}
+
+
+function renderEditMenu() {
+    const isTeacher = currentPerson && currentPerson.person_type === "lehrer";
+    inventoryButton.style.display = "block";
+
+    const inventoryMenuTitle = document.getElementById("inventoryMenuTitle");
+    const inventoryMenuDescription = document.getElementById("inventoryMenuDescription");
+
+    if (isTeacher) {
+        inventoryMenuTitle.textContent = "Inventar";
+        inventoryMenuDescription.textContent = "Bestand verwalten";
+    } else {
+        inventoryMenuTitle.textContent = "Inventur";
+        inventoryMenuDescription.textContent = "Bestand zählen und an den Professor senden";
+    }
+}
+
+
+function updateNotificationBadge() {
+    const submissions = loadInventorySubmissions();
+    const pendingCount = currentPerson && currentPerson.person_type === "lehrer"
+        ? submissions.length
+        : 0;
+
+    if (pendingCount > 0) {
+        notificationCount.hidden = false;
+        notificationCount.textContent = String(pendingCount);
+    } else {
+        notificationCount.hidden = true;
+        notificationCount.textContent = "0";
+    }
+}
+
+
+function loadInventorySubmissions() {
+    try {
+        const saved = localStorage.getItem(STORAGE_KEYS.inventorySubmissions);
+        const parsed = saved ? JSON.parse(saved) : [];
+        return Array.isArray(parsed) ? parsed : [];
+    } catch (error) {
+        console.error("Inventurmeldungen konnten nicht geladen werden.", error);
+        return [];
+    }
+}
+
+
+function saveInventorySubmissions(submissions) {
+    localStorage.setItem(
+        STORAGE_KEYS.inventorySubmissions,
+        JSON.stringify(submissions)
+    );
+}
+
+
+// ========================================
+// INVENTUR — SCHÜLER
+// ========================================
+
+function renderInventoryCount() {
+    inventoryCountList.innerHTML = "";
+
+    const drinks = products.filter(function (product) {
+        return product.category === "drink";
+    });
+
+    if (drinks.length === 0) {
+        inventoryCountList.innerHTML = '<div class="no-data">Keine Getränke vorhanden.</div>';
+        return;
+    }
+
+    drinks.forEach(function (product) {
+        const row = document.createElement("div");
+        row.className = "inventory-count-row";
+        row.innerHTML = `
+            <div class="inventory-count-product">
+                <span>${escapeHtml(product.icon)}</span>
+                <div>
+                    <strong>${escapeHtml(product.name)}</strong>
+                    <small>${formatPrice(product.price)}</small>
+                </div>
+            </div>
+            <input
+                class="inventory-count-input"
+                type="number"
+                min="0"
+                step="1"
+                inputmode="numeric"
+                data-product-id="${escapeHtml(product.id)}"
+                aria-label="Gezählter Bestand ${escapeHtml(product.name)}"
+                placeholder="0"
+            >
+        `;
+        inventoryCountList.appendChild(row);
+    });
+}
+
+
+inventoryCountBackButton.addEventListener("click", function () {
+    showScreen(adminScreen);
+});
+
+
+submitInventoryButton.addEventListener("click", function () {
+    const inputs = inventoryCountList.querySelectorAll(".inventory-count-input");
+    const counts = [];
+    let hasInvalidValue = false;
+
+    inputs.forEach(function (input) {
+        const value = input.value.trim();
+
+        if (value === "") {
+            return;
+        }
+
+        const quantity = Number(value);
+        if (!Number.isInteger(quantity) || quantity < 0) {
+            hasInvalidValue = true;
+            return;
+        }
+
+        const product = products.find(function (item) {
+            return item.id === input.dataset.productId;
+        });
+
+        if (product) {
+            counts.push({
+                product_id: product.id,
+                product_name: product.name,
+                quantity: quantity
+            });
+        }
+    });
+
+    if (hasInvalidValue) {
+        alert("Bitte nur ganze Mengen ab 0 eingeben.");
+        return;
+    }
+
+    if (counts.length === 0) {
+        alert("Bitte mindestens eine gezählte Menge eingeben.");
+        return;
+    }
+
+    const submissions = loadInventorySubmissions();
+    submissions.push({
+        id: Date.now(),
+        submitted_at: new Date().toISOString(),
+        person_id: currentPerson ? currentPerson.id : null,
+        person_name: currentPerson ? [currentPerson.first_name, currentPerson.last_name].filter(Boolean).join(" ") : "Schüler/in",
+        counts: counts
+    });
+    saveInventorySubmissions(submissions);
+
+    alert("Die Inventur wurde an den Professor übermittelt.");
+    updateNotificationBadge();
+    renderInventoryCount();
+});
+
+
+// ========================================
 // SCREEN NAVIGATION
 // ========================================
 
@@ -1011,7 +866,9 @@ function createProductButton(product) {
 // ========================================
 
 saleButton.addEventListener("click", function () {
-    openDrinkCashRegister();
+    saleTestMode = Boolean(currentPerson && currentPerson.person_type === "lehrer");
+    currentReturnScreen = homeScreen;
+    showScreen(saleScreen);
 });
 
 
@@ -1021,7 +878,7 @@ saleButton.addEventListener("click", function () {
 
 saleBackButton.addEventListener("click", function () {
     resetSale();
-    showMainMenu();
+    showScreen(homeScreen);
 });
 
 
@@ -1365,20 +1222,18 @@ function saveSale(total, received, change) {
     const sale = {
         id: Date.now(),
         date: new Date().toISOString(),
-        is_test: currentTestMode,
         total: roundMoney(total),
         received: roundMoney(received),
         change: roundMoney(change),
         items: saleItems
     };
 
-    sales.push(sale);
-    saveSales();
-
-    // Testverkäufe der Lehrkraft dürfen keine echten Bestände verändern.
-    if (currentTestMode) {
+    if (saleTestMode) {
         return;
     }
+
+    sales.push(sale);
+    saveSales();
 
     // Nur Getränke verändern den Bestand.
     saleItems.forEach(function (item) {
@@ -1411,7 +1266,7 @@ newOrderButton.addEventListener("click", function () {
 
 successHomeButton.addEventListener("click", function () {
     resetSale();
-    showMainMenu();
+    showScreen(homeScreen);
 });
 
 
@@ -1432,10 +1287,47 @@ function resetSale() {
 // ========================================
 
 adminButton.addEventListener("click", function () {
-    if (!currentPerson) {
-        return;
-    }
-    openAreaMenu("bearbeiten");
+    renderEditMenu();
+    currentReturnScreen = homeScreen;
+    showScreen(adminScreen);
+});
+
+bakeryButton.addEventListener("click", function () {
+    currentReturnScreen = homeScreen;
+    showScreen(bakeryMenuScreen);
+});
+
+eventButton.addEventListener("click", function () {
+    currentReturnScreen = homeScreen;
+    showScreen(eventMenuScreen);
+});
+
+notificationButton.addEventListener("click", function () {
+    // Die Glocke bleibt bewusst kompakt: nur die rote Zahl wird angezeigt.
+});
+
+bakeryBackButton.addEventListener("click", function () {
+    showScreen(homeScreen);
+});
+
+eventBackButton.addEventListener("click", function () {
+    showScreen(homeScreen);
+});
+
+bakeryCashButton.addEventListener("click", function () {
+    alert("Die Bäckerei-Kasse wird noch gemeinsam festgelegt.");
+});
+
+bakeryServiceButton.addEventListener("click", function () {
+    alert("Die Bäckerei-Ausgabe wird noch gemeinsam festgelegt.");
+});
+
+reportsHomeButton.addEventListener("click", function () {
+    if (!currentPerson || currentPerson.person_type !== "lehrer") return;
+    currentReportPeriod = "day";
+    updatePeriodTabs();
+    renderReport();
+    showScreen(reportsScreen);
 });
 
 
@@ -1532,19 +1424,27 @@ pinModal.addEventListener("click", function (event) {
 // ========================================
 
 adminBackButton.addEventListener("click", function () {
-    showMainMenu();
+    showScreen(currentReturnScreen || homeScreen);
 });
 
-reportsButton.addEventListener("click", function () {
-    currentReportPeriod = "day";
-    updatePeriodTabs();
-    renderReport();
-    showScreen(reportsScreen);
-});
+if (reportsButton) {
+    reportsButton.addEventListener("click", function () {
+        currentReportPeriod = "day";
+        updatePeriodTabs();
+        renderReport();
+        showScreen(reportsScreen);
+    });
+}
 
 inventoryButton.addEventListener("click", function () {
-    renderInventory();
-    showScreen(inventoryScreen);
+    if (currentPerson && currentPerson.person_type === "lehrer") {
+        renderInventory();
+        showScreen(inventoryScreen);
+        return;
+    }
+
+    renderInventoryCount();
+    showScreen(inventoryCountScreen);
 });
 
 productsButton.addEventListener("click", function () {
@@ -1553,15 +1453,15 @@ productsButton.addEventListener("click", function () {
 });
 
 reportsBackButton.addEventListener("click", function () {
-    openAreaMenu("bearbeiten");
+    showScreen(homeScreen);
 });
 
 inventoryBackButton.addEventListener("click", function () {
-    openAreaMenu("bearbeiten");
+    showScreen(adminScreen);
 });
 
 productsBackButton.addEventListener("click", function () {
-    openAreaMenu("bearbeiten");
+    showScreen(adminScreen);
 });
 
 
@@ -1593,13 +1493,6 @@ function updatePeriodTabs() {
 // ========================================
 // REPORTS
 // ========================================
-
-function getRealSales() {
-    return sales.filter(function (sale) {
-        return sale.is_test !== true;
-    });
-}
-
 
 function renderReport() {
     const filteredSales =
@@ -1720,7 +1613,7 @@ function renderReportProducts(productSummary) {
 function getSalesForPeriod(period) {
     const now = new Date();
 
-    return getRealSales().filter(function (sale) {
+    return sales.filter(function (sale) {
         const date = new Date(sale.date);
 
         if (period === "day") {
