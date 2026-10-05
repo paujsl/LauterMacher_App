@@ -9,12 +9,15 @@
 // ========================================
 
 const SUPABASE_URL = "https://gsbkfrjhierqopkwpqjc.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJvdXBhdGVjQW5vbiIsInJlZiI6ImdzYmtmcmpoaWVycW9wa3dwcWpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5MjI3MjgsImV4cCI6MjEwNjQ5ODcyOH0.BV5aYeAO2nE5SjiEOCs3GA1hwQpg0IJzEl5wizApUVU";
 
-const supabaseClient = window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_ANON_KEY
-);
+const SUPABASE_ANON_KEY =
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdzYmtmcmpoaWVycW9wa3dwcWpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5MjI3MjgsImV4cCI6MjEwNjQ5ODcyOH0.BV5aYeAO2nE5SjiEOCs3GA1hwQpg0IJzEl5wizApUVU";
+
+const supabaseClient =
+    window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_ANON_KEY
+    );
 
 let currentPerson = null;
 let selectedLoginPerson = null;
@@ -186,10 +189,14 @@ const bakeryOutputBackButton =
     document.getElementById("bakeryOutputBackButton");
 
 const bakeryCashShiftEndButton =
-    document.getElementById("bakeryCashShiftEndButton");
+    document.getElementById(
+        "bakeryCashShiftEndButton"
+    );
 
 const bakeryOutputShiftEndButton =
-    document.getElementById("bakeryOutputShiftEndButton");
+    document.getElementById(
+        "bakeryOutputShiftEndButton"
+    );
 
 
 // ========================================
@@ -200,7 +207,9 @@ const eventBackButton =
     document.getElementById("eventBackButton");
 
 const futureFunctionButtons =
-    document.querySelectorAll(".future-function");
+    document.querySelectorAll(
+        ".future-function"
+    );
 
 
 // ========================================
@@ -208,10 +217,14 @@ const futureFunctionButtons =
 // ========================================
 
 const saleBackButton =
-    document.getElementById("saleBackButton");
+    document.getElementById(
+        "saleBackButton"
+    );
 
 const saleShiftEndButton =
-    document.getElementById("saleShiftEndButton");
+    document.getElementById(
+        "saleShiftEndButton"
+    );
 
 const drinksGrid =
     document.getElementById("drinksGrid");
@@ -234,25 +247,35 @@ const payButton =
 // ========================================
 
 const paymentBackButton =
-    document.getElementById("paymentBackButton");
+    document.getElementById(
+        "paymentBackButton"
+    );
 
 const paymentTotal =
     document.getElementById("paymentTotal");
 
 const amountReceived =
-    document.getElementById("amountReceived");
+    document.getElementById(
+        "amountReceived"
+    );
 
 const changeAmount =
-    document.getElementById("changeAmount");
+    document.getElementById(
+        "changeAmount"
+    );
 
 const paidButton =
     document.getElementById("paidButton");
 
 const paymentKeys =
-    document.querySelectorAll(".payment-key");
+    document.querySelectorAll(
+        ".payment-key"
+    );
 
 const deletePaymentButton =
-    document.getElementById("deletePaymentButton");
+    document.getElementById(
+        "deletePaymentButton"
+    );
 
 
 // ========================================
@@ -260,13 +283,19 @@ const deletePaymentButton =
 // ========================================
 
 const successChange =
-    document.getElementById("successChange");
+    document.getElementById(
+        "successChange"
+    );
 
 const newOrderButton =
-    document.getElementById("newOrderButton");
+    document.getElementById(
+        "newOrderButton"
+    );
 
 const successHomeButton =
-    document.getElementById("successHomeButton");
+    document.getElementById(
+        "successHomeButton"
+    );
 
 
 // ========================================
@@ -274,28 +303,44 @@ const successHomeButton =
 // ========================================
 
 const adminBackButton =
-    document.getElementById("adminBackButton");
+    document.getElementById(
+        "adminBackButton"
+    );
 
 const productsButton =
-    document.getElementById("productsButton");
+    document.getElementById(
+        "productsButton"
+    );
 
 const inventoryButton =
-    document.getElementById("inventoryButton");
+    document.getElementById(
+        "inventoryButton"
+    );
 
 const studentsButton =
-    document.getElementById("studentsButton");
+    document.getElementById(
+        "studentsButton"
+    );
 
 const editMenuTitle =
-    document.getElementById("editMenuTitle");
+    document.getElementById(
+        "editMenuTitle"
+    );
 
 const editMenuDescription =
-    document.getElementById("editMenuDescription");
+    document.getElementById(
+        "editMenuDescription"
+    );
 
 const inventoryMenuTitle =
-    document.getElementById("inventoryMenuTitle");
+    document.getElementById(
+        "inventoryMenuTitle"
+    );
 
 const inventoryMenuDescription =
-    document.getElementById("inventoryMenuDescription");
+    document.getElementById(
+        "inventoryMenuDescription"
+    );
 
 
 // ========================================
@@ -303,69 +348,109 @@ const inventoryMenuDescription =
 // ========================================
 
 const productsBackButton =
-    document.getElementById("productsBackButton");
+    document.getElementById(
+        "productsBackButton"
+    );
 
 const adminProductsList =
-    document.getElementById("adminProductsList");
+    document.getElementById(
+        "adminProductsList"
+    );
 
 const addProductButton =
-    document.getElementById("addProductButton");
+    document.getElementById(
+        "addProductButton"
+    );
 
 const productModal =
-    document.getElementById("productModal");
+    document.getElementById(
+        "productModal"
+    );
 
 const closeProductModalButton =
-    document.getElementById("closeProductModalButton");
+    document.getElementById(
+        "closeProductModalButton"
+    );
 
 const cancelProductButton =
-    document.getElementById("cancelProductButton");
+    document.getElementById(
+        "cancelProductButton"
+    );
 
 const saveProductButton =
-    document.getElementById("saveProductButton");
+    document.getElementById(
+        "saveProductButton"
+    );
 
 const productModalTitle =
-    document.getElementById("productModalTitle");
+    document.getElementById(
+        "productModalTitle"
+    );
 
 const productNameInput =
-    document.getElementById("productNameInput");
+    document.getElementById(
+        "productNameInput"
+    );
 
 const productPriceInput =
-    document.getElementById("productPriceInput");
+    document.getElementById(
+        "productPriceInput"
+    );
 
 const productCategoryInput =
-    document.getElementById("productCategoryInput");
+    document.getElementById(
+        "productCategoryInput"
+    );
 
 const productIconInput =
-    document.getElementById("productIconInput");
+    document.getElementById(
+        "productIconInput"
+    );
 
 
 // ========================================
-// INVENTORY — LEHRKRAFT
+// INVENTAR — LEHRKRAFT
 // ========================================
 
 const inventoryBackButton =
-    document.getElementById("inventoryBackButton");
+    document.getElementById(
+        "inventoryBackButton"
+    );
 
 const inventoryList =
-    document.getElementById("inventoryList");
+    document.getElementById(
+        "inventoryList"
+    );
 
 const inventoryModal =
-    document.getElementById("inventoryModal");
+    document.getElementById(
+        "inventoryModal"
+    );
 
 const closeInventoryModalButton =
-    document.getElementById("closeInventoryModalButton");
+    document.getElementById(
+        "closeInventoryModalButton"
+    );
 
 const cancelInventoryButton =
-    document.getElementById("cancelInventoryButton");
+    document.getElementById(
+        "cancelInventoryButton"
+    );
 
 const saveInventoryButton =
-    document.getElementById("saveInventoryButton");
+    document.getElementById(
+        "saveInventoryButton"
+    );
 
 const inventoryProductLabel =
-    document.getElementById("inventoryProductLabel");
+    document.getElementById(
+        "inventoryProductLabel"
+    );
 
 const inventoryAmountInput =
-    document.getElementById("inventoryAmountInput");
+    document.getElementById(
+        "inventoryAmountInput"
+    );
 
 
 // ========================================
@@ -373,13 +458,19 @@ const inventoryAmountInput =
 // ========================================
 
 const inventoryCountBackButton =
-    document.getElementById("inventoryCountBackButton");
+    document.getElementById(
+        "inventoryCountBackButton"
+    );
 
 const inventoryCountList =
-    document.getElementById("inventoryCountList");
+    document.getElementById(
+        "inventoryCountList"
+    );
 
 const submitInventoryButton =
-    document.getElementById("submitInventoryButton");
+    document.getElementById(
+        "submitInventoryButton"
+    );
 
 
 // ========================================
@@ -387,34 +478,54 @@ const submitInventoryButton =
 // ========================================
 
 const reportsBackButton =
-    document.getElementById("reportsBackButton");
+    document.getElementById(
+        "reportsBackButton"
+    );
 
 const periodTabs =
-    document.querySelectorAll(".period-tab");
+    document.querySelectorAll(
+        ".period-tab"
+    );
 
 const reportDateLabel =
-    document.getElementById("reportDateLabel");
+    document.getElementById(
+        "reportDateLabel"
+    );
 
 const reportRevenue =
-    document.getElementById("reportRevenue");
+    document.getElementById(
+        "reportRevenue"
+    );
 
 const reportTransactions =
-    document.getElementById("reportTransactions");
+    document.getElementById(
+        "reportTransactions"
+    );
 
 const reportDrinks =
-    document.getElementById("reportDrinks");
+    document.getElementById(
+        "reportDrinks"
+    );
 
 const reportBakery =
-    document.getElementById("reportBakery");
+    document.getElementById(
+        "reportBakery"
+    );
 
 const reportProducts =
-    document.getElementById("reportProducts");
+    document.getElementById(
+        "reportProducts"
+    );
 
 const exportReportButton =
-    document.getElementById("exportReportButton");
+    document.getElementById(
+        "exportReportButton"
+    );
 
 const clearReportsButton =
-    document.getElementById("clearReportsButton");
+    document.getElementById(
+        "clearReportsButton"
+    );
 
 
 // ========================================
@@ -422,6 +533,7 @@ const clearReportsButton =
 // ========================================
 
 const STORAGE_KEYS = {
+
     products:
         "lauterMacher_products_v1",
 
@@ -441,64 +553,127 @@ const STORAGE_KEYS = {
 
 // ========================================
 // DEFAULT PRODUCTS
-// Fallback, falls products.js nicht geladen wird.
 // ========================================
 
 const DEFAULT_PRODUCTS = [
+
     {
-        id: "wasser",
-        name: "Wasser",
-        price: 1.00,
-        category: "drink",
-        icon: "💧"
+        id:
+            "wasser",
+
+        name:
+            "Wasser",
+
+        price:
+            1.00,
+
+        category:
+            "drink",
+
+        icon:
+            "💧"
     },
 
     {
-        id: "apfelsaft",
-        name: "Apfelsaft",
-        price: 1.50,
-        category: "drink",
-        icon: "🧃"
+        id:
+            "apfelsaft",
+
+        name:
+            "Apfelsaft",
+
+        price:
+            1.50,
+
+        category:
+            "drink",
+
+        icon:
+            "🧃"
     },
 
     {
-        id: "capri-sun",
-        name: "Capri-Sun",
-        price: 1.50,
-        category: "drink",
-        icon: "🧃"
+        id:
+            "capri-sun",
+
+        name:
+            "Capri-Sun",
+
+        price:
+            1.50,
+
+        category:
+            "drink",
+
+        icon:
+            "🧃"
     },
 
     {
-        id: "fake-cola",
-        name: "Fake Cola",
-        price: 1.50,
-        category: "drink",
-        icon: "🥤"
+        id:
+            "fake-cola",
+
+        name:
+            "Fake Cola",
+
+        price:
+            1.50,
+
+        category:
+            "drink",
+
+        icon:
+            "🥤"
     },
 
     {
-        id: "fake-fanta",
-        name: "Fake Fanta",
-        price: 1.50,
-        category: "drink",
-        icon: "🥤"
+        id:
+            "fake-fanta",
+
+        name:
+            "Fake Fanta",
+
+        price:
+            1.50,
+
+        category:
+            "drink",
+
+        icon:
+            "🥤"
     },
 
     {
-        id: "fake-sprite",
-        name: "Fake Sprite",
-        price: 1.50,
-        category: "drink",
-        icon: "🥤"
+        id:
+            "fake-sprite",
+
+        name:
+            "Fake Sprite",
+
+        price:
+            1.50,
+
+        category:
+            "drink",
+
+        icon:
+            "🥤"
     },
 
     {
-        id: "isodrink",
-        name: "Isodrink",
-        price: 2.00,
-        category: "drink",
-        icon: "⚡"
+        id:
+            "isodrink",
+
+        name:
+            "Isodrink",
+
+        price:
+            2.00,
+
+        category:
+            "drink",
+
+        icon:
+            "⚡"
     }
 ];
 
@@ -507,9 +682,14 @@ const DEFAULT_PRODUCTS = [
 // LOCAL DATA
 // ========================================
 
-let products = loadProducts();
-let sales = loadSales();
-let inventory = loadInventory();
+let products =
+    loadProducts();
+
+let sales =
+    loadSales();
+
+let inventory =
+    loadInventory();
 
 
 // ========================================
@@ -528,7 +708,9 @@ document.addEventListener(
 
         hideAppHeader();
 
-        showScreen(identityScreen);
+        showScreen(
+            identityScreen
+        );
 
         await initialiseAuthentication();
     }
@@ -589,7 +771,8 @@ async function initialiseAuthentication() {
 
 async function loadLoginPeople() {
 
-    identityError.textContent = "";
+    identityError.textContent =
+        "";
 
     peopleGrid.innerHTML =
         '<div class="login-loading">Personen werden geladen …</div>';
@@ -599,13 +782,21 @@ async function loadLoginPeople() {
         error
     } =
         await supabaseClient
-            .from("login_people")
+            .from(
+                "login_people"
+            )
             .select(
                 "id, first_name, last_name, person_type"
             )
-            .order("person_type")
-            .order("last_name")
-            .order("first_name");
+            .order(
+                "person_type"
+            )
+            .order(
+                "last_name"
+            )
+            .order(
+                "first_name"
+            );
 
     if (error) {
 
@@ -614,7 +805,8 @@ async function loadLoginPeople() {
             error
         );
 
-        peopleGrid.innerHTML = "";
+        peopleGrid.innerHTML =
+            "";
 
         identityError.textContent =
             "Personen konnten nicht geladen werden. Bitte Internetverbindung prüfen.";
@@ -622,26 +814,34 @@ async function loadLoginPeople() {
         return;
     }
 
-    peopleGrid.innerHTML = "";
+    peopleGrid.innerHTML =
+        "";
 
-    data.forEach(
+    (data || []).forEach(
         function (person) {
 
             const button =
-                document.createElement("button");
+                document.createElement(
+                    "button"
+                );
 
-            button.type = "button";
+            button.type =
+                "button";
 
             button.className =
                 "person-login-card";
 
             const fullName =
-                getFullName(person);
+                getFullName(
+                    person
+                );
 
             button.innerHTML = `
+
                 <span class="person-login-icon">
                     ${
-                        person.person_type === "lehrer"
+                        person.person_type ===
+                        "lehrer"
                             ? "👨‍🏫"
                             : "👤"
                     }
@@ -653,25 +853,35 @@ async function loadLoginPeople() {
 
                 <span class="person-login-type">
                     ${
-                        person.person_type === "lehrer"
+                        person.person_type ===
+                        "lehrer"
                             ? "Lehrkraft"
                             : "Schüler/in"
                     }
                 </span>
+
             `;
 
             button.addEventListener(
                 "click",
                 function () {
-                    selectLoginPerson(person);
+
+                    selectLoginPerson(
+                        person
+                    );
                 }
             );
 
-            peopleGrid.appendChild(button);
+            peopleGrid.appendChild(
+                button
+            );
         }
     );
 
-    if (data.length === 0) {
+    if (
+        !data ||
+        data.length === 0
+    ) {
 
         identityError.textContent =
             "Keine aktiven Personen gefunden.";
@@ -679,13 +889,17 @@ async function loadLoginPeople() {
 }
 
 
-function selectLoginPerson(person) {
+function selectLoginPerson(
+    person
+) {
 
     selectedLoginPerson =
         person;
 
     selectedPersonName.textContent =
-        getFullName(person);
+        getFullName(
+            person
+        );
 
     pinLoginError.textContent =
         "";
@@ -699,7 +913,9 @@ function selectLoginPerson(person) {
 
     window.setTimeout(
         function () {
+
             loginPinInput.focus();
+
         },
         50
     );
@@ -710,11 +926,14 @@ loginBackButton.addEventListener(
     "click",
     function () {
 
-        selectedLoginPerson = null;
+        selectedLoginPerson =
+            null;
 
-        loginPinInput.value = "";
+        loginPinInput.value =
+            "";
 
-        pinLoginError.textContent = "";
+        pinLoginError.textContent =
+            "";
 
         showScreen(
             identityScreen
@@ -729,10 +948,17 @@ loginPinInput.addEventListener(
 
         loginPinInput.value =
             loginPinInput.value
-                .replace(/[^0-9]/g, "")
-                .slice(0, 4);
+                .replace(
+                    /[^0-9]/g,
+                    ""
+                )
+                .slice(
+                    0,
+                    4
+                );
 
-        pinLoginError.textContent = "";
+        pinLoginError.textContent =
+            "";
     }
 );
 
@@ -741,7 +967,10 @@ loginPinInput.addEventListener(
     "keydown",
     function (event) {
 
-        if (event.key === "Enter") {
+        if (
+            event.key ===
+            "Enter"
+        ) {
 
             loginConfirmButton.click();
         }
@@ -764,7 +993,9 @@ async function loginWithPin() {
     const pin =
         loginPinInput.value;
 
-    if (!/^[0-9]{4}$/.test(pin)) {
+    if (
+        !/^[0-9]{4}$/.test(pin)
+    ) {
 
         pinLoginError.textContent =
             "Bitte eine 4-stellige PIN eingeben.";
@@ -793,6 +1024,7 @@ async function loginWithPin() {
                 "login-with-pin",
                 {
                     body: {
+
                         person_id:
                             selectedLoginPerson.id,
 
@@ -878,7 +1110,9 @@ async function loginWithPin() {
 }
 
 
-async function loadCurrentPerson(session) {
+async function loadCurrentPerson(
+    session
+) {
 
     if (
         !session ||
@@ -893,7 +1127,9 @@ async function loadCurrentPerson(session) {
         error
     } =
         await supabaseClient
-            .from("people")
+            .from(
+                "people"
+            )
             .select(
                 "id, first_name, last_name, person_type, active"
             )
@@ -921,13 +1157,17 @@ async function loadCurrentPerson(session) {
 }
 
 
-function applyLoggedInState(person) {
+function applyLoggedInState(
+    person
+) {
 
     currentPerson =
         person;
 
     currentPersonName.textContent =
-        getFullName(person);
+        getFullName(
+            person
+        );
 
     homeRoleLabel.textContent =
         isCurrentTeacher()
@@ -942,11 +1182,14 @@ function applyLoggedInState(person) {
 
     showAppHeader();
 
-    selectedLoginPerson = null;
+    selectedLoginPerson =
+        null;
 
-    loginPinInput.value = "";
+    loginPinInput.value =
+        "";
 
-    pinLoginError.textContent = "";
+    pinLoginError.textContent =
+        "";
 
     resetSale();
 
@@ -979,9 +1222,11 @@ logoutButton.addEventListener(
             return;
         }
 
-        currentPerson = null;
+        currentPerson =
+            null;
 
-        selectedLoginPerson = null;
+        selectedLoginPerson =
+            null;
 
         currentPersonName.textContent =
             "-";
@@ -1006,14 +1251,18 @@ logoutButton.addEventListener(
 
 
 supabaseClient.auth.onAuthStateChange(
-    function (_event, session) {
+    function (
+        _event,
+        session
+    ) {
 
         if (
             !session &&
             currentPerson
         ) {
 
-            currentPerson = null;
+            currentPerson =
+                null;
 
             hideAppHeader();
 
@@ -1066,7 +1315,8 @@ function isCurrentTeacher() {
 
     return Boolean(
         currentPerson &&
-        currentPerson.person_type === "lehrer"
+        currentPerson.person_type ===
+        "lehrer"
     );
 }
 
@@ -1112,7 +1362,9 @@ function updateInventoryMenus() {
 
 function updateNotificationBadge() {
 
-    if (!isCurrentTeacher()) {
+    if (
+        !isCurrentTeacher()
+    ) {
 
         notificationCount.hidden =
             true;
@@ -1126,7 +1378,10 @@ function updateNotificationBadge() {
     const submissions =
         loadInventorySubmissions();
 
-    if (submissions.length > 0) {
+    if (
+        submissions.length >
+        0
+    ) {
 
         notificationCount.hidden =
             false;
@@ -1150,9 +1405,9 @@ function updateNotificationBadge() {
 notificationButton.addEventListener(
     "click",
     function () {
-        // Die Glocke bleibt bewusst kompakt.
-        // Der eigentliche Benachrichtigungsbereich
-        // wird später ergänzt.
+
+        // Die Glocke bleibt zunächst
+        // bewusst nur visuell.
     }
 );
 
@@ -1173,9 +1428,15 @@ function loadProducts() {
         if (saved) {
 
             const parsed =
-                JSON.parse(saved);
+                JSON.parse(
+                    saved
+                );
 
-            if (Array.isArray(parsed)) {
+            if (
+                Array.isArray(
+                    parsed
+                )
+            ) {
 
                 return parsed;
             }
@@ -1190,8 +1451,11 @@ function loadProducts() {
     }
 
     const fallback =
-        typeof PRODUCTS !== "undefined" &&
-        Array.isArray(PRODUCTS)
+        typeof PRODUCTS !==
+            "undefined" &&
+        Array.isArray(
+            PRODUCTS
+        )
             ? PRODUCTS
             : DEFAULT_PRODUCTS;
 
@@ -1210,7 +1474,9 @@ function saveProducts() {
 
     localStorage.setItem(
         STORAGE_KEYS.products,
-        JSON.stringify(products)
+        JSON.stringify(
+            products
+        )
     );
 }
 
@@ -1231,9 +1497,15 @@ function loadSales() {
         if (saved) {
 
             const parsed =
-                JSON.parse(saved);
+                JSON.parse(
+                    saved
+                );
 
-            if (Array.isArray(parsed)) {
+            if (
+                Array.isArray(
+                    parsed
+                )
+            ) {
 
                 return parsed;
             }
@@ -1255,7 +1527,9 @@ function saveSales() {
 
     localStorage.setItem(
         STORAGE_KEYS.sales,
-        JSON.stringify(sales)
+        JSON.stringify(
+            sales
+        )
     );
 }
 
@@ -1276,11 +1550,14 @@ function loadInventory() {
         if (saved) {
 
             const parsed =
-                JSON.parse(saved);
+                JSON.parse(
+                    saved
+                );
 
             if (
                 parsed &&
-                typeof parsed === "object"
+                typeof parsed ===
+                "object"
             ) {
 
                 return parsed;
@@ -1303,7 +1580,9 @@ function saveInventory() {
 
     localStorage.setItem(
         STORAGE_KEYS.inventory,
-        JSON.stringify(inventory)
+        JSON.stringify(
+            inventory
+        )
     );
 }
 
@@ -1323,10 +1602,14 @@ function loadInventorySubmissions() {
 
         const parsed =
             saved
-                ? JSON.parse(saved)
+                ? JSON.parse(
+                    saved
+                )
                 : [];
 
-        return Array.isArray(parsed)
+        return Array.isArray(
+            parsed
+        )
             ? parsed
             : [];
 
@@ -1370,10 +1653,14 @@ function loadShiftClosures() {
 
         const parsed =
             saved
-                ? JSON.parse(saved)
+                ? JSON.parse(
+                    saved
+                )
                 : [];
 
-        return Array.isArray(parsed)
+        return Array.isArray(
+            parsed
+        )
             ? parsed
             : [];
 
@@ -1422,7 +1709,9 @@ function showScreen(
     }
 
     document
-        .querySelectorAll(".screen")
+        .querySelectorAll(
+            ".screen"
+        )
         .forEach(
             function (item) {
 
@@ -1444,8 +1733,11 @@ function showScreen(
 
     window.scrollTo(
         {
-            top: 0,
-            behavior: "auto"
+            top:
+                0,
+
+            behavior:
+                "auto"
         }
     );
 }
@@ -1550,7 +1842,10 @@ reportsHomeButton.addEventListener(
     "click",
     function () {
 
-        if (!isCurrentTeacher()) {
+        if (
+            !isCurrentTeacher()
+        ) {
+
             return;
         }
 
@@ -1662,7 +1957,7 @@ futureFunctionButtons.forEach(
 
 
 // ========================================
-// SALE — RENDER PRODUCTS
+// SALE — PRODUCTS
 // ========================================
 
 function renderProducts() {
@@ -1802,7 +2097,9 @@ function addToCart(
             }
         );
 
-    if (existingProduct) {
+    if (
+        existingProduct
+    ) {
 
         existingProduct.quantity +=
             1;
@@ -1840,7 +2137,10 @@ function updateCart() {
     cartItems.innerHTML =
         "";
 
-    if (cart.length === 0) {
+    if (
+        cart.length ===
+        0
+    ) {
 
         cartItems.innerHTML = `
             <div class="empty-cart">
@@ -1880,14 +2180,21 @@ function updateCart() {
                 );
 
             item.innerHTML = `
+
                 <div class="cart-product-info">
+
                     <span class="cart-product-name">
-                        ${escapeHtml(product.name)}
+                        ${escapeHtml(
+                            product.name
+                        )}
                     </span>
 
                     <span class="cart-product-price">
-                        ${formatPrice(productTotal)}
+                        ${formatPrice(
+                            productTotal
+                        )}
                     </span>
+
                 </div>
 
                 <div class="cart-controls">
@@ -1945,7 +2252,10 @@ function updateCart() {
                                 button.dataset.index
                             );
 
-                        if (!cart[index]) {
+                        if (
+                            !cart[index]
+                        ) {
+
                             return;
                         }
 
@@ -1985,7 +2295,10 @@ function updateCart() {
                                 button.dataset.index
                             );
 
-                        if (!cart[index]) {
+                        if (
+                            !cart[index]
+                        ) {
+
                             return;
                         }
 
@@ -2008,13 +2321,15 @@ function calculateTotal() {
             product
         ) {
 
-            return total +
+            return (
+                total +
                 Number(
                     product.price
                 ) *
                 Number(
                     product.quantity
-                );
+                )
+            );
 
         },
         0
@@ -2023,7 +2338,7 @@ function calculateTotal() {
 
 
 // ========================================
-// SALE NAVIGATION
+// SALE — BACK
 // ========================================
 
 saleBackButton.addEventListener(
@@ -2098,10 +2413,13 @@ function endShift(
                 sale
             ) {
 
-                return sum +
+                return (
+                    sum +
                     Number(
-                        sale.total || 0
-                    );
+                        sale.total ||
+                        0
+                    )
+                );
             },
             0
         );
@@ -2109,35 +2427,30 @@ function endShift(
     const isTest =
         isCurrentTeacher();
 
-    let message = "";
+    let message =
+        "";
 
     if (isTest) {
 
         message =
             "Testumgebung\n\n" +
-
             "Heute: " +
             transactionCount +
             " Verkäufe\n" +
-
             "Umsatz: " +
             formatPrice(
                 revenue
             ) +
-
             "\n\n" +
-
             "Diese Test-Schicht wird nicht als echter Schichtabschluss gespeichert.";
 
     } else {
 
         message =
             "Schicht beenden?\n\n" +
-
             "Heute: " +
             transactionCount +
             " Verkäufe\n" +
-
             "Umsatz: " +
             formatPrice(
                 revenue
@@ -2150,6 +2463,7 @@ function endShift(
         );
 
     if (!confirmed) {
+
         return;
     }
 
@@ -2259,7 +2573,11 @@ payButton.addEventListener(
     "click",
     function () {
 
-        if (cart.length === 0) {
+        if (
+            cart.length ===
+            0
+        ) {
+
             return;
         }
 
@@ -2305,7 +2623,10 @@ paymentKeys.forEach(
                 const value =
                     button.textContent.trim();
 
-                if (value === ",") {
+                if (
+                    value ===
+                    ","
+                ) {
 
                     addDecimal();
 
@@ -2327,7 +2648,8 @@ paymentKeys.forEach(
                     ) &&
                     receivedAmount
                         .split(",")[1]
-                        .length >= 2
+                        .length >=
+                        2
                 ) {
 
                     return;
@@ -2389,8 +2711,10 @@ function updatePaymentDisplay() {
         receivedAmount;
 
     if (
-        displayValue === "" ||
-        displayValue === ","
+        displayValue ===
+        "" ||
+        displayValue ===
+        ","
     ) {
 
         displayValue =
@@ -2433,7 +2757,10 @@ function calculateChange() {
         return;
     }
 
-    if (change < 0) {
+    if (
+        change <
+        0
+    ) {
 
         changeAmount.textContent =
             "Noch " +
@@ -2512,6 +2839,7 @@ function saveSale(
             function (item) {
 
                 return {
+
                     id:
                         item.id,
 
@@ -2534,7 +2862,10 @@ function saveSale(
             }
         );
 
-    if (saleTestMode) {
+    if (
+        saleTestMode
+    ) {
+
         return;
     }
 
@@ -2579,9 +2910,13 @@ function saveSale(
                 "drink"
             ) {
 
-                inventory[item.id] =
+                inventory[
+                    item.id
+                ] =
                     Number(
-                        inventory[item.id] ||
+                        inventory[
+                            item.id
+                        ] ||
                         0
                     ) -
                     item.quantity;
@@ -2623,7 +2958,8 @@ function resetSale() {
 
     cart = [];
 
-    receivedAmount = "";
+    receivedAmount =
+        "";
 
     updateCart();
 }
@@ -2742,14 +3078,19 @@ function renderAdminProducts() {
                     : "Bäckerei";
 
             row.innerHTML = `
+
                 <div class="admin-product-icon">
-                    ${escapeHtml(product.icon)}
+                    ${escapeHtml(
+                        product.icon
+                    )}
                 </div>
 
                 <div class="admin-product-info">
 
                     <strong>
-                        ${escapeHtml(product.name)}
+                        ${escapeHtml(
+                            product.name
+                        )}
                     </strong>
 
                     <small>
@@ -2757,7 +3098,9 @@ function renderAdminProducts() {
                     </small>
 
                     <div class="admin-product-price">
-                        ${formatPrice(product.price)}
+                        ${formatPrice(
+                            product.price
+                        )}
                     </div>
 
                 </div>
@@ -2767,7 +3110,9 @@ function renderAdminProducts() {
                     <button
                         class="icon-action edit-product-button"
                         type="button"
-                        data-product-id="${escapeHtml(product.id)}"
+                        data-product-id="${escapeHtml(
+                            product.id
+                        )}"
                         title="Bearbeiten"
                     >
                         ✏️
@@ -2776,7 +3121,9 @@ function renderAdminProducts() {
                     <button
                         class="icon-action delete delete-product-button"
                         type="button"
-                        data-product-id="${escapeHtml(product.id)}"
+                        data-product-id="${escapeHtml(
+                            product.id
+                        )}"
                         title="Löschen"
                     >
                         🗑️
@@ -2847,7 +3194,9 @@ function openProductModal(
     editingProductId =
         productId;
 
-    if (productId) {
+    if (
+        productId
+    ) {
 
         const product =
             products.find(
@@ -2874,7 +3223,9 @@ function openProductModal(
         productPriceInput.value =
             Number(
                 product.price
-            ).toFixed(2);
+            ).toFixed(
+                2
+            );
 
         productCategoryInput.value =
             product.category;
@@ -2912,6 +3263,7 @@ function openProductModal(
         function () {
 
             productNameInput.focus();
+
         },
         50
     );
@@ -2989,7 +3341,9 @@ saveProductButton.addEventListener(
         }
 
         if (
-            !Number.isFinite(price) ||
+            !Number.isFinite(
+                price
+            ) ||
             price < 0
         ) {
 
@@ -3001,8 +3355,10 @@ saveProductButton.addEventListener(
         }
 
         if (
-            category !== "drink" &&
-            category !== "bakery"
+            category !==
+            "drink" &&
+            category !==
+            "bakery"
         ) {
 
             alert(
@@ -3012,7 +3368,9 @@ saveProductButton.addEventListener(
             return;
         }
 
-        if (editingProductId) {
+        if (
+            editingProductId
+        ) {
 
             const product =
                 products.find(
@@ -3026,6 +3384,7 @@ saveProductButton.addEventListener(
                 );
 
             if (!product) {
+
                 return;
             }
 
@@ -3081,7 +3440,8 @@ saveProductButton.addEventListener(
 
                 inventory[
                     newProduct.id
-                ] = 0;
+                ] =
+                    0;
 
                 saveInventory();
             }
@@ -3114,6 +3474,7 @@ function deleteProduct(
         );
 
     if (!product) {
+
         return;
     }
 
@@ -3125,6 +3486,7 @@ function deleteProduct(
         );
 
     if (!confirmed) {
+
         return;
     }
 
@@ -3217,7 +3579,8 @@ function renderInventory() {
                 Number(
                     inventory[
                         product.id
-                    ] || 0
+                    ] ||
+                    0
                 );
 
             const card =
@@ -3253,31 +3616,41 @@ function renderInventory() {
                 <div class="inventory-product">
 
                     <span class="inventory-icon">
-                        ${escapeHtml(product.icon)}
+                        ${escapeHtml(
+                            product.icon
+                        )}
                     </span>
 
                     <div>
 
                         <strong>
-                            ${escapeHtml(product.name)}
+                            ${escapeHtml(
+                                product.name
+                            )}
                         </strong>
 
                         <small>
-                            ${formatPrice(product.price)}
+                            ${formatPrice(
+                                product.price
+                            )}
                         </small>
 
                     </div>
 
                 </div>
 
-                <div class="inventory-stock ${stockClass}">
+                <div
+                    class="inventory-stock ${stockClass}"
+                >
                     ${stock} Stück
                 </div>
 
                 <button
                     class="inventory-adjust-button"
                     type="button"
-                    data-product-id="${escapeHtml(product.id)}"
+                    data-product-id="${escapeHtml(
+                        product.id
+                    )}"
                 >
                     ＋ Bestand
                 </button>
@@ -3327,6 +3700,7 @@ function openInventoryModal(
         );
 
     if (!product) {
+
         return;
     }
 
@@ -3339,7 +3713,8 @@ function openInventoryModal(
         Number(
             inventory[
                 productId
-            ] || 0
+            ] ||
+            0
         ) +
         " Stück";
 
@@ -3358,6 +3733,7 @@ function openInventoryModal(
         function () {
 
             inventoryAmountInput.focus();
+
         },
         50
     );
@@ -3424,8 +3800,11 @@ saveInventoryButton.addEventListener(
             );
 
         if (
-            !Number.isInteger(amount) ||
-            amount <= 0
+            !Number.isInteger(
+                amount
+            ) ||
+            amount <=
+            0
         ) {
 
             alert(
@@ -3441,7 +3820,8 @@ saveInventoryButton.addEventListener(
             Number(
                 inventory[
                     inventoryProductId
-                ] || 0
+                ] ||
+                0
             ) +
             amount;
 
@@ -3468,7 +3848,7 @@ inventoryBackButton.addEventListener(
 
 
 // ========================================
-// INVENTUR — SCHÜLER/IN
+// INVENTUR — SCHÜLER
 // ========================================
 
 function renderInventoryCount() {
@@ -3514,17 +3894,23 @@ function renderInventoryCount() {
                 <div class="inventory-count-product">
 
                     <span>
-                        ${escapeHtml(product.icon)}
+                        ${escapeHtml(
+                            product.icon
+                        )}
                     </span>
 
                     <div>
 
                         <strong>
-                            ${escapeHtml(product.name)}
+                            ${escapeHtml(
+                                product.name
+                            )}
                         </strong>
 
                         <small>
-                            ${formatPrice(product.price)}
+                            ${formatPrice(
+                                product.price
+                            )}
                         </small>
 
                     </div>
@@ -3537,8 +3923,12 @@ function renderInventoryCount() {
                     min="0"
                     step="1"
                     inputmode="numeric"
-                    data-product-id="${escapeHtml(product.id)}"
-                    aria-label="Gezählter Bestand ${escapeHtml(product.name)}"
+                    data-product-id="${escapeHtml(
+                        product.id
+                    )}"
+                    aria-label="Gezählter Bestand ${escapeHtml(
+                        product.name
+                    )}"
                     placeholder="0"
                 >
             `;
@@ -3673,6 +4063,7 @@ submitInventoryButton.addEventListener(
 
         submissions.push(
             {
+
                 id:
                     Date.now(),
 
@@ -3785,7 +4176,7 @@ function renderReport() {
             0
         );
 
-    let transactionCount =
+    const transactionCount =
         filteredSales.length;
 
     let drinkCount =
@@ -3840,6 +4231,7 @@ function renderReport() {
                             item.id
                         ] =
                             {
+
                                 id:
                                     item.id,
 
@@ -3944,7 +4336,9 @@ function renderReportProducts(
             row.innerHTML = `
 
                 <span class="report-product-name">
-                    ${escapeHtml(item.name)}
+                    ${escapeHtml(
+                        item.name
+                    )}
                 </span>
 
                 <span class="report-product-quantity">
@@ -3952,7 +4346,9 @@ function renderReportProducts(
                 </span>
 
                 <span class="report-product-revenue">
-                    ${formatPrice(item.revenue)}
+                    ${formatPrice(
+                        item.revenue
+                    )}
                 </span>
 
             `;
@@ -4028,6 +4424,7 @@ function isSameDay(
 ) {
 
     return (
+
         a.getFullYear() ===
         b.getFullYear() &&
 
@@ -4082,7 +4479,8 @@ function getMonday(
         result.getDay();
 
     const difference =
-        day === 0
+        day ===
+        0
             ? -6
             : 1 - day;
 
@@ -4170,6 +4568,10 @@ function getReportLabel(
 }
 
 
+// ========================================
+// CSV EXPORT
+// ========================================
+
 exportReportButton.addEventListener(
     "click",
     exportReportAsCSV
@@ -4183,17 +4585,18 @@ function exportReportAsCSV() {
             currentReportPeriod
         );
 
-    const rows =
+    const rows = [
+
         [
-            [
-                "Datum",
-                "Produkt",
-                "Kategorie",
-                "Menge",
-                "Einzelpreis",
-                "Umsatz"
-            ]
-        ];
+            "Datum",
+            "Produkt",
+            "Kategorie",
+            "Menge",
+            "Einzelpreis",
+            "Umsatz"
+        ]
+
+    ];
 
     filteredSales.forEach(
         function (sale) {
@@ -4208,9 +4611,10 @@ function exportReportAsCSV() {
                         [
                             new Date(
                                 sale.date
-                            ).toLocaleString(
-                                "de-DE"
-                            ),
+                            )
+                                .toLocaleString(
+                                    "de-DE"
+                                ),
 
                             item.name,
 
@@ -4224,7 +4628,9 @@ function exportReportAsCSV() {
                             Number(
                                 item.price
                             )
-                                .toFixed(2)
+                                .toFixed(
+                                    2
+                                )
                                 .replace(
                                     ".",
                                     ","
@@ -4238,7 +4644,9 @@ function exportReportAsCSV() {
                                     item.quantity
                                 )
                             )
-                                .toFixed(2)
+                                .toFixed(
+                                    2
+                                )
                                 .replace(
                                     ".",
                                     ","
@@ -4355,6 +4763,10 @@ function csvEscape(
 }
 
 
+// ========================================
+// CLEAR REPORTS
+// ========================================
+
 clearReportsButton.addEventListener(
     "click",
     function () {
@@ -4384,6 +4796,7 @@ clearReportsButton.addEventListener(
             );
 
         if (!confirmed) {
+
             return;
         }
 
@@ -4410,6 +4823,7 @@ function parseGermanNumber(
 ) {
 
     if (!value) {
+
         return 0;
     }
 
@@ -4436,7 +4850,9 @@ function formatPrice(
 
     return (
         number
-            .toFixed(2)
+            .toFixed(
+                2
+            )
             .replace(
                 ".",
                 ","
@@ -4450,15 +4866,18 @@ function roundMoney(
     value
 ) {
 
-    return Math.round(
-        (
-            Number(
-                value
-            ) +
-            Number.EPSILON
-        ) *
+    return (
+        Math.round(
+            (
+                Number(
+                    value
+                ) +
+                Number.EPSILON
+            ) *
+            100
+        ) /
         100
-    ) / 100;
+    );
 }
 
 
@@ -4469,7 +4888,9 @@ function createProductId(
     const base =
         name
             .toLowerCase()
-            .normalize("NFD")
+            .normalize(
+                "NFD"
+            )
             .replace(
                 /[\u0300-\u036f]/g,
                 ""
@@ -4528,6 +4949,7 @@ function getFullName(
 ) {
 
     if (!person) {
+
         return "";
     }
 
