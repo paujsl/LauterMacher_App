@@ -8,13 +8,17 @@
 // SUPABASE AUTHENTIFIZIERUNG
 // ========================================
 
-const SUPABASE_URL = "https://gsbkfrjhierqopkwpqjc.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzIiwicmVmIjoiZ3Nia2ZyaWVy…";
+const SUPABASE_URL =
+    "https://gsbkfrjhierqopkwpqjc.supabase.co";
 
-const supabaseClient = window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_ANON_KEY
-);
+const SUPABASE_PUBLISHABLE_KEY =
+    "sb_publishable_xiM5w8RhiN0I0j5HSVPfnw_LhLQgozX";
+
+const supabaseClient =
+    window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_PUBLISHABLE_KEY
+    );
 
 let currentPerson = null;
 let selectedLoginPerson = null;
