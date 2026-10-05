@@ -1,8 +1,3 @@
-/* ========================================
-   LAUTER MACHER
-   STYLE.CSS â€” STABILISIERTE VERSION
-   ======================================== */
-
 :root {
     --blue-dark: #09436a;
     --blue: #5170ff;
@@ -15,7 +10,7 @@
     --grey: #6d7480;
     --border: #e2e6ec;
     --danger: #e53935;
-    --header-height: 76px;
+    --header-height: 62px;
 }
 
 * {
@@ -50,10 +45,6 @@ button {
     display: none !important;
 }
 
-/* ========================================
-   SCREENS
-   ======================================== */
-
 .screen {
     display: none;
     width: 100%;
@@ -63,10 +54,6 @@ button {
 .screen-visible {
     display: block;
 }
-
-/* ========================================
-   GLOBAL HEADER
-   ======================================== */
 
 .app-header {
     position: sticky;
@@ -105,21 +92,23 @@ button {
     display: block;
     height: 100%;
     width: auto;
-    max-width: min(290px, 34vw);
+    max-width: min(320px, 38vw);
+    min-height: 0;
     object-fit: contain;
+    mix-blend-mode: multiply;
 }
 
 .app-header-actions {
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    gap: 12px;
+    gap: 9px;
     min-width: 0;
 }
 
 .current-person-name {
     color: var(--blue-dark);
-    font-size: clamp(15px, 1.65vw, 21px);
+    font-size: clamp(13px, 1.45vw, 18px);
     font-weight: 700;
     white-space: nowrap;
     overflow: hidden;
@@ -141,10 +130,10 @@ button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 44px;
-    height: 44px;
+    width: 38px;
+    height: 38px;
     padding: 0;
-    font-size: 28px;
+    font-size: 22px;
     border-radius: 50%;
 }
 
@@ -160,32 +149,28 @@ button {
     display: flex;
     align-items: center;
     justify-content: center;
-    min-width: 20px;
-    height: 20px;
+    min-width: 18px;
+    height: 18px;
     padding: 0 5px;
     border-radius: 999px;
     background: var(--danger);
     color: var(--white);
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 800;
     line-height: 1;
 }
 
 .logout-button {
-    min-height: 42px;
-    padding: 0 15px;
-    border-radius: 12px;
-    font-size: clamp(14px, 1.5vw, 18px);
+    min-height: 38px;
+    padding: 0 12px;
+    border-radius: 10px;
+    font-size: clamp(13px, 1.35vw, 16px);
 }
 
 .logout-button:hover,
 .logout-button:focus-visible {
     background: rgba(255, 255, 255, 0.3);
 }
-
-/* ========================================
-   LOGIN
-   ======================================== */
 
 .login-screen {
     display: none;
@@ -214,6 +199,7 @@ button {
     width: min(340px, 72vw);
     height: auto;
     margin: 0 auto 18px;
+    mix-blend-mode: multiply;
 }
 
 .login-card h1 {
@@ -345,10 +331,6 @@ button {
     color: var(--blue-dark);
 }
 
-/* ========================================
-   HOME
-   ======================================== */
-
 .home-screen {
     padding-bottom: 36px;
 }
@@ -461,10 +443,6 @@ button {
     white-space: nowrap;
 }
 
-/* ========================================
-   GENERAL SCREEN HEADER
-   ======================================== */
-
 .screen-header {
     position: relative;
     display: flex;
@@ -495,10 +473,6 @@ button {
 .back-button:focus-visible {
     text-decoration: underline;
 }
-
-/* ========================================
-   FUNCTION MENUS
-   ======================================== */
 
 .function-menu-content {
     width: min(760px, 100%);
@@ -571,10 +545,6 @@ button {
     color: var(--grey);
     font-size: 28px;
 }
-
-/* ========================================
-   PRODUCT SALE
-   ======================================== */
 
 .product-section,
 .cart-section,
@@ -759,10 +729,6 @@ button {
     cursor: not-allowed;
 }
 
-/* ========================================
-   PAYMENT
-   ======================================== */
-
 .payment-container {
     max-width: 450px;
     padding: 10px 20px 40px;
@@ -827,10 +793,6 @@ button {
     background: var(--yellow);
 }
 
-/* ========================================
-   SUCCESS
-   ======================================== */
-
 .success-screen {
     display: none;
     align-items: center;
@@ -891,10 +853,6 @@ button {
     color: var(--white);
     font-size: 21px;
 }
-
-/* ========================================
-   ADMIN / BEARBEITEN
-   ======================================== */
 
 .admin-dashboard {
     padding: 0 20px 40px;
@@ -964,10 +922,6 @@ button {
     color: var(--grey);
     line-height: 1.35;
 }
-
-/* ========================================
-   ADMIN CONTENT
-   ======================================== */
 
 .admin-content {
     padding: 0 20px 40px;
@@ -1124,10 +1078,6 @@ button {
     white-space: nowrap;
 }
 
-/* ========================================
-   INVENTORY
-   ======================================== */
-
 .inventory-intro,
 .inventory-count-intro {
     margin-bottom: 18px;
@@ -1261,10 +1211,6 @@ button {
     margin-top: 18px;
 }
 
-/* ========================================
-   PRODUCTS ADMIN
-   ======================================== */
-
 .product-admin-toolbar {
     display: flex;
     align-items: center;
@@ -1353,10 +1299,6 @@ button {
     background: #ffe2e2;
 }
 
-/* ========================================
-   MODALS
-   ======================================== */
-
 .modal {
     display: none;
     position: fixed;
@@ -1431,9 +1373,366 @@ button {
     margin-top: 22px;
 }
 
-/* ========================================
-   RESPONSIVE
-   ======================================== */
+.fixed-bottom-action {
+    position: fixed;
+    right: 18px;
+    bottom: 18px;
+    z-index: 850;
+}
+
+.fixed-bottom-action .primary-action {
+    min-height: 48px;
+    box-shadow: 0 8px 22px rgba(9, 67, 106, 0.16);
+}
+
+.success-actions {
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 18px;
+}
+
+.success-actions .primary-action,
+.success-actions .new-order-button {
+    min-width: 190px;
+}
+
+.site-message-card {
+    width: min(520px, 100%);
+    padding: 30px;
+    border-radius: 26px;
+    background: var(--white);
+    box-shadow: 0 22px 70px rgba(9, 67, 106, 0.22);
+    text-align: center;
+}
+
+.site-message-icon {
+    font-size: 54px;
+    line-height: 1;
+}
+
+.site-message-card h2 {
+    margin: 16px 0 10px;
+    color: var(--blue-dark);
+    font-size: clamp(24px, 4vw, 32px);
+}
+
+.site-message-card p {
+    margin: 0 0 22px;
+    color: var(--grey);
+    font-size: 18px;
+    line-height: 1.5;
+}
+
+.site-message-card .primary-action {
+    width: 100%;
+}
+
+.page-intro-card {
+    margin-bottom: 16px;
+    padding: 18px;
+    border-radius: 17px;
+    background: var(--light);
+}
+
+.page-intro-card strong {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 20px;
+}
+
+.page-intro-card p {
+    margin: 0;
+    color: var(--grey);
+    line-height: 1.45;
+}
+
+.form-panel {
+    margin-bottom: 16px;
+    padding: 18px;
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    background: var(--white);
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 16px;
+}
+
+.form-grid label {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    color: var(--blue-dark);
+    font-weight: 800;
+}
+
+.form-grid input,
+.form-grid select {
+    width: 100%;
+    min-height: 50px;
+    padding: 10px 12px;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    background: var(--light);
+    color: var(--blue-dark);
+}
+
+.form-grid input:focus,
+.form-grid select:focus {
+    outline: 3px solid rgba(81, 112, 255, 0.12);
+    border-color: var(--blue-dark);
+}
+
+.choice-block {
+    padding-top: 4px;
+}
+
+.choice-block > strong {
+    display: block;
+    margin-bottom: 10px;
+}
+
+.choice-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.choice-button {
+    flex: 1;
+    min-width: 130px;
+    min-height: 50px;
+    border: 0;
+    border-radius: 13px;
+    background: var(--lavender);
+    color: var(--blue-dark);
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.choice-button:hover,
+.choice-button:focus-visible {
+    background: #c3b7f2;
+}
+
+.record-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.record-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 13px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--light);
+}
+
+.record-row > div {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.record-row strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.record-row small {
+    color: var(--grey);
+}
+
+.record-type {
+    flex: 0 0 auto;
+    padding: 6px 9px;
+    border-radius: 9px;
+    background: var(--white);
+    color: var(--blue-dark);
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.event-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.event-list-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    padding: 14px;
+    border: 1px solid var(--border);
+    border-radius: 17px;
+    background: var(--white);
+    box-shadow: 0 6px 20px rgba(9, 67, 106, 0.05);
+}
+
+.event-list-main {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.event-list-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    flex: 0 0 50px;
+    border-radius: 14px;
+    background: var(--light);
+    font-size: 25px;
+}
+
+.event-list-main > div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.event-list-main strong {
+    font-size: 18px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.event-list-main small {
+    color: var(--grey);
+}
+
+.event-inventory-editor {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.event-inventory-editor-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 120px 42px;
+    gap: 8px;
+    align-items: center;
+}
+
+.event-inventory-editor-row input {
+    width: 100%;
+    min-height: 48px;
+    padding: 8px 10px;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    background: var(--light);
+    color: var(--blue-dark);
+}
+
+.event-inventory-editor-row input:focus {
+    outline: 3px solid rgba(81, 112, 255, 0.12);
+    border-color: var(--blue-dark);
+}
+
+.event-start-empty {
+    margin-bottom: 0;
+}
+
+.event-option-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 13px;
+}
+
+.event-option-grid:has(.event-option-card:nth-child(3)) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.event-option-card {
+    min-height: 160px;
+    padding: 22px;
+    border: 1px solid var(--border);
+    border-radius: 19px;
+    background: var(--white);
+    color: var(--blue-dark);
+    box-shadow: 0 7px 24px rgba(9, 67, 106, 0.06);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 7px;
+    text-align: left;
+}
+
+.event-option-card:hover,
+.event-option-card:focus-visible {
+    background: #fbfbff;
+    transform: translateY(-1px);
+}
+
+.event-option-card span {
+    font-size: 32px;
+}
+
+.event-option-card strong {
+    font-size: 22px;
+}
+
+.event-option-card small {
+    color: var(--grey);
+}
+
+.event-output-orders {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.event-order-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px;
+    border: 1px solid var(--border);
+    border-radius: 15px;
+    background: var(--white);
+}
+
+.event-order-card > div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.event-order-card small {
+    color: var(--grey);
+}
+
+.event-order-status {
+    padding: 6px 9px;
+    border-radius: 9px;
+    background: #e9f6df;
+    color: #3d6d19;
+    font-size: 12px;
+    font-weight: 800;
+}
 
 @media (max-width: 900px) {
     .product-grid {
@@ -1447,7 +1746,7 @@ button {
 
 @media (max-width: 680px) {
     :root {
-        --header-height: 64px;
+        --header-height: 58px;
     }
 
     .app-header-inner {
@@ -1457,6 +1756,7 @@ button {
 
     .app-header-logo {
         max-width: 150px;
+        height: 100%;
     }
 
     .app-header-actions {
@@ -1469,15 +1769,15 @@ button {
     }
 
     .notification-button {
-        width: 38px;
-        height: 38px;
-        font-size: 23px;
+        width: 34px;
+        height: 34px;
+        font-size: 20px;
     }
 
     .logout-button {
-        min-height: 38px;
-        padding: 0 8px;
-        font-size: 13px;
+        min-height: 34px;
+        padding: 0 7px;
+        font-size: 12px;
     }
 
     .home-content {
@@ -1572,29 +1872,76 @@ button {
     .small-action {
         width: 100%;
     }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .event-option-grid,
+    .event-option-grid:has(.event-option-card:nth-child(3)) {
+        grid-template-columns: 1fr;
+    }
+
+    .event-inventory-editor-row {
+        grid-template-columns: minmax(0, 1fr) 100px 42px;
+    }
+
+    .event-list-card {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .event-list-card .small-action {
+        width: 100%;
+    }
+
+    .fixed-bottom-action {
+        right: 12px;
+        bottom: 12px;
+    }
+
+    .success-actions {
+        flex-direction: column;
+    }
+
+    .success-actions .primary-action,
+    .success-actions .new-order-button {
+        width: 100%;
+        min-width: 0;
+    }
 }
 
 @media (max-width: 430px) {
     .app-header-logo {
-        max-width: 128px;
+        max-width: 115px;
     }
 
     .current-person-name {
-        max-width: 28vw;
-        font-size: 12px;
+        max-width: 27vw;
+        font-size: 11px;
+    }
+
+    .notification-button {
+        width: 31px;
+        height: 31px;
+        font-size: 18px;
     }
 
     .logout-button {
-        padding: 0 6px;
-        font-size: 12px;
-    }
-
-    .home-role-label {
-        font-size: 22px;
+        padding: 0 5px;
+        font-size: 11px;
     }
 
     .home-heading h1 {
         font-size: 28px;
+    }
+
+    .event-inventory-editor-row {
+        grid-template-columns: 1fr 85px 40px;
+    }
+
+    .site-message-card {
+        padding: 24px 18px;
     }
 
     .function-menu-content,
