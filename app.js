@@ -8,17 +8,13 @@
 // SUPABASE AUTHENTIFIZIERUNG
 // ========================================
 
-const SUPABASE_URL =
-    "https://gsbkfrjhierqopkwpqjc.supabase.co";
+const SUPABASE_URL = "https://gsbkfrjhierqopkwpqjc.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzIiwicmVmIjoiZ3Nia2ZyamllcnFvcGt3cHFqYyIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzkwOTIyNzI4LCJleHAiOjIxMDY0OTg3Mjh9.BV5aYeAO2nE5SjiEOCs3GA1hwQpg0IJzEl5wizApUVU";
 
-const SUPABASE_PUBLISHABLE_KEY =
-    "sb_publishable_xiM5w8RhiN0I0j5HSVPfnw_LhLQgozX";
-
-const supabaseClient =
-    window.supabase.createClient(
-        SUPABASE_URL,
-        SUPABASE_PUBLISHABLE_KEY
-    );
+const supabaseClient = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY
+);
 
 let currentPerson = null;
 let selectedLoginPerson = null;
@@ -508,7 +504,6 @@ function updateHomeForPerson() {
     studentHomeMenu.hidden = isTeacher;
     teacherHomeMenu.hidden = !isTeacher;
     reportsHomeButton.hidden = false;
-
 }
 
 
@@ -628,13 +623,19 @@ async function refreshProductsFromSupabase() {
         saveProducts();
         renderProducts();
 
-        if (productsScreen && productsScreen.classList.contains("screen-visible")) {
+        if (
+            productsScreen &&
+            productsScreen.classList.contains("screen-visible")
+        ) {
             renderAdminProducts();
         }
 
         return true;
     } catch (error) {
-        console.error("Produkte konnten nicht aus Supabase geladen werden.", error);
+        console.error(
+            "Produkte konnten nicht aus Supabase geladen werden.",
+            error
+        );
         return false;
     } finally {
         productsSyncInProgress = false;
@@ -743,12 +744,18 @@ function saveInventory() {
 
 function loadInventorySubmissions() {
     try {
-        const saved = localStorage.getItem(STORAGE_KEYS.inventorySubmissions);
+        const saved = localStorage.getItem(
+            STORAGE_KEYS.inventorySubmissions
+        );
+
         const parsed = saved ? JSON.parse(saved) : [];
 
         return Array.isArray(parsed) ? parsed : [];
     } catch (error) {
-        console.error("Inventurmeldungen konnten nicht geladen werden.", error);
+        console.error(
+            "Inventurmeldungen konnten nicht geladen werden.",
+            error
+        );
         return [];
     }
 }
@@ -891,7 +898,9 @@ function renderProducts() {
             return product.category === "drink";
         })
         .forEach(function (product) {
-            drinksGrid.appendChild(createProductButton(product));
+            drinksGrid.appendChild(
+                createProductButton(product)
+            );
         });
 
     products
@@ -899,7 +908,9 @@ function renderProducts() {
             return product.category === "bakery";
         })
         .forEach(function (product) {
-            bakeryGrid.appendChild(createProductButton(product));
+            bakeryGrid.appendChild(
+                createProductButton(product)
+            );
         });
 
     if (bakeryGrid.children.length === 0) {
@@ -920,9 +931,17 @@ function createProductButton(product) {
     button.dataset.productId = product.id;
 
     button.innerHTML = `
-        <span class="product-icon">${escapeHtml(product.icon)}</span>
-        <span class="product-name">${escapeHtml(product.name)}</span>
-        <span class="product-price">${formatPrice(product.price)}</span>
+        <span class="product-icon">
+            ${escapeHtml(product.icon)}
+        </span>
+
+        <span class="product-name">
+            ${escapeHtml(product.name)}
+        </span>
+
+        <span class="product-price">
+            ${formatPrice(product.price)}
+        </span>
     `;
 
     button.addEventListener("click", function () {
@@ -975,27 +994,54 @@ function updateCart() {
 
     cart.forEach(function (product, index) {
         const item = document.createElement("div");
+
         item.className = "cart-item";
 
-        const total = Number(product.price) * Number(product.quantity);
+        const total =
+            Number(product.price) *
+            Number(product.quantity);
 
         item.innerHTML = `
             <div class="cart-product-info">
-                <span class="cart-product-name">${escapeHtml(product.name)}</span>
-                <span class="cart-product-price">${formatPrice(total)}</span>
+                <span class="cart-product-name">
+                    ${escapeHtml(product.name)}
+                </span>
+
+                <span class="cart-product-price">
+                    ${formatPrice(total)}
+                </span>
             </div>
 
             <div class="cart-controls">
-                <button type="button" class="cart-control minus" data-index="${index}">−</button>
-                <span class="cart-quantity">${product.quantity}</span>
-                <button type="button" class="cart-control plus" data-index="${index}">+</button>
+                <button
+                    type="button"
+                    class="cart-control minus"
+                    data-index="${index}"
+                >
+                    −
+                </button>
+
+                <span class="cart-quantity">
+                    ${product.quantity}
+                </span>
+
+                <button
+                    type="button"
+                    class="cart-control plus"
+                    data-index="${index}"
+                >
+                    +
+                </button>
             </div>
         `;
 
         cartItems.appendChild(item);
     });
 
-    cartTotal.textContent = formatPrice(calculateTotal());
+    cartTotal.textContent = formatPrice(
+        calculateTotal()
+    );
+
     payButton.disabled = false;
 
     attachCartEvents();
@@ -1003,43 +1049,57 @@ function updateCart() {
 
 
 function attachCartEvents() {
-    document.querySelectorAll(".cart-control.minus").forEach(function (button) {
-        button.addEventListener("click", function () {
-            const index = Number(button.dataset.index);
+    document
+        .querySelectorAll(".cart-control.minus")
+        .forEach(function (button) {
+            button.addEventListener("click", function () {
+                const index =
+                    Number(button.dataset.index);
 
-            if (!cart[index]) {
-                return;
-            }
+                if (!cart[index]) {
+                    return;
+                }
 
-            cart[index].quantity -= 1;
+                cart[index].quantity -= 1;
 
-            if (cart[index].quantity <= 0) {
-                cart.splice(index, 1);
-            }
+                if (cart[index].quantity <= 0) {
+                    cart.splice(index, 1);
+                }
 
-            updateCart();
+                updateCart();
+            });
         });
-    });
 
-    document.querySelectorAll(".cart-control.plus").forEach(function (button) {
-        button.addEventListener("click", function () {
-            const index = Number(button.dataset.index);
+    document
+        .querySelectorAll(".cart-control.plus")
+        .forEach(function (button) {
+            button.addEventListener("click", function () {
+                const index =
+                    Number(button.dataset.index);
 
-            if (!cart[index]) {
-                return;
-            }
+                if (!cart[index]) {
+                    return;
+                }
 
-            cart[index].quantity += 1;
-            updateCart();
+                cart[index].quantity += 1;
+
+                updateCart();
+            });
         });
-    });
 }
 
 
 function calculateTotal() {
-    return cart.reduce(function (total, product) {
-        return total + Number(product.price) * Number(product.quantity);
-    }, 0);
+    return cart.reduce(
+        function (total, product) {
+            return (
+                total +
+                Number(product.price) *
+                Number(product.quantity)
+            );
+        },
+        0
+    );
 }
 
 
@@ -1058,22 +1118,31 @@ payButton.addEventListener("click", function () {
         return;
     }
 
-    paymentTotal.textContent = formatPrice(calculateTotal());
+    paymentTotal.textContent =
+        formatPrice(calculateTotal());
+
     receivedAmount = "";
+
     updatePaymentDisplay();
-    showScreen(paymentScreen, saleScreen);
+
+    showScreen(
+        paymentScreen,
+        saleScreen
+    );
 });
 
 
 paymentBackButton.addEventListener("click", function () {
     receivedAmount = "";
+
     showScreen(saleScreen);
 });
 
 
 paymentKeys.forEach(function (button) {
     button.addEventListener("click", function () {
-        const value = button.textContent.trim();
+        const value =
+            button.textContent.trim();
 
         if (value === ",") {
             addDecimal();
@@ -1092,6 +1161,7 @@ paymentKeys.forEach(function (button) {
         }
 
         receivedAmount += value;
+
         updatePaymentDisplay();
     });
 });
@@ -1111,71 +1181,113 @@ function addDecimal() {
 
 
 deletePaymentButton.addEventListener("click", function () {
-    receivedAmount = receivedAmount.slice(0, -1);
+    receivedAmount =
+        receivedAmount.slice(0, -1);
+
     updatePaymentDisplay();
 });
 
 
 function updatePaymentDisplay() {
-    let displayValue = receivedAmount;
+    let displayValue =
+        receivedAmount;
 
-    if (displayValue === "" || displayValue === ",") {
+    if (
+        displayValue === "" ||
+        displayValue === ","
+    ) {
         displayValue = "0,00";
     }
 
-    amountReceived.textContent = displayValue + " €";
+    amountReceived.textContent =
+        displayValue + " €";
+
     calculateChange();
 }
 
 
 function calculateChange() {
-    const total = calculateTotal();
-    const received = parseGermanNumber(receivedAmount);
-    const change = received - total;
+    const total =
+        calculateTotal();
+
+    const received =
+        parseGermanNumber(
+            receivedAmount
+        );
+
+    const change =
+        received - total;
 
     if (receivedAmount === "") {
-        changeAmount.textContent = "0,00 €";
+        changeAmount.textContent =
+            "0,00 €";
+
         paidButton.disabled = true;
         return;
     }
 
     if (change < 0) {
-        changeAmount.textContent = "Noch " + formatPrice(Math.abs(change));
+        changeAmount.textContent =
+            "Noch " +
+            formatPrice(
+                Math.abs(change)
+            );
+
         paidButton.disabled = true;
         return;
     }
 
-    changeAmount.textContent = formatPrice(change);
+    changeAmount.textContent =
+        formatPrice(change);
+
     paidButton.disabled = false;
 }
 
 
 paidButton.addEventListener("click", function () {
-    const total = calculateTotal();
-    const received = parseGermanNumber(receivedAmount);
+    const total =
+        calculateTotal();
+
+    const received =
+        parseGermanNumber(
+            receivedAmount
+        );
 
     if (received < total) {
         return;
     }
 
-    const change = received - total;
+    const change =
+        received - total;
 
-    saveSale(total, received, change);
-    successChange.textContent = formatPrice(change);
+    saveSale(
+        total,
+        received,
+        change
+    );
+
+    successChange.textContent =
+        formatPrice(change);
+
     showScreen(successScreen);
 });
 
 
-function saveSale(total, received, change) {
-    const saleItems = cart.map(function (item) {
-        return {
-            id: item.id,
-            name: item.name,
-            price: Number(item.price),
-            category: item.category,
-            quantity: Number(item.quantity)
-        };
-    });
+function saveSale(
+    total,
+    received,
+    change
+) {
+    const saleItems =
+        cart.map(function (item) {
+            return {
+                id: item.id,
+                name: item.name,
+                price: Number(item.price),
+                category: item.category,
+                quantity: Number(item.quantity)
+            };
+        });
 
     if (saleTestMode) {
         return;
@@ -1191,6 +1303,7 @@ function saveSale(total, received, change) {
     };
 
     sales.push(sale);
+
     saveSales();
 
     saleItems.forEach(function (item) {
@@ -1198,8 +1311,13 @@ function saveSale(total, received, change) {
             return;
         }
 
-        const stock = Number(inventory[item.id] || 0);
-        inventory[item.id] = stock - item.quantity;
+        const stock =
+            Number(
+                inventory[item.id] || 0
+            );
+
+        inventory[item.id] =
+            stock - item.quantity;
     });
 
     saveInventory();
@@ -1208,12 +1326,17 @@ function saveSale(total, received, change) {
 
 newOrderButton.addEventListener("click", function () {
     resetSale();
-    showScreen(saleScreen, homeScreen);
+
+    showScreen(
+        saleScreen,
+        homeScreen
+    );
 });
 
 
 successHomeButton.addEventListener("click", function () {
     resetSale();
+
     showScreen(homeScreen);
 });
 
@@ -1222,6 +1345,7 @@ function resetSale() {
     cart = [];
     receivedAmount = "";
     saleTestMode = false;
+
     updateCart();
 }
 
@@ -1237,20 +1361,34 @@ adminBackButton.addEventListener("click", function () {
 
 productsButton.addEventListener("click", async function () {
     await refreshProductsFromSupabase();
+
     renderAdminProducts();
-    showScreen(productsScreen, adminScreen);
+
+    showScreen(
+        productsScreen,
+        adminScreen
+    );
 });
 
 
 inventoryButton.addEventListener("click", function () {
     if (isCurrentTeacher()) {
         renderInventory();
-        showScreen(inventoryScreen, adminScreen);
+
+        showScreen(
+            inventoryScreen,
+            adminScreen
+        );
+
         return;
     }
 
     renderInventoryCount();
-    showScreen(inventoryCountScreen, adminScreen);
+
+    showScreen(
+        inventoryCountScreen,
+        adminScreen
+    );
 });
 
 
@@ -1267,46 +1405,90 @@ function renderAdminProducts() {
                 Keine Produkte vorhanden.
             </div>
         `;
+
         return;
     }
 
     products.forEach(function (product) {
-        const row = document.createElement("div");
-        row.className = "admin-product-row";
+        const row =
+            document.createElement("div");
 
-        const categoryLabel = product.category === "drink"
-            ? "Getränk"
-            : "Bäckerei";
+        row.className =
+            "admin-product-row";
+
+        const categoryLabel =
+            product.category === "drink"
+                ? "Getränk"
+                : "Bäckerei";
 
         row.innerHTML = `
-            <div class="admin-product-icon">${escapeHtml(product.icon)}</div>
+            <div class="admin-product-icon">
+                ${escapeHtml(product.icon)}
+            </div>
 
             <div class="admin-product-info">
-                <strong>${escapeHtml(product.name)}</strong>
-                <small>${categoryLabel}</small>
-                <div class="admin-product-price">${formatPrice(product.price)}</div>
+                <strong>
+                    ${escapeHtml(product.name)}
+                </strong>
+
+                <small>
+                    ${categoryLabel}
+                </small>
+
+                <div class="admin-product-price">
+                    ${formatPrice(product.price)}
+                </div>
             </div>
 
             <div class="admin-product-actions">
-                <button type="button" class="icon-action edit-product-button" data-product-id="${escapeHtml(product.id)}" title="Bearbeiten">✏️</button>
-                <button type="button" class="icon-action delete delete-product-button" data-product-id="${escapeHtml(product.id)}" title="Löschen">🗑️</button>
+                <button
+                    type="button"
+                    class="icon-action edit-product-button"
+                    data-product-id="${escapeHtml(product.id)}"
+                    title="Bearbeiten"
+                >
+                    ✏️
+                </button>
+
+                <button
+                    type="button"
+                    class="icon-action delete delete-product-button"
+                    data-product-id="${escapeHtml(product.id)}"
+                    title="Löschen"
+                >
+                    🗑️
+                </button>
             </div>
         `;
 
         adminProductsList.appendChild(row);
     });
 
-    document.querySelectorAll(".edit-product-button").forEach(function (button) {
-        button.addEventListener("click", function () {
-            openProductModal(button.dataset.productId);
+    document
+        .querySelectorAll(".edit-product-button")
+        .forEach(function (button) {
+            button.addEventListener(
+                "click",
+                function () {
+                    openProductModal(
+                        button.dataset.productId
+                    );
+                }
+            );
         });
-    });
 
-    document.querySelectorAll(".delete-product-button").forEach(function (button) {
-        button.addEventListener("click", function () {
-            deleteProduct(button.dataset.productId);
+    document
+        .querySelectorAll(".delete-product-button")
+        .forEach(function (button) {
+            button.addEventListener(
+                "click",
+                function () {
+                    deleteProduct(
+                        button.dataset.productId
+                    );
+                }
+            );
         });
-    });
 }
 
 
@@ -1315,33 +1497,61 @@ addProductButton.addEventListener("click", function () {
 });
 
 
-function openProductModal(productId = null) {
+function openProductModal(
+    productId = null
+) {
     editingProductId = productId;
 
     if (productId) {
-        const product = products.find(function (item) {
-            return item.id === productId;
-        });
+        const product =
+            products.find(
+                function (item) {
+                    return (
+                        item.id ===
+                        productId
+                    );
+                }
+            );
 
         if (!product) {
             return;
         }
 
-        productModalTitle.textContent = "Produkt bearbeiten";
-        productNameInput.value = product.name;
-        productPriceInput.value = Number(product.price).toFixed(2);
-        productCategoryInput.value = product.category;
-        productIconInput.value = product.icon;
+        productModalTitle.textContent =
+            "Produkt bearbeiten";
+
+        productNameInput.value =
+            product.name;
+
+        productPriceInput.value =
+            Number(product.price)
+                .toFixed(2);
+
+        productCategoryInput.value =
+            product.category;
+
+        productIconInput.value =
+            product.icon;
     } else {
-        productModalTitle.textContent = "Produkt hinzufügen";
+        productModalTitle.textContent =
+            "Produkt hinzufügen";
+
         productNameInput.value = "";
         productPriceInput.value = "";
-        productCategoryInput.value = "drink";
-        productIconInput.value = "🥤";
+        productCategoryInput.value =
+            "drink";
+
+        productIconInput.value =
+            "🥤";
     }
 
-    productModal.style.display = "flex";
-    productModal.setAttribute("aria-hidden", "false");
+    productModal.style.display =
+        "flex";
+
+    productModal.setAttribute(
+        "aria-hidden",
+        "false"
+    );
 
     setTimeout(function () {
         productNameInput.focus();
@@ -1350,172 +1560,334 @@ function openProductModal(productId = null) {
 
 
 function closeProductModal() {
-    productModal.style.display = "none";
-    productModal.setAttribute("aria-hidden", "true");
+    productModal.style.display =
+        "none";
+
+    productModal.setAttribute(
+        "aria-hidden",
+        "true"
+    );
+
     editingProductId = null;
 }
 
 
-closeProductModalButton.addEventListener("click", closeProductModal);
-cancelProductButton.addEventListener("click", closeProductModal);
+closeProductModalButton.addEventListener(
+    "click",
+    closeProductModal
+);
+
+cancelProductButton.addEventListener(
+    "click",
+    closeProductModal
+);
 
 
-productModal.addEventListener("click", function (event) {
-    if (event.target === productModal) {
-        closeProductModal();
+productModal.addEventListener(
+    "click",
+    function (event) {
+        if (
+            event.target ===
+            productModal
+        ) {
+            closeProductModal();
+        }
     }
-});
+);
 
 
-saveProductButton.addEventListener("click", async function () {
-    const name = productNameInput.value.trim();
-    const price = Number(productPriceInput.value);
-    const category = productCategoryInput.value;
-    const icon = productIconInput.value.trim() || "🥤";
+// ========================================
+// PRODUCT — SAVE TO SUPABASE
+// ========================================
 
-    if (!name) {
-        alert("Bitte einen Produktnamen eingeben.");
-        return;
-    }
+saveProductButton.addEventListener(
+    "click",
+    async function () {
+        const name =
+            productNameInput.value.trim();
 
-    if (!Number.isFinite(price) || price < 0) {
-        alert("Bitte einen gültigen Preis eingeben.");
-        return;
-    }
+        const price =
+            Number(
+                productPriceInput.value
+            );
 
-    if (category !== "drink" && category !== "bakery") {
-        alert("Ungültige Kategorie.");
-        return;
-    }
+        const category =
+            productCategoryInput.value;
 
-    if (!currentPerson) {
-        alert("Bitte zuerst anmelden.");
-        return;
-    }
+        const icon =
+            productIconInput.value.trim() ||
+            "🥤";
 
-    saveProductButton.disabled = true;
-    saveProductButton.textContent = "Speichern …";
+        if (!name) {
+            alert(
+                "Bitte einen Produktnamen eingeben."
+            );
 
-    try {
-        const dbProduct = {
-            name: name,
-            price: roundMoney(price),
-            category: mapAppCategoryToDbCategory(category),
-            icon: icon,
-            active: true
-        };
-
-        if (editingProductId) {
-            const { data, error } = await supabaseClient
-                .from("products")
-                .update(dbProduct)
-                .eq("id", editingProductId)
-                .eq("active", true)
-                .select("id, name, price, category, icon, active, created_at")
-                .single();
-
-            if (error) {
-                throw error;
-            }
-
-            const updatedProduct = mapDbProductToAppProduct(data);
-
-            products = products.map(function (product) {
-                return product.id === updatedProduct.id
-                    ? updatedProduct
-                    : product;
-            });
-        } else {
-            const { data, error } = await supabaseClient
-                .from("products")
-                .insert({
-                    id: createProductId(name),
-                    ...dbProduct
-                })
-                .select("id, name, price, category, icon, active, created_at")
-                .single();
-
-            if (error) {
-                throw error;
-            }
-
-            const newProduct = mapDbProductToAppProduct(data);
-            products.push(newProduct);
-
-            if (newProduct.category === "drink") {
-                inventory[newProduct.id] = Number(inventory[newProduct.id] || 0);
-                saveInventory();
-            }
+            return;
         }
 
-        saveProducts();
-        renderProducts();
-        renderAdminProducts();
-        closeProductModal();
-    } catch (error) {
-        console.error("Produkt konnte nicht in Supabase gespeichert werden.", error);
-        alert("Das Produkt konnte nicht gespeichert werden. Bitte erneut versuchen.");
-    } finally {
-        saveProductButton.disabled = false;
-        saveProductButton.textContent = "Speichern";
+        if (
+            !Number.isFinite(price) ||
+            price < 0
+        ) {
+            alert(
+                "Bitte einen gültigen Preis eingeben."
+            );
+
+            return;
+        }
+
+        if (
+            category !== "drink" &&
+            category !== "bakery"
+        ) {
+            alert(
+                "Ungültige Kategorie."
+            );
+
+            return;
+        }
+
+        if (!currentPerson) {
+            alert(
+                "Bitte zuerst anmelden."
+            );
+
+            return;
+        }
+
+        saveProductButton.disabled =
+            true;
+
+        saveProductButton.textContent =
+            "Speichern …";
+
+        try {
+            const dbProduct = {
+                name: name,
+                price: roundMoney(price),
+                category:
+                    mapAppCategoryToDbCategory(
+                        category
+                    ),
+                icon: icon,
+                active: true
+            };
+
+            if (editingProductId) {
+                const {
+                    data,
+                    error
+                } = await supabaseClient
+                    .from("products")
+                    .update(dbProduct)
+                    .eq(
+                        "id",
+                        editingProductId
+                    )
+                    .eq(
+                        "active",
+                        true
+                    )
+                    .select(
+                        "id, name, price, category, icon, active, created_at"
+                    )
+                    .single();
+
+                if (error) {
+                    throw error;
+                }
+
+                const updatedProduct =
+                    mapDbProductToAppProduct(
+                        data
+                    );
+
+                products =
+                    products.map(
+                        function (product) {
+                            return product.id ===
+                                updatedProduct.id
+                                ? updatedProduct
+                                : product;
+                        }
+                    );
+            } else {
+                const {
+                    data,
+                    error
+                } = await supabaseClient
+                    .from("products")
+                    .insert({
+                        id: createProductId(name),
+                        ...dbProduct
+                    })
+                    .select(
+                        "id, name, price, category, icon, active, created_at"
+                    )
+                    .single();
+
+                if (error) {
+                    throw error;
+                }
+
+                const newProduct =
+                    mapDbProductToAppProduct(
+                        data
+                    );
+
+                products.push(
+                    newProduct
+                );
+
+                if (
+                    newProduct.category ===
+                    "drink"
+                ) {
+                    inventory[
+                        newProduct.id
+                    ] = Number(
+                        inventory[
+                            newProduct.id
+                        ] || 0
+                    );
+
+                    saveInventory();
+                }
+            }
+
+            saveProducts();
+
+            renderProducts();
+            renderAdminProducts();
+
+            closeProductModal();
+        } catch (error) {
+            console.error(
+                "Produkt konnte nicht in Supabase gespeichert werden.",
+                error
+            );
+
+            alert(
+                "Das Produkt konnte nicht gespeichert werden. Bitte erneut versuchen."
+            );
+        } finally {
+            saveProductButton.disabled =
+                false;
+
+            saveProductButton.textContent =
+                "Speichern";
+        }
     }
-});
+);
 
 
-async function deleteProduct(productId) {
-    const product = products.find(function (item) {
-        return item.id === productId;
-    });
+// ========================================
+// PRODUCT — DELETE IN SUPABASE
+// ========================================
 
-    if (!product || !currentPerson) {
+async function deleteProduct(
+    productId
+) {
+    const product =
+        products.find(
+            function (item) {
+                return (
+                    item.id ===
+                    productId
+                );
+            }
+        );
+
+    if (
+        !product ||
+        !currentPerson
+    ) {
         return;
     }
 
-    const confirmed = confirm(
-        "Produkt „" + product.name + "“ wirklich löschen?"
-    );
+    const confirmed =
+        confirm(
+            "Produkt „" +
+            product.name +
+            "“ wirklich löschen?"
+        );
 
     if (!confirmed) {
         return;
     }
 
     try {
-        const { error } = await supabaseClient
+        const {
+            error
+        } = await supabaseClient
             .from("products")
-            .update({ active: false })
-            .eq("id", productId)
-            .eq("active", true);
+            .update({
+                active: false
+            })
+            .eq(
+                "id",
+                productId
+            )
+            .eq(
+                "active",
+                true
+            );
 
         if (error) {
             throw error;
         }
 
-        products = products.filter(function (item) {
-            return item.id !== productId;
-        });
+        products =
+            products.filter(
+                function (item) {
+                    return (
+                        item.id !==
+                        productId
+                    );
+                }
+            );
 
-        delete inventory[productId];
+        delete inventory[
+            productId
+        ];
 
-        cart = cart.filter(function (item) {
-            return item.id !== productId;
-        });
+        cart =
+            cart.filter(
+                function (item) {
+                    return (
+                        item.id !==
+                        productId
+                    );
+                }
+            );
 
         saveProducts();
         saveInventory();
+
         updateCart();
         renderProducts();
         renderAdminProducts();
     } catch (error) {
-        console.error("Produkt konnte nicht in Supabase gelöscht werden.", error);
-        alert("Das Produkt konnte nicht gelöscht werden. Bitte erneut versuchen.");
+        console.error(
+            "Produkt konnte nicht in Supabase gelöscht werden.",
+            error
+        );
+
+        alert(
+            "Das Produkt konnte nicht gelöscht werden. Bitte erneut versuchen."
+        );
     }
 }
 
 
-productsBackButton.addEventListener("click", function () {
-    closeProductModal();
-    showScreen(adminScreen);
-});
+productsBackButton.addEventListener(
+    "click",
+    function () {
+        closeProductModal();
+        showScreen(adminScreen);
+    }
+);
 
 
 // ========================================
@@ -1525,19 +1897,42 @@ productsBackButton.addEventListener("click", function () {
 function renderInventory() {
     inventoryList.innerHTML = "";
 
-    const drinks = products.filter(function (product) {
-        return product.category === "drink";
-    });
+    const drinks =
+        products.filter(
+            function (product) {
+                return (
+                    product.category ===
+                    "drink"
+                );
+            }
+        );
 
     if (drinks.length === 0) {
-        inventoryList.innerHTML = '<div class="no-data">Keine Getränke vorhanden.</div>';
+        inventoryList.innerHTML =
+            `
+                <div class="no-data">
+                    Keine Getränke vorhanden.
+                </div>
+            `;
+
         return;
     }
 
     drinks.forEach(function (product) {
-        const stock = Number(inventory[product.id] || 0);
-        const card = document.createElement("div");
-        card.className = "inventory-card";
+        const stock =
+            Number(
+                inventory[
+                    product.id
+                ] || 0
+            );
+
+        const card =
+            document.createElement(
+                "div"
+            );
+
+        card.className =
+            "inventory-card";
 
         let stockClass = "";
 
@@ -1549,10 +1944,18 @@ function renderInventory() {
 
         card.innerHTML = `
             <div class="inventory-product">
-                <span class="inventory-icon">${escapeHtml(product.icon)}</span>
+                <span class="inventory-icon">
+                    ${escapeHtml(product.icon)}
+                </span>
+
                 <div>
-                    <strong>${escapeHtml(product.name)}</strong>
-                    <small>${formatPrice(product.price)}</small>
+                    <strong>
+                        ${escapeHtml(product.name)}
+                    </strong>
+
+                    <small>
+                        ${formatPrice(product.price)}
+                    </small>
                 </div>
             </div>
 
@@ -1560,41 +1963,82 @@ function renderInventory() {
                 ${stock} Stück
             </div>
 
-            <button type="button" class="inventory-adjust-button" data-product-id="${escapeHtml(product.id)}">
+            <button
+                type="button"
+                class="inventory-adjust-button"
+                data-product-id="${escapeHtml(product.id)}"
+            >
                 ＋ Bestand
             </button>
         `;
 
-        inventoryList.appendChild(card);
+        inventoryList.appendChild(
+            card
+        );
     });
 
-    document.querySelectorAll(".inventory-adjust-button").forEach(function (button) {
-        button.addEventListener("click", function () {
-            openInventoryModal(button.dataset.productId);
-        });
-    });
+    document
+        .querySelectorAll(
+            ".inventory-adjust-button"
+        )
+        .forEach(
+            function (button) {
+                button.addEventListener(
+                    "click",
+                    function () {
+                        openInventoryModal(
+                            button.dataset.productId
+                        );
+                    }
+                );
+            }
+        );
 }
 
 
-function openInventoryModal(productId) {
-    const product = products.find(function (item) {
-        return item.id === productId;
-    });
+function openInventoryModal(
+    productId
+) {
+    const product =
+        products.find(
+            function (item) {
+                return (
+                    item.id ===
+                    productId
+                );
+            }
+        );
 
-    if (!product || !isCurrentTeacher()) {
+    if (
+        !product ||
+        !isCurrentTeacher()
+    ) {
         return;
     }
 
-    inventoryProductId = productId;
+    inventoryProductId =
+        productId;
+
     inventoryProductLabel.textContent =
         product.name +
         " · Aktueller Bestand: " +
-        Number(inventory[productId] || 0) +
+        Number(
+            inventory[
+                productId
+            ] || 0
+        ) +
         " Stück";
 
-    inventoryAmountInput.value = "";
-    inventoryModal.style.display = "flex";
-    inventoryModal.setAttribute("aria-hidden", "false");
+    inventoryAmountInput.value =
+        "";
+
+    inventoryModal.style.display =
+        "flex";
+
+    inventoryModal.setAttribute(
+        "aria-hidden",
+        "false"
+    );
 
     setTimeout(function () {
         inventoryAmountInput.focus();
@@ -1603,48 +2047,92 @@ function openInventoryModal(productId) {
 
 
 function closeInventoryModal() {
-    inventoryModal.style.display = "none";
-    inventoryModal.setAttribute("aria-hidden", "true");
-    inventoryProductId = null;
+    inventoryModal.style.display =
+        "none";
+
+    inventoryModal.setAttribute(
+        "aria-hidden",
+        "true"
+    );
+
+    inventoryProductId =
+        null;
 }
 
 
-closeInventoryModalButton.addEventListener("click", closeInventoryModal);
-cancelInventoryButton.addEventListener("click", closeInventoryModal);
+closeInventoryModalButton.addEventListener(
+    "click",
+    closeInventoryModal
+);
+
+cancelInventoryButton.addEventListener(
+    "click",
+    closeInventoryModal
+);
 
 
-inventoryModal.addEventListener("click", function (event) {
-    if (event.target === inventoryModal) {
+inventoryModal.addEventListener(
+    "click",
+    function (event) {
+        if (
+            event.target ===
+            inventoryModal
+        ) {
+            closeInventoryModal();
+        }
+    }
+);
+
+
+saveInventoryButton.addEventListener(
+    "click",
+    function () {
+        if (
+            !inventoryProductId ||
+            !isCurrentTeacher()
+        ) {
+            closeInventoryModal();
+            return;
+        }
+
+        const amount =
+            Number(
+                inventoryAmountInput.value
+            );
+
+        if (
+            !Number.isInteger(amount) ||
+            amount <= 0
+        ) {
+            alert(
+                "Bitte eine positive ganze Menge eingeben."
+            );
+
+            return;
+        }
+
+        inventory[
+            inventoryProductId
+        ] =
+            Number(
+                inventory[
+                    inventoryProductId
+                ] || 0
+            ) + amount;
+
+        saveInventory();
+        renderInventory();
         closeInventoryModal();
     }
-});
+);
 
 
-saveInventoryButton.addEventListener("click", function () {
-    if (!inventoryProductId || !isCurrentTeacher()) {
-        closeInventoryModal();
-        return;
+inventoryBackButton.addEventListener(
+    "click",
+    function () {
+        showScreen(adminScreen);
     }
-
-    const amount = Number(inventoryAmountInput.value);
-
-    if (!Number.isInteger(amount) || amount <= 0) {
-        alert("Bitte eine positive ganze Menge eingeben.");
-        return;
-    }
-
-    inventory[inventoryProductId] =
-        Number(inventory[inventoryProductId] || 0) + amount;
-
-    saveInventory();
-    renderInventory();
-    closeInventoryModal();
-});
-
-
-inventoryBackButton.addEventListener("click", function () {
-    showScreen(adminScreen);
-});
+);
 
 
 // ========================================
@@ -1652,27 +2140,53 @@ inventoryBackButton.addEventListener("click", function () {
 // ========================================
 
 function renderInventoryCount() {
-    inventoryCountList.innerHTML = "";
+    inventoryCountList.innerHTML =
+        "";
 
-    const drinks = products.filter(function (product) {
-        return product.category === "drink";
-    });
+    const drinks =
+        products.filter(
+            function (product) {
+                return (
+                    product.category ===
+                    "drink"
+                );
+            }
+        );
 
     if (drinks.length === 0) {
-        inventoryCountList.innerHTML = '<div class="no-data">Keine Getränke vorhanden.</div>';
+        inventoryCountList.innerHTML =
+            `
+                <div class="no-data">
+                    Keine Getränke vorhanden.
+                </div>
+            `;
+
         return;
     }
 
     drinks.forEach(function (product) {
-        const row = document.createElement("div");
-        row.className = "inventory-count-row";
+        const row =
+            document.createElement(
+                "div"
+            );
+
+        row.className =
+            "inventory-count-row";
 
         row.innerHTML = `
             <div class="inventory-count-product">
-                <span>${escapeHtml(product.icon)}</span>
+                <span>
+                    ${escapeHtml(product.icon)}
+                </span>
+
                 <div>
-                    <strong>${escapeHtml(product.name)}</strong>
-                    <small>${formatPrice(product.price)}</small>
+                    <strong>
+                        ${escapeHtml(product.name)}
+                    </strong>
+
+                    <small>
+                        ${formatPrice(product.price)}
+                    </small>
                 </div>
             </div>
 
@@ -1688,105 +2202,173 @@ function renderInventoryCount() {
             >
         `;
 
-        inventoryCountList.appendChild(row);
+        inventoryCountList.appendChild(
+            row
+        );
     });
 }
 
 
-inventoryCountBackButton.addEventListener("click", function () {
-    showScreen(adminScreen);
-});
-
-
-submitInventoryButton.addEventListener("click", function () {
-    if (!currentPerson || currentPerson.person_type !== "schüler") {
-        return;
+inventoryCountBackButton.addEventListener(
+    "click",
+    function () {
+        showScreen(adminScreen);
     }
+);
 
-    const inputs = inventoryCountList.querySelectorAll(".inventory-count-input");
-    const counts = [];
-    let hasInvalidValue = false;
 
-    inputs.forEach(function (input) {
-        const value = input.value.trim();
-
-        if (value === "") {
+submitInventoryButton.addEventListener(
+    "click",
+    function () {
+        if (
+            !currentPerson ||
+            currentPerson.person_type !==
+            "schüler"
+        ) {
             return;
         }
 
-        const quantity = Number(value);
+        const inputs =
+            inventoryCountList.querySelectorAll(
+                ".inventory-count-input"
+            );
 
-        if (!Number.isInteger(quantity) || quantity < 0) {
-            hasInvalidValue = true;
+        const counts = [];
+        let hasInvalidValue =
+            false;
+
+        inputs.forEach(
+            function (input) {
+                const value =
+                    input.value.trim();
+
+                if (value === "") {
+                    return;
+                }
+
+                const quantity =
+                    Number(value);
+
+                if (
+                    !Number.isInteger(
+                        quantity
+                    ) ||
+                    quantity < 0
+                ) {
+                    hasInvalidValue =
+                        true;
+
+                    return;
+                }
+
+                const product =
+                    products.find(
+                        function (item) {
+                            return (
+                                item.id ===
+                                input.dataset.productId
+                            );
+                        }
+                    );
+
+                if (product) {
+                    counts.push({
+                        product_id:
+                            product.id,
+                        product_name:
+                            product.name,
+                        quantity:
+                            quantity
+                    });
+                }
+            }
+        );
+
+        if (hasInvalidValue) {
+            alert(
+                "Bitte nur ganze Mengen ab 0 eingeben."
+            );
+
             return;
         }
 
-        const product = products.find(function (item) {
-            return item.id === input.dataset.productId;
+        if (counts.length === 0) {
+            alert(
+                "Bitte mindestens eine gezählte Menge eingeben."
+            );
+
+            return;
+        }
+
+        const submissions =
+            loadInventorySubmissions();
+
+        submissions.push({
+            id: Date.now(),
+            submitted_at:
+                new Date().toISOString(),
+            person_id:
+                currentPerson.id,
+            person_name:
+                [
+                    currentPerson.first_name,
+                    currentPerson.last_name
+                ]
+                    .filter(Boolean)
+                    .join(" "),
+            counts:
+                counts
         });
 
-        if (product) {
-            counts.push({
-                product_id: product.id,
-                product_name: product.name,
-                quantity: quantity
-            });
-        }
-    });
+        saveInventorySubmissions(
+            submissions
+        );
 
-    if (hasInvalidValue) {
-        alert("Bitte nur ganze Mengen ab 0 eingeben.");
-        return;
+        renderInventoryCount();
+
+        alert(
+            "Die Inventur wurde an den Professor übermittelt."
+        );
     }
-
-    if (counts.length === 0) {
-        alert("Bitte mindestens eine gezählte Menge eingeben.");
-        return;
-    }
-
-    const submissions = loadInventorySubmissions();
-
-    submissions.push({
-        id: Date.now(),
-        submitted_at: new Date().toISOString(),
-        person_id: currentPerson.id,
-        person_name: [currentPerson.first_name, currentPerson.last_name]
-            .filter(Boolean)
-            .join(" "),
-        counts: counts
-    });
-
-    saveInventorySubmissions(submissions);
-    renderInventoryCount();
-    alert("Die Inventur wurde an den Professor übermittelt.");
-});
+);
 
 
 // ========================================
 // REPORTS
 // ========================================
 
-reportsBackButton.addEventListener("click", function () {
-    showScreen(homeScreen);
-});
+reportsBackButton.addEventListener(
+    "click",
+    function () {
+        showScreen(homeScreen);
+    }
+);
 
 
 periodTabs.forEach(function (tab) {
-    tab.addEventListener("click", function () {
-        currentReportPeriod = tab.dataset.period;
-        updatePeriodTabs();
-        renderReport();
-    });
+    tab.addEventListener(
+        "click",
+        function () {
+            currentReportPeriod =
+                tab.dataset.period;
+
+            updatePeriodTabs();
+            renderReport();
+        }
+    );
 });
 
 
 function updatePeriodTabs() {
-    periodTabs.forEach(function (tab) {
-        tab.classList.toggle(
-            "active",
-            tab.dataset.period === currentReportPeriod
-        );
-    });
+    periodTabs.forEach(
+        function (tab) {
+            tab.classList.toggle(
+                "active",
+                tab.dataset.period ===
+                    currentReportPeriod
+            );
+        }
+    );
 }
 
 
@@ -1795,174 +2377,361 @@ function renderReport() {
         return;
     }
 
-    const filteredSales = getSalesForPeriod(currentReportPeriod);
+    const filteredSales =
+        getSalesForPeriod(
+            currentReportPeriod
+        );
 
-    const revenue = filteredSales.reduce(function (sum, sale) {
-        return sum + Number(sale.total || 0);
-    }, 0);
+    const revenue =
+        filteredSales.reduce(
+            function (sum, sale) {
+                return (
+                    sum +
+                    Number(
+                        sale.total || 0
+                    )
+                );
+            },
+            0
+        );
 
     let drinkCount = 0;
     let bakeryCount = 0;
+
     const productSummary = {};
 
-    filteredSales.forEach(function (sale) {
-        sale.items.forEach(function (item) {
-            const quantity = Number(item.quantity || 0);
+    filteredSales.forEach(
+        function (sale) {
+            sale.items.forEach(
+                function (item) {
+                    const quantity =
+                        Number(
+                            item.quantity ||
+                                0
+                        );
 
-            if (item.category === "drink") {
-                drinkCount += quantity;
-            }
+                    if (
+                        item.category ===
+                        "drink"
+                    ) {
+                        drinkCount +=
+                            quantity;
+                    }
 
-            if (item.category === "bakery") {
-                bakeryCount += quantity;
-            }
+                    if (
+                        item.category ===
+                        "bakery"
+                    ) {
+                        bakeryCount +=
+                            quantity;
+                    }
 
-            if (!productSummary[item.id]) {
-                productSummary[item.id] = {
-                    name: item.name,
-                    quantity: 0,
-                    revenue: 0
-                };
-            }
+                    if (
+                        !productSummary[
+                            item.id
+                        ]
+                    ) {
+                        productSummary[
+                            item.id
+                        ] = {
+                            name:
+                                item.name,
+                            quantity: 0,
+                            revenue: 0
+                        };
+                    }
 
-            productSummary[item.id].quantity += quantity;
-            productSummary[item.id].revenue += Number(item.price) * quantity;
-        });
-    });
+                    productSummary[
+                        item.id
+                    ].quantity +=
+                        quantity;
 
-    reportRevenue.textContent = formatPrice(revenue);
-    reportTransactions.textContent = String(filteredSales.length);
-    reportDrinks.textContent = String(drinkCount);
-    reportBakery.textContent = String(bakeryCount);
-    reportDateLabel.textContent = getReportLabel(currentReportPeriod);
+                    productSummary[
+                        item.id
+                    ].revenue +=
+                        Number(
+                            item.price
+                        ) * quantity;
+                }
+            );
+        }
+    );
 
-    renderReportProducts(productSummary);
+    reportRevenue.textContent =
+        formatPrice(revenue);
+
+    reportTransactions.textContent =
+        String(
+            filteredSales.length
+        );
+
+    reportDrinks.textContent =
+        String(drinkCount);
+
+    reportBakery.textContent =
+        String(bakeryCount);
+
+    reportDateLabel.textContent =
+        getReportLabel(
+            currentReportPeriod
+        );
+
+    renderReportProducts(
+        productSummary
+    );
 }
 
 
-function renderReportProducts(productSummary) {
-    reportProducts.innerHTML = "";
+function renderReportProducts(
+    productSummary
+) {
+    reportProducts.innerHTML =
+        "";
 
-    const entries = Object.values(productSummary).sort(function (a, b) {
-        return b.quantity - a.quantity;
-    });
+    const entries =
+        Object.values(
+            productSummary
+        ).sort(
+            function (a, b) {
+                return (
+                    b.quantity -
+                    a.quantity
+                );
+            }
+        );
 
     if (entries.length === 0) {
-        reportProducts.innerHTML = `
-            <div class="no-data">
-                Keine Verkäufe in diesem Zeitraum.
-            </div>
-        `;
+        reportProducts.innerHTML =
+            `
+                <div class="no-data">
+                    Keine Verkäufe in diesem Zeitraum.
+                </div>
+            `;
+
         return;
     }
 
-    entries.forEach(function (item) {
-        const row = document.createElement("div");
-        row.className = "report-product-row";
+    entries.forEach(
+        function (item) {
+            const row =
+                document.createElement(
+                    "div"
+                );
 
-        row.innerHTML = `
-            <span class="report-product-name">${escapeHtml(item.name)}</span>
-            <span class="report-product-quantity">${item.quantity} Stück</span>
-            <span class="report-product-revenue">${formatPrice(item.revenue)}</span>
-        `;
+            row.className =
+                "report-product-row";
 
-        reportProducts.appendChild(row);
-    });
-}
+            row.innerHTML = `
+                <span class="report-product-name">
+                    ${escapeHtml(item.name)}
+                </span>
 
+                <span class="report-product-quantity">
+                    ${item.quantity} Stück
+                </span>
 
-function getSalesForPeriod(period) {
-    const now = new Date();
+                <span class="report-product-revenue">
+                    ${formatPrice(item.revenue)}
+                </span>
+            `;
 
-    return sales.filter(function (sale) {
-        const date = new Date(sale.date);
-
-        if (period === "day") {
-            return isSameDay(date, now);
-        }
-
-        if (period === "week") {
-            return isSameWeek(date, now);
-        }
-
-        if (period === "month") {
-            return (
-                date.getFullYear() === now.getFullYear() &&
-                date.getMonth() === now.getMonth()
+            reportProducts.appendChild(
+                row
             );
         }
-
-        return false;
-    });
+    );
 }
 
 
-function isSameDay(a, b) {
+function getSalesForPeriod(
+    period
+) {
+    const now =
+        new Date();
+
+    return sales.filter(
+        function (sale) {
+            const date =
+                new Date(
+                    sale.date
+                );
+
+            if (
+                period ===
+                "day"
+            ) {
+                return isSameDay(
+                    date,
+                    now
+                );
+            }
+
+            if (
+                period ===
+                "week"
+            ) {
+                return isSameWeek(
+                    date,
+                    now
+                );
+            }
+
+            if (
+                period ===
+                "month"
+            ) {
+                return (
+                    date.getFullYear() ===
+                        now.getFullYear() &&
+                    date.getMonth() ===
+                        now.getMonth()
+                );
+            }
+
+            return false;
+        }
+    );
+}
+
+
+function isSameDay(
+    a,
+    b
+) {
     return (
-        a.getFullYear() === b.getFullYear() &&
-        a.getMonth() === b.getMonth() &&
-        a.getDate() === b.getDate()
+        a.getFullYear() ===
+            b.getFullYear() &&
+        a.getMonth() ===
+            b.getMonth() &&
+        a.getDate() ===
+            b.getDate()
     );
 }
 
 
-function isSameWeek(date, reference) {
-    const start = getMonday(reference);
-    const end = new Date(start);
-    end.setDate(start.getDate() + 7);
+function isSameWeek(
+    date,
+    reference
+) {
+    const start =
+        getMonday(reference);
 
-    return date >= start && date < end;
+    const end =
+        new Date(start);
+
+    end.setDate(
+        start.getDate() + 7
+    );
+
+    return (
+        date >= start &&
+        date < end
+    );
 }
 
 
-function getMonday(date) {
-    const result = new Date(
-        date.getFullYear(),
-        date.getMonth(),
-        date.getDate()
+function getMonday(
+    date
+) {
+    const result =
+        new Date(
+            date.getFullYear(),
+            date.getMonth(),
+            date.getDate()
+        );
+
+    const day =
+        result.getDay();
+
+    const difference =
+        day === 0
+            ? -6
+            : 1 - day;
+
+    result.setDate(
+        result.getDate() +
+            difference
     );
 
-    const day = result.getDay();
-    const difference = day === 0 ? -6 : 1 - day;
-
-    result.setDate(result.getDate() + difference);
-    result.setHours(0, 0, 0, 0);
+    result.setHours(
+        0,
+        0,
+        0,
+        0
+    );
 
     return result;
 }
 
 
-function getReportLabel(period) {
-    const now = new Date();
+function getReportLabel(
+    period
+) {
+    const now =
+        new Date();
 
-    if (period === "day") {
-        return "Heute · " + now.toLocaleDateString("de-DE");
+    if (
+        period === "day"
+    ) {
+        return (
+            "Heute · " +
+            now.toLocaleDateString(
+                "de-DE"
+            )
+        );
     }
 
-    if (period === "week") {
-        const monday = getMonday(now);
-        const sunday = new Date(monday);
-        sunday.setDate(monday.getDate() + 6);
+    if (
+        period === "week"
+    ) {
+        const monday =
+            getMonday(now);
+
+        const sunday =
+            new Date(
+                monday
+            );
+
+        sunday.setDate(
+            monday.getDate() +
+                6
+        );
 
         return (
             "Woche · " +
-            monday.toLocaleDateString("de-DE") +
+            monday.toLocaleDateString(
+                "de-DE"
+            ) +
             " – " +
-            sunday.toLocaleDateString("de-DE")
+            sunday.toLocaleDateString(
+                "de-DE"
+            )
         );
     }
 
     return (
         "Monat · " +
-        now.toLocaleDateString("de-DE", {
-            month: "long",
-            year: "numeric"
-        })
+        now.toLocaleDateString(
+            "de-DE",
+            {
+                month:
+                    "long",
+                year:
+                    "numeric"
+            }
+        )
     );
 }
 
 
-exportReportButton.addEventListener("click", exportReportAsCSV);
+// ========================================
+// REPORT EXPORT
+// ========================================
+
+exportReportButton.addEventListener(
+    "click",
+    exportReportAsCSV
+);
 
 
 function exportReportAsCSV() {
@@ -1970,52 +2739,113 @@ function exportReportAsCSV() {
         return;
     }
 
-    const filteredSales = getSalesForPeriod(currentReportPeriod);
-    const rows = [[
-        "Datum",
-        "Produkt",
-        "Kategorie",
-        "Menge",
-        "Einzelpreis",
-        "Umsatz"
-    ]];
+    const filteredSales =
+        getSalesForPeriod(
+            currentReportPeriod
+        );
 
-    filteredSales.forEach(function (sale) {
-        sale.items.forEach(function (item) {
-            rows.push([
-                new Date(sale.date).toLocaleString("de-DE"),
-                item.name,
-                item.category === "drink" ? "Getränk" : "Bäckerei",
-                item.quantity,
-                Number(item.price).toFixed(2).replace(".", ","),
-                (
-                    Number(item.price) *
-                    Number(item.quantity)
-                ).toFixed(2).replace(".", ",")
-            ]);
-        });
-    });
+    const rows = [
+        [
+            "Datum",
+            "Produkt",
+            "Kategorie",
+            "Menge",
+            "Einzelpreis",
+            "Umsatz"
+        ]
+    ];
+
+    filteredSales.forEach(
+        function (sale) {
+            sale.items.forEach(
+                function (item) {
+                    rows.push([
+                        new Date(
+                            sale.date
+                        ).toLocaleString(
+                            "de-DE"
+                        ),
+
+                        item.name,
+
+                        item.category ===
+                        "drink"
+                            ? "Getränk"
+                            : "Bäckerei",
+
+                        item.quantity,
+
+                        Number(
+                            item.price
+                        )
+                            .toFixed(2)
+                            .replace(
+                                ".",
+                                ","
+                            ),
+
+                        (
+                            Number(
+                                item.price
+                            ) *
+                            Number(
+                                item.quantity
+                            )
+                        )
+                            .toFixed(2)
+                            .replace(
+                                ".",
+                                ","
+                            )
+                    ]);
+                }
+            );
+        }
+    );
 
     if (rows.length === 1) {
-        alert("Keine Verkaufsdaten für diesen Zeitraum.");
+        alert(
+            "Keine Verkaufsdaten für diesen Zeitraum."
+        );
+
         return;
     }
 
-    const csv = rows
-        .map(function (row) {
-            return row.map(csvEscape).join(";");
-        })
-        .join("\n");
+    const csv =
+        rows
+            .map(
+                function (row) {
+                    return row
+                        .map(csvEscape)
+                        .join(";");
+                }
+            )
+            .join("\n");
 
-    const blob = new Blob(
-        ["\uFEFF" + csv],
-        { type: "text/csv;charset=utf-8;" }
-    );
+    const blob =
+        new Blob(
+            [
+                "\uFEFF" +
+                    csv
+            ],
+            {
+                type:
+                    "text/csv;charset=utf-8;"
+            }
+        );
 
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
+    const url =
+        URL.createObjectURL(
+            blob
+        );
+
+    const link =
+        document.createElement(
+            "a"
+        );
 
     link.href = url;
+
     link.download =
         "LauterMacher_" +
         currentReportPeriod +
@@ -2023,105 +2853,184 @@ function exportReportAsCSV() {
         getDateForFileName() +
         ".csv";
 
-    document.body.appendChild(link);
+    document.body.appendChild(
+        link
+    );
+
     link.click();
+
     link.remove();
-    URL.revokeObjectURL(url);
+
+    URL.revokeObjectURL(
+        url
+    );
 }
 
 
-function csvEscape(value) {
-    const text = String(value ?? "");
+function csvEscape(
+    value
+) {
+    const text =
+        String(
+            value ?? ""
+        );
 
     if (
         text.includes(";") ||
         text.includes('"') ||
         text.includes("\n")
     ) {
-        return '"' + text.replaceAll('"', '""') + '"';
+        return (
+            '"' +
+            text.replaceAll(
+                '"',
+                '""'
+            ) +
+            '"'
+        );
     }
 
     return text;
 }
 
 
-clearReportsButton.addEventListener("click", function () {
-    if (!isCurrentTeacher()) {
-        return;
+// ========================================
+// REPORT — CLEAR
+// ========================================
+
+clearReportsButton.addEventListener(
+    "click",
+    function () {
+        if (!isCurrentTeacher()) {
+            return;
+        }
+
+        if (sales.length === 0) {
+            alert(
+                "Es gibt keine Verkaufsdaten."
+            );
+
+            return;
+        }
+
+        const confirmed =
+            confirm(
+                "Möchtest du wirklich ALLE Verkaufsdaten löschen?"
+            );
+
+        if (!confirmed) {
+            return;
+        }
+
+        sales = [];
+
+        saveSales();
+
+        renderReport();
+
+        alert(
+            "Alle Verkaufsdaten wurden gelöscht."
+        );
     }
-
-    if (sales.length === 0) {
-        alert("Es gibt keine Verkaufsdaten.");
-        return;
-    }
-
-    const confirmed = confirm(
-        "Möchtest du wirklich ALLE Verkaufsdaten löschen?"
-    );
-
-    if (!confirmed) {
-        return;
-    }
-
-    sales = [];
-    saveSales();
-    renderReport();
-    alert("Alle Verkaufsdaten wurden gelöscht.");
-});
+);
 
 
 // ========================================
 // HELPERS
 // ========================================
 
-function parseGermanNumber(value) {
+function parseGermanNumber(
+    value
+) {
     if (!value) {
         return 0;
     }
 
     return Number(
-        String(value).replace(",", ".")
+        String(value).replace(
+            ",",
+            "."
+        )
     );
 }
 
 
-function formatPrice(value) {
-    const number = Number(value || 0);
+function formatPrice(
+    value
+) {
+    const number =
+        Number(
+            value || 0
+        );
 
     return (
         number
             .toFixed(2)
-            .replace(".", ",") +
+            .replace(
+                ".",
+                ","
+            ) +
         " €"
     );
 }
 
 
-function roundMoney(value) {
+function roundMoney(
+    value
+) {
     return Math.round(
-        (Number(value) + Number.EPSILON) * 100
+        (
+            Number(value) +
+            Number.EPSILON
+        ) * 100
     ) / 100;
 }
 
 
-function createProductId(name) {
+function createProductId(
+    name
+) {
     const base =
         name
             .toLowerCase()
             .normalize("NFD")
-            .replace(/[\u0300-\u036f]/g, "")
-            .replace(/[^a-z0-9]+/g, "-")
-            .replace(/^-+|-+$/g, "") ||
+            .replace(
+                /[\u0300-\u036f]/g,
+                ""
+            )
+            .replace(
+                /[^a-z0-9]+/g,
+                "-"
+            )
+            .replace(
+                /^-+|-+$/g,
+                ""
+            ) ||
         "produkt";
 
-    let id = base;
-    let counter = 2;
+    let id =
+        base;
 
-    while (products.some(function (product) {
-        return product.id === id;
-    })) {
-        id = base + "-" + counter;
-        counter += 1;
+    let counter =
+        2;
+
+    while (
+        products.some(
+            function (product) {
+                return (
+                    product.id ===
+                    id
+                );
+            }
+        )
+    ) {
+        id =
+            base +
+            "-" +
+            counter;
+
+        counter +=
+            1;
     }
 
     return id;
@@ -2129,23 +3038,53 @@ function createProductId(name) {
 
 
 function getDateForFileName() {
-    const date = new Date();
+    const date =
+        new Date();
 
     return (
         date.getFullYear() +
         "-" +
-        String(date.getMonth() + 1).padStart(2, "0") +
+        String(
+            date.getMonth() + 1
+        ).padStart(
+            2,
+            "0"
+        ) +
         "-" +
-        String(date.getDate()).padStart(2, "0")
+        String(
+            date.getDate()
+        ).padStart(
+            2,
+            "0"
+        )
     );
 }
 
 
-function escapeHtml(value) {
-    return String(value ?? "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
+function escapeHtml(
+    value
+) {
+    return String(
+        value ?? ""
+    )
+        .replaceAll(
+            "&",
+            "&amp;"
+        )
+        .replaceAll(
+            "<",
+            "&lt;"
+        )
+        .replaceAll(
+            ">",
+            "&gt;"
+        )
+        .replaceAll(
+            '"',
+            "&quot;"
+        )
+        .replaceAll(
+            "'",
+            "&#039;"
+        );
 }
