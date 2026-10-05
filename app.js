@@ -198,6 +198,52 @@ let currentReportPeriod = "day";
 let editingProductId = null;
 let inventoryProductId = null;
 
+// ========================================
+// NEUE APP-ARCHITEKTUR — MENÜ / FUNKTIONEN
+// ========================================
+
+let currentArea = null;
+let currentFunction = null;
+let currentTestMode = false;
+
+const AREA_CONFIG = {
+    getraenke: {
+        title: "🥤 Getränke",
+        functions: [
+            { id: "getränke_kasse", title: "Kasse", icon: "💰", description: "Getränke verkaufen und bezahlen" }
+        ]
+    },
+    baeckerei: {
+        title: "🥐 Bäckerei",
+        functions: [
+            { id: "bäckerei_kasse", title: "Kasse", icon: "💰", description: "Bestellungen aufnehmen und bezahlen" },
+            { id: "bäckerei_ausgabe", title: "Ausgabe", icon: "🍽️", description: "Bezahlte Bestellungen vorbereiten und ausgeben" }
+        ]
+    },
+    bearbeiten: {
+        title: "✏️ Bearbeiten",
+        functions: [
+            { id: "bearbeiten_produkte", title: "Produkte", icon: "🥤", description: "Produkte und Preise bearbeiten" },
+            { id: "bearbeiten_inventar", title: "Inventar", icon: "📦", description: "Bestände prüfen und bearbeiten" },
+            { id: "bearbeiten_schüler", title: "Schüler", icon: "👥", description: "Schüler verwalten", teacherOnly: true }
+        ]
+    },
+    sonderveranstaltung: {
+        title: "🎪 Sonderveranstaltung",
+        functions: [
+            { id: "sonder_beginning_inventory", title: "Anfangsbestand", icon: "📦", description: "Bestand vor der Veranstaltung erfassen" },
+            { id: "sonder_products", title: "Produkte & Preise", icon: "🏷️", description: "Produkte und Verkaufspreise festlegen" },
+            { id: "sonder_kasse", title: "Kasse", icon: "💰", description: "Getränke und Essen gemeinsam verkaufen" },
+            { id: "sonder_ausgabe", title: "Ausgabe", icon: "🍽️", description: "Getränke und Essen gemeinsam ausgeben" },
+            { id: "sonder_end_inventory", title: "Endbestand", icon: "📦", description: "Bestand nach der Veranstaltung erfassen" }
+        ]
+    }
+};
+
+let appMenuRoot = null;
+let appMenuTitle = null;
+let appMenuContent = null;
+
 
 // ========================================
 // SETTINGS
@@ -228,6 +274,7 @@ let inventory = loadInventory();
 document.addEventListener("DOMContentLoaded", async function () {
     renderProducts();
     updateCart();
+    ensureMainMenuStructure();
 
     showScreen(identityScreen);
     await initialiseAuthentication();
@@ -436,19 +483,21 @@ async function loadCurrentPerson(session) {
 
 function applyLoggedInState(person) {
     currentPerson = person;
+    currentTestMode = person.person_type === "lehrer";
 
     currentPersonName.textContent = [person.first_name, person.last_name]
         .filter(Boolean)
         .join(" ");
 
-    // Der bisherige Admin-Bereich bleibt vorerst nur für die Lehrkraft sichtbar.
-    adminButton.style.display = person.person_type === "lehrer" ? "block" : "none";
+    // Der alte Admin-Einstieg wird durch das neue Bearbeiten-Menü ersetzt.
+    adminButton.style.display = "none";
 
     selectedLoginPerson = null;
     loginPinInput.value = "";
     pinLoginError.textContent = "";
 
-    showScreen(homeScreen);
+    buildMainMenu();
+    showMainMenu();
 }
 
 
@@ -463,6 +512,9 @@ logoutButton.addEventListener("click", async function () {
 
     currentPerson = null;
     selectedLoginPerson = null;
+    currentTestMode = false;
+    currentArea = null;
+    currentFunction = null;
     currentPersonName.textContent = "-";
     adminButton.style.display = "none";
     resetSale();
@@ -474,10 +526,318 @@ logoutButton.addEventListener("click", async function () {
 supabaseClient.auth.onAuthStateChange(function (_event, session) {
     if (!session && currentPerson) {
         currentPerson = null;
+        currentTestMode = false;
+        currentArea = null;
+        currentFunction = null;
         adminButton.style.display = "none";
         showScreen(identityScreen);
     }
 });
+
+
+// ========================================
+// HAUPTMENÜ — ARCHITEKTUR
+// ========================================
+
+function ensureMainMenuStructure() {
+    if (appMenuRoot) {
+        return;
+    }
+
+    const existingHomeButtons = homeScreen.querySelector(".home-buttons");
+
+    appMenuRoot = document.createElement("div");
+    appMenuRoot.id = "appMenuRoot";
+    appMenuRoot.className = "app-menu-root";
+
+    appMenuTitle = document.createElement("div");
+    appMenuTitle.className = "app-menu-title";
+
+    appMenuContent = document.createElement("div");
+    appMenuContent.className = "app-menu-content";
+
+    appMenuRoot.appendChild(appMenuTitle);
+    appMenuRoot.appendChild(appMenuContent);
+
+    if (existingHomeButtons) {
+        existingHomeButtons.style.display = "none";
+        existingHomeButtons.insertAdjacentElement("afterend", appMenuRoot);
+    } else {
+        homeScreen.appendChild(appMenuRoot);
+    }
+}
+
+
+function buildMainMenu() {
+    ensureMainMenuStructure();
+
+    appMenuTitle.innerHTML = `
+        <div class="app-menu-kicker">Hauptmenü</div>
+        <h2>Was möchtest du machen?</h2>
+        ${currentTestMode ? '<span class="test-mode-badge">🧪 Testumgebung</span>' : ''}
+    `;
+
+    appMenuContent.innerHTML = "";
+
+    Object.entries(AREA_CONFIG).forEach(function ([areaId, area]) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "area-menu-card";
+        button.dataset.area = areaId;
+
+        const visibleFunctions = getVisibleFunctions(areaId);
+        const countText = visibleFunctions.length === 1
+            ? "1 Funktion"
+            : `${visibleFunctions.length} Funktionen`;
+
+        button.innerHTML = `
+            <span class="area-menu-icon">${area.title.slice(0, 2)}</span>
+            <span class="area-menu-text">
+                <strong>${escapeHtml(area.title.slice(3))}</strong>
+                <small>${countText}</small>
+            </span>
+            <span class="area-menu-arrow">›</span>
+        `;
+
+        button.addEventListener("click", function () {
+            openAreaMenu(areaId);
+        });
+
+        appMenuContent.appendChild(button);
+    });
+}
+
+
+function getVisibleFunctions(areaId) {
+    const area = AREA_CONFIG[areaId];
+
+    if (!area) {
+        return [];
+    }
+
+    return area.functions.filter(function (item) {
+        if (item.teacherOnly && (!currentPerson || currentPerson.person_type !== "lehrer")) {
+            return false;
+        }
+        return true;
+    });
+}
+
+
+function showMainMenu() {
+    ensureMainMenuStructure();
+    buildMainMenu();
+    appMenuTitle.classList.remove("sub-menu-title");
+    showScreen(homeScreen);
+}
+
+
+function openAreaMenu(areaId) {
+    const area = AREA_CONFIG[areaId];
+
+    if (!area) {
+        return;
+    }
+
+    currentArea = areaId;
+    currentFunction = null;
+
+    appMenuTitle.innerHTML = `
+        <button id="menuBackButton" class="menu-back-button" type="button">← Hauptmenü</button>
+        <h2>${escapeHtml(area.title)}</h2>
+        ${currentTestMode ? '<span class="test-mode-badge">🧪 Testumgebung</span>' : ''}
+    `;
+    appMenuTitle.classList.add("sub-menu-title");
+
+    const content = document.createElement("div");
+    content.className = "function-menu-grid";
+
+    getVisibleFunctions(areaId).forEach(function (item) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "function-menu-card";
+
+        button.innerHTML = `
+            <span class="function-menu-icon">${item.icon}</span>
+            <span class="function-menu-text">
+                <strong>${escapeHtml(item.title)}</strong>
+                <small>${escapeHtml(item.description)}</small>
+            </span>
+            <span class="area-menu-arrow">›</span>
+        `;
+
+        button.addEventListener("click", function () {
+            openFunction(areaId, item.id);
+        });
+
+        content.appendChild(button);
+    });
+
+    appMenuContent.innerHTML = "";
+    appMenuContent.appendChild(content);
+
+    const backButton = document.getElementById("menuBackButton");
+    backButton.addEventListener("click", showMainMenu);
+}
+
+
+function openFunction(areaId, functionId) {
+    currentArea = areaId;
+    currentFunction = functionId;
+
+    if (functionId === "getränke_kasse") {
+        openDrinkCashRegister();
+        return;
+    }
+
+    if (functionId === "bäckerei_kasse") {
+        openBakeryCashRegister();
+        return;
+    }
+
+    if (functionId === "bearbeiten_produkte") {
+        renderAdminProducts();
+        showScreen(productsScreen);
+        return;
+    }
+
+    if (functionId === "bearbeiten_inventar") {
+        renderInventory();
+        showScreen(inventoryScreen);
+        return;
+    }
+
+    if (functionId === "bearbeiten_schüler") {
+        openArchitecturePlaceholder(
+            "👥 Schüler",
+            "Hier wird die Schülerverwaltung aufgebaut: Schüler hinzufügen, bearbeiten, aktivieren/deaktivieren und PIN zurücksetzen."
+        );
+        return;
+    }
+
+    if (functionId === "bäckerei_ausgabe") {
+        openArchitecturePlaceholder(
+            "🍽️ Bäckerei · Ausgabe",
+            "Die Ausgabe wird in der nächsten Ausbaustufe direkt mit den bezahlten Bäckerei-Bestellungen aus Supabase verbunden."
+        );
+        return;
+    }
+
+    if (functionId === "sonder_beginning_inventory") {
+        openArchitecturePlaceholder("📦 Anfangsbestand", "Der Anfangsbestand einer Sonderveranstaltung wird hier vor Beginn erfasst.");
+        return;
+    }
+
+    if (functionId === "sonder_products") {
+        openArchitecturePlaceholder("🏷️ Produkte & Preise", "Hier werden die Produkte und Preise der jeweiligen Sonderveranstaltung festgelegt.");
+        return;
+    }
+
+    if (functionId === "sonder_kasse") {
+        openArchitecturePlaceholder("💰 Sonderveranstaltung · Kasse", "Eine gemeinsame Kasse für Getränke und Essen. Die genaue Umsetzung bestätigen wir vor dem Bau dieses Bereichs.");
+        return;
+    }
+
+    if (functionId === "sonder_ausgabe") {
+        openArchitecturePlaceholder("🍽️ Sonderveranstaltung · Ausgabe", "Eine gemeinsame Ausgabe für Getränke und Essen. Die genaue Umsetzung bestätigen wir vor dem Bau dieses Bereichs.");
+        return;
+    }
+
+    if (functionId === "sonder_end_inventory") {
+        openArchitecturePlaceholder("📦 Endbestand", "Hier wird der Bestand nach der Sonderveranstaltung erfasst.");
+    }
+}
+
+
+function openDrinkCashRegister() {
+    setSaleArea("getränke");
+    showScreen(saleScreen);
+}
+
+
+function openBakeryCashRegister() {
+    setSaleArea("bäckerei");
+    showScreen(saleScreen);
+}
+
+
+function setSaleArea(area) {
+    currentArea = area;
+    currentFunction = area === "getränke" ? "getränke_kasse" : "bäckerei_kasse";
+
+    const sections = saleScreen.querySelectorAll(".product-section");
+    if (sections.length >= 2) {
+        sections[0].style.display = area === "getränke" ? "block" : "none";
+        sections[1].style.display = area === "bäckerei" ? "block" : "none";
+    }
+
+    const header = saleScreen.querySelector(".screen-header h1");
+    if (header) {
+        header.textContent = area === "getränke" ? "🥤 Getränke · Kasse" : "🥐 Bäckerei · Kasse";
+    }
+
+    renderProducts();
+    resetSale();
+}
+
+
+function openArchitecturePlaceholder(title, description) {
+    ensureArchitecturePlaceholder();
+
+    architecturePlaceholderTitle.textContent = title;
+    architecturePlaceholderText.textContent = description;
+    architecturePlaceholderMode.textContent = currentTestMode
+        ? "🧪 Testumgebung"
+        : "Arbeitsbereich";
+
+    showScreen(architecturePlaceholderScreen);
+}
+
+
+let architecturePlaceholderScreen = null;
+let architecturePlaceholderTitle = null;
+let architecturePlaceholderText = null;
+let architecturePlaceholderMode = null;
+
+
+function ensureArchitecturePlaceholder() {
+    if (architecturePlaceholderScreen) {
+        return;
+    }
+
+    architecturePlaceholderScreen = document.createElement("main");
+    architecturePlaceholderScreen.id = "architecturePlaceholderScreen";
+    architecturePlaceholderScreen.className = "screen architecture-placeholder-screen";
+
+    architecturePlaceholderScreen.innerHTML = `
+        <header class="screen-header">
+            <button id="architecturePlaceholderBack" class="back-button" type="button">← Menü</button>
+            <h1 id="architecturePlaceholderTitle"></h1>
+        </header>
+        <section class="architecture-placeholder-content">
+            <div id="architecturePlaceholderMode" class="test-mode-badge"></div>
+            <div class="architecture-placeholder-icon">🚧</div>
+            <h2>Bereich wird vorbereitet</h2>
+            <p id="architecturePlaceholderText"></p>
+            <button id="architecturePlaceholderHome" class="primary-action" type="button">← Zurück zum Menü</button>
+        </section>
+    `;
+
+    document.body.appendChild(architecturePlaceholderScreen);
+
+    architecturePlaceholderTitle = document.getElementById("architecturePlaceholderTitle");
+    architecturePlaceholderText = document.getElementById("architecturePlaceholderText");
+    architecturePlaceholderMode = document.getElementById("architecturePlaceholderMode");
+
+    document.getElementById("architecturePlaceholderBack").addEventListener("click", showMainMenu);
+    document.getElementById("architecturePlaceholderHome").addEventListener("click", showMainMenu);
+}
+
+
+function returnToMenuFromWorkingScreen() {
+    resetSale();
+    showMainMenu();
+}
 
 
 // ========================================
@@ -651,7 +1011,7 @@ function createProductButton(product) {
 // ========================================
 
 saleButton.addEventListener("click", function () {
-    showScreen(saleScreen);
+    openDrinkCashRegister();
 });
 
 
@@ -661,7 +1021,7 @@ saleButton.addEventListener("click", function () {
 
 saleBackButton.addEventListener("click", function () {
     resetSale();
-    showScreen(homeScreen);
+    showMainMenu();
 });
 
 
@@ -1005,6 +1365,7 @@ function saveSale(total, received, change) {
     const sale = {
         id: Date.now(),
         date: new Date().toISOString(),
+        is_test: currentTestMode,
         total: roundMoney(total),
         received: roundMoney(received),
         change: roundMoney(change),
@@ -1013,6 +1374,11 @@ function saveSale(total, received, change) {
 
     sales.push(sale);
     saveSales();
+
+    // Testverkäufe der Lehrkraft dürfen keine echten Bestände verändern.
+    if (currentTestMode) {
+        return;
+    }
 
     // Nur Getränke verändern den Bestand.
     saleItems.forEach(function (item) {
@@ -1045,7 +1411,7 @@ newOrderButton.addEventListener("click", function () {
 
 successHomeButton.addEventListener("click", function () {
     resetSale();
-    showScreen(homeScreen);
+    showMainMenu();
 });
 
 
@@ -1066,12 +1432,10 @@ function resetSale() {
 // ========================================
 
 adminButton.addEventListener("click", function () {
-    if (!currentPerson || currentPerson.person_type !== "lehrer") {
-        alert("Dieser Bereich ist nur für Lehrkräfte verfügbar.");
+    if (!currentPerson) {
         return;
     }
-
-    showScreen(adminScreen);
+    openAreaMenu("bearbeiten");
 });
 
 
@@ -1168,7 +1532,7 @@ pinModal.addEventListener("click", function (event) {
 // ========================================
 
 adminBackButton.addEventListener("click", function () {
-    showScreen(homeScreen);
+    showMainMenu();
 });
 
 reportsButton.addEventListener("click", function () {
@@ -1189,15 +1553,15 @@ productsButton.addEventListener("click", function () {
 });
 
 reportsBackButton.addEventListener("click", function () {
-    showScreen(adminScreen);
+    openAreaMenu("bearbeiten");
 });
 
 inventoryBackButton.addEventListener("click", function () {
-    showScreen(adminScreen);
+    openAreaMenu("bearbeiten");
 });
 
 productsBackButton.addEventListener("click", function () {
-    showScreen(adminScreen);
+    openAreaMenu("bearbeiten");
 });
 
 
@@ -1229,6 +1593,13 @@ function updatePeriodTabs() {
 // ========================================
 // REPORTS
 // ========================================
+
+function getRealSales() {
+    return sales.filter(function (sale) {
+        return sale.is_test !== true;
+    });
+}
+
 
 function renderReport() {
     const filteredSales =
@@ -1349,7 +1720,7 @@ function renderReportProducts(productSummary) {
 function getSalesForPeriod(period) {
     const now = new Date();
 
-    return sales.filter(function (sale) {
+    return getRealSales().filter(function (sale) {
         const date = new Date(sale.date);
 
         if (period === "day") {
