@@ -5,6 +5,21 @@
 
 
 // ========================================
+// SUPABASE AUTHENTIFIZIERUNG
+// ========================================
+
+const SUPABASE_URL = "https://gsbkfrjhierqopkwpqjc.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdzYmtmcmpoaWVycW9wa3dwcWpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5MjI3MjgsImV4cCI6MjEwNjQ5ODcyOH0.BV5aYeAO2nE5SjiEOCs3GA1hwQpg0IJzEl5wizApUVU";
+
+const supabaseClient = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY
+);
+
+let currentPerson = null;
+let selectedLoginPerson = null;
+
+// ========================================
 // SCREENS
 // ========================================
 
@@ -12,6 +27,17 @@ const homeScreen = document.getElementById("homeScreen");
 const saleScreen = document.getElementById("saleScreen");
 const paymentScreen = document.getElementById("paymentScreen");
 const successScreen = document.getElementById("successScreen");
+const identityScreen = document.getElementById("identityScreen");
+const pinLoginScreen = document.getElementById("pinLoginScreen");
+const peopleGrid = document.getElementById("peopleGrid");
+const identityError = document.getElementById("identityError");
+const selectedPersonName = document.getElementById("selectedPersonName");
+const loginPinInput = document.getElementById("loginPinInput");
+const pinLoginError = document.getElementById("pinLoginError");
+const loginBackButton = document.getElementById("loginBackButton");
+const loginConfirmButton = document.getElementById("loginConfirmButton");
+const currentPersonName = document.getElementById("currentPersonName");
+const logoutButton = document.getElementById("logoutButton");
 
 const adminScreen = document.getElementById("adminScreen");
 const reportsScreen = document.getElementById("reportsScreen");
@@ -199,10 +225,258 @@ let inventory = loadInventory();
 // INITIALISATION
 // ========================================
 
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", async function () {
     renderProducts();
     updateCart();
+
+    showScreen(identityScreen);
+    await initialiseAuthentication();
+});
+
+
+// ========================================
+// AUTH — LOGIN
+// ========================================
+
+async function initialiseAuthentication() {
+    try {
+        const { data: sessionData } = await supabaseClient.auth.getSession();
+
+        if (sessionData && sessionData.session) {
+            const restored = await loadCurrentPerson(sessionData.session);
+
+            if (restored) {
+                applyLoggedInState(restored);
+                return;
+            }
+
+            await supabaseClient.auth.signOut();
+        }
+
+        await loadLoginPeople();
+    } catch (error) {
+        console.error("Authentifizierung konnte nicht initialisiert werden.", error);
+        identityError.textContent = "Die Anmeldung konnte nicht geladen werden.";
+        await loadLoginPeople();
+    }
+}
+
+
+async function loadLoginPeople() {
+    identityError.textContent = "";
+    peopleGrid.innerHTML = '<div class="login-loading">Personen werden geladen …</div>';
+
+    const { data, error } = await supabaseClient
+        .from("login_people")
+        .select("id, first_name, last_name, person_type")
+        .order("person_type")
+        .order("last_name")
+        .order("first_name");
+
+    if (error) {
+        console.error("Login-Personen konnten nicht geladen werden.", error);
+        peopleGrid.innerHTML = "";
+        identityError.textContent = "Personen konnten nicht geladen werden. Bitte Internetverbindung prüfen.";
+        return;
+    }
+
+    peopleGrid.innerHTML = "";
+
+    data.forEach(function (person) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "person-login-card";
+
+        const fullName = [person.first_name, person.last_name]
+            .filter(Boolean)
+            .join(" ");
+
+        button.innerHTML = `
+            <span class="person-login-icon">${person.person_type === "lehrer" ? "👨‍🏫" : "👤"}</span>
+            <span class="person-login-name">${escapeHtml(fullName)}</span>
+            <span class="person-login-type">${person.person_type === "lehrer" ? "Lehrkraft" : "Schüler/in"}</span>
+        `;
+
+        button.addEventListener("click", function () {
+            selectLoginPerson(person);
+        });
+
+        peopleGrid.appendChild(button);
+    });
+
+    if (data.length === 0) {
+        identityError.textContent = "Keine aktiven Personen gefunden.";
+    }
+}
+
+
+function selectLoginPerson(person) {
+    selectedLoginPerson = person;
+    selectedPersonName.textContent = [person.first_name, person.last_name]
+        .filter(Boolean)
+        .join(" ");
+    pinLoginError.textContent = "";
+    loginPinInput.value = "";
+
+    showScreen(pinLoginScreen);
+    window.setTimeout(function () {
+        loginPinInput.focus();
+    }, 50);
+}
+
+
+loginBackButton.addEventListener("click", function () {
+    selectedLoginPerson = null;
+    loginPinInput.value = "";
+    pinLoginError.textContent = "";
+    showScreen(identityScreen);
+});
+
+
+loginPinInput.addEventListener("input", function () {
+    loginPinInput.value = loginPinInput.value.replace(/[^0-9]/g, "").slice(0, 4);
+    pinLoginError.textContent = "";
+});
+
+
+loginPinInput.addEventListener("keydown", function (event) {
+    if (event.key === "Enter") {
+        loginConfirmButton.click();
+    }
+});
+
+
+loginConfirmButton.addEventListener("click", loginWithPin);
+
+
+async function loginWithPin() {
+    if (!selectedLoginPerson) {
+        return;
+    }
+
+    const pin = loginPinInput.value;
+
+    if (!/^[0-9]{4}$/.test(pin)) {
+        pinLoginError.textContent = "Bitte eine 4-stellige PIN eingeben.";
+        loginPinInput.focus();
+        return;
+    }
+
+    loginConfirmButton.disabled = true;
+    loginConfirmButton.textContent = "Anmeldung …";
+    pinLoginError.textContent = "";
+
+    try {
+        const { data, error } = await supabaseClient.functions.invoke(
+            "login-with-pin",
+            {
+                body: {
+                    person_id: selectedLoginPerson.id,
+                    pin: pin
+                }
+            }
+        );
+
+        if (error) {
+            throw error;
+        }
+
+        if (!data || !data.success || !data.token_hash || !data.verification_type) {
+            throw new Error("Ungültige Antwort vom Login-Service.");
+        }
+
+        const { data: otpData, error: otpError } = await supabaseClient.auth.verifyOtp({
+            token_hash: data.token_hash,
+            type: data.verification_type
+        });
+
+        if (otpError) {
+            throw otpError;
+        }
+
+        const person = await loadCurrentPerson(otpData.session);
+
+        if (!person) {
+            throw new Error("Person konnte nach der Anmeldung nicht geladen werden.");
+        }
+
+        applyLoggedInState(person);
+    } catch (error) {
+        console.error("Login fehlgeschlagen.", error);
+        pinLoginError.textContent = "Falsche PIN oder Anmeldung nicht möglich.";
+        loginPinInput.value = "";
+        loginPinInput.focus();
+    } finally {
+        loginConfirmButton.disabled = false;
+        loginConfirmButton.textContent = "Einloggen";
+    }
+}
+
+
+async function loadCurrentPerson(session) {
+    if (!session || !session.user) {
+        return null;
+    }
+
+    const { data, error } = await supabaseClient
+        .from("people")
+        .select("id, first_name, last_name, person_type, active")
+        .eq("auth_user_id", session.user.id)
+        .eq("active", true)
+        .single();
+
+    if (error) {
+        console.error("Aktuelle Person konnte nicht geladen werden.", error);
+        return null;
+    }
+
+    return data;
+}
+
+
+function applyLoggedInState(person) {
+    currentPerson = person;
+
+    currentPersonName.textContent = [person.first_name, person.last_name]
+        .filter(Boolean)
+        .join(" ");
+
+    // Der bisherige Admin-Bereich bleibt vorerst nur für die Lehrkraft sichtbar.
+    adminButton.style.display = person.person_type === "lehrer" ? "block" : "none";
+
+    selectedLoginPerson = null;
+    loginPinInput.value = "";
+    pinLoginError.textContent = "";
+
     showScreen(homeScreen);
+}
+
+
+logoutButton.addEventListener("click", async function () {
+    const { error } = await supabaseClient.auth.signOut();
+
+    if (error) {
+        console.error("Abmeldung fehlgeschlagen.", error);
+        alert("Abmeldung war nicht möglich.");
+        return;
+    }
+
+    currentPerson = null;
+    selectedLoginPerson = null;
+    currentPersonName.textContent = "-";
+    adminButton.style.display = "none";
+    resetSale();
+    showScreen(identityScreen);
+    await loadLoginPeople();
+});
+
+
+supabaseClient.auth.onAuthStateChange(function (_event, session) {
+    if (!session && currentPerson) {
+        currentPerson = null;
+        adminButton.style.display = "none";
+        showScreen(identityScreen);
+    }
 });
 
 
@@ -792,12 +1066,12 @@ function resetSale() {
 // ========================================
 
 adminButton.addEventListener("click", function () {
-    enteredPin = "";
+    if (!currentPerson || currentPerson.person_type !== "lehrer") {
+        alert("Dieser Bereich ist nur für Lehrkräfte verfügbar.");
+        return;
+    }
 
-    updatePinDisplay();
-
-    pinModal.style.display = "flex";
-    pinModal.setAttribute("aria-hidden", "false");
+    showScreen(adminScreen);
 });
 
 
@@ -867,17 +1141,14 @@ function updatePinDisplay() {
 // ========================================
 
 confirmButton.addEventListener("click", function () {
-    if (enteredPin === ADMIN_PIN) {
+    if (currentPerson && currentPerson.person_type === "lehrer") {
         closePinModal();
         showScreen(adminScreen);
         return;
     }
 
-    alert("Falsche PIN.");
-
-    enteredPin = "";
-
-    updatePinDisplay();
+    closePinModal();
+    alert("Dieser Bereich ist nur für Lehrkräfte verfügbar.");
 });
 
 
