@@ -2015,3 +2015,196 @@ body {
         padding: 24px 18px;
     }
 }
+
+
+/* ========================================
+   NEUE APP-ARCHITEKTUR â€” MENÃœ
+   ======================================== */
+
+.app-menu-root {
+    width: min(980px, calc(100% - 32px));
+    margin: 0 auto 40px;
+}
+
+.app-menu-title {
+    text-align: center;
+    margin: 0 0 22px;
+}
+
+.app-menu-title h2 {
+    margin: 4px 0 8px;
+    font-size: clamp(24px, 4vw, 32px);
+    color: var(--blue-dark);
+}
+
+.app-menu-kicker {
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--grey);
+}
+
+.test-mode-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 4px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: #fff4cf;
+    color: #795b00;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.app-menu-content {
+    width: 100%;
+}
+
+.area-menu-card,
+.function-menu-card {
+    width: 100%;
+    border: 1px solid var(--border);
+    background: var(--white);
+    color: var(--blue-dark);
+    border-radius: 18px;
+    min-height: 88px;
+    padding: 16px 18px;
+    margin: 0 0 12px;
+    display: grid;
+    grid-template-columns: 56px 1fr auto;
+    align-items: center;
+    gap: 14px;
+    text-align: left;
+    box-shadow: 0 4px 14px rgba(9, 67, 106, 0.06);
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.area-menu-card:hover,
+.function-menu-card:hover {
+    transform: translateY(-2px);
+    border-color: #bfc9d5;
+    box-shadow: 0 8px 22px rgba(9, 67, 106, 0.10);
+}
+
+.area-menu-card:active,
+.function-menu-card:active {
+    transform: translateY(0);
+}
+
+.area-menu-icon,
+.function-menu-icon {
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 16px;
+    background: var(--light);
+    font-size: 29px;
+}
+
+.area-menu-text,
+.function-menu-text {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.area-menu-text strong,
+.function-menu-text strong {
+    font-size: 18px;
+    line-height: 1.2;
+}
+
+.area-menu-text small,
+.function-menu-text small {
+    color: var(--grey);
+    font-size: 14px;
+    line-height: 1.35;
+}
+
+.area-menu-arrow {
+    font-size: 30px;
+    color: var(--grey);
+    line-height: 1;
+}
+
+.menu-back-button {
+    border: 0;
+    background: transparent;
+    color: var(--blue-dark);
+    font-weight: 800;
+    padding: 6px 0;
+    cursor: pointer;
+}
+
+.sub-menu-title {
+    text-align: left;
+}
+
+.sub-menu-title h2 {
+    margin-top: 8px;
+}
+
+.function-menu-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.function-menu-card {
+    margin: 0;
+    min-height: 118px;
+}
+
+.architecture-placeholder-screen {
+    background: var(--light);
+}
+
+.architecture-placeholder-content {
+    width: min(700px, calc(100% - 32px));
+    margin: 50px auto;
+    padding: 34px 26px;
+    border-radius: 22px;
+    background: var(--white);
+    border: 1px solid var(--border);
+    text-align: center;
+    box-shadow: 0 8px 24px rgba(9, 67, 106, 0.07);
+}
+
+.architecture-placeholder-icon {
+    font-size: 56px;
+    margin: 24px 0 10px;
+}
+
+.architecture-placeholder-content h2 {
+    margin: 0 0 10px;
+    color: var(--blue-dark);
+}
+
+.architecture-placeholder-content p {
+    max-width: 560px;
+    margin: 0 auto 24px;
+    color: var(--grey);
+    line-height: 1.55;
+}
+
+@media (max-width: 700px) {
+    .function-menu-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .app-menu-root {
+        width: min(100% - 24px, 620px);
+    }
+
+    .area-menu-card,
+    .function-menu-card {
+        min-height: 82px;
+    }
+}
