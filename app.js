@@ -1,10 +1,24 @@
-const SUPABASE_URL = "https://gsbkfrjhierqopkwpqjc.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzIiwicmVmIjoiZ3Nia2ZyamllcnFvcGt3cHFqYyIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzkwOTIyNzI4LCJleHAiOjIxMDY0OTg3Mjh9.BV5aYeAO2nE5SjiEOCs3GA1hwQpg0IJzEl5wizApUVU";
+// ========================================
+// LAUTER MACHER
+// APP.JS — STABILISIERTE VERSION
+// ========================================
 
-const supabaseClient = window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_ANON_KEY
-);
+
+// ========================================
+// SUPABASE
+// ========================================
+
+const SUPABASE_URL =
+    "https://gsbkfrjhierqopkwpqjc.supabase.co";
+
+const SUPABASE_PUBLISHABLE_KEY =
+    "sb_publishable_xiM5w8RhiN0I0j5HSVPfnw_LhLQgozX";
+
+const supabaseClient =
+    window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_PUBLISHABLE_KEY
+    );
 
 let currentPerson = null;
 let selectedLoginPerson = null;
