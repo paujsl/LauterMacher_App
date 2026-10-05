@@ -1,370 +1,1139 @@
-// ========================================
+// ============================================================
 // LAUTER MACHER
-// APP.JS — STABILISIERTE VERSION
-// ========================================
+// APP.JS
+// ============================================================
 
 
-// ========================================
+// ============================================================
 // SUPABASE
-// ========================================
+// ============================================================
 
 const SUPABASE_URL =
     "https://gsbkfrjhierqopkwpqjc.supabase.co";
 
-const SUPABASE_PUBLISHABLE_KEY =
-    "sb_publishable_xiM5w8RhiN0I0j5HSVPfnw_LhLQgozX";
+const SUPABASE_ANON_KEY =
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdzYmtmcmpoaWVycW9wa3dwcWpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5MjI3MjgsImV4cCI6MjEwNjQ5ODcyOH0.BV5aYeAO2nE5SjiEOCs3GA1hwQpg0IJzEl5wizApUVU";
 
 const supabaseClient =
     window.supabase.createClient(
         SUPABASE_URL,
-        SUPABASE_PUBLISHABLE_KEY
+        SUPABASE_ANON_KEY
     );
+
+
+// ============================================================
+// APPLICATION STATE
+// ============================================================
 
 let currentPerson = null;
 let selectedLoginPerson = null;
-let currentReturnScreen = null;
 
 let cart = [];
 let receivedAmount = "";
+
+let currentReturnScreen = null;
+
+let saleTestMode = false;
+
 let currentReportPeriod = "day";
+
 let editingProductId = null;
 let inventoryProductId = null;
-let saleTestMode = false;
 
 let currentEventId = null;
 let eventProductEditingId = null;
+
 let eventSaleCart = [];
-let eventReceivedAmount = "";
 let currentEventSaleTestMode = false;
-let currentSuccessContext = "daily";
 
 let eventStartInventoryRows = [];
 let eventSetupInvoices = [];
 
+let currentSuccessContext = "daily";
+
+let siteMessageCallback = null;
+
+
+// ============================================================
+// STORAGE KEYS
+// ============================================================
 
 const STORAGE_KEYS = {
-    products: "lauterMacher_products_v1",
-    sales: "lauterMacher_sales_v1",
-    inventory: "lauterMacher_inventory_v1",
-    inventorySubmissions: "lauterMacher_inventory_submissions_v1",
-    shiftClosures: "lauterMacher_shift_closures_v1",
-    invoices: "lauterMacher_invoices_v1",
-    purchases: "lauterMacher_purchases_v1",
-    events: "lauterMacher_events_v1"
+
+    products:
+        "lauterMacher_products_v1",
+
+    sales:
+        "lauterMacher_sales_v1",
+
+    inventory:
+        "lauterMacher_inventory_v1",
+
+    inventorySubmissions:
+        "lauterMacher_inventory_submissions_v1",
+
+    shiftClosures:
+        "lauterMacher_shift_closures_v1",
+
+    invoices:
+        "lauterMacher_invoices_v1",
+
+    purchases:
+        "lauterMacher_purchases_v1",
+
+    events:
+        "lauterMacher_events_v1"
 };
 
 
+// ============================================================
+// DEFAULT PRODUCTS
+// ============================================================
+
 const DEFAULT_PRODUCTS = [
+
     {
-        id: "wasser",
-        name: "Wasser",
-        price: 1.00,
-        category: "drink",
-        icon: "💧"
+        id:
+            "wasser",
+
+        name:
+            "Wasser",
+
+        price:
+            1.00,
+
+        category:
+            "drink",
+
+        icon:
+            "💧"
     },
+
     {
-        id: "apfelsaft",
-        name: "Apfelsaft",
-        price: 1.50,
-        category: "drink",
-        icon: "🧃"
+        id:
+            "apfelsaft",
+
+        name:
+            "Apfelsaft",
+
+        price:
+            1.50,
+
+        category:
+            "drink",
+
+        icon:
+            "🧃"
     },
+
     {
-        id: "capri-sun",
-        name: "Capri-Sun",
-        price: 1.50,
-        category: "drink",
-        icon: "🧃"
+        id:
+            "capri-sun",
+
+        name:
+            "Capri-Sun",
+
+        price:
+            1.50,
+
+        category:
+            "drink",
+
+        icon:
+            "🧃"
     },
+
     {
-        id: "fake-cola",
-        name: "Fake Cola",
-        price: 1.50,
-        category: "drink",
-        icon: "🥤"
+        id:
+            "fake-cola",
+
+        name:
+            "Fake Cola",
+
+        price:
+            1.50,
+
+        category:
+            "drink",
+
+        icon:
+            "🥤"
     },
+
     {
-        id: "fake-fanta",
-        name: "Fake Fanta",
-        price: 1.50,
-        category: "drink",
-        icon: "🥤"
+        id:
+            "fake-fanta",
+
+        name:
+            "Fake Fanta",
+
+        price:
+            1.50,
+
+        category:
+            "drink",
+
+        icon:
+            "🥤"
     },
+
     {
-        id: "fake-sprite",
-        name: "Fake Sprite",
-        price: 1.50,
-        category: "drink",
-        icon: "🥤"
+        id:
+            "fake-sprite",
+
+        name:
+            "Fake Sprite",
+
+        price:
+            1.50,
+
+        category:
+            "drink",
+
+        icon:
+            "🥤"
     },
+
     {
-        id: "isodrink",
-        name: "Isodrink",
-        price: 2.00,
-        category: "drink",
-        icon: "⚡"
+        id:
+            "isodrink",
+
+        name:
+            "Isodrink",
+
+        price:
+            2.00,
+
+        category:
+            "drink",
+
+        icon:
+            "⚡"
     }
 ];
 
 
-const identityScreen = document.getElementById("identityScreen");
-const pinLoginScreen = document.getElementById("pinLoginScreen");
-const homeScreen = document.getElementById("homeScreen");
-const saleScreen = document.getElementById("saleScreen");
-const paymentScreen = document.getElementById("paymentScreen");
-const successScreen = document.getElementById("successScreen");
-const bakeryMenuScreen = document.getElementById("bakeryMenuScreen");
-const bakeryCashScreen = document.getElementById("bakeryCashScreen");
-const bakeryOutputScreen = document.getElementById("bakeryOutputScreen");
-const adminScreen = document.getElementById("adminScreen");
-const inventoryScreen = document.getElementById("inventoryScreen");
-const inventoryCountScreen = document.getElementById("inventoryCountScreen");
-const inventoryInvoicesScreen = document.getElementById("inventoryInvoicesScreen");
-const productsScreen = document.getElementById("productsScreen");
-const reportsScreen = document.getElementById("reportsScreen");
-const eventListScreen = document.getElementById("eventListScreen");
-const eventCreateScreen = document.getElementById("eventCreateScreen");
-const eventStartSetupScreen = document.getElementById("eventStartSetupScreen");
-const eventProductsScreen = document.getElementById("eventProductsScreen");
-const eventWorkspaceScreen = document.getElementById("eventWorkspaceScreen");
-const eventCashScreen = document.getElementById("eventCashScreen");
-const eventOutputScreen = document.getElementById("eventOutputScreen");
-const eventEndInventoryScreen = document.getElementById("eventEndInventoryScreen");
+// ============================================================
+// DOM HELPERS
+// ============================================================
+
+function getElement(id) {
+    return document.getElementById(id);
+}
 
 
-const peopleGrid = document.getElementById("peopleGrid");
-const identityError = document.getElementById("identityError");
-const selectedPersonName = document.getElementById("selectedPersonName");
-const loginPinInput = document.getElementById("loginPinInput");
-const pinLoginError = document.getElementById("pinLoginError");
-const loginBackButton = document.getElementById("loginBackButton");
-const loginConfirmButton = document.getElementById("loginConfirmButton");
+function on(id, eventName, handler) {
+
+    const element =
+        getElement(id);
+
+    if (element) {
+
+        element.addEventListener(
+            eventName,
+            handler
+        );
+    }
+}
 
 
-const appHeader = document.getElementById("appHeader");
-const currentPersonName = document.getElementById("currentPersonName");
-const homeRoleLabel = document.getElementById("homeRoleLabel");
-const logoutButton = document.getElementById("logoutButton");
-const notificationButton = document.getElementById("notificationButton");
-const notificationCount = document.getElementById("notificationCount");
+function setText(id, value) {
+
+    const element =
+        getElement(id);
+
+    if (element) {
+
+        element.textContent =
+            value;
+    }
+}
 
 
-const studentHomeMenu = document.getElementById("studentHomeMenu");
-const teacherHomeMenu = document.getElementById("teacherHomeMenu");
+function setHidden(id, hidden) {
 
-const saleButton = document.getElementById("saleButton");
-const teacherSaleButton = document.getElementById("teacherSaleButton");
-const bakeryButton = document.getElementById("bakeryButton");
-const teacherBakeryButton = document.getElementById("teacherBakeryButton");
-const adminButton = document.getElementById("adminButton");
-const teacherAdminButton = document.getElementById("teacherAdminButton");
-const reportsHomeButton = document.getElementById("reportsHomeButton");
-const eventButton = document.getElementById("eventButton");
-const teacherEventButton = document.getElementById("teacherEventButton");
+    const element =
+        getElement(id);
 
+    if (element) {
 
-const bakeryBackButton = document.getElementById("bakeryBackButton");
-const bakeryCashButton = document.getElementById("bakeryCashButton");
-const bakeryServiceButton = document.getElementById("bakeryServiceButton");
-const bakeryCashBackButton = document.getElementById("bakeryCashBackButton");
-const bakeryOutputBackButton = document.getElementById("bakeryOutputBackButton");
-const bakeryCashShiftEndButton = document.getElementById("bakeryCashShiftEndButton");
-const bakeryOutputShiftEndButton = document.getElementById("bakeryOutputShiftEndButton");
+        element.hidden =
+            hidden;
+    }
+}
 
 
-const saleBackButton = document.getElementById("saleBackButton");
-const drinksGrid = document.getElementById("drinksGrid");
-const cartItems = document.getElementById("cartItems");
-const cartTotal = document.getElementById("cartTotal");
-const payButton = document.getElementById("payButton");
-const paymentBackButton = document.getElementById("paymentBackButton");
-const paymentTotal = document.getElementById("paymentTotal");
-const amountReceived = document.getElementById("amountReceived");
-const changeAmount = document.getElementById("changeAmount");
-const paidButton = document.getElementById("paidButton");
-const paymentKeys = document.querySelectorAll(".payment-key:not(.delete-key)");
-const deletePaymentButton = document.getElementById("deletePaymentButton");
-const successTitle = document.getElementById("successTitle");
-const successDescription = document.getElementById("successDescription");
-const successChange = document.getElementById("successChange");
-const newOrderButton = document.getElementById("newOrderButton");
-const successShiftEndButton = document.getElementById("successShiftEndButton");
+// ============================================================
+// DOM REFERENCES
+// ============================================================
+
+const identityScreen =
+    getElement("identityScreen");
+
+const pinLoginScreen =
+    getElement("pinLoginScreen");
+
+const homeScreen =
+    getElement("homeScreen");
+
+const saleScreen =
+    getElement("saleScreen");
+
+const paymentScreen =
+    getElement("paymentScreen");
+
+const successScreen =
+    getElement("successScreen");
+
+const bakeryMenuScreen =
+    getElement("bakeryMenuScreen");
+
+const bakeryCashScreen =
+    getElement("bakeryCashScreen");
+
+const bakeryOutputScreen =
+    getElement("bakeryOutputScreen");
+
+const adminScreen =
+    getElement("adminScreen");
+
+const reportsScreen =
+    getElement("reportsScreen");
+
+const inventoryScreen =
+    getElement("inventoryScreen");
+
+const inventoryCountScreen =
+    getElement("inventoryCountScreen");
+
+const inventoryInvoicesScreen =
+    getElement("inventoryInvoicesScreen");
+
+const productsScreen =
+    getElement("productsScreen");
+
+const eventListScreen =
+    getElement("eventListScreen");
+
+const eventCreateScreen =
+    getElement("eventCreateScreen");
+
+const eventStartSetupScreen =
+    getElement("eventStartSetupScreen");
+
+const eventProductsScreen =
+    getElement("eventProductsScreen");
+
+const eventWorkspaceScreen =
+    getElement("eventWorkspaceScreen");
+
+const eventCashScreen =
+    getElement("eventCashScreen");
+
+const eventOutputScreen =
+    getElement("eventOutputScreen");
+
+const eventEndInventoryScreen =
+    getElement("eventEndInventoryScreen");
 
 
-const adminBackButton = document.getElementById("adminBackButton");
-const productsButton = document.getElementById("productsButton");
-const inventoryButton = document.getElementById("inventoryButton");
-const inventoryInvoicesButton = document.getElementById("inventoryInvoicesButton");
-const studentsButton = document.getElementById("studentsButton");
-const editMenuTitle = document.getElementById("editMenuTitle");
-const editMenuDescription = document.getElementById("editMenuDescription");
-const inventoryMenuTitle = document.getElementById("inventoryMenuTitle");
-const inventoryMenuDescription = document.getElementById("inventoryMenuDescription");
+// ============================================================
+// AUTH DOM
+// ============================================================
+
+const peopleGrid =
+    getElement("peopleGrid");
+
+const identityError =
+    getElement("identityError");
+
+const selectedPersonName =
+    getElement("selectedPersonName");
+
+const loginPinInput =
+    getElement("loginPinInput");
+
+const pinLoginError =
+    getElement("pinLoginError");
+
+const loginBackButton =
+    getElement("loginBackButton");
+
+const loginConfirmButton =
+    getElement("loginConfirmButton");
 
 
-const productsBackButton = document.getElementById("productsBackButton");
-const adminProductsList = document.getElementById("adminProductsList");
-const addProductButton = document.getElementById("addProductButton");
-const productModal = document.getElementById("productModal");
-const closeProductModalButton = document.getElementById("closeProductModalButton");
-const cancelProductButton = document.getElementById("cancelProductButton");
-const saveProductButton = document.getElementById("saveProductButton");
-const productModalTitle = document.getElementById("productModalTitle");
-const productNameInput = document.getElementById("productNameInput");
-const productPriceInput = document.getElementById("productPriceInput");
-const productCategoryInput = document.getElementById("productCategoryInput");
-const productIconInput = document.getElementById("productIconInput");
+// ============================================================
+// HEADER
+// ============================================================
+
+const appHeader =
+    getElement("appHeader");
+
+const currentPersonName =
+    getElement("currentPersonName");
+
+const homeRoleLabel =
+    getElement("homeRoleLabel");
+
+const logoutButton =
+    getElement("logoutButton");
+
+const notificationButton =
+    getElement("notificationButton");
+
+const notificationCount =
+    getElement("notificationCount");
 
 
-const inventoryBackButton = document.getElementById("inventoryBackButton");
-const inventoryList = document.getElementById("inventoryList");
-const inventoryModal = document.getElementById("inventoryModal");
-const closeInventoryModalButton = document.getElementById("closeInventoryModalButton");
-const cancelInventoryButton = document.getElementById("cancelInventoryButton");
-const saveInventoryButton = document.getElementById("saveInventoryButton");
-const inventoryProductLabel = document.getElementById("inventoryProductLabel");
-const inventoryAmountInput = document.getElementById("inventoryAmountInput");
+// ============================================================
+// HOME
+// ============================================================
+
+const studentHomeMenu =
+    getElement("studentHomeMenu");
+
+const teacherHomeMenu =
+    getElement("teacherHomeMenu");
+
+const saleButton =
+    getElement("saleButton");
+
+const teacherSaleButton =
+    getElement("teacherSaleButton");
+
+const bakeryButton =
+    getElement("bakeryButton");
+
+const teacherBakeryButton =
+    getElement("teacherBakeryButton");
+
+const adminButton =
+    getElement("adminButton");
+
+const teacherAdminButton =
+    getElement("teacherAdminButton");
+
+const reportsHomeButton =
+    getElement("reportsHomeButton");
+
+const eventButton =
+    getElement("eventButton");
+
+const teacherEventButton =
+    getElement("teacherEventButton");
 
 
-const inventoryCountBackButton = document.getElementById("inventoryCountBackButton");
-const inventoryCountList = document.getElementById("inventoryCountList");
-const submitInventoryButton = document.getElementById("submitInventoryButton");
+// ============================================================
+// BÄCKEREI
+// ============================================================
+
+const bakeryBackButton =
+    getElement("bakeryBackButton");
+
+const bakeryCashButton =
+    getElement("bakeryCashButton");
+
+const bakeryServiceButton =
+    getElement("bakeryServiceButton");
+
+const bakeryCashBackButton =
+    getElement("bakeryCashBackButton");
+
+const bakeryOutputBackButton =
+    getElement("bakeryOutputBackButton");
+
+const bakeryCashShiftEndButton =
+    getElement("bakeryCashShiftEndButton");
+
+const bakeryOutputShiftEndButton =
+    getElement("bakeryOutputShiftEndButton");
 
 
-const inventoryInvoicesBackButton = document.getElementById("inventoryInvoicesBackButton");
-const invoiceContextInput = document.getElementById("invoiceContextInput");
-const invoiceDateInput = document.getElementById("invoiceDateInput");
-const invoiceSupplierInput = document.getElementById("invoiceSupplierInput");
-const invoiceNumberInput = document.getElementById("invoiceNumberInput");
-const invoiceProductInput = document.getElementById("invoiceProductInput");
-const invoiceQuantityInput = document.getElementById("invoiceQuantityInput");
-const invoiceAmountInput = document.getElementById("invoiceAmountInput");
-const saveInvoiceButton = document.getElementById("saveInvoiceButton");
-const purchaseContextInput = document.getElementById("purchaseContextInput");
-const purchaseProductInput = document.getElementById("purchaseProductInput");
-const purchaseQuantityInput = document.getElementById("purchaseQuantityInput");
-const savePurchaseButton = document.getElementById("savePurchaseButton");
-const invoiceList = document.getElementById("invoiceList");
+// ============================================================
+// SALE
+// ============================================================
+
+const saleBackButton =
+    getElement("saleBackButton");
+
+const saleShiftEndButton =
+    getElement("saleShiftEndButton");
+
+const drinksGrid =
+    getElement("drinksGrid");
+
+const bakeryGrid =
+    getElement("bakeryGrid");
+
+const cartItems =
+    getElement("cartItems");
+
+const cartTotal =
+    getElement("cartTotal");
+
+const payButton =
+    getElement("payButton");
 
 
-const reportsBackButton = document.getElementById("reportsBackButton");
-const periodTabs = document.querySelectorAll(".period-tab");
-const reportDateLabel = document.getElementById("reportDateLabel");
-const reportRevenue = document.getElementById("reportRevenue");
-const reportTransactions = document.getElementById("reportTransactions");
-const reportDrinks = document.getElementById("reportDrinks");
-const reportBakery = document.getElementById("reportBakery");
-const reportProducts = document.getElementById("reportProducts");
-const exportReportButton = document.getElementById("exportReportButton");
-const clearReportsButton = document.getElementById("clearReportsButton");
+// ============================================================
+// PAYMENT
+// ============================================================
+
+const paymentBackButton =
+    getElement("paymentBackButton");
+
+const paymentTotal =
+    getElement("paymentTotal");
+
+const amountReceived =
+    getElement("amountReceived");
+
+const changeAmount =
+    getElement("changeAmount");
+
+const paidButton =
+    getElement("paidButton");
+
+const deletePaymentButton =
+    getElement("deletePaymentButton");
 
 
-const eventListBackButton = document.getElementById("eventListBackButton");
-const eventListTitle = document.getElementById("eventListTitle");
-const eventListDescription = document.getElementById("eventListDescription");
-const createEventButton = document.getElementById("createEventButton");
-const eventList = document.getElementById("eventList");
+// ============================================================
+// SUCCESS
+// ============================================================
+
+const successTitle =
+    getElement("successTitle");
+
+const successDescription =
+    getElement("successDescription");
+
+const successChange =
+    getElement("successChange");
+
+const newOrderButton =
+    getElement("newOrderButton");
+
+const successShiftEndButton =
+    getElement("successShiftEndButton");
 
 
-const eventCreateBackButton = document.getElementById("eventCreateBackButton");
-const eventNameInput = document.getElementById("eventNameInput");
-const eventDateInput = document.getElementById("eventDateInput");
-const eventStartInventoryYesButton = document.getElementById("eventStartInventoryYesButton");
-const eventStartInventoryNoButton = document.getElementById("eventStartInventoryNoButton");
+// ============================================================
+// EDIT
+// ============================================================
+
+const adminBackButton =
+    getElement("adminBackButton");
+
+const productsButton =
+    getElement("productsButton");
+
+const inventoryButton =
+    getElement("inventoryButton");
+
+const inventoryInvoicesButton =
+    getElement("inventoryInvoicesButton");
+
+const studentsButton =
+    getElement("studentsButton");
+
+const editMenuTitle =
+    getElement("editMenuTitle");
+
+const editMenuDescription =
+    getElement("editMenuDescription");
+
+const inventoryMenuTitle =
+    getElement("inventoryMenuTitle");
+
+const inventoryMenuDescription =
+    getElement("inventoryMenuDescription");
 
 
-const eventStartSetupBackButton = document.getElementById("eventStartSetupBackButton");
-const eventStartSetupTitle = document.getElementById("eventStartSetupTitle");
-const eventStartInventoryList = document.getElementById("eventStartInventoryList");
-const addEventStartStockButton = document.getElementById("addEventStartStockButton");
-const eventInvoiceDateInput = document.getElementById("eventInvoiceDateInput");
-const eventInvoiceSupplierInput = document.getElementById("eventInvoiceSupplierInput");
-const eventInvoiceNumberInput = document.getElementById("eventInvoiceNumberInput");
-const eventInvoiceProductInput = document.getElementById("eventInvoiceProductInput");
-const eventInvoiceQuantityInput = document.getElementById("eventInvoiceQuantityInput");
-const eventInvoiceAmountInput = document.getElementById("eventInvoiceAmountInput");
-const addEventInvoiceButton = document.getElementById("addEventInvoiceButton");
-const eventInvoiceList = document.getElementById("eventInvoiceList");
-const eventStartSetupContinueButton = document.getElementById("eventStartSetupContinueButton");
+// ============================================================
+// PRODUCTS
+// ============================================================
+
+const productsBackButton =
+    getElement("productsBackButton");
+
+const adminProductsList =
+    getElement("adminProductsList");
+
+const addProductButton =
+    getElement("addProductButton");
+
+const productModal =
+    getElement("productModal");
+
+const closeProductModalButton =
+    getElement("closeProductModalButton");
+
+const cancelProductButton =
+    getElement("cancelProductButton");
+
+const saveProductButton =
+    getElement("saveProductButton");
+
+const productModalTitle =
+    getElement("productModalTitle");
+
+const productNameInput =
+    getElement("productNameInput");
+
+const productPriceInput =
+    getElement("productPriceInput");
+
+const productCategoryInput =
+    getElement("productCategoryInput");
+
+const productIconInput =
+    getElement("productIconInput");
 
 
-const eventProductsBackButton = document.getElementById("eventProductsBackButton");
-const eventProductsTitle = document.getElementById("eventProductsTitle");
-const addEventProductButton = document.getElementById("addEventProductButton");
-const eventProductsList = document.getElementById("eventProductsList");
-const eventProductsContinueButton = document.getElementById("eventProductsContinueButton");
-const eventProductModal = document.getElementById("eventProductModal");
-const closeEventProductModalButton = document.getElementById("closeEventProductModalButton");
-const cancelEventProductButton = document.getElementById("cancelEventProductButton");
-const saveEventProductButton = document.getElementById("saveEventProductButton");
-const eventProductModalTitle = document.getElementById("eventProductModalTitle");
-const eventProductNameInput = document.getElementById("eventProductNameInput");
-const eventProductPriceInput = document.getElementById("eventProductPriceInput");
-const eventProductIconInput = document.getElementById("eventProductIconInput");
+// ============================================================
+// INVENTORY
+// ============================================================
+
+const inventoryBackButton =
+    getElement("inventoryBackButton");
+
+const inventoryList =
+    getElement("inventoryList");
+
+const inventoryModal =
+    getElement("inventoryModal");
+
+const closeInventoryModalButton =
+    getElement(
+        "closeInventoryModalButton"
+    );
+
+const cancelInventoryButton =
+    getElement("cancelInventoryButton");
+
+const saveInventoryButton =
+    getElement("saveInventoryButton");
+
+const inventoryProductLabel =
+    getElement("inventoryProductLabel");
+
+const inventoryAmountInput =
+    getElement("inventoryAmountInput");
 
 
-const eventWorkspaceBackButton = document.getElementById("eventWorkspaceBackButton");
-const eventWorkspaceName = document.getElementById("eventWorkspaceName");
-const eventWorkspaceDate = document.getElementById("eventWorkspaceDate");
-const eventWorkspaceStudentOptions = document.getElementById("eventWorkspaceStudentOptions");
-const eventWorkspaceTeacherOptions = document.getElementById("eventWorkspaceTeacherOptions");
-const studentEventCashButton = document.getElementById("studentEventCashButton");
-const studentEventOutputButton = document.getElementById("studentEventOutputButton");
-const teacherEventCashButton = document.getElementById("teacherEventCashButton");
-const teacherEventOutputButton = document.getElementById("teacherEventOutputButton");
-const teacherEventEndInventoryButton = document.getElementById("teacherEventEndInventoryButton");
+// ============================================================
+// INVENTUR STUDENT
+// ============================================================
+
+const inventoryCountBackButton =
+    getElement(
+        "inventoryCountBackButton"
+    );
+
+const inventoryCountList =
+    getElement("inventoryCountList");
+
+const submitInventoryButton =
+    getElement(
+        "submitInventoryButton"
+    );
 
 
-const eventCashBackButton = document.getElementById("eventCashBackButton");
-const eventCashTitle = document.getElementById("eventCashTitle");
-const eventCashProductHeading = document.getElementById("eventCashProductHeading");
-const eventCashProductsGrid = document.getElementById("eventCashProductsGrid");
-const eventCartItems = document.getElementById("eventCartItems");
-const eventCartTotal = document.getElementById("eventCartTotal");
-const eventPayButton = document.getElementById("eventPayButton");
-const eventCashShiftEndButton = document.getElementById("eventCashShiftEndButton");
+// ============================================================
+// INVOICES
+// ============================================================
+
+const inventoryInvoicesBackButton =
+    getElement(
+        "inventoryInvoicesBackButton"
+    );
+
+const invoiceContextInput =
+    getElement("invoiceContextInput");
+
+const invoiceDateInput =
+    getElement("invoiceDateInput");
+
+const invoiceSupplierInput =
+    getElement("invoiceSupplierInput");
+
+const invoiceNumberInput =
+    getElement("invoiceNumberInput");
+
+const invoiceProductInput =
+    getElement("invoiceProductInput");
+
+const invoiceQuantityInput =
+    getElement("invoiceQuantityInput");
+
+const invoiceAmountInput =
+    getElement("invoiceAmountInput");
+
+const saveInvoiceButton =
+    getElement("saveInvoiceButton");
+
+const purchaseContextInput =
+    getElement("purchaseContextInput");
+
+const purchaseProductInput =
+    getElement("purchaseProductInput");
+
+const purchaseQuantityInput =
+    getElement("purchaseQuantityInput");
+
+const savePurchaseButton =
+    getElement("savePurchaseButton");
+
+const invoiceList =
+    getElement("invoiceList");
 
 
-const eventOutputBackButton = document.getElementById("eventOutputBackButton");
-const eventOutputTitle = document.getElementById("eventOutputTitle");
-const eventOutputOrders = document.getElementById("eventOutputOrders");
-const eventOutputShiftEndButton = document.getElementById("eventOutputShiftEndButton");
+// ============================================================
+// REPORTS
+// ============================================================
+
+const reportsBackButton =
+    getElement("reportsBackButton");
+
+const reportDateLabel =
+    getElement("reportDateLabel");
+
+const reportRevenue =
+    getElement("reportRevenue");
+
+const reportTransactions =
+    getElement("reportTransactions");
+
+const reportDrinks =
+    getElement("reportDrinks");
+
+const reportBakery =
+    getElement("reportBakery");
+
+const reportProducts =
+    getElement("reportProducts");
+
+const exportReportButton =
+    getElement("exportReportButton");
+
+const clearReportsButton =
+    getElement("clearReportsButton");
+
+const periodTabs =
+    document.querySelectorAll(
+        ".period-tab"
+    );
 
 
-const eventEndInventoryBackButton = document.getElementById("eventEndInventoryBackButton");
-const eventEndInventoryTitle = document.getElementById("eventEndInventoryTitle");
-const eventEndInventoryList = document.getElementById("eventEndInventoryList");
-const saveEventEndInventoryButton = document.getElementById("saveEventEndInventoryButton");
+// ============================================================
+// EVENTS
+// ============================================================
+
+const eventListBackButton =
+    getElement("eventListBackButton");
+
+const eventListTitle =
+    getElement("eventListTitle");
+
+const eventListDescription =
+    getElement("eventListDescription");
+
+const createEventButton =
+    getElement("createEventButton");
+
+const eventList =
+    getElement("eventList");
 
 
-const siteMessageModal = document.getElementById("siteMessageModal");
-const siteMessageIcon = document.getElementById("siteMessageIcon");
-const siteMessageTitle = document.getElementById("siteMessageTitle");
-const siteMessageText = document.getElementById("siteMessageText");
-const siteMessagePrimaryButton = document.getElementById("siteMessagePrimaryButton");
-let siteMessageCallback = null;
+const eventCreateBackButton =
+    getElement("eventCreateBackButton");
+
+const eventNameInput =
+    getElement("eventNameInput");
+
+const eventDateInput =
+    getElement("eventDateInput");
+
+const eventStartInventoryYesButton =
+    getElement(
+        "eventStartInventoryYesButton"
+    );
+
+const eventStartInventoryNoButton =
+    getElement(
+        "eventStartInventoryNoButton"
+    );
 
 
-document.addEventListener("DOMContentLoaded", async function () {
-    setDefaultDates();
-    renderProducts();
-    updateCart();
-    hideAppHeader();
-    updateInventoryMenus();
-    showScreen(identityScreen);
-    await initialiseAuthentication();
-});
+const eventStartSetupBackButton =
+    getElement(
+        "eventStartSetupBackButton"
+    );
 
+const eventStartSetupTitle =
+    getElement("eventStartSetupTitle");
+
+const eventStartInventoryList =
+    getElement(
+        "eventStartInventoryList"
+    );
+
+const addEventStartStockButton =
+    getElement(
+        "addEventStartStockButton"
+    );
+
+const eventInvoiceDateInput =
+    getElement(
+        "eventInvoiceDateInput"
+    );
+
+const eventInvoiceSupplierInput =
+    getElement(
+        "eventInvoiceSupplierInput"
+    );
+
+const eventInvoiceNumberInput =
+    getElement(
+        "eventInvoiceNumberInput"
+    );
+
+const eventInvoiceProductInput =
+    getElement(
+        "eventInvoiceProductInput"
+    );
+
+const eventInvoiceQuantityInput =
+    getElement(
+        "eventInvoiceQuantityInput"
+    );
+
+const eventInvoiceAmountInput =
+    getElement(
+        "eventInvoiceAmountInput"
+    );
+
+const addEventInvoiceButton =
+    getElement(
+        "addEventInvoiceButton"
+    );
+
+const eventInvoiceList =
+    getElement(
+        "eventInvoiceList"
+    );
+
+const eventStartSetupContinueButton =
+    getElement(
+        "eventStartSetupContinueButton"
+    );
+
+
+const eventProductsBackButton =
+    getElement(
+        "eventProductsBackButton"
+    );
+
+const eventProductsTitle =
+    getElement(
+        "eventProductsTitle"
+    );
+
+const addEventProductButton =
+    getElement(
+        "addEventProductButton"
+    );
+
+const eventProductsList =
+    getElement(
+        "eventProductsList"
+    );
+
+const eventProductsContinueButton =
+    getElement(
+        "eventProductsContinueButton"
+    );
+
+
+const eventProductModal =
+    getElement(
+        "eventProductModal"
+    );
+
+const closeEventProductModalButton =
+    getElement(
+        "closeEventProductModalButton"
+    );
+
+const cancelEventProductButton =
+    getElement(
+        "cancelEventProductButton"
+    );
+
+const saveEventProductButton =
+    getElement(
+        "saveEventProductButton"
+    );
+
+const eventProductModalTitle =
+    getElement(
+        "eventProductModalTitle"
+    );
+
+const eventProductNameInput =
+    getElement(
+        "eventProductNameInput"
+    );
+
+const eventProductPriceInput =
+    getElement(
+        "eventProductPriceInput"
+    );
+
+const eventProductIconInput =
+    getElement(
+        "eventProductIconInput"
+    );
+
+
+const eventWorkspaceBackButton =
+    getElement(
+        "eventWorkspaceBackButton"
+    );
+
+const eventWorkspaceName =
+    getElement(
+        "eventWorkspaceName"
+    );
+
+const eventWorkspaceDate =
+    getElement(
+        "eventWorkspaceDate"
+    );
+
+const eventWorkspaceStudentOptions =
+    getElement(
+        "eventWorkspaceStudentOptions"
+    );
+
+const eventWorkspaceTeacherOptions =
+    getElement(
+        "eventWorkspaceTeacherOptions"
+    );
+
+const studentEventCashButton =
+    getElement(
+        "studentEventCashButton"
+    );
+
+const studentEventOutputButton =
+    getElement(
+        "studentEventOutputButton"
+    );
+
+const teacherEventCashButton =
+    getElement(
+        "teacherEventCashButton"
+    );
+
+const teacherEventOutputButton =
+    getElement(
+        "teacherEventOutputButton"
+    );
+
+const teacherEventEndInventoryButton =
+    getElement(
+        "teacherEventEndInventoryButton"
+    );
+
+
+const eventCashBackButton =
+    getElement(
+        "eventCashBackButton"
+    );
+
+const eventCashTitle =
+    getElement(
+        "eventCashTitle"
+    );
+
+const eventCashProductHeading =
+    getElement(
+        "eventCashProductHeading"
+    );
+
+const eventCashProductsGrid =
+    getElement(
+        "eventCashProductsGrid"
+    );
+
+const eventCartItems =
+    getElement(
+        "eventCartItems"
+    );
+
+const eventCartTotal =
+    getElement(
+        "eventCartTotal"
+    );
+
+const eventPayButton =
+    getElement(
+        "eventPayButton"
+    );
+
+const eventCashShiftEndButton =
+    getElement(
+        "eventCashShiftEndButton"
+    );
+
+
+const eventOutputBackButton =
+    getElement(
+        "eventOutputBackButton"
+    );
+
+const eventOutputTitle =
+    getElement(
+        "eventOutputTitle"
+    );
+
+const eventOutputOrders =
+    getElement(
+        "eventOutputOrders"
+    );
+
+const eventOutputShiftEndButton =
+    getElement(
+        "eventOutputShiftEndButton"
+    );
+
+
+const eventEndInventoryBackButton =
+    getElement(
+        "eventEndInventoryBackButton"
+    );
+
+const eventEndInventoryTitle =
+    getElement(
+        "eventEndInventoryTitle"
+    );
+
+const eventEndInventoryList =
+    getElement(
+        "eventEndInventoryList"
+    );
+
+const saveEventEndInventoryButton =
+    getElement(
+        "saveEventEndInventoryButton"
+    );
+
+
+// ============================================================
+// SITE MESSAGE
+// ============================================================
+
+const siteMessageModal =
+    getElement(
+        "siteMessageModal"
+    );
+
+const siteMessageIcon =
+    getElement(
+        "siteMessageIcon"
+    );
+
+const siteMessageTitle =
+    getElement(
+        "siteMessageTitle"
+    );
+
+const siteMessageText =
+    getElement(
+        "siteMessageText"
+    );
+
+const siteMessagePrimaryButton =
+    getElement(
+        "siteMessagePrimaryButton"
+    );
+
+
+// ============================================================
+// LOCAL DATA
+// ============================================================
+
+let products =
+    loadProducts();
+
+let sales =
+    loadSales();
+
+let inventory =
+    loadInventory();
+
+
+// ============================================================
+// DOM READY
+// ============================================================
+
+document.addEventListener(
+    "DOMContentLoaded",
+    async function () {
+
+        setDefaultDates();
+
+        renderProducts();
+
+        updateCart();
+
+        updateInventoryMenus();
+
+        hideAppHeader();
+
+        showScreen(
+            identityScreen
+        );
+
+        await initialiseAuthentication();
+    }
+);
+
+
+// ============================================================
+// AUTH
+// ============================================================
 
 async function initialiseAuthentication() {
+
     try {
-        const { data: sessionData } = await supabaseClient.auth.getSession();
 
-        if (sessionData && sessionData.session) {
-            const restoredPerson = await loadCurrentPerson(sessionData.session);
+        const {
+            data: sessionData
+        } =
+            await supabaseClient.auth.getSession();
 
-            if (restoredPerson) {
-                applyLoggedInState(restoredPerson);
+        if (
+            sessionData &&
+            sessionData.session
+        ) {
+
+            const person =
+                await loadCurrentPerson(
+                    sessionData.session
+                );
+
+            if (
+                person
+            ) {
+
+                applyLoggedInState(
+                    person
+                );
+
                 return;
             }
 
@@ -372,180 +1141,501 @@ async function initialiseAuthentication() {
         }
 
         await loadLoginPeople();
+
     } catch (error) {
-        console.error("Authentifizierung konnte nicht initialisiert werden.", error);
-        identityError.textContent = "Die Anmeldung konnte nicht geladen werden.";
+
+        console.error(
+            "Authentifizierung konnte nicht initialisiert werden.",
+            error
+        );
+
+        if (
+            identityError
+        ) {
+
+            identityError.textContent =
+                "Die Anmeldung konnte nicht geladen werden.";
+        }
+
         await loadLoginPeople();
     }
 }
 
 
 async function loadLoginPeople() {
-    identityError.textContent = "";
-    peopleGrid.innerHTML = '<div class="login-loading">Personen werden geladen …</div>';
 
-    const { data, error } = await supabaseClient
-        .from("login_people")
-        .select("id, first_name, last_name, person_type")
-        .order("person_type")
-        .order("last_name")
-        .order("first_name");
+    if (
+        !peopleGrid
+    ) {
 
-    if (error) {
-        console.error("Login-Personen konnten nicht geladen werden.", error);
-        peopleGrid.innerHTML = "";
-        identityError.textContent = "Personen konnten nicht geladen werden. Bitte Verbindung prüfen.";
         return;
     }
 
-    peopleGrid.innerHTML = "";
+    if (
+        identityError
+    ) {
 
-    (data || []).forEach(function (person) {
-        const button = document.createElement("button");
-        button.type = "button";
-        button.className = "person-login-card";
+        identityError.textContent =
+            "";
+    }
 
-        const fullName = getFullName(person);
-
-        button.innerHTML = `
-            <span class="person-login-icon">${person.person_type === "lehrer" ? "👨‍🏫" : "👤"}</span>
-            <span class="person-login-name">${escapeHtml(fullName)}</span>
-            <span class="person-login-type">${person.person_type === "lehrer" ? "Lehrkraft" : "Schüler/in"}</span>
+    peopleGrid.innerHTML =
+        `
+            <div class="login-loading">
+                Personen werden geladen …
+            </div>
         `;
 
-        button.addEventListener("click", function () {
-            selectLoginPerson(person);
-        });
+    const {
+        data,
+        error
+    } =
+        await supabaseClient
+            .from(
+                "login_people"
+            )
+            .select(
+                "id, first_name, last_name, person_type"
+            )
+            .order(
+                "person_type"
+            )
+            .order(
+                "last_name"
+            )
+            .order(
+                "first_name"
+            );
 
-        peopleGrid.appendChild(button);
-    });
+    if (
+        error
+    ) {
 
-    if (!data || data.length === 0) {
-        identityError.textContent = "Keine aktiven Personen gefunden.";
+        console.error(
+            "Fehler beim Laden von login_people:",
+            error
+        );
+
+        peopleGrid.innerHTML =
+            "";
+
+        if (
+            identityError
+        ) {
+
+            identityError.textContent =
+                "Die Personen konnten nicht geladen werden.";
+        }
+
+        return;
+    }
+
+    peopleGrid.innerHTML =
+        "";
+
+    (
+        data ||
+        []
+    ).forEach(
+        function (person) {
+
+            const button =
+                document.createElement(
+                    "button"
+                );
+
+            button.type =
+                "button";
+
+            button.className =
+                "person-login-card";
+
+            const fullName =
+                getFullName(
+                    person
+                );
+
+            button.innerHTML = `
+                <span class="person-login-icon">
+                    ${
+                        person.person_type ===
+                        "lehrer"
+                            ? "👨‍🏫"
+                            : "👤"
+                    }
+                </span>
+
+                <span class="person-login-name">
+                    ${escapeHtml(
+                        fullName
+                    )}
+                </span>
+
+                <span class="person-login-type">
+                    ${
+                        person.person_type ===
+                        "lehrer"
+                            ? "Lehrkraft"
+                            : "Schüler/in"
+                    }
+                </span>
+            `;
+
+            button.addEventListener(
+                "click",
+                function () {
+
+                    selectLoginPerson(
+                        person
+                    );
+                }
+            );
+
+            peopleGrid.appendChild(
+                button
+            );
+        }
+    );
+
+    if (
+        !data ||
+        data.length ===
+        0
+    ) {
+
+        if (
+            identityError
+        ) {
+
+            identityError.textContent =
+                "Keine aktiven Personen gefunden.";
+        }
     }
 }
 
 
-function selectLoginPerson(person) {
-    selectedLoginPerson = person;
-    selectedPersonName.textContent = getFullName(person);
-    loginPinInput.value = "";
-    pinLoginError.textContent = "";
-    hideAppHeader();
-    showScreen(pinLoginScreen);
+function selectLoginPerson(
+    person
+) {
 
-    setTimeout(function () {
-        loginPinInput.focus();
-    }, 50);
+    selectedLoginPerson =
+        person;
+
+    setText(
+        "selectedPersonName",
+        getFullName(
+            person
+        )
+    );
+
+    if (
+        loginPinInput
+    ) {
+
+        loginPinInput.value =
+            "";
+    }
+
+    if (
+        pinLoginError
+    ) {
+
+        pinLoginError.textContent =
+            "";
+    }
+
+    hideAppHeader();
+
+    showScreen(
+        pinLoginScreen
+    );
+
+    setTimeout(
+        function () {
+
+            if (
+                loginPinInput
+            ) {
+
+                loginPinInput.focus();
+            }
+
+        },
+        50
+    );
 }
 
 
-loginBackButton.addEventListener("click", function () {
-    selectedLoginPerson = null;
-    loginPinInput.value = "";
-    pinLoginError.textContent = "";
-    hideAppHeader();
-    showScreen(identityScreen);
-});
+on(
+    "loginBackButton",
+    "click",
+    function () {
 
+        selectedLoginPerson =
+            null;
 
-loginPinInput.addEventListener("input", function () {
-    loginPinInput.value = loginPinInput.value
-        .replace(/[^0-9]/g, "")
-        .slice(0, 4);
+        if (
+            loginPinInput
+        ) {
 
-    pinLoginError.textContent = "";
-});
+            loginPinInput.value =
+                "";
+        }
 
+        if (
+            pinLoginError
+        ) {
 
-loginPinInput.addEventListener("keydown", function (event) {
-    if (event.key === "Enter") {
-        loginConfirmButton.click();
+            pinLoginError.textContent =
+                "";
+        }
+
+        hideAppHeader();
+
+        showScreen(
+            identityScreen
+        );
     }
-});
+);
 
 
-loginConfirmButton.addEventListener("click", loginWithPin);
+on(
+    "loginPinInput",
+    "input",
+    function () {
+
+        loginPinInput.value =
+            loginPinInput.value
+                .replace(
+                    /[^0-9]/g,
+                    ""
+                )
+                .slice(
+                    0,
+                    4
+                );
+
+        if (
+            pinLoginError
+        ) {
+
+            pinLoginError.textContent =
+                "";
+        }
+    }
+);
+
+
+on(
+    "loginPinInput",
+    "keydown",
+    function (event) {
+
+        if (
+            event.key ===
+            "Enter"
+        ) {
+
+            if (
+                loginConfirmButton
+            ) {
+
+                loginConfirmButton.click();
+            }
+        }
+    }
+);
+
+
+on(
+    "loginConfirmButton",
+    "click",
+    loginWithPin
+);
 
 
 async function loginWithPin() {
-    if (!selectedLoginPerson) {
+
+    if (
+        !selectedLoginPerson ||
+        !loginPinInput
+    ) {
+
         return;
     }
 
-    const pin = loginPinInput.value;
+    const pin =
+        loginPinInput.value;
 
-    if (!/^[0-9]{4}$/.test(pin)) {
-        pinLoginError.textContent = "Bitte eine 4-stellige PIN eingeben.";
+    if (
+        !/^[0-9]{4}$/.test(
+            pin
+        )
+    ) {
+
+        pinLoginError.textContent =
+            "Bitte eine 4-stellige PIN eingeben.";
+
         loginPinInput.focus();
+
         return;
     }
 
-    loginConfirmButton.disabled = true;
-    loginConfirmButton.textContent = "Anmeldung …";
-    pinLoginError.textContent = "";
+    loginConfirmButton.disabled =
+        true;
+
+    loginConfirmButton.textContent =
+        "Anmeldung …";
+
+    pinLoginError.textContent =
+        "";
 
     try {
-        const { data, error } = await supabaseClient.functions.invoke(
-            "login-with-pin",
-            {
-                body: {
-                    person_id: selectedLoginPerson.id,
-                    pin: pin
-                }
-            }
-        );
 
-        if (error) {
+        const {
+            data,
+            error
+        } =
+            await supabaseClient.functions.invoke(
+                "login-with-pin",
+                {
+                    body: {
+
+                        person_id:
+                            selectedLoginPerson.id,
+
+                        pin:
+                            pin
+                    }
+                }
+            );
+
+        if (
+            error
+        ) {
+
             throw error;
         }
 
-        if (!data || !data.success || !data.token_hash || !data.verification_type) {
-            throw new Error("Ungültige Antwort vom Login-Service.");
+        if (
+            !data ||
+            !data.success ||
+            !data.token_hash ||
+            !data.verification_type
+        ) {
+
+            throw new Error(
+                "Ungültige Antwort vom Login-Service."
+            );
         }
 
-        const { data: otpData, error: otpError } = await supabaseClient.auth.verifyOtp({
-            token_hash: data.token_hash,
-            type: data.verification_type
-        });
+        const {
+            data: otpData,
+            error: otpError
+        } =
+            await supabaseClient.auth.verifyOtp(
+                {
+                    token_hash:
+                        data.token_hash,
 
-        if (otpError) {
+                    type:
+                        data.verification_type
+                }
+            );
+
+        if (
+            otpError
+        ) {
+
             throw otpError;
         }
 
-        const person = await loadCurrentPerson(otpData.session);
+        const person =
+            await loadCurrentPerson(
+                otpData.session
+            );
 
-        if (!person) {
-            throw new Error("Person konnte nach der Anmeldung nicht geladen werden.");
+        if (
+            !person
+        ) {
+
+            throw new Error(
+                "Person konnte nach der Anmeldung nicht geladen werden."
+            );
         }
 
-        applyLoggedInState(person);
+        applyLoggedInState(
+            person
+        );
+
     } catch (error) {
-        console.error("Login fehlgeschlagen.", error);
-        pinLoginError.textContent = "Falsche PIN oder Anmeldung nicht möglich.";
-        loginPinInput.value = "";
+
+        console.error(
+            "Login fehlgeschlagen:",
+            error
+        );
+
+        pinLoginError.textContent =
+            "Falsche PIN oder Anmeldung nicht möglich.";
+
+        loginPinInput.value =
+            "";
+
         loginPinInput.focus();
+
     } finally {
-        loginConfirmButton.disabled = false;
-        loginConfirmButton.textContent = "Einloggen";
+
+        loginConfirmButton.disabled =
+            false;
+
+        loginConfirmButton.textContent =
+            "Einloggen";
     }
 }
 
 
-async function loadCurrentPerson(session) {
-    if (!session || !session.user) {
+async function loadCurrentPerson(
+    session
+) {
+
+    if (
+        !session ||
+        !session.user
+    ) {
+
         return null;
     }
 
-    const { data, error } = await supabaseClient
-        .from("people")
-        .select("id, first_name, last_name, person_type, active")
-        .eq("auth_user_id", session.user.id)
-        .eq("active", true)
-        .single();
+    const {
+        data,
+        error
+    } =
+        await supabaseClient
+            .from(
+                "people"
+            )
+            .select(
+                "id, first_name, last_name, person_type, active"
+            )
+            .eq(
+                "auth_user_id",
+                session.user.id
+            )
+            .eq(
+                "active",
+                true
+            )
+            .single();
 
-    if (error) {
-        console.error("Aktuelle Person konnte nicht geladen werden.", error);
+    if (
+        error
+    ) {
+
+        console.error(
+            "Aktuelle Person konnte nicht geladen werden:",
+            error
+        );
+
         return null;
     }
 
@@ -553,231 +1643,428 @@ async function loadCurrentPerson(session) {
 }
 
 
-function applyLoggedInState(person) {
-    currentPerson = person;
-    selectedLoginPerson = null;
+function applyLoggedInState(
+    person
+) {
 
-    currentPersonName.textContent = getFullName(person);
-    homeRoleLabel.textContent = isCurrentTeacher() ? "Professor" : "";
+    currentPerson =
+        person;
+
+    selectedLoginPerson =
+        null;
+
+    setText(
+        "currentPersonName",
+        getFullName(
+            person
+        )
+    );
+
+    if (
+        homeRoleLabel
+    ) {
+
+        homeRoleLabel.textContent =
+            isCurrentTeacher()
+                ? "Lehrkraft"
+                : "";
+
+        homeRoleLabel.hidden =
+            !isCurrentTeacher();
+    }
 
     updateHomeForPerson();
+
     updateInventoryMenus();
+
     updateNotificationBadge();
+
     showAppHeader();
-    showScreen(homeScreen);
+
+    resetSale();
+
+    showScreen(
+        homeScreen
+    );
 }
 
 
-logoutButton.addEventListener("click", async function () {
-    try {
-        await supabaseClient.auth.signOut();
-    } catch (error) {
-        console.error("Abmeldung fehlgeschlagen.", error);
-    }
+on(
+    "logoutButton",
+    "click",
+    async function () {
 
-    currentPerson = null;
-    selectedLoginPerson = null;
-    currentPersonName.textContent = "-";
-    homeRoleLabel.textContent = "";
-    hideAppHeader();
-    resetSale();
-    showScreen(identityScreen);
-    await loadLoginPeople();
-});
+        try {
 
+            await supabaseClient.auth.signOut();
 
-supabaseClient.auth.onAuthStateChange(function (_event, session) {
-    if (!session && currentPerson) {
-        currentPerson = null;
+        } catch (error) {
+
+            console.error(
+                "Abmeldung fehlgeschlagen:",
+                error
+            );
+        }
+
+        currentPerson =
+            null;
+
+        selectedLoginPerson =
+            null;
+
+        setText(
+            "currentPersonName",
+            "-"
+        );
+
         hideAppHeader();
-        showScreen(identityScreen);
-    }
-});
 
+        resetSale();
+
+        showScreen(
+            identityScreen
+        );
+
+        await loadLoginPeople();
+    }
+);
+
+
+supabaseClient.auth.onAuthStateChange(
+    function (
+        _event,
+        session
+    ) {
+
+        if (
+            !session &&
+            currentPerson
+        ) {
+
+            currentPerson =
+                null;
+
+            hideAppHeader();
+
+            showScreen(
+                identityScreen
+            );
+        }
+    }
+);
+
+
+// ============================================================
+// HEADER
+// ============================================================
 
 function showAppHeader() {
-    appHeader.classList.add("visible");
+
+    if (
+        appHeader
+    ) {
+
+        appHeader.classList.add(
+            "visible"
+        );
+    }
 }
 
 
 function hideAppHeader() {
-    appHeader.classList.remove("visible");
+
+    if (
+        appHeader
+    ) {
+
+        appHeader.classList.remove(
+            "visible"
+        );
+    }
 }
 
 
-function updateHomeForPerson() {
-    const isTeacher = isCurrentTeacher();
+on(
+    "notificationButton",
+    "click",
+    function () {
 
-    studentHomeMenu.hidden = isTeacher;
-    teacherHomeMenu.hidden = !isTeacher;
-    homeRoleLabel.hidden = !isTeacher;
+        // Der eigentliche Benachrichtigungsbereich
+        // wird später ergänzt.
+    }
+);
+
+
+function updateNotificationBadge() {
+
+    if (
+        !isCurrentTeacher()
+    ) {
+
+        setHidden(
+            "notificationCount",
+            true
+        );
+
+        return;
+    }
+
+    const submissions =
+        loadInventorySubmissions();
+
+    if (
+        submissions.length >
+        0
+    ) {
+
+        const countElement =
+            getElement(
+                "notificationCount"
+            );
+
+        if (
+            countElement
+        ) {
+
+            countElement.hidden =
+                false;
+
+            countElement.textContent =
+                String(
+                    submissions.length
+                );
+        }
+
+    } else {
+
+        setHidden(
+            "notificationCount",
+            true
+        );
+    }
+}
+
+
+// ============================================================
+// HOME
+// ============================================================
+
+function updateHomeForPerson() {
+
+    const teacher =
+        isCurrentTeacher();
+
+    setHidden(
+        "studentHomeMenu",
+        teacher
+    );
+
+    setHidden(
+        "teacherHomeMenu",
+        !teacher
+    );
 }
 
 
 function isCurrentTeacher() {
+
     return Boolean(
         currentPerson &&
-        currentPerson.person_type === "lehrer"
+        currentPerson.person_type ===
+        "lehrer"
     );
 }
 
 
 function updateInventoryMenus() {
-    const isTeacher = isCurrentTeacher();
 
-    editMenuTitle.textContent = "Bearbeiten";
+    const teacher =
+        isCurrentTeacher();
 
-    if (isTeacher) {
-        editMenuDescription.textContent =
-            "Produkte, Inventur, Rechnungen und Schüler verwalten.";
+    if (
+        editMenuTitle
+    ) {
 
-        inventoryMenuTitle.textContent =
-            "Inventur & Rechnungen";
+        editMenuTitle.textContent =
+            "Bearbeiten";
+    }
 
-        inventoryMenuDescription.textContent =
-            "Bestände, gekaufte Mengen und Kosten erfassen";
+    if (
+        teacher
+    ) {
 
-        inventoryInvoicesButton.hidden = false;
-        studentsButton.hidden = false;
+        if (
+            editMenuDescription
+        ) {
+
+            editMenuDescription.textContent =
+                "Produkte, Inventur, Rechnungen und Schüler verwalten.";
+        }
+
+        if (
+            inventoryMenuTitle
+        ) {
+
+            inventoryMenuTitle.textContent =
+                "Inventur & Rechnungen";
+        }
+
+        if (
+            inventoryMenuDescription
+        ) {
+
+            inventoryMenuDescription.textContent =
+                "Bestände, gekaufte Mengen und Kosten erfassen";
+        }
+
+        setHidden(
+            "inventoryInvoicesButton",
+            false
+        );
+
+        setHidden(
+            "studentsButton",
+            false
+        );
+
     } else {
-        editMenuDescription.textContent =
-            "Produkte und Preise selbstständig bearbeiten.";
 
-        inventoryMenuTitle.textContent =
-            "Inventur";
+        if (
+            editMenuDescription
+        ) {
 
-        inventoryMenuDescription.textContent =
-            "Bestand zählen und an den Lehrer schicken";
+            editMenuDescription.textContent =
+                "Produkte und Preise selbstständig bearbeiten.";
+        }
 
-        inventoryInvoicesButton.hidden = true;
-        studentsButton.hidden = true;
+        if (
+            inventoryMenuTitle
+        ) {
+
+            inventoryMenuTitle.textContent =
+                "Inventur";
+        }
+
+        if (
+            inventoryMenuDescription
+        ) {
+
+            inventoryMenuDescription.textContent =
+                "Bestand zählen und an den Lehrer schicken";
+        }
+
+        setHidden(
+            "inventoryInvoicesButton",
+            true
+        );
+
+        setHidden(
+            "studentsButton",
+            true
+        );
     }
 }
 
 
-function updateNotificationBadge() {
-    if (!isCurrentTeacher()) {
-        notificationCount.hidden = true;
-        notificationCount.textContent = "0";
-        return;
-    }
-
-    const submissions = loadInventorySubmissions();
-
-    if (submissions.length > 0) {
-        notificationCount.hidden = false;
-        notificationCount.textContent = String(submissions.length);
-    } else {
-        notificationCount.hidden = true;
-        notificationCount.textContent = "0";
-    }
-}
-
-
-notificationButton.addEventListener("click", function () {
-    // Le vrai système de notifications sera ajouté plus tard.
-});
-
+// ============================================================
+// LOCAL STORAGE
+// ============================================================
 
 function loadProducts() {
+
     try {
-        const saved = localStorage.getItem(STORAGE_KEYS.products);
 
-        if (saved) {
-            const parsed = JSON.parse(saved);
+        const saved =
+            localStorage.getItem(
+                STORAGE_KEYS.products
+            );
 
-            if (Array.isArray(parsed)) {
+        if (
+            saved
+        ) {
+
+            const parsed =
+                JSON.parse(
+                    saved
+                );
+
+            if (
+                Array.isArray(
+                    parsed
+                )
+            ) {
+
                 return parsed;
             }
         }
+
     } catch (error) {
-        console.error("Produkte konnten nicht geladen werden.", error);
+
+        console.error(
+            "Produkte konnten nicht geladen werden:",
+            error
+        );
     }
 
-    const fallback =
-        typeof PRODUCTS !== "undefined" &&
-        Array.isArray(PRODUCTS)
+    const source =
+        typeof PRODUCTS !==
+            "undefined" &&
+        Array.isArray(
+            PRODUCTS
+        )
             ? PRODUCTS
             : DEFAULT_PRODUCTS;
 
-    return fallback.map(function (product) {
-        return { ...product };
-    });
+    return source.map(
+        function (
+            product
+        ) {
+
+            return {
+                ...product
+            };
+        }
+    );
 }
 
 
 function saveProducts() {
+
     localStorage.setItem(
         STORAGE_KEYS.products,
-        JSON.stringify(products)
+        JSON.stringify(
+            products
+        )
     );
 }
 
 
 function loadSales() {
+
     try {
-        const saved = localStorage.getItem(STORAGE_KEYS.sales);
-        const parsed = saved ? JSON.parse(saved) : [];
 
-        return Array.isArray(parsed)
-            ? parsed
-            : [];
-    } catch (error) {
-        console.error("Verkaufsdaten konnten nicht geladen werden.", error);
-        return [];
-    }
-}
-
-
-function saveSales() {
-    localStorage.setItem(
-        STORAGE_KEYS.sales,
-        JSON.stringify(sales)
-    );
-}
-
-
-function loadInventory() {
-    try {
-        const saved = localStorage.getItem(STORAGE_KEYS.inventory);
-        const parsed = saved ? JSON.parse(saved) : {};
-
-        return parsed &&
-            typeof parsed === "object"
-            ? parsed
-            : {};
-    } catch (error) {
-        console.error("Inventar konnte nicht geladen werden.", error);
-        return {};
-    }
-}
-
-
-function saveInventory() {
-    localStorage.setItem(
-        STORAGE_KEYS.inventory,
-        JSON.stringify(inventory)
-    );
-}
-
-
-function loadInventorySubmissions() {
-    try {
-        const saved = localStorage.getItem(
-            STORAGE_KEYS.inventorySubmissions
-        );
+        const saved =
+            localStorage.getItem(
+                STORAGE_KEYS.sales
+            );
 
         const parsed =
             saved
-                ? JSON.parse(saved)
+                ? JSON.parse(
+                    saved
+                )
                 : [];
 
-        return Array.isArray(parsed)
+        return Array.isArray(
+            parsed
+        )
             ? parsed
             : [];
+
     } catch (error) {
+
         console.error(
-            "Inventurmeldungen konnten nicht geladen werden.",
+            "Verkaufsdaten konnten nicht geladen werden:",
             error
         );
 
@@ -786,16 +2073,115 @@ function loadInventorySubmissions() {
 }
 
 
-function saveInventorySubmissions(submissions) {
+function saveSales() {
+
+    localStorage.setItem(
+        STORAGE_KEYS.sales,
+        JSON.stringify(
+            sales
+        )
+    );
+}
+
+
+function loadInventory() {
+
+    try {
+
+        const saved =
+            localStorage.getItem(
+                STORAGE_KEYS.inventory
+            );
+
+        const parsed =
+            saved
+                ? JSON.parse(
+                    saved
+                )
+                : {};
+
+        return (
+            parsed &&
+            typeof parsed ===
+            "object"
+        )
+            ? parsed
+            : {};
+
+    } catch (error) {
+
+        console.error(
+            "Inventar konnten nicht geladen werden:",
+            error
+        );
+
+        return {};
+    }
+}
+
+
+function saveInventory() {
+
+    localStorage.setItem(
+        STORAGE_KEYS.inventory,
+        JSON.stringify(
+            inventory
+        )
+    );
+}
+
+
+function loadInventorySubmissions() {
+
+    try {
+
+        const saved =
+            localStorage.getItem(
+                STORAGE_KEYS.inventorySubmissions
+            );
+
+        const parsed =
+            saved
+                ? JSON.parse(
+                    saved
+                )
+                : [];
+
+        return Array.isArray(
+            parsed
+        )
+            ? parsed
+            : [];
+
+    } catch (error) {
+
+        console.error(
+            "Inventurmeldungen konnten nicht geladen werden:",
+            error
+        );
+
+        return [];
+    }
+}
+
+
+function saveInventorySubmissions(
+    submissions
+) {
+
     localStorage.setItem(
         STORAGE_KEYS.inventorySubmissions,
-        JSON.stringify(submissions)
+        JSON.stringify(
+            submissions
+        )
     );
 }
 
 
 function loadShiftClosures() {
+
     try {
+
         const saved =
             localStorage.getItem(
                 STORAGE_KEYS.shiftClosures
@@ -803,15 +2189,21 @@ function loadShiftClosures() {
 
         const parsed =
             saved
-                ? JSON.parse(saved)
+                ? JSON.parse(
+                    saved
+                )
                 : [];
 
-        return Array.isArray(parsed)
+        return Array.isArray(
+            parsed
+        )
             ? parsed
             : [];
+
     } catch (error) {
+
         console.error(
-            "Schichtabschlüsse konnten nicht geladen werden.",
+            "Schichtabschlüsse konnten nicht geladen werden:",
             error
         );
 
@@ -820,16 +2212,23 @@ function loadShiftClosures() {
 }
 
 
-function saveShiftClosures(closures) {
+function saveShiftClosures(
+    closures
+) {
+
     localStorage.setItem(
         STORAGE_KEYS.shiftClosures,
-        JSON.stringify(closures)
+        JSON.stringify(
+            closures
+        )
     );
 }
 
 
 function loadInvoices() {
+
     try {
+
         const saved =
             localStorage.getItem(
                 STORAGE_KEYS.invoices
@@ -837,15 +2236,21 @@ function loadInvoices() {
 
         const parsed =
             saved
-                ? JSON.parse(saved)
+                ? JSON.parse(
+                    saved
+                )
                 : [];
 
-        return Array.isArray(parsed)
+        return Array.isArray(
+            parsed
+        )
             ? parsed
             : [];
+
     } catch (error) {
+
         console.error(
-            "Rechnungen konnten nicht geladen werden.",
+            "Rechnungen konnten nicht geladen werden:",
             error
         );
 
@@ -854,16 +2259,23 @@ function loadInvoices() {
 }
 
 
-function saveInvoices(invoices) {
+function saveInvoices(
+    invoices
+) {
+
     localStorage.setItem(
         STORAGE_KEYS.invoices,
-        JSON.stringify(invoices)
+        JSON.stringify(
+            invoices
+        )
     );
 }
 
 
 function loadPurchases() {
+
     try {
+
         const saved =
             localStorage.getItem(
                 STORAGE_KEYS.purchases
@@ -871,15 +2283,21 @@ function loadPurchases() {
 
         const parsed =
             saved
-                ? JSON.parse(saved)
+                ? JSON.parse(
+                    saved
+                )
                 : [];
 
-        return Array.isArray(parsed)
+        return Array.isArray(
+            parsed
+        )
             ? parsed
             : [];
+
     } catch (error) {
+
         console.error(
-            "Wareneingänge konnten nicht geladen werden.",
+            "Wareneingänge konnten nicht geladen werden:",
             error
         );
 
@@ -888,16 +2306,23 @@ function loadPurchases() {
 }
 
 
-function savePurchases(purchases) {
+function savePurchases(
+    purchases
+) {
+
     localStorage.setItem(
         STORAGE_KEYS.purchases,
-        JSON.stringify(purchases)
+        JSON.stringify(
+            purchases
+        )
     );
 }
 
 
 function loadEvents() {
+
     try {
+
         const saved =
             localStorage.getItem(
                 STORAGE_KEYS.events
@@ -905,15 +2330,21 @@ function loadEvents() {
 
         const parsed =
             saved
-                ? JSON.parse(saved)
+                ? JSON.parse(
+                    saved
+                )
                 : [];
 
-        return Array.isArray(parsed)
+        return Array.isArray(
+            parsed
+        )
             ? parsed
             : [];
+
     } catch (error) {
+
         console.error(
-            "Veranstaltungen konnten nicht geladen werden.",
+            "Veranstaltungen konnten nicht geladen werden:",
             error
         );
 
@@ -922,42 +2353,60 @@ function loadEvents() {
 }
 
 
-function saveEvents(events) {
+function saveEvents(
+    events
+) {
+
     localStorage.setItem(
         STORAGE_KEYS.events,
-        JSON.stringify(events)
+        JSON.stringify(
+            events
+        )
     );
 }
 
 
-let products = loadProducts();
-let sales = loadSales();
-let inventory = loadInventory();
-
+// ============================================================
+// SCREEN NAVIGATION
+// ============================================================
 
 function showScreen(
     screen,
     returnScreen = null
 ) {
-    if (!screen) {
+
+    if (
+        !screen
+    ) {
+
         return;
     }
 
-    if (returnScreen) {
+    if (
+        returnScreen
+    ) {
+
         currentReturnScreen =
             returnScreen;
     }
 
     document
-        .querySelectorAll(".screen")
-        .forEach(function (item) {
-            item.classList.remove(
-                "screen-visible"
-            );
+        .querySelectorAll(
+            ".screen"
+        )
+        .forEach(
+            function (
+                item
+            ) {
 
-            item.style.display =
-                "none";
-        });
+                item.style.display =
+                    "none";
+
+                item.classList.remove(
+                    "screen-visible"
+                );
+            }
+        );
 
     screen.style.display =
         "block";
@@ -966,16 +2415,49 @@ function showScreen(
         "screen-visible"
     );
 
-    window.scrollTo({
-        top: 0,
-        behavior: "auto"
-    });
+    window.scrollTo(
+        0,
+        0
+    );
 }
 
 
-function openSaleScreen() {
+// ============================================================
+// HOME BUTTONS
+// ============================================================
+
+on(
+    "saleButton",
+    "click",
+    function () {
+
+        openDailyCash(
+            false
+        );
+    }
+);
+
+
+on(
+    "teacherSaleButton",
+    "click",
+    function () {
+
+        openDailyCash(
+            true
+        );
+    }
+);
+
+
+function openDailyCash(
+    testMode
+) {
+
     saleTestMode =
-        isCurrentTeacher();
+        Boolean(
+            testMode
+        );
 
     resetSale();
 
@@ -986,7 +2468,22 @@ function openSaleScreen() {
 }
 
 
+on(
+    "bakeryButton",
+    "click",
+    openBakeryMenu
+);
+
+
+on(
+    "teacherBakeryButton",
+    "click",
+    openBakeryMenu
+);
+
+
 function openBakeryMenu() {
+
     showScreen(
         bakeryMenuScreen,
         homeScreen
@@ -994,7 +2491,22 @@ function openBakeryMenu() {
 }
 
 
+on(
+    "adminButton",
+    "click",
+    openEditMenu
+);
+
+
+on(
+    "teacherAdminButton",
+    "click",
+    openEditMenu
+);
+
+
 function openEditMenu() {
+
     updateInventoryMenus();
 
     showScreen(
@@ -1004,7 +2516,22 @@ function openEditMenu() {
 }
 
 
+on(
+    "eventButton",
+    "click",
+    openEventList
+);
+
+
+on(
+    "teacherEventButton",
+    "click",
+    openEventList
+);
+
+
 function openEventList() {
+
     renderEventList();
 
     showScreen(
@@ -1014,51 +2541,15 @@ function openEventList() {
 }
 
 
-saleButton.addEventListener(
-    "click",
-    openSaleScreen
-);
-
-teacherSaleButton.addEventListener(
-    "click",
-    openSaleScreen
-);
-
-bakeryButton.addEventListener(
-    "click",
-    openBakeryMenu
-);
-
-teacherBakeryButton.addEventListener(
-    "click",
-    openBakeryMenu
-);
-
-adminButton.addEventListener(
-    "click",
-    openEditMenu
-);
-
-teacherAdminButton.addEventListener(
-    "click",
-    openEditMenu
-);
-
-eventButton.addEventListener(
-    "click",
-    openEventList
-);
-
-teacherEventButton.addEventListener(
-    "click",
-    openEventList
-);
-
-
-reportsHomeButton.addEventListener(
+on(
+    "reportsHomeButton",
     "click",
     function () {
-        if (!isCurrentTeacher()) {
+
+        if (
+            !isCurrentTeacher()
+        ) {
+
             return;
         }
 
@@ -1077,17 +2568,27 @@ reportsHomeButton.addEventListener(
 );
 
 
-bakeryBackButton.addEventListener(
+// ============================================================
+// BÄCKEREI
+// ============================================================
+
+on(
+    "bakeryBackButton",
     "click",
     function () {
-        showScreen(homeScreen);
+
+        showScreen(
+            homeScreen
+        );
     }
 );
 
 
-bakeryCashButton.addEventListener(
+on(
+    "bakeryCashButton",
     "click",
     function () {
+
         showScreen(
             bakeryCashScreen,
             bakeryMenuScreen
@@ -1096,9 +2597,11 @@ bakeryCashButton.addEventListener(
 );
 
 
-bakeryServiceButton.addEventListener(
+on(
+    "bakeryServiceButton",
     "click",
     function () {
+
         showScreen(
             bakeryOutputScreen,
             bakeryMenuScreen
@@ -1107,9 +2610,11 @@ bakeryServiceButton.addEventListener(
 );
 
 
-bakeryCashBackButton.addEventListener(
+on(
+    "bakeryCashBackButton",
     "click",
     function () {
+
         showScreen(
             bakeryMenuScreen
         );
@@ -1117,9 +2622,11 @@ bakeryCashBackButton.addEventListener(
 );
 
 
-bakeryOutputBackButton.addEventListener(
+on(
+    "bakeryOutputBackButton",
     "click",
     function () {
+
         showScreen(
             bakeryMenuScreen
         );
@@ -1127,45 +2634,76 @@ bakeryOutputBackButton.addEventListener(
 );
 
 
-bakeryCashShiftEndButton.addEventListener(
+on(
+    "bakeryCashShiftEndButton",
     "click",
     function () {
+
         endDailyShift(
-            "Bäckerei · Kasse",
-            homeScreen
+            "Bäckerei · Kasse"
         );
     }
 );
 
 
-bakeryOutputShiftEndButton.addEventListener(
+on(
+    "bakeryOutputShiftEndButton",
     "click",
     function () {
+
         endDailyShift(
-            "Bäckerei · Ausgabe",
-            homeScreen
+            "Bäckerei · Ausgabe"
         );
     }
 );
 
+
+// ============================================================
+// DRINKS
+// ============================================================
 
 function renderProducts() {
-    drinksGrid.innerHTML = "";
+
+    if (
+        !drinksGrid
+    ) {
+
+        return;
+    }
+
+    drinksGrid.innerHTML =
+        "";
 
     products
-        .filter(function (product) {
-            return product.category === "drink";
-        })
-        .forEach(function (product) {
-            drinksGrid.appendChild(
-                createProductButton(product)
-            );
-        });
+        .filter(
+            function (
+                product
+            ) {
+
+                return (
+                    product.category ===
+                    "drink"
+                );
+            }
+        )
+        .forEach(
+            function (
+                product
+            ) {
+
+                drinksGrid.appendChild(
+                    createProductButton(
+                        product
+                    )
+                );
+            }
+        );
 
     if (
         drinksGrid.children.length ===
         0
     ) {
+
         drinksGrid.innerHTML = `
             <div class="coming-soon">
                 Keine Getränke vorhanden.
@@ -1178,6 +2716,7 @@ function renderProducts() {
 function createProductButton(
     product
 ) {
+
     const button =
         document.createElement(
             "button"
@@ -1194,21 +2733,28 @@ function createProductButton(
 
     button.innerHTML = `
         <span class="product-icon">
-            ${escapeHtml(product.icon)}
+            ${escapeHtml(
+                product.icon
+            )}
         </span>
 
         <span class="product-name">
-            ${escapeHtml(product.name)}
+            ${escapeHtml(
+                product.name
+            )}
         </span>
 
         <span class="product-price">
-            ${formatPrice(product.price)}
+            ${formatPrice(
+                product.price
+            )}
         </span>
     `;
 
     button.addEventListener(
         "click",
         function () {
+
             addToCart(
                 product
             );
@@ -1222,24 +2768,49 @@ function createProductButton(
 function addToCart(
     product
 ) {
+
     const existing =
         cart.find(
-            function (item) {
-                return item.id ===
-                    product.id;
+            function (
+                item
+            ) {
+
+                return (
+                    item.id ===
+                    product.id
+                );
             }
         );
 
-    if (existing) {
-        existing.quantity += 1;
+    if (
+        existing
+    ) {
+
+        existing.quantity +=
+            1;
+
     } else {
-        cart.push({
-            id: product.id,
-            name: product.name,
-            price: Number(product.price),
-            category: product.category,
-            quantity: 1
-        });
+
+        cart.push(
+            {
+                id:
+                    product.id,
+
+                name:
+                    product.name,
+
+                price:
+                    Number(
+                        product.price
+                    ),
+
+                category:
+                    product.category,
+
+                quantity:
+                    1
+            }
+        );
     }
 
     updateCart();
@@ -1247,6 +2818,16 @@ function addToCart(
 
 
 function updateCart() {
+
+    if (
+        !cartItems ||
+        !cartTotal ||
+        !payButton
+    ) {
+
+        return;
+    }
+
     cartItems.innerHTML =
         "";
 
@@ -1254,11 +2835,13 @@ function updateCart() {
         cart.length ===
         0
     ) {
-        cartItems.innerHTML = `
-            <div class="empty-cart">
-                Noch keine Getränke ausgewählt.
-            </div>
-        `;
+
+        cartItems.innerHTML =
+            `
+                <div class="empty-cart">
+                    Noch keine Getränke ausgewählt.
+                </div>
+            `;
 
         cartTotal.textContent =
             "0,00 €";
@@ -1274,15 +2857,16 @@ function updateCart() {
             product,
             index
         ) {
-            const item =
+
+            const row =
                 document.createElement(
                     "div"
                 );
 
-            item.className =
+            row.className =
                 "cart-item";
 
-            const total =
+            const productTotal =
                 Number(
                     product.price
                 ) *
@@ -1290,8 +2874,9 @@ function updateCart() {
                     product.quantity
                 );
 
-            item.innerHTML = `
+            row.innerHTML = `
                 <div class="cart-product-info">
+
                     <span class="cart-product-name">
                         ${escapeHtml(
                             product.name
@@ -1300,9 +2885,10 @@ function updateCart() {
 
                     <span class="cart-product-price">
                         ${formatPrice(
-                            total
+                            productTotal
                         )}
                     </span>
+
                 </div>
 
                 <div class="cart-controls">
@@ -1331,7 +2917,7 @@ function updateCart() {
             `;
 
             cartItems.appendChild(
-                item
+                row
             );
         }
     );
@@ -1344,21 +2930,28 @@ function updateCart() {
     payButton.disabled =
         false;
 
-    document
+    cartItems
         .querySelectorAll(
-            "#cartItems .cart-control.minus"
+            ".cart-control.minus"
         )
         .forEach(
-            function (button) {
+            function (
+                button
+            ) {
+
                 button.addEventListener(
                     "click",
                     function () {
+
                         const index =
                             Number(
                                 button.dataset.index
                             );
 
-                        if (!cart[index]) {
+                        if (
+                            !cart[index]
+                        ) {
+
                             return;
                         }
 
@@ -1369,6 +2962,7 @@ function updateCart() {
                             cart[index].quantity <=
                             0
                         ) {
+
                             cart.splice(
                                 index,
                                 1
@@ -1381,21 +2975,28 @@ function updateCart() {
             }
         );
 
-    document
+    cartItems
         .querySelectorAll(
-            "#cartItems .cart-control.plus"
+            ".cart-control.plus"
         )
         .forEach(
-            function (button) {
+            function (
+                button
+            ) {
+
                 button.addEventListener(
                     "click",
                     function () {
+
                         const index =
                             Number(
                                 button.dataset.index
                             );
 
-                        if (!cart[index]) {
+                        if (
+                            !cart[index]
+                        ) {
+
                             return;
                         }
 
@@ -1411,28 +3012,36 @@ function updateCart() {
 
 
 function calculateTotal() {
+
     return cart.reduce(
         function (
             total,
-            product
+            item
         ) {
-            return total +
+
+            return (
+                total +
                 Number(
-                    product.price
+                    item.price
                 ) *
                 Number(
-                    product.quantity
-                );
+                    item.quantity
+                )
+            );
+
         },
         0
     );
 }
 
 
-saleBackButton.addEventListener(
+on(
+    "saleBackButton",
     "click",
     function () {
+
         resetSale();
+
         showScreen(
             homeScreen
         );
@@ -1440,17 +3049,29 @@ saleBackButton.addEventListener(
 );
 
 
-payButton.addEventListener(
+// ============================================================
+// PAYMENT
+// ============================================================
+
+on(
+    "payButton",
     "click",
     function () {
-        if (cart.length === 0) {
+
+        if (
+            cart.length ===
+            0
+        ) {
+
             return;
         }
 
-        paymentTotal.textContent =
+        setText(
+            "paymentTotal",
             formatPrice(
                 calculateTotal()
-            );
+            )
+        );
 
         receivedAmount =
             "";
@@ -1465,9 +3086,11 @@ payButton.addEventListener(
 );
 
 
-paymentBackButton.addEventListener(
+on(
+    "paymentBackButton",
     "click",
     function () {
+
         receivedAmount =
             "";
 
@@ -1478,58 +3101,79 @@ paymentBackButton.addEventListener(
 );
 
 
-paymentKeys.forEach(
-    function (button) {
-        button.addEventListener(
-            "click",
-            function () {
+document
+    .querySelectorAll(
+        ".payment-key"
+    )
+    .forEach(
+        function (
+            button
+        ) {
 
-                const value =
-                    button.textContent.trim();
+            if (
+                button.id ===
+                "deletePaymentButton"
+            ) {
 
-                if (
-                    value ===
-                    ","
-                ) {
-                    addDecimal();
-                    return;
-                }
-
-                if (
-                    receivedAmount ===
-                    "0"
-                ) {
-                    receivedAmount =
-                        "";
-                }
-
-                if (
-                    receivedAmount.includes(
-                        ","
-                    ) &&
-                    receivedAmount
-                        .split(",")[1]
-                        .length >=
-                        2
-                ) {
-                    return;
-                }
-
-                receivedAmount +=
-                    value;
-
-                updatePaymentDisplay();
+                return;
             }
-        );
-    }
-);
+
+            button.addEventListener(
+                "click",
+                function () {
+
+                    const value =
+                        button.textContent.trim();
+
+                    if (
+                        value ===
+                        ","
+                    ) {
+
+                        addDecimal();
+
+                        return;
+                    }
+
+                    if (
+                        receivedAmount ===
+                        "0"
+                    ) {
+
+                        receivedAmount =
+                            "";
+                    }
+
+                    if (
+                        receivedAmount.includes(
+                            ","
+                        ) &&
+                        receivedAmount
+                            .split(",")[1]
+                            .length >=
+                            2
+                    ) {
+
+                        return;
+                    }
+
+                    receivedAmount +=
+                        value;
+
+                    updatePaymentDisplay();
+                }
+            );
+        }
+    );
 
 
 function addDecimal() {
+
     if (
         receivedAmount ===
         ""
     ) {
+
         receivedAmount =
             "0";
     }
@@ -1539,6 +3183,7 @@ function addDecimal() {
             ","
         )
     ) {
+
         receivedAmount +=
             ",";
     }
@@ -1547,9 +3192,11 @@ function addDecimal() {
 }
 
 
-deletePaymentButton.addEventListener(
+on(
+    "deletePaymentButton",
     "click",
     function () {
+
         receivedAmount =
             receivedAmount.slice(
                 0,
@@ -1562,28 +3209,33 @@ deletePaymentButton.addEventListener(
 
 
 function updatePaymentDisplay() {
-    let displayValue =
+
+    let value =
         receivedAmount;
 
     if (
-        displayValue ===
+        value ===
         "" ||
-        displayValue ===
+        value ===
         ","
     ) {
-        displayValue =
+
+        value =
             "0,00";
     }
 
-    amountReceived.textContent =
-        displayValue +
-        " €";
+    setText(
+        "amountReceived",
+        value +
+        " €"
+    );
 
     calculateChange();
 }
 
 
 function calculateChange() {
+
     const total =
         calculateTotal();
 
@@ -1600,11 +3252,19 @@ function calculateChange() {
         receivedAmount ===
         ""
     ) {
-        changeAmount.textContent =
-            "0,00 €";
 
-        paidButton.disabled =
-            true;
+        setText(
+            "changeAmount",
+            "0,00 €"
+        );
+
+        if (
+            paidButton
+        ) {
+
+            paidButton.disabled =
+                true;
+        }
 
         return;
     }
@@ -1613,31 +3273,47 @@ function calculateChange() {
         change <
         0
     ) {
-        changeAmount.textContent =
+
+        setText(
+            "changeAmount",
             "Noch " +
             formatPrice(
                 Math.abs(
                     change
                 )
-            );
+            )
+        );
 
-        paidButton.disabled =
-            true;
+        if (
+            paidButton
+        ) {
+
+            paidButton.disabled =
+                true;
+        }
 
         return;
     }
 
-    changeAmount.textContent =
+    setText(
+        "changeAmount",
         formatPrice(
             change
-        );
+        )
+    );
 
-    paidButton.disabled =
-        false;
+    if (
+        paidButton
+    ) {
+
+        paidButton.disabled =
+            false;
+    }
 }
 
 
-paidButton.addEventListener(
+on(
+    "paidButton",
     "click",
     function () {
 
@@ -1653,6 +3329,7 @@ paidButton.addEventListener(
             received <
             total
         ) {
+
             return;
         }
 
@@ -1666,24 +3343,27 @@ paidButton.addEventListener(
             change
         );
 
-        successTitle.textContent =
-            "Zahlung erfolgreich!";
+        setText(
+            "successTitle",
+            "Zahlung erfolgreich!"
+        );
 
-        successDescription.textContent =
+        setText(
+            "successDescription",
             saleTestMode
                 ? "Testverkauf – nicht als echte Kassenbuchung gespeichert."
-                : "Verkauf wurde gespeichert.";
+                : "Verkauf wurde gespeichert."
+        );
 
-        successChange.textContent =
+        setText(
+            "successChange",
             formatPrice(
                 change
-            );
+            )
+        );
 
         currentSuccessContext =
             "daily";
-
-        successShiftEndButton.textContent =
-            "Schicht beenden";
 
         showScreen(
             successScreen
@@ -1698,10 +3378,21 @@ function saveDailySale(
     change
 ) {
 
+    if (
+        saleTestMode
+    ) {
+
+        return;
+    }
+
     const saleItems =
         cart.map(
-            function (item) {
+            function (
+                item
+            ) {
+
                 return {
+
                     id:
                         item.id,
 
@@ -1724,13 +3415,8 @@ function saveDailySale(
             }
         );
 
-    if (
-        saleTestMode
-    ) {
-        return;
-    }
-
     const sale = {
+
         id:
             Date.now(),
 
@@ -1763,11 +3449,15 @@ function saveDailySale(
     saveSales();
 
     saleItems.forEach(
-        function (item) {
+        function (
+            item
+        ) {
+
             if (
                 item.category !==
                 "drink"
             ) {
+
                 return;
             }
 
@@ -1788,7 +3478,8 @@ function saveDailySale(
 }
 
 
-newOrderButton.addEventListener(
+on(
+    "newOrderButton",
     "click",
     function () {
 
@@ -1796,11 +3487,9 @@ newOrderButton.addEventListener(
             currentSuccessContext ===
             "event"
         ) {
+
             eventSaleCart =
                 [];
-
-            eventReceivedAmount =
-                "";
 
             showScreen(
                 eventCashScreen,
@@ -1820,26 +3509,6 @@ newOrderButton.addEventListener(
 );
 
 
-successShiftEndButton.addEventListener(
-    "click",
-    function () {
-
-        if (
-            currentSuccessContext ===
-            "event"
-        ) {
-            endEventShift();
-            return;
-        }
-
-        endDailyShift(
-            "Getränke · Kasse",
-            homeScreen
-        );
-    }
-);
-
-
 function resetSale() {
 
     cart =
@@ -1848,16 +3517,50 @@ function resetSale() {
     receivedAmount =
         "";
 
-    saleTestMode =
-        false;
-
     updateCart();
 }
 
 
+// ============================================================
+// SCHICHT BEENDEN
+// ============================================================
+
+on(
+    "saleShiftEndButton",
+    "click",
+    function () {
+
+        endDailyShift(
+            "Getränke · Kasse"
+        );
+    }
+);
+
+
+on(
+    "successShiftEndButton",
+    "click",
+    function () {
+
+        if (
+            currentSuccessContext ===
+            "event"
+        ) {
+
+            endEventShift();
+
+            return;
+        }
+
+        endDailyShift(
+            "Getränke · Kasse"
+        );
+    }
+);
+
+
 function endDailyShift(
-    source,
-    targetScreen
+    source
 ) {
 
     const today =
@@ -1868,7 +3571,7 @@ function endDailyShift(
             today
         );
 
-    const transactionCount =
+    const count =
         todaySales.length;
 
     const revenue =
@@ -1877,29 +3580,29 @@ function endDailyShift(
                 sum,
                 sale
             ) {
-                return sum +
+
+                return (
+                    sum +
                     Number(
                         sale.total ||
                         0
-                    );
+                    )
+                );
             },
             0
         );
 
-    const isTest =
-        isCurrentTeacher();
-
     const text =
-        isTest
-            ? "Testumgebung: Heute habt ihr " +
-                transactionCount +
+        isCurrentTeacher()
+            ? "Testumgebung: Ihr habt heute " +
+                count +
                 " Verkäufe gemacht und " +
                 formatPrice(
                     revenue
                 ) +
                 " Umsatz erzielt."
             : "Heute habt ihr " +
-                transactionCount +
+                count +
                 " Verkäufe gemacht und " +
                 formatPrice(
                     revenue
@@ -1913,12 +3616,15 @@ function endDailyShift(
         "Weiter",
         function () {
 
-            if (!isTest) {
+            if (
+                !isCurrentTeacher()
+            ) {
 
                 const closures =
                     loadShiftClosures();
 
                 closures.push({
+
                     id:
                         Date.now(),
 
@@ -1946,7 +3652,7 @@ function endDailyShift(
                         source,
 
                     transaction_count:
-                        transactionCount,
+                        count,
 
                     revenue:
                         roundMoney(
@@ -1962,7 +3668,6 @@ function endDailyShift(
             resetSale();
 
             showScreen(
-                targetScreen ||
                 homeScreen
             );
         }
@@ -1973,8 +3678,12 @@ function endDailyShift(
 function getSalesForDay(
     date
 ) {
+
     return sales.filter(
-        function (sale) {
+        function (
+            sale
+        ) {
+
             return isSameDay(
                 new Date(
                     sale.date
@@ -1986,9 +3695,15 @@ function getSalesForDay(
 }
 
 
-adminBackButton.addEventListener(
+// ============================================================
+// BEARBEITEN
+// ============================================================
+
+on(
+    "adminBackButton",
     "click",
     function () {
+
         showScreen(
             homeScreen
         );
@@ -1996,7 +3711,8 @@ adminBackButton.addEventListener(
 );
 
 
-productsButton.addEventListener(
+on(
+    "productsButton",
     "click",
     function () {
 
@@ -2010,7 +3726,8 @@ productsButton.addEventListener(
 );
 
 
-inventoryButton.addEventListener(
+on(
+    "inventoryButton",
     "click",
     function () {
 
@@ -2038,18 +3755,22 @@ inventoryButton.addEventListener(
 );
 
 
-inventoryInvoicesButton.addEventListener(
+on(
+    "inventoryInvoicesButton",
     "click",
     function () {
 
         if (
             !isCurrentTeacher()
         ) {
+
             return;
         }
 
         renderInvoiceContextOptions();
+
         renderInvoiceList();
+
         setDefaultDates();
 
         showScreen(
@@ -2060,13 +3781,15 @@ inventoryInvoicesButton.addEventListener(
 );
 
 
-studentsButton.addEventListener(
+on(
+    "studentsButton",
     "click",
     function () {
 
         if (
             !isCurrentTeacher()
         ) {
+
             return;
         }
 
@@ -2077,7 +3800,18 @@ studentsButton.addEventListener(
 );
 
 
+// ============================================================
+// PRODUCTS ADMIN
+// ============================================================
+
 function renderAdminProducts() {
+
+    if (
+        !adminProductsList
+    ) {
+
+        return;
+    }
 
     adminProductsList.innerHTML =
         "";
@@ -2088,13 +3822,19 @@ function renderAdminProducts() {
     ) {
 
         adminProductsList.innerHTML =
-            '<div class="no-data">Keine Produkte vorhanden.</div>';
+            `
+                <div class="no-data">
+                    Keine Produkte vorhanden.
+                </div>
+            `;
 
         return;
     }
 
     products.forEach(
-        function (product) {
+        function (
+            product
+        ) {
 
             const row =
                 document.createElement(
@@ -2104,13 +3844,14 @@ function renderAdminProducts() {
             row.className =
                 "admin-product-row";
 
-            const categoryLabel =
+            const category =
                 product.category ===
                 "drink"
                     ? "Getränk"
                     : "Bäckerei";
 
             row.innerHTML = `
+
                 <div class="admin-product-icon">
                     ${escapeHtml(
                         product.icon
@@ -2126,7 +3867,7 @@ function renderAdminProducts() {
                     </strong>
 
                     <small>
-                        ${categoryLabel}
+                        ${category}
                     </small>
 
                     <div class="admin-product-price">
@@ -2142,10 +3883,9 @@ function renderAdminProducts() {
                     <button
                         type="button"
                         class="icon-action edit-product-button"
-                        data-product-id="${escapeHtml(
+                        data-product-id="${escapeAttribute(
                             product.id
                         )}"
-                        title="Bearbeiten"
                     >
                         ✏️
                     </button>
@@ -2153,10 +3893,9 @@ function renderAdminProducts() {
                     <button
                         type="button"
                         class="icon-action delete delete-product-button"
-                        data-product-id="${escapeHtml(
+                        data-product-id="${escapeAttribute(
                             product.id
                         )}"
-                        title="Löschen"
                     >
                         🗑️
                     </button>
@@ -2170,16 +3909,19 @@ function renderAdminProducts() {
         }
     );
 
-    document
+    adminProductsList
         .querySelectorAll(
             ".edit-product-button"
         )
         .forEach(
-            function (button) {
+            function (
+                button
+            ) {
 
                 button.addEventListener(
                     "click",
                     function () {
+
                         openProductModal(
                             button.dataset.productId
                         );
@@ -2188,16 +3930,19 @@ function renderAdminProducts() {
             }
         );
 
-    document
+    adminProductsList
         .querySelectorAll(
             ".delete-product-button"
         )
         .forEach(
-            function (button) {
+            function (
+                button
+            ) {
 
                 button.addEventListener(
                     "click",
                     function () {
+
                         deleteProduct(
                             button.dataset.productId
                         );
@@ -2208,9 +3953,11 @@ function renderAdminProducts() {
 }
 
 
-addProductButton.addEventListener(
+on(
+    "addProductButton",
     "click",
     function () {
+
         openProductModal();
     }
 );
@@ -2219,6 +3966,13 @@ addProductButton.addEventListener(
 function openProductModal(
     productId = null
 ) {
+
+    if (
+        !productModal
+    ) {
+
+        return;
+    }
 
     editingProductId =
         productId;
@@ -2229,7 +3983,10 @@ function openProductModal(
 
         const product =
             products.find(
-                function (item) {
+                function (
+                    item
+                ) {
+
                     return (
                         item.id ===
                         productId
@@ -2237,12 +3994,20 @@ function openProductModal(
                 }
             );
 
-        if (!product) {
+        if (
+            !product
+        ) {
+
             return;
         }
 
-        productModalTitle.textContent =
-            "Produkt bearbeiten";
+        if (
+            productModalTitle
+        ) {
+
+            productModalTitle.textContent =
+                "Produkt bearbeiten";
+        }
 
         productNameInput.value =
             product.name;
@@ -2262,8 +4027,13 @@ function openProductModal(
 
     } else {
 
-        productModalTitle.textContent =
-            "Produkt hinzufügen";
+        if (
+            productModalTitle
+        ) {
+
+            productModalTitle.textContent =
+                "Produkt hinzufügen";
+        }
 
         productNameInput.value =
             "";
@@ -2288,7 +4058,9 @@ function openProductModal(
 
     setTimeout(
         function () {
+
             productNameInput.focus();
+
         },
         50
     );
@@ -2296,6 +4068,13 @@ function openProductModal(
 
 
 function closeProductModal() {
+
+    if (
+        !productModal
+    ) {
+
+        return;
+    }
 
     productModal.style.display =
         "none";
@@ -2310,34 +4089,44 @@ function closeProductModal() {
 }
 
 
-closeProductModalButton.addEventListener(
+on(
+    "closeProductModalButton",
     "click",
     closeProductModal
 );
 
 
-cancelProductButton.addEventListener(
+on(
+    "cancelProductButton",
     "click",
     closeProductModal
 );
 
 
-productModal.addEventListener(
-    "click",
-    function (event) {
+if (
+    productModal
+) {
 
-        if (
-            event.target ===
-            productModal
+    productModal.addEventListener(
+        "click",
+        function (
+            event
         ) {
 
-            closeProductModal();
+            if (
+                event.target ===
+                productModal
+            ) {
+
+                closeProductModal();
+            }
         }
-    }
-);
+    );
+}
 
 
-saveProductButton.addEventListener(
+on(
+    "saveProductButton",
     "click",
     function () {
 
@@ -2356,7 +4145,9 @@ saveProductButton.addEventListener(
             productIconInput.value.trim() ||
             "🥤";
 
-        if (!name) {
+        if (
+            !name
+        ) {
 
             alert(
                 "Bitte einen Produktnamen eingeben."
@@ -2369,7 +4160,8 @@ saveProductButton.addEventListener(
             !Number.isFinite(
                 price
             ) ||
-            price < 0
+            price <
+            0
         ) {
 
             alert(
@@ -2399,7 +4191,9 @@ saveProductButton.addEventListener(
 
             const product =
                 products.find(
-                    function (item) {
+                    function (
+                        item
+                    ) {
 
                         return (
                             item.id ===
@@ -2408,7 +4202,10 @@ saveProductButton.addEventListener(
                     }
                 );
 
-            if (!product) {
+            if (
+                !product
+            ) {
+
                 return;
             }
 
@@ -2456,18 +4253,23 @@ saveProductButton.addEventListener(
 
             if (
                 newProduct.category ===
-                "drink" &&
-                inventory[
-                    newProduct.id
-                ] === undefined
+                "drink"
             ) {
 
-                inventory[
-                    newProduct.id
-                ] =
-                    0;
+                if (
+                    inventory[
+                        newProduct.id
+                    ] ===
+                    undefined
+                ) {
 
-                saveInventory();
+                    inventory[
+                        newProduct.id
+                    ] =
+                        0;
+
+                    saveInventory();
+                }
             }
         }
 
@@ -2488,7 +4290,10 @@ function deleteProduct(
 
     const product =
         products.find(
-            function (item) {
+            function (
+                item
+            ) {
+
                 return (
                     item.id ===
                     productId
@@ -2496,7 +4301,10 @@ function deleteProduct(
             }
         );
 
-    if (!product) {
+    if (
+        !product
+    ) {
+
         return;
     }
 
@@ -2507,13 +4315,19 @@ function deleteProduct(
             "“ wirklich löschen?"
         );
 
-    if (!confirmed) {
+    if (
+        !confirmed
+    ) {
+
         return;
     }
 
     products =
         products.filter(
-            function (item) {
+            function (
+                item
+            ) {
+
                 return (
                     item.id !==
                     productId
@@ -2527,7 +4341,10 @@ function deleteProduct(
 
     cart =
         cart.filter(
-            function (item) {
+            function (
+                item
+            ) {
+
                 return (
                     item.id !==
                     productId
@@ -2536,17 +4353,22 @@ function deleteProduct(
         );
 
     saveProducts();
+
     saveInventory();
 
     updateCart();
+
     renderProducts();
+
     renderAdminProducts();
 }
 
 
-productsBackButton.addEventListener(
+on(
+    "productsBackButton",
     "click",
     function () {
+
         closeProductModal();
 
         showScreen(
@@ -2556,14 +4378,28 @@ productsBackButton.addEventListener(
 );
 
 
+// ============================================================
+// INVENTORY TEACHER
+// ============================================================
+
 function renderInventory() {
+
+    if (
+        !inventoryList
+    ) {
+
+        return;
+    }
 
     inventoryList.innerHTML =
         "";
 
     const drinks =
         products.filter(
-            function (product) {
+            function (
+                product
+            ) {
+
                 return (
                     product.category ===
                     "drink"
@@ -2577,13 +4413,19 @@ function renderInventory() {
     ) {
 
         inventoryList.innerHTML =
-            '<div class="no-data">Keine Getränke vorhanden.</div>';
+            `
+                <div class="no-data">
+                    Keine Getränke vorhanden.
+                </div>
+            `;
 
         return;
     }
 
     drinks.forEach(
-        function (product) {
+        function (
+            product
+        ) {
 
             const stock =
                 Number(
@@ -2593,35 +4435,16 @@ function renderInventory() {
                     0
                 );
 
-            const card =
+            const row =
                 document.createElement(
                     "div"
                 );
 
-            card.className =
+            row.className =
                 "inventory-card";
 
-            let stockClass =
-                "";
+            row.innerHTML = `
 
-            if (
-                stock <=
-                0
-            ) {
-
-                stockClass =
-                    "empty";
-
-            } else if (
-                stock <=
-                5
-            ) {
-
-                stockClass =
-                    "low";
-            }
-
-            card.innerHTML = `
                 <div class="inventory-product">
 
                     <span class="inventory-icon">
@@ -2648,14 +4471,14 @@ function renderInventory() {
 
                 </div>
 
-                <div class="inventory-stock ${stockClass}">
+                <div class="inventory-stock">
                     ${stock} Stück
                 </div>
 
                 <button
                     type="button"
                     class="inventory-adjust-button"
-                    data-product-id="${escapeHtml(
+                    data-product-id="${escapeAttribute(
                         product.id
                     )}"
                 >
@@ -2664,17 +4487,19 @@ function renderInventory() {
             `;
 
             inventoryList.appendChild(
-                card
+                row
             );
         }
     );
 
-    document
+    inventoryList
         .querySelectorAll(
             ".inventory-adjust-button"
         )
         .forEach(
-            function (button) {
+            function (
+                button
+            ) {
 
                 button.addEventListener(
                     "click",
@@ -2694,9 +4519,19 @@ function openInventoryModal(
     productId
 ) {
 
+    if (
+        !isCurrentTeacher()
+    ) {
+
+        return;
+    }
+
     const product =
         products.find(
-            function (item) {
+            function (
+                item
+            ) {
+
                 return (
                     item.id ===
                     productId
@@ -2705,28 +4540,38 @@ function openInventoryModal(
         );
 
     if (
-        !product ||
-        !isCurrentTeacher()
+        !product
     ) {
+
         return;
     }
 
     inventoryProductId =
         productId;
 
-    inventoryProductLabel.textContent =
-        product.name +
-        " · Aktueller Bestand: " +
-        Number(
-            inventory[
-                productId
-            ] ||
-            0
-        ) +
-        " Stück";
+    if (
+        inventoryProductLabel
+    ) {
 
-    inventoryAmountInput.value =
-        "";
+        inventoryProductLabel.textContent =
+            product.name +
+            " · Aktueller Bestand: " +
+            Number(
+                inventory[
+                    productId
+                ] ||
+                0
+            ) +
+            " Stück";
+    }
+
+    if (
+        inventoryAmountInput
+    ) {
+
+        inventoryAmountInput.value =
+            "";
+    }
 
     inventoryModal.style.display =
         "flex";
@@ -2738,7 +4583,9 @@ function openInventoryModal(
 
     setTimeout(
         function () {
+
             inventoryAmountInput.focus();
+
         },
         50
     );
@@ -2746,6 +4593,13 @@ function openInventoryModal(
 
 
 function closeInventoryModal() {
+
+    if (
+        !inventoryModal
+    ) {
+
+        return;
+    }
 
     inventoryModal.style.display =
         "none";
@@ -2760,33 +4614,22 @@ function closeInventoryModal() {
 }
 
 
-closeInventoryModalButton.addEventListener(
+on(
+    "closeInventoryModalButton",
     "click",
     closeInventoryModal
 );
 
-cancelInventoryButton.addEventListener(
+
+on(
+    "cancelInventoryButton",
     "click",
     closeInventoryModal
 );
 
 
-inventoryModal.addEventListener(
-    "click",
-    function (event) {
-
-        if (
-            event.target ===
-            inventoryModal
-        ) {
-
-            closeInventoryModal();
-        }
-    }
-);
-
-
-saveInventoryButton.addEventListener(
+on(
+    "saveInventoryButton",
     "click",
     function () {
 
@@ -2838,7 +4681,8 @@ saveInventoryButton.addEventListener(
 );
 
 
-inventoryBackButton.addEventListener(
+on(
+    "inventoryBackButton",
     "click",
     function () {
 
@@ -2851,14 +4695,27 @@ inventoryBackButton.addEventListener(
 );
 
 
+// ============================================================
+// INVENTUR STUDENT
+// ============================================================
+
 function renderInventoryCount() {
+
+    if (
+        !inventoryCountList
+    ) {
+
+        return;
+    }
 
     inventoryCountList.innerHTML =
         "";
 
     const drinks =
         products.filter(
-            function (product) {
+            function (
+                product
+            ) {
 
                 return (
                     product.category ===
@@ -2873,13 +4730,19 @@ function renderInventoryCount() {
     ) {
 
         inventoryCountList.innerHTML =
-            '<div class="no-data">Keine Getränke vorhanden.</div>';
+            `
+                <div class="no-data">
+                    Keine Getränke vorhanden.
+                </div>
+            `;
 
         return;
     }
 
     drinks.forEach(
-        function (product) {
+        function (
+            product
+        ) {
 
             const row =
                 document.createElement(
@@ -2890,6 +4753,7 @@ function renderInventoryCount() {
                 "inventory-count-row";
 
             row.innerHTML = `
+
                 <div class="inventory-count-product">
 
                     <span>
@@ -2922,11 +4786,8 @@ function renderInventoryCount() {
                     min="0"
                     step="1"
                     inputmode="numeric"
-                    data-product-id="${escapeHtml(
+                    data-product-id="${escapeAttribute(
                         product.id
-                    )}"
-                    aria-label="Gezählter Bestand ${escapeHtml(
-                        product.name
                     )}"
                     placeholder="0"
                 >
@@ -2940,9 +4801,11 @@ function renderInventoryCount() {
 }
 
 
-inventoryCountBackButton.addEventListener(
+on(
+    "inventoryCountBackButton",
     "click",
     function () {
+
         showScreen(
             adminScreen
         );
@@ -2950,7 +4813,8 @@ inventoryCountBackButton.addEventListener(
 );
 
 
-submitInventoryButton.addEventListener(
+on(
+    "submitInventoryButton",
     "click",
     function () {
 
@@ -2964,24 +4828,24 @@ submitInventoryButton.addEventListener(
         }
 
         const inputs =
-            inventoryCountList.querySelectorAll(
-                ".inventory-count-input"
-            );
+            inventoryCountList
+                .querySelectorAll(
+                    ".inventory-count-input"
+                );
 
         const counts =
             [];
 
-        let hasInvalidValue =
+        let invalid =
             false;
 
         inputs.forEach(
-            function (input) {
-
-                const value =
-                    input.value.trim();
+            function (
+                input
+            ) {
 
                 if (
-                    value ===
+                    input.value.trim() ===
                     ""
                 ) {
 
@@ -2990,17 +4854,18 @@ submitInventoryButton.addEventListener(
 
                 const quantity =
                     Number(
-                        value
+                        input.value
                     );
 
                 if (
                     !Number.isInteger(
                         quantity
                     ) ||
-                    quantity < 0
+                    quantity <
+                    0
                 ) {
 
-                    hasInvalidValue =
+                    invalid =
                         true;
 
                     return;
@@ -3008,7 +4873,9 @@ submitInventoryButton.addEventListener(
 
                 const product =
                     products.find(
-                        function (item) {
+                        function (
+                            item
+                        ) {
 
                             return (
                                 item.id ===
@@ -3017,10 +4884,13 @@ submitInventoryButton.addEventListener(
                         }
                     );
 
-                if (product) {
+                if (
+                    product
+                ) {
 
                     counts.push(
                         {
+
                             product_id:
                                 product.id,
 
@@ -3036,7 +4906,7 @@ submitInventoryButton.addEventListener(
         );
 
         if (
-            hasInvalidValue
+            invalid
         ) {
 
             alert(
@@ -3061,41 +4931,65 @@ submitInventoryButton.addEventListener(
         const submissions =
             loadInventorySubmissions();
 
-        submissions.push({
-            id:
-                Date.now(),
+        submissions.push(
+            {
 
-            submitted_at:
-                new Date().toISOString(),
+                id:
+                    Date.now(),
 
-            person_id:
-                currentPerson.id,
+                submitted_at:
+                    new Date().toISOString(),
 
-            person_name:
-                getFullName(
-                    currentPerson
-                ),
+                person_id:
+                    currentPerson.id,
 
-            counts:
-                counts
-        });
+                person_name:
+                    getFullName(
+                        currentPerson
+                    ),
+
+                counts:
+                    counts
+            }
+        );
 
         saveInventorySubmissions(
             submissions
         );
 
-        alert(
-            "Die Inventur wurde an den Lehrer geschickt."
+        showSiteMessage(
+            "📦",
+            "Inventur gesendet",
+            "Die Inventur wurde an den Lehrer geschickt.",
+            "Weiter",
+            function () {
+
+                renderInventoryCount();
+
+                updateNotificationBadge();
+
+                showScreen(
+                    homeScreen
+                );
+            }
         );
-
-        renderInventoryCount();
-
-        updateNotificationBadge();
     }
 );
 
 
+// ============================================================
+// INVENTUR & RECHNUNGEN
+// ============================================================
+
 function renderInvoiceContextOptions() {
+
+    if (
+        !invoiceContextInput ||
+        !purchaseContextInput
+    ) {
+
+        return;
+    }
 
     const events =
         loadEvents();
@@ -3104,7 +4998,9 @@ function renderInvoiceContextOptions() {
         invoiceContextInput,
         purchaseContextInput
     ].forEach(
-        function (select) {
+        function (
+            select
+        ) {
 
             const currentValue =
                 select.value ||
@@ -3113,23 +5009,25 @@ function renderInvoiceContextOptions() {
             select.innerHTML =
                 "";
 
-            const drinksOption =
+            const baseOption =
                 document.createElement(
                     "option"
                 );
 
-            drinksOption.value =
+            baseOption.value =
                 "getränke";
 
-            drinksOption.textContent =
+            baseOption.textContent =
                 "Getränke";
 
             select.appendChild(
-                drinksOption
+                baseOption
             );
 
             events.forEach(
-                function (event) {
+                function (
+                    event
+                ) {
 
                     const option =
                         document.createElement(
@@ -3150,11 +5048,14 @@ function renderInvoiceContextOptions() {
                 }
             );
 
-            const allowed =
-                [
-                    ...select.options
-                ].some(
-                    function (option) {
+            const exists =
+                Array.from(
+                    select.options
+                ).some(
+                    function (
+                        option
+                    ) {
+
                         return (
                             option.value ===
                             currentValue
@@ -3163,7 +5064,7 @@ function renderInvoiceContextOptions() {
                 );
 
             select.value =
-                allowed
+                exists
                     ? currentValue
                     : "getränke";
         }
@@ -3172,11 +5073,11 @@ function renderInvoiceContextOptions() {
 
 
 function getContextLabel(
-    value
+    context
 ) {
 
     if (
-        value ===
+        context ===
         "getränke"
     ) {
 
@@ -3184,22 +5085,25 @@ function getContextLabel(
     }
 
     if (
-        value.startsWith(
+        String(
+            context
+        ).startsWith(
             "event:"
         )
     ) {
 
-        const eventId =
-            value.slice(
-                6
-            );
-
         const event =
             getEventById(
-                eventId
+                String(
+                    context
+                ).slice(
+                    6
+                )
             );
 
-        if (event) {
+        if (
+            event
+        ) {
 
             return (
                 "Sonderveranstaltung: " +
@@ -3208,77 +5112,19 @@ function getContextLabel(
         }
     }
 
-    return value;
+    return context;
 }
 
 
-function saveInvoiceRecord(
-    context,
-    date,
-    supplier,
-    invoiceNumber,
-    product,
-    quantity,
-    amount
-) {
-
-    const invoices =
-        loadInvoices();
-
-    invoices.push({
-        id:
-            Date.now(),
-
-        context:
-            context,
-
-        context_label:
-            getContextLabel(
-                context
-            ),
-
-        date:
-            date,
-
-        supplier:
-            supplier,
-
-        invoice_number:
-            invoiceNumber,
-
-        product:
-            product,
-
-        quantity:
-            quantity,
-
-        amount:
-            roundMoney(
-                amount
-            ),
-
-        created_at:
-            new Date().toISOString(),
-
-        person_id:
-            currentPerson
-                ? currentPerson.id
-                : null
-    });
-
-    saveInvoices(
-        invoices
-    );
-}
-
-
-saveInvoiceButton.addEventListener(
+on(
+    "saveInvoiceButton",
     "click",
     function () {
 
         if (
             !isCurrentTeacher()
         ) {
+
             return;
         }
 
@@ -3308,19 +5154,13 @@ saveInvoiceButton.addEventListener(
                 invoiceAmountInput.value
             );
 
-        if (!date) {
+        if (
+            !date ||
+            !product
+        ) {
 
             alert(
-                "Bitte ein Rechnungsdatum eingeben."
-            );
-
-            return;
-        }
-
-        if (!product) {
-
-            alert(
-                "Bitte ein Produkt eingeben."
+                "Bitte Datum und Produkt eingeben."
             );
 
             return;
@@ -3330,7 +5170,8 @@ saveInvoiceButton.addEventListener(
             !Number.isInteger(
                 quantity
             ) ||
-            quantity < 0
+            quantity <
+            0
         ) {
 
             alert(
@@ -3344,7 +5185,8 @@ saveInvoiceButton.addEventListener(
             !Number.isFinite(
                 amount
             ) ||
-            amount < 0
+            amount <
+            0
         ) {
 
             alert(
@@ -3354,14 +5196,53 @@ saveInvoiceButton.addEventListener(
             return;
         }
 
-        saveInvoiceRecord(
-            context,
-            date,
-            supplier,
-            invoiceNumber,
-            product,
-            quantity,
-            amount
+        const invoices =
+            loadInvoices();
+
+        invoices.push(
+            {
+
+                id:
+                    Date.now(),
+
+                context:
+                    context,
+
+                context_label:
+                    getContextLabel(
+                        context
+                    ),
+
+                date:
+                    date,
+
+                supplier:
+                    supplier,
+
+                invoice_number:
+                    invoiceNumber,
+
+                product:
+                    product,
+
+                quantity:
+                    quantity,
+
+                amount:
+                    roundMoney(
+                        amount
+                    ),
+
+                created_at:
+                    new Date().toISOString(),
+
+                person_id:
+                    currentPerson.id
+            }
+        );
+
+        saveInvoices(
+            invoices
         );
 
         invoiceSupplierInput.value =
@@ -3384,49 +5265,8 @@ saveInvoiceButton.addEventListener(
 );
 
 
-function savePurchaseRecord(
-    context,
-    product,
-    quantity
-) {
-
-    const purchases =
-        loadPurchases();
-
-    purchases.push({
-        id:
-            Date.now(),
-
-        context:
-            context,
-
-        context_label:
-            getContextLabel(
-                context
-            ),
-
-        product:
-            product,
-
-        quantity:
-            quantity,
-
-        created_at:
-            new Date().toISOString(),
-
-        person_id:
-            currentPerson
-                ? currentPerson.id
-                : null
-    });
-
-    savePurchases(
-        purchases
-    );
-}
-
-
-savePurchaseButton.addEventListener(
+on(
+    "savePurchaseButton",
     "click",
     function () {
 
@@ -3440,7 +5280,7 @@ savePurchaseButton.addEventListener(
         const context =
             purchaseContextInput.value;
 
-        const product =
+        const productName =
             purchaseProductInput.value.trim();
 
         const quantity =
@@ -3448,7 +5288,9 @@ savePurchaseButton.addEventListener(
                 purchaseQuantityInput.value
             );
 
-        if (!product) {
+        if (
+            !productName
+        ) {
 
             alert(
                 "Bitte ein Produkt eingeben."
@@ -3472,10 +5314,39 @@ savePurchaseButton.addEventListener(
             return;
         }
 
-        savePurchaseRecord(
-            context,
-            product,
-            quantity
+        const purchases =
+            loadPurchases();
+
+        purchases.push(
+            {
+
+                id:
+                    Date.now(),
+
+                context:
+                    context,
+
+                context_label:
+                    getContextLabel(
+                        context
+                    ),
+
+                product:
+                    productName,
+
+                quantity:
+                    quantity,
+
+                created_at:
+                    new Date().toISOString(),
+
+                person_id:
+                    currentPerson.id
+            }
+        );
+
+        savePurchases(
+            purchases
         );
 
         if (
@@ -3483,29 +5354,31 @@ savePurchaseButton.addEventListener(
             "getränke"
         ) {
 
-            const matchingProduct =
+            const product =
                 products.find(
-                    function (item) {
+                    function (
+                        item
+                    ) {
 
                         return (
                             item.name.toLowerCase() ===
-                            product.toLowerCase()
+                            productName.toLowerCase() &&
+                            item.category ===
+                            "drink"
                         );
                     }
                 );
 
             if (
-                matchingProduct &&
-                matchingProduct.category ===
-                "drink"
+                product
             ) {
 
                 inventory[
-                    matchingProduct.id
+                    product.id
                 ] =
                     Number(
                         inventory[
-                            matchingProduct.id
+                            product.id
                         ] ||
                         0
                     ) +
@@ -3528,38 +5401,25 @@ savePurchaseButton.addEventListener(
 
 function renderInvoiceList() {
 
+    if (
+        !invoiceList
+    ) {
+
+        return;
+    }
+
     invoiceList.innerHTML =
         "";
 
     const invoices =
         loadInvoices()
             .slice()
-            .sort(
-                function (a, b) {
-                    return String(
-                        b.date
-                    ).localeCompare(
-                        String(
-                            a.date
-                        )
-                    );
-                }
-            );
+            .reverse();
 
     const purchases =
         loadPurchases()
             .slice()
-            .sort(
-                function (a, b) {
-                    return String(
-                        b.created_at
-                    ).localeCompare(
-                        String(
-                            a.created_at
-                        )
-                    );
-                }
-            );
+            .reverse();
 
     if (
         invoices.length ===
@@ -3569,7 +5429,11 @@ function renderInvoiceList() {
     ) {
 
         invoiceList.innerHTML =
-            '<div class="no-data">Noch keine Rechnungen oder Wareneingänge vorhanden.</div>';
+            `
+                <div class="no-data">
+                    Noch keine Rechnungen oder Wareneingänge vorhanden.
+                </div>
+            `;
 
         return;
     }
@@ -3580,7 +5444,9 @@ function renderInvoiceList() {
             15
         )
         .forEach(
-            function (invoice) {
+            function (
+                invoice
+            ) {
 
                 const row =
                     document.createElement(
@@ -3602,7 +5468,8 @@ function renderInvoiceList() {
                         <small>
                             ${escapeHtml(
                                 invoice.context_label
-                            )} ·
+                            )}
+                            ·
                             ${escapeHtml(
                                 invoice.date
                             )}
@@ -3610,7 +5477,8 @@ function renderInvoiceList() {
 
                         <small>
                             ${invoice.quantity}
-                            Stück ·
+                            Stück
+                            ·
                             ${formatPrice(
                                 invoice.amount
                             )}
@@ -3635,7 +5503,9 @@ function renderInvoiceList() {
             15
         )
         .forEach(
-            function (purchase) {
+            function (
+                purchase
+            ) {
 
                 const row =
                     document.createElement(
@@ -3680,9 +5550,11 @@ function renderInvoiceList() {
 }
 
 
-inventoryInvoicesBackButton.addEventListener(
+on(
+    "inventoryInvoicesBackButton",
     "click",
     function () {
+
         showScreen(
             adminScreen
         );
@@ -3690,9 +5562,15 @@ inventoryInvoicesBackButton.addEventListener(
 );
 
 
-reportsBackButton.addEventListener(
+// ============================================================
+// REPORTS
+// ============================================================
+
+on(
+    "reportsBackButton",
     "click",
     function () {
+
         showScreen(
             homeScreen
         );
@@ -3701,7 +5579,9 @@ reportsBackButton.addEventListener(
 
 
 periodTabs.forEach(
-    function (tab) {
+    function (
+        tab
+    ) {
 
         tab.addEventListener(
             "click",
@@ -3722,7 +5602,9 @@ periodTabs.forEach(
 function updatePeriodTabs() {
 
     periodTabs.forEach(
-        function (tab) {
+        function (
+            tab
+        ) {
 
             tab.classList.toggle(
                 "active",
@@ -3739,6 +5621,7 @@ function renderReport() {
     if (
         !isCurrentTeacher()
     ) {
+
         return;
     }
 
@@ -3753,6 +5636,7 @@ function renderReport() {
                 sum,
                 sale
             ) {
+
                 return (
                     sum +
                     Number(
@@ -3764,23 +5648,27 @@ function renderReport() {
             0
         );
 
-    let drinkCount =
+    let drinks =
         0;
 
-    let bakeryCount =
+    let bakery =
         0;
 
-    const productSummary =
+    const summary =
         {};
 
     filteredSales.forEach(
-        function (sale) {
+        function (
+            sale
+        ) {
 
             (
                 sale.items ||
                 []
             ).forEach(
-                function (item) {
+                function (
+                    item
+                ) {
 
                     const quantity =
                         Number(
@@ -3793,7 +5681,7 @@ function renderReport() {
                         "drink"
                     ) {
 
-                        drinkCount +=
+                        drinks +=
                             quantity;
                     }
 
@@ -3802,37 +5690,38 @@ function renderReport() {
                         "bakery"
                     ) {
 
-                        bakeryCount +=
+                        bakery +=
                             quantity;
                     }
 
                     if (
-                        !productSummary[
+                        !summary[
                             item.id
                         ]
                     ) {
 
-                        productSummary[
+                        summary[
                             item.id
-                        ] = {
+                        ] =
+                            {
 
-                            name:
-                                item.name,
+                                name:
+                                    item.name,
 
-                            quantity:
-                                0,
+                                quantity:
+                                    0,
 
-                            revenue:
-                                0
-                        };
+                                revenue:
+                                    0
+                            };
                     }
 
-                    productSummary[
+                    summary[
                         item.id
                     ].quantity +=
                         quantity;
 
-                    productSummary[
+                    summary[
                         item.id
                     ].revenue +=
                         Number(
@@ -3844,49 +5733,64 @@ function renderReport() {
         }
     );
 
-    reportRevenue.textContent =
+    setText(
+        "reportRevenue",
         formatPrice(
             revenue
-        );
+        )
+    );
 
-    reportTransactions.textContent =
-        String(
-            filteredSales.length
-        );
+    setText(
+        "reportTransactions",
+        filteredSales.length
+    );
 
-    reportDrinks.textContent =
-        String(
-            drinkCount
-        );
+    setText(
+        "reportDrinks",
+        drinks
+    );
 
-    reportBakery.textContent =
-        String(
-            bakeryCount
-        );
+    setText(
+        "reportBakery",
+        bakery
+    );
 
-    reportDateLabel.textContent =
+    setText(
+        "reportDateLabel",
         getReportLabel(
             currentReportPeriod
-        );
+        )
+    );
 
     renderReportProducts(
-        productSummary
+        summary
     );
 }
 
 
 function renderReportProducts(
-    productSummary
+    summary
 ) {
+
+    if (
+        !reportProducts
+    ) {
+
+        return;
+    }
 
     reportProducts.innerHTML =
         "";
 
-    const entries =
+    const rows =
         Object.values(
-            productSummary
+            summary
         ).sort(
-            function (a, b) {
+            function (
+                a,
+                b
+            ) {
+
                 return (
                     b.quantity -
                     a.quantity
@@ -3895,21 +5799,24 @@ function renderReportProducts(
         );
 
     if (
-        entries.length ===
+        rows.length ===
         0
     ) {
 
-        reportProducts.innerHTML = `
-            <div class="no-data">
-                Keine Verkäufe in diesem Zeitraum.
-            </div>
-        `;
+        reportProducts.innerHTML =
+            `
+                <div class="no-data">
+                    Keine Verkäufe in diesem Zeitraum.
+                </div>
+            `;
 
         return;
     }
 
-    entries.forEach(
-        function (item) {
+    rows.forEach(
+        function (
+            item
+        ) {
 
             const row =
                 document.createElement(
@@ -3920,6 +5827,7 @@ function renderReportProducts(
                 "report-product-row";
 
             row.innerHTML = `
+
                 <span class="report-product-name">
                     ${escapeHtml(
                         item.name
@@ -3935,6 +5843,7 @@ function renderReportProducts(
                         item.revenue
                     )}
                 </span>
+
             `;
 
             reportProducts.appendChild(
@@ -3953,7 +5862,9 @@ function getSalesForPeriod(
         new Date();
 
     return sales.filter(
-        function (sale) {
+        function (
+            sale
+        ) {
 
             const date =
                 new Date(
@@ -4150,7 +6061,8 @@ function getReportLabel(
 }
 
 
-exportReportButton.addEventListener(
+on(
+    "exportReportButton",
     "click",
     exportReportAsCSV
 );
@@ -4161,6 +6073,7 @@ function exportReportAsCSV() {
     if (
         !isCurrentTeacher()
     ) {
+
         return;
     }
 
@@ -4181,21 +6094,27 @@ function exportReportAsCSV() {
     ];
 
     filteredSales.forEach(
-        function (sale) {
+        function (
+            sale
+        ) {
 
             (
                 sale.items ||
                 []
             ).forEach(
-                function (item) {
+                function (
+                    item
+                ) {
 
                     rows.push(
                         [
+
                             new Date(
                                 sale.date
-                            ).toLocaleString(
-                                "de-DE"
-                            ),
+                            )
+                                .toLocaleString(
+                                    "de-DE"
+                                ),
 
                             item.name,
 
@@ -4254,7 +6173,10 @@ function exportReportAsCSV() {
     const csv =
         rows
             .map(
-                function (row) {
+                function (
+                    row
+                ) {
+
                     return row
                         .map(
                             csvEscape
@@ -4320,7 +6242,8 @@ function csvEscape(
 
     const text =
         String(
-            value ?? ""
+            value ??
+            ""
         );
 
     if (
@@ -4343,13 +6266,15 @@ function csvEscape(
 }
 
 
-clearReportsButton.addEventListener(
+on(
+    "clearReportsButton",
     "click",
     function () {
 
         if (
             !isCurrentTeacher()
         ) {
+
             return;
         }
 
@@ -4373,6 +6298,7 @@ clearReportsButton.addEventListener(
         if (
             !confirmed
         ) {
+
             return;
         }
 
@@ -4390,13 +6316,15 @@ clearReportsButton.addEventListener(
 );
 
 
-// ========================================
-// SONDERVERANSTALTUNG
-// ========================================
+// ============================================================
+// SONDERVERANSTALTUNGEN
+// ============================================================
 
-eventListBackButton.addEventListener(
+on(
+    "eventListBackButton",
     "click",
     function () {
+
         showScreen(
             homeScreen
         );
@@ -4404,13 +6332,15 @@ eventListBackButton.addEventListener(
 );
 
 
-createEventButton.addEventListener(
+on(
+    "createEventButton",
     "click",
     function () {
 
         if (
             !isCurrentTeacher()
         ) {
+
             return;
         }
 
@@ -4432,14 +6362,25 @@ createEventButton.addEventListener(
 
 function renderEventList() {
 
-    const isTeacher =
+    if (
+        !eventList
+    ) {
+
+        return;
+    }
+
+    const teacher =
         isCurrentTeacher();
 
     const events =
         loadEvents()
             .slice()
             .sort(
-                function (a, b) {
+                function (
+                    a,
+                    b
+                ) {
+
                     return String(
                         a.event_date
                     ).localeCompare(
@@ -4450,18 +6391,33 @@ function renderEventList() {
                 }
             );
 
-    eventListTitle.textContent =
-        isTeacher
-            ? "Veranstaltungen verwalten"
-            : "Veranstaltungen";
+    if (
+        eventListTitle
+    ) {
 
-    eventListDescription.textContent =
-        isTeacher
-            ? "Erstelle eine Veranstaltung oder öffne eine bestehende."
-            : "Wähle eine Veranstaltung aus, an der du arbeitest.";
+        eventListTitle.textContent =
+            teacher
+                ? "Veranstaltungen verwalten"
+                : "Veranstaltungen";
+    }
 
-    createEventButton.hidden =
-        !isTeacher;
+    if (
+        eventListDescription
+    ) {
+
+        eventListDescription.textContent =
+            teacher
+                ? "Erstelle eine Veranstaltung oder öffne eine bestehende."
+                : "Wähle eine Veranstaltung aus.";
+    }
+
+    if (
+        createEventButton
+    ) {
+
+        createEventButton.hidden =
+            !teacher;
+    }
 
     eventList.innerHTML =
         "";
@@ -4472,13 +6428,19 @@ function renderEventList() {
     ) {
 
         eventList.innerHTML =
-            '<div class="no-data">Noch keine Veranstaltungen vorhanden.</div>';
+            `
+                <div class="no-data">
+                    Noch keine Veranstaltungen vorhanden.
+                </div>
+            `;
 
         return;
     }
 
     events.forEach(
-        function (event) {
+        function (
+            event
+        ) {
 
             const card =
                 document.createElement(
@@ -4488,13 +6450,8 @@ function renderEventList() {
             card.className =
                 "event-list-card";
 
-            const statusLabel =
-                event.status ===
-                "abgeschlossen"
-                    ? "Abgeschlossen"
-                    : "Offen";
-
             card.innerHTML = `
+
                 <div class="event-list-main">
 
                     <span class="event-list-icon">
@@ -4510,15 +6467,9 @@ function renderEventList() {
                         </strong>
 
                         <small>
-                            ${escapeHtml(
-                                formatEventDate(
-                                    event.event_date
-                                )
+                            ${formatEventDate(
+                                event.event_date
                             )}
-                        </small>
-
-                        <small>
-                            ${statusLabel}
                         </small>
 
                     </div>
@@ -4528,7 +6479,7 @@ function renderEventList() {
                 <button
                     type="button"
                     class="primary-action small-action event-open-button"
-                    data-event-id="${escapeHtml(
+                    data-event-id="${escapeAttribute(
                         event.id
                     )}"
                 >
@@ -4542,12 +6493,14 @@ function renderEventList() {
         }
     );
 
-    document
+    eventList
         .querySelectorAll(
             ".event-open-button"
         )
         .forEach(
-            function (button) {
+            function (
+                button
+            ) {
 
                 button.addEventListener(
                     "click",
@@ -4563,6 +6516,75 @@ function renderEventList() {
 }
 
 
+function getEventById(
+    eventId
+) {
+
+    return loadEvents().find(
+        function (
+            event
+        ) {
+
+            return (
+                event.id ===
+                eventId
+            );
+        }
+    ) || null;
+}
+
+
+function getCurrentEvent() {
+
+    return getEventById(
+        currentEventId
+    );
+}
+
+
+function updateCurrentEvent(
+    event
+) {
+
+    const events =
+        loadEvents();
+
+    const index =
+        events.findIndex(
+            function (
+                item
+            ) {
+
+                return (
+                    item.id ===
+                    event.id
+                );
+            }
+        );
+
+    if (
+        index ===
+        -1
+    ) {
+
+        events.push(
+            event
+        );
+
+    } else {
+
+        events[
+            index
+        ] =
+            event;
+    }
+
+    saveEvents(
+        events
+    );
+}
+
+
 function openEvent(
     eventId
 ) {
@@ -4572,7 +6594,10 @@ function openEvent(
             eventId
         );
 
-    if (!event) {
+    if (
+        !event
+    ) {
+
         return;
     }
 
@@ -4580,32 +6605,17 @@ function openEvent(
         eventId;
 
     if (
-        isCurrentTeacher()
+        isCurrentTeacher() &&
+        event.has_start_inventory &&
+        !event.start_setup_completed
     ) {
 
-        if (
-            event.has_start_inventory &&
-            !event.start_setup_completed
-        ) {
-
-            prepareEventStartSetup(
-                event
-            );
-
-            showScreen(
-                eventStartSetupScreen,
-                eventListScreen
-            );
-
-            return;
-        }
-
-        prepareEventProducts(
+        prepareEventStartSetup(
             event
         );
 
         showScreen(
-            eventProductsScreen,
+            eventStartSetupScreen,
             eventListScreen
         );
 
@@ -4623,13 +6633,15 @@ function openEvent(
 }
 
 
-// ========================================
-// EVENT ERSTELLEN
-// ========================================
+// ============================================================
+// EVENT CREATE
+// ============================================================
 
-eventCreateBackButton.addEventListener(
+on(
+    "eventCreateBackButton",
     "click",
     function () {
+
         showScreen(
             eventListScreen
         );
@@ -4637,9 +6649,11 @@ eventCreateBackButton.addEventListener(
 );
 
 
-eventStartInventoryYesButton.addEventListener(
+on(
+    "eventStartInventoryYesButton",
     "click",
     function () {
+
         createEvent(
             true
         );
@@ -4647,9 +6661,11 @@ eventStartInventoryYesButton.addEventListener(
 );
 
 
-eventStartInventoryNoButton.addEventListener(
+on(
+    "eventStartInventoryNoButton",
     "click",
     function () {
+
         createEvent(
             false
         );
@@ -4664,6 +6680,7 @@ function createEvent(
     if (
         !isCurrentTeacher()
     ) {
+
         return;
     }
 
@@ -4673,7 +6690,9 @@ function createEvent(
     const date =
         eventDateInput.value;
 
-    if (!name) {
+    if (
+        !name
+    ) {
 
         alert(
             "Bitte einen Namen für die Veranstaltung eingeben."
@@ -4682,7 +6701,9 @@ function createEvent(
         return;
     }
 
-    if (!date) {
+    if (
+        !date
+    ) {
 
         alert(
             "Bitte ein Datum auswählen."
@@ -4781,20 +6802,32 @@ function createEvent(
 }
 
 
+// ============================================================
+// EVENT START INVENTORY
+// ============================================================
+
 function prepareEventStartSetup(
     event
 ) {
 
-    eventStartSetupTitle.textContent =
-        "Anfangsbestand · " +
-        event.name;
+    if (
+        eventStartSetupTitle
+    ) {
+
+        eventStartSetupTitle.textContent =
+            "Anfangsbestand · " +
+            event.name;
+    }
 
     eventStartInventoryRows =
         Array.isArray(
             event.start_inventory
         )
             ? event.start_inventory.map(
-                function (item) {
+                function (
+                    item
+                ) {
+
                     return {
                         ...item
                     };
@@ -4807,7 +6840,10 @@ function prepareEventStartSetup(
             event.invoices
         )
             ? event.invoices.map(
-                function (item) {
+                function (
+                    item
+                ) {
+
                     return {
                         ...item
                     };
@@ -4816,12 +6852,21 @@ function prepareEventStartSetup(
             : [];
 
     renderEventStartInventory();
+
     renderEventSetupInvoices();
+
     setDefaultDates();
 }
 
 
 function renderEventStartInventory() {
+
+    if (
+        !eventStartInventoryList
+    ) {
+
+        return;
+    }
 
     eventStartInventoryList.innerHTML =
         "";
@@ -4831,11 +6876,12 @@ function renderEventStartInventory() {
         0
     ) {
 
-        eventStartInventoryList.innerHTML = `
-            <div class="no-data event-start-empty">
-                Noch kein Produkt hinzugefügt.
-            </div>
-        `;
+        eventStartInventoryList.innerHTML =
+            `
+                <div class="no-data">
+                    Noch kein Produkt hinzugefügt.
+                </div>
+            `;
 
         return;
     }
@@ -4855,6 +6901,7 @@ function renderEventStartInventory() {
                 "event-inventory-editor-row";
 
             row.innerHTML = `
+
                 <input
                     type="text"
                     class="event-stock-name"
@@ -4884,7 +6931,6 @@ function renderEventStartInventory() {
                     type="button"
                     class="icon-action delete event-remove-stock"
                     data-index="${index}"
-                    title="Entfernen"
                 >
                     🗑️
                 </button>
@@ -4896,12 +6942,14 @@ function renderEventStartInventory() {
         }
     );
 
-    document
+    eventStartInventoryList
         .querySelectorAll(
             ".event-stock-name"
         )
         .forEach(
-            function (input) {
+            function (
+                input
+            ) {
 
                 input.addEventListener(
                     "input",
@@ -4921,12 +6969,14 @@ function renderEventStartInventory() {
             }
         );
 
-    document
+    eventStartInventoryList
         .querySelectorAll(
             ".event-stock-quantity"
         )
         .forEach(
-            function (input) {
+            function (
+                input
+            ) {
 
                 input.addEventListener(
                     "input",
@@ -4949,12 +6999,14 @@ function renderEventStartInventory() {
             }
         );
 
-    document
+    eventStartInventoryList
         .querySelectorAll(
             ".event-remove-stock"
         )
         .forEach(
-            function (button) {
+            function (
+                button
+            ) {
 
                 button.addEventListener(
                     "click",
@@ -4978,7 +7030,8 @@ function renderEventStartInventory() {
 }
 
 
-addEventStartStockButton.addEventListener(
+on(
+    "addEventStartStockButton",
     "click",
     function () {
 
@@ -4993,20 +7046,18 @@ addEventStartStockButton.addEventListener(
         );
 
         renderEventStartInventory();
-
-        const lastInput =
-            eventStartInventoryList.querySelector(
-                ".event-stock-name:last-of-type"
-            );
-
-        if (lastInput) {
-            lastInput.focus();
-        }
     }
 );
 
 
 function renderEventSetupInvoices() {
+
+    if (
+        !eventInvoiceList
+    ) {
+
+        return;
+    }
 
     eventInvoiceList.innerHTML =
         "";
@@ -5017,7 +7068,11 @@ function renderEventSetupInvoices() {
     ) {
 
         eventInvoiceList.innerHTML =
-            '<div class="no-data">Noch keine Rechnung hinzugefügt.</div>';
+            `
+                <div class="no-data">
+                    Noch keine Rechnung hinzugefügt.
+                </div>
+            `;
 
         return;
     }
@@ -5048,9 +7103,11 @@ function renderEventSetupInvoices() {
                     <small>
                         ${escapeHtml(
                             invoice.date
-                        )} ·
+                        )}
+                        ·
                         ${invoice.quantity}
-                        Stück ·
+                        Stück
+                        ·
                         ${formatPrice(
                             invoice.amount
                         )}
@@ -5069,7 +7126,6 @@ function renderEventSetupInvoices() {
                     type="button"
                     class="icon-action delete event-remove-invoice"
                     data-index="${index}"
-                    title="Entfernen"
                 >
                     🗑️
                 </button>
@@ -5081,24 +7137,23 @@ function renderEventSetupInvoices() {
         }
     );
 
-    document
+    eventInvoiceList
         .querySelectorAll(
             ".event-remove-invoice"
         )
         .forEach(
-            function (button) {
+            function (
+                button
+            ) {
 
                 button.addEventListener(
                     "click",
                     function () {
 
-                        const index =
+                        eventSetupInvoices.splice(
                             Number(
                                 button.dataset.index
-                            );
-
-                        eventSetupInvoices.splice(
-                            index,
+                            ),
                             1
                         );
 
@@ -5110,7 +7165,8 @@ function renderEventSetupInvoices() {
 }
 
 
-addEventInvoiceButton.addEventListener(
+on(
+    "addEventInvoiceButton",
     "click",
     function () {
 
@@ -5179,30 +7235,39 @@ addEventInvoiceButton.addEventListener(
             return;
         }
 
-        eventSetupInvoices.push({
-            id:
-                Date.now(),
+        eventSetupInvoices.push(
+            {
 
-            date:
-                date,
+                id:
+                    Date.now(),
 
-            supplier:
-                supplier,
+                date:
+                    date,
 
-            invoice_number:
-                invoiceNumber,
+                supplier:
+                    supplier,
 
-            product:
-                product,
+                invoice_number:
+                    invoiceNumber,
 
-            quantity:
-                quantity,
+                product:
+                    product,
 
-            amount:
-                roundMoney(
-                    amount
-                )
-        });
+                quantity:
+                    quantity,
+
+                amount:
+                    roundMoney(
+                        amount
+                    )
+            }
+        );
+
+        eventInvoiceSupplierInput.value =
+            "";
+
+        eventInvoiceNumberInput.value =
+            "";
 
         eventInvoiceProductInput.value =
             "";
@@ -5213,20 +7278,16 @@ addEventInvoiceButton.addEventListener(
         eventInvoiceAmountInput.value =
             "";
 
-        eventInvoiceSupplierInput.value =
-            "";
-
-        eventInvoiceNumberInput.value =
-            "";
-
         renderEventSetupInvoices();
     }
 );
 
 
-eventStartSetupBackButton.addEventListener(
+on(
+    "eventStartSetupBackButton",
     "click",
     function () {
+
         showScreen(
             eventListScreen
         );
@@ -5234,48 +7295,44 @@ eventStartSetupBackButton.addEventListener(
 );
 
 
-eventStartSetupContinueButton.addEventListener(
+on(
+    "eventStartSetupContinueButton",
     "click",
     function () {
 
         const event =
             getCurrentEvent();
 
-        if (!event) {
+        if (
+            !event
+        ) {
+
             return;
         }
 
-        const cleanedInventory =
+        event.start_inventory =
             eventStartInventoryRows
                 .filter(
-                    function (item) {
+                    function (
+                        item
+                    ) {
 
                         return (
                             String(
                                 item.product_name ||
                                 ""
                             ).trim() !==
-                            "" &&
-
-                            Number.isInteger(
-                                Number(
-                                    item.quantity ||
-                                    0
-                                )
-                            ) &&
-
-                            Number(
-                                item.quantity ||
-                                0
-                            ) >=
-                            0
+                            ""
                         );
                     }
                 )
                 .map(
-                    function (item) {
+                    function (
+                        item
+                    ) {
 
                         return {
+
                             product_name:
                                 String(
                                     item.product_name
@@ -5290,12 +7347,12 @@ eventStartSetupContinueButton.addEventListener(
                     }
                 );
 
-        event.start_inventory =
-            cleanedInventory;
-
         event.invoices =
             eventSetupInvoices.map(
-                function (item) {
+                function (
+                    item
+                ) {
+
                     return {
                         ...item
                     };
@@ -5320,13 +7377,22 @@ eventStartSetupContinueButton.addEventListener(
 );
 
 
+// ============================================================
+// EVENT PRODUCTS
+// ============================================================
+
 function prepareEventProducts(
     event
 ) {
 
-    eventProductsTitle.textContent =
-        "Produkte erstellen · " +
-        event.name;
+    if (
+        eventProductsTitle
+    ) {
+
+        eventProductsTitle.textContent =
+            "Produkte & Preise · " +
+            event.name;
+    }
 
     renderEventProducts();
 }
@@ -5334,13 +7400,23 @@ function prepareEventProducts(
 
 function renderEventProducts() {
 
+    if (
+        !eventProductsList
+    ) {
+
+        return;
+    }
+
     const event =
         getCurrentEvent();
 
     eventProductsList.innerHTML =
         "";
 
-    if (!event) {
+    if (
+        !event
+    ) {
+
         return;
     }
 
@@ -5349,6 +7425,7 @@ function renderEventProducts() {
             event.products
         )
     ) {
+
         event.products =
             [];
     }
@@ -5358,17 +7435,20 @@ function renderEventProducts() {
         0
     ) {
 
-        eventProductsList.innerHTML = `
-            <div class="no-data">
-                Noch keine Produkte für diese Veranstaltung.
-            </div>
-        `;
+        eventProductsList.innerHTML =
+            `
+                <div class="no-data">
+                    Noch keine Produkte für diese Veranstaltung.
+                </div>
+            `;
 
         return;
     }
 
     event.products.forEach(
-        function (product) {
+        function (
+            product
+        ) {
 
             const row =
                 document.createElement(
@@ -5411,10 +7491,9 @@ function renderEventProducts() {
                     <button
                         type="button"
                         class="icon-action event-edit-product"
-                        data-product-id="${escapeHtml(
+                        data-product-id="${escapeAttribute(
                             product.id
                         )}"
-                        title="Bearbeiten"
                     >
                         ✏️
                     </button>
@@ -5422,10 +7501,9 @@ function renderEventProducts() {
                     <button
                         type="button"
                         class="icon-action delete event-delete-product"
-                        data-product-id="${escapeHtml(
+                        data-product-id="${escapeAttribute(
                             product.id
                         )}"
-                        title="Löschen"
                     >
                         🗑️
                     </button>
@@ -5439,12 +7517,14 @@ function renderEventProducts() {
         }
     );
 
-    document
+    eventProductsList
         .querySelectorAll(
             ".event-edit-product"
         )
         .forEach(
-            function (button) {
+            function (
+                button
+            ) {
 
                 button.addEventListener(
                     "click",
@@ -5458,12 +7538,14 @@ function renderEventProducts() {
             }
         );
 
-    document
+    eventProductsList
         .querySelectorAll(
             ".event-delete-product"
         )
         .forEach(
-            function (button) {
+            function (
+                button
+            ) {
 
                 button.addEventListener(
                     "click",
@@ -5472,13 +7554,19 @@ function renderEventProducts() {
                         const event =
                             getCurrentEvent();
 
-                        if (!event) {
+                        if (
+                            !event
+                        ) {
+
                             return;
                         }
 
                         const product =
                             event.products.find(
-                                function (item) {
+                                function (
+                                    item
+                                ) {
+
                                     return (
                                         item.id ===
                                         button.dataset.productId
@@ -5486,7 +7574,10 @@ function renderEventProducts() {
                                 }
                             );
 
-                        if (!product) {
+                        if (
+                            !product
+                        ) {
+
                             return;
                         }
 
@@ -5500,10 +7591,13 @@ function renderEventProducts() {
 
                             event.products =
                                 event.products.filter(
-                                    function (item) {
+                                    function (
+                                        item
+                                    ) {
+
                                         return (
                                             item.id !==
-                                            button.dataset.productId
+                                            product.id
                                         );
                                     }
                                 );
@@ -5521,9 +7615,11 @@ function renderEventProducts() {
 }
 
 
-addEventProductButton.addEventListener(
+on(
+    "addEventProductButton",
     "click",
     function () {
+
         openEventProductModal();
     }
 );
@@ -5533,6 +7629,17 @@ function openEventProductModal(
     productId = null
 ) {
 
+    const event =
+        getCurrentEvent();
+
+    if (
+        !eventProductModal ||
+        !event
+    ) {
+
+        return;
+    }
+
     eventProductEditingId =
         productId;
 
@@ -5540,16 +7647,11 @@ function openEventProductModal(
         productId
     ) {
 
-        const event =
-            getCurrentEvent();
-
-        if (!event) {
-            return;
-        }
-
         const product =
             event.products.find(
-                function (item) {
+                function (
+                    item
+                ) {
 
                     return (
                         item.id ===
@@ -5558,7 +7660,10 @@ function openEventProductModal(
                 }
             );
 
-        if (!product) {
+        if (
+            !product
+        ) {
+
             return;
         }
 
@@ -5600,17 +7705,17 @@ function openEventProductModal(
         "aria-hidden",
         "false"
     );
-
-    setTimeout(
-        function () {
-            eventProductNameInput.focus();
-        },
-        50
-    );
 }
 
 
 function closeEventProductModal() {
+
+    if (
+        !eventProductModal
+    ) {
+
+        return;
+    }
 
     eventProductModal.style.display =
         "none";
@@ -5625,40 +7730,32 @@ function closeEventProductModal() {
 }
 
 
-closeEventProductModalButton.addEventListener(
+on(
+    "closeEventProductModalButton",
     "click",
     closeEventProductModal
 );
 
-cancelEventProductButton.addEventListener(
+
+on(
+    "cancelEventProductButton",
     "click",
     closeEventProductModal
 );
 
 
-eventProductModal.addEventListener(
-    "click",
-    function (event) {
-
-        if (
-            event.target ===
-            eventProductModal
-        ) {
-
-            closeEventProductModal();
-        }
-    }
-);
-
-
-saveEventProductButton.addEventListener(
+on(
+    "saveEventProductButton",
     "click",
     function () {
 
         const event =
             getCurrentEvent();
 
-        if (!event) {
+        if (
+            !event
+        ) {
+
             return;
         }
 
@@ -5674,7 +7771,9 @@ saveEventProductButton.addEventListener(
             eventProductIconInput.value.trim() ||
             "🎪";
 
-        if (!name) {
+        if (
+            !name
+        ) {
 
             alert(
                 "Bitte einen Produktnamen eingeben."
@@ -5687,7 +7786,8 @@ saveEventProductButton.addEventListener(
             !Number.isFinite(
                 price
             ) ||
-            price < 0
+            price <
+            0
         ) {
 
             alert(
@@ -5703,7 +7803,10 @@ saveEventProductButton.addEventListener(
 
             const product =
                 event.products.find(
-                    function (item) {
+                    function (
+                        item
+                    ) {
+
                         return (
                             item.id ===
                             eventProductEditingId
@@ -5711,7 +7814,10 @@ saveEventProductButton.addEventListener(
                     }
                 );
 
-            if (!product) {
+            if (
+                !product
+            ) {
+
                 return;
             }
 
@@ -5728,23 +7834,26 @@ saveEventProductButton.addEventListener(
 
         } else {
 
-            event.products.push({
-                id:
-                    createId(
-                        "event-product"
-                    ),
+            event.products.push(
+                {
 
-                name:
-                    name,
+                    id:
+                        createId(
+                            "event-product"
+                        ),
 
-                price:
-                    roundMoney(
-                        price
-                    ),
+                    name:
+                        name,
 
-                icon:
-                    icon
-            });
+                    price:
+                        roundMoney(
+                            price
+                        ),
+
+                    icon:
+                        icon
+                }
+            );
         }
 
         updateCurrentEvent(
@@ -5758,9 +7867,11 @@ saveEventProductButton.addEventListener(
 );
 
 
-eventProductsBackButton.addEventListener(
+on(
+    "eventProductsBackButton",
     "click",
     function () {
+
         showScreen(
             eventListScreen
         );
@@ -5768,21 +7879,23 @@ eventProductsBackButton.addEventListener(
 );
 
 
-eventProductsContinueButton.addEventListener(
+on(
+    "eventProductsContinueButton",
     "click",
     function () {
 
         const event =
             getCurrentEvent();
 
-        if (!event) {
+        if (
+            !event
+        ) {
+
             return;
         }
 
         if (
-            !Array.isArray(
-                event.products
-            ) ||
+            !event.products ||
             event.products.length ===
             0
         ) {
@@ -5794,10 +7907,6 @@ eventProductsContinueButton.addEventListener(
             return;
         }
 
-        updateCurrentEvent(
-            event
-        );
-
         renderEventWorkspace();
 
         showScreen(
@@ -5807,34 +7916,51 @@ eventProductsContinueButton.addEventListener(
 );
 
 
+// ============================================================
+// EVENT WORKSPACE
+// ============================================================
+
 function renderEventWorkspace() {
 
     const event =
         getCurrentEvent();
 
-    if (!event) {
+    if (
+        !event
+    ) {
+
         return;
     }
 
-    eventWorkspaceName.textContent =
-        event.name;
+    setText(
+        "eventWorkspaceName",
+        event.name
+    );
 
-    eventWorkspaceDate.textContent =
+    setText(
+        "eventWorkspaceDate",
         formatEventDate(
             event.event_date
-        );
+        )
+    );
 
-    eventWorkspaceStudentOptions.hidden =
-        isCurrentTeacher();
+    setHidden(
+        "eventWorkspaceStudentOptions",
+        isCurrentTeacher()
+    );
 
-    eventWorkspaceTeacherOptions.hidden =
-        !isCurrentTeacher();
+    setHidden(
+        "eventWorkspaceTeacherOptions",
+        !isCurrentTeacher()
+    );
 }
 
 
-studentEventCashButton.addEventListener(
+on(
+    "studentEventCashButton",
     "click",
     function () {
+
         openEventCash(
             false
         );
@@ -5842,9 +7968,11 @@ studentEventCashButton.addEventListener(
 );
 
 
-studentEventOutputButton.addEventListener(
+on(
+    "studentEventOutputButton",
     "click",
     function () {
+
         openEventOutput(
             false
         );
@@ -5852,9 +7980,11 @@ studentEventOutputButton.addEventListener(
 );
 
 
-teacherEventCashButton.addEventListener(
+on(
+    "teacherEventCashButton",
     "click",
     function () {
+
         openEventCash(
             true
         );
@@ -5862,9 +7992,11 @@ teacherEventCashButton.addEventListener(
 );
 
 
-teacherEventOutputButton.addEventListener(
+on(
+    "teacherEventOutputButton",
     "click",
     function () {
+
         openEventOutput(
             true
         );
@@ -5872,13 +8004,31 @@ teacherEventOutputButton.addEventListener(
 );
 
 
-teacherEventEndInventoryButton.addEventListener(
+on(
+    "teacherEventEndInventoryButton",
     "click",
     function () {
+
         openEventEndInventory();
     }
 );
 
+
+on(
+    "eventWorkspaceBackButton",
+    "click",
+    function () {
+
+        showScreen(
+            eventListScreen
+        );
+    }
+);
+
+
+// ============================================================
+// EVENT CASH
+// ============================================================
 
 function openEventCash(
     testMode
@@ -5887,7 +8037,10 @@ function openEventCash(
     const event =
         getCurrentEvent();
 
-    if (!event) {
+    if (
+        !event
+    ) {
+
         return;
     }
 
@@ -5899,16 +8052,17 @@ function openEventCash(
     eventSaleCart =
         [];
 
-    eventReceivedAmount =
-        "";
-
-    eventCashTitle.textContent =
+    setText(
+        "eventCashTitle",
         testMode
             ? "Kasse · Testumgebung"
-            : "Kasse";
+            : "Kasse"
+    );
 
-    eventCashProductHeading.textContent =
-        event.name;
+    setText(
+        "eventCashProductHeading",
+        event.name
+    );
 
     renderEventCashProducts();
 
@@ -5921,32 +8075,14 @@ function openEventCash(
 }
 
 
-function openEventOutput(
-    testMode
-) {
+function renderEventCashProducts() {
 
-    const event =
-        getCurrentEvent();
+    if (
+        !eventCashProductsGrid
+    ) {
 
-    if (!event) {
         return;
     }
-
-    eventOutputTitle.textContent =
-        testMode
-            ? "Ausgabe · Testumgebung"
-            : "Ausgabe";
-
-    renderEventOutput();
-
-    showScreen(
-        eventOutputScreen,
-        eventWorkspaceScreen
-    );
-}
-
-
-function renderEventCashProducts() {
 
     const event =
         getCurrentEvent();
@@ -5960,11 +8096,14 @@ function renderEventCashProducts() {
             event.products
         )
     ) {
+
         return;
     }
 
     event.products.forEach(
-        function (product) {
+        function (
+            product
+        ) {
 
             const button =
                 document.createElement(
@@ -6000,6 +8139,7 @@ function renderEventCashProducts() {
             button.addEventListener(
                 "click",
                 function () {
+
                     addEventProductToCart(
                         product
                     );
@@ -6011,19 +8151,6 @@ function renderEventCashProducts() {
             );
         }
     );
-
-    if (
-        eventCashProductsGrid.children.length ===
-        0
-    ) {
-
-        eventCashProductsGrid.innerHTML =
-            `
-                <div class="coming-soon">
-                    Keine Produkte vorhanden.
-                </div>
-            `;
-    }
 }
 
 
@@ -6033,7 +8160,10 @@ function addEventProductToCart(
 
     const existing =
         eventSaleCart.find(
-            function (item) {
+            function (
+                item
+            ) {
+
                 return (
                     item.id ===
                     product.id
@@ -6041,7 +8171,9 @@ function addEventProductToCart(
             }
         );
 
-    if (existing) {
+    if (
+        existing
+    ) {
 
         existing.quantity +=
             1;
@@ -6050,6 +8182,7 @@ function addEventProductToCart(
 
         eventSaleCart.push(
             {
+
                 id:
                     product.id,
 
@@ -6062,10 +8195,7 @@ function addEventProductToCart(
                     ),
 
                 quantity:
-                    1,
-
-                icon:
-                    product.icon
+                    1
             }
         );
     }
@@ -6076,6 +8206,15 @@ function addEventProductToCart(
 
 function updateEventCart() {
 
+    if (
+        !eventCartItems ||
+        !eventCartTotal ||
+        !eventPayButton
+    ) {
+
+        return;
+    }
+
     eventCartItems.innerHTML =
         "";
 
@@ -6084,11 +8223,12 @@ function updateEventCart() {
         0
     ) {
 
-        eventCartItems.innerHTML = `
-            <div class="empty-cart">
-                Noch keine Produkte ausgewählt.
-            </div>
-        `;
+        eventCartItems.innerHTML =
+            `
+                <div class="empty-cart">
+                    Noch keine Produkte ausgewählt.
+                </div>
+            `;
 
         eventCartTotal.textContent =
             "0,00 €";
@@ -6114,6 +8254,7 @@ function updateEventCart() {
                 "cart-item";
 
             row.innerHTML = `
+
                 <div class="cart-product-info">
 
                     <span class="cart-product-name">
@@ -6135,7 +8276,7 @@ function updateEventCart() {
 
                     <button
                         type="button"
-                        class="cart-control minus event-cart-minus"
+                        class="cart-control event-minus"
                         data-index="${index}"
                     >
                         −
@@ -6147,7 +8288,7 @@ function updateEventCart() {
 
                     <button
                         type="button"
-                        class="cart-control plus event-cart-plus"
+                        class="cart-control event-plus"
                         data-index="${index}"
                     >
                         +
@@ -6170,12 +8311,14 @@ function updateEventCart() {
     eventPayButton.disabled =
         false;
 
-    document
+    eventCartItems
         .querySelectorAll(
-            ".event-cart-minus"
+            ".event-minus"
         )
         .forEach(
-            function (button) {
+            function (
+                button
+            ) {
 
                 button.addEventListener(
                     "click",
@@ -6191,6 +8334,7 @@ function updateEventCart() {
                                 index
                             ]
                         ) {
+
                             return;
                         }
 
@@ -6218,12 +8362,14 @@ function updateEventCart() {
             }
         );
 
-    document
+    eventCartItems
         .querySelectorAll(
-            ".event-cart-plus"
+            ".event-plus"
         )
         .forEach(
-            function (button) {
+            function (
+                button
+            ) {
 
                 button.addEventListener(
                     "click",
@@ -6239,6 +8385,7 @@ function updateEventCart() {
                                 index
                             ]
                         ) {
+
                             return;
                         }
 
@@ -6279,15 +8426,13 @@ function calculateEventCartTotal() {
 }
 
 
-eventCashBackButton.addEventListener(
+on(
+    "eventCashBackButton",
     "click",
     function () {
 
         eventSaleCart =
             [];
-
-        eventReceivedAmount =
-            "";
 
         showScreen(
             eventWorkspaceScreen
@@ -6296,7 +8441,8 @@ eventCashBackButton.addEventListener(
 );
 
 
-eventPayButton.addEventListener(
+on(
+    "eventPayButton",
     "click",
     function () {
 
@@ -6304,27 +8450,39 @@ eventPayButton.addEventListener(
             eventSaleCart.length ===
             0
         ) {
+
+            return;
+        }
+
+        const event =
+            getCurrentEvent();
+
+        if (
+            !event
+        ) {
+
             return;
         }
 
         const total =
             calculateEventCartTotal();
 
-        const receivedText =
+        const amountInput =
             window.prompt(
                 "Kunde gibt (Euro, z. B. 10,00):"
             );
 
         if (
-            receivedText ===
+            amountInput ===
             null
         ) {
+
             return;
         }
 
         const received =
             parseGermanNumber(
-                receivedText
+                amountInput
             );
 
         if (
@@ -6346,13 +8504,6 @@ eventPayButton.addEventListener(
             received -
             total;
 
-        const event =
-            getCurrentEvent();
-
-        if (!event) {
-            return;
-        }
-
         if (
             !currentEventSaleTestMode
         ) {
@@ -6369,6 +8520,7 @@ eventPayButton.addEventListener(
 
             event.sales.push(
                 {
+
                     id:
                         Date.now(),
 
@@ -6392,8 +8544,12 @@ eventPayButton.addEventListener(
 
                     items:
                         eventSaleCart.map(
-                            function (item) {
+                            function (
+                                item
+                            ) {
+
                                 return {
+
                                     id:
                                         item.id,
 
@@ -6420,21 +8576,24 @@ eventPayButton.addEventListener(
             );
         }
 
-        successTitle.textContent =
-            "Zahlung erfolgreich!";
+        setText(
+            "successTitle",
+            "Zahlung erfolgreich!"
+        );
 
-        successDescription.textContent =
+        setText(
+            "successDescription",
             currentEventSaleTestMode
                 ? "Veranstaltung · Testumgebung"
-                : "Veranstaltung · Verkauf gespeichert.";
+                : "Veranstaltung · Verkauf gespeichert."
+        );
 
-        successChange.textContent =
+        setText(
+            "successChange",
             formatPrice(
                 change
-            );
-
-        currentEventId =
-            event.id;
+            )
+        );
 
         currentSuccessContext =
             "event";
@@ -6446,33 +8605,48 @@ eventPayButton.addEventListener(
 );
 
 
-eventCashShiftEndButton.addEventListener(
+on(
+    "eventCashShiftEndButton",
     "click",
     function () {
+
         endEventShift();
     }
 );
 
 
-eventOutputBackButton.addEventListener(
-    "click",
-    function () {
-        showScreen(
-            eventWorkspaceScreen
-        );
-    }
-);
+// ============================================================
+// EVENT OUTPUT
+// ============================================================
 
+function openEventOutput(
+    testMode
+) {
 
-eventOutputShiftEndButton.addEventListener(
-    "click",
-    function () {
-        endEventShift();
-    }
-);
+    setText(
+        "eventOutputTitle",
+        testMode
+            ? "Ausgabe · Testumgebung"
+            : "Ausgabe"
+    );
+
+    renderEventOutput();
+
+    showScreen(
+        eventOutputScreen,
+        eventWorkspaceScreen
+    );
+}
 
 
 function renderEventOutput() {
+
+    if (
+        !eventOutputOrders
+    ) {
+
+        return;
+    }
 
     const event =
         getCurrentEvent();
@@ -6489,11 +8663,12 @@ function renderEventOutput() {
         0
     ) {
 
-        eventOutputOrders.innerHTML = `
-            <div class="no-data">
-                Noch keine bezahlten Bestellungen vorhanden.
-            </div>
-        `;
+        eventOutputOrders.innerHTML =
+            `
+                <div class="no-data">
+                    Noch keine bezahlten Bestellungen vorhanden.
+                </div>
+            `;
 
         return;
     }
@@ -6515,15 +8690,14 @@ function renderEventOutput() {
                 row.className =
                     "event-order-card";
 
-                const number =
-                    event.sales.length -
-                    index;
-
                 row.innerHTML = `
                     <div>
 
                         <strong>
-                            Bestellung ${number}
+                            Bestellung ${
+                                event.sales.length -
+                                index
+                            }
                         </strong>
 
                         <small>
@@ -6542,6 +8716,7 @@ function renderEventOutput() {
                                         function (
                                             item
                                         ) {
+
                                             return (
                                                 escapeHtml(
                                                     item.name
@@ -6572,16 +8747,41 @@ function renderEventOutput() {
 }
 
 
+on(
+    "eventOutputBackButton",
+    "click",
+    function () {
+
+        showScreen(
+            eventWorkspaceScreen
+        );
+    }
+);
+
+
+on(
+    "eventOutputShiftEndButton",
+    "click",
+    function () {
+
+        endEventShift();
+    }
+);
+
+
 function endEventShift() {
 
     const event =
         getCurrentEvent();
 
-    if (!event) {
+    if (
+        !event
+    ) {
+
         return;
     }
 
-    const salesForEvent =
+    const eventSales =
         Array.isArray(
             event.sales
         )
@@ -6589,10 +8789,10 @@ function endEventShift() {
             : [];
 
     const count =
-        salesForEvent.length;
+        eventSales.length;
 
     const revenue =
-        salesForEvent.reduce(
+        eventSales.reduce(
             function (
                 sum,
                 sale
@@ -6609,18 +8809,15 @@ function endEventShift() {
             0
         );
 
-    const isTest =
-        isCurrentTeacher();
-
     const text =
-        isTest
-            ? "Testumgebung: Ihr hattet " +
+        isCurrentTeacher()
+            ? "Testumgebung: Ihr habt " +
                 count +
-                " Verkäufe und " +
+                " Verkäufe gemacht und " +
                 formatPrice(
                     revenue
                 ) +
-                " Umsatz."
+                " Umsatz erzielt."
             : "Ihr habt " +
                 count +
                 " Verkäufe gemacht und " +
@@ -6633,40 +8830,49 @@ function endEventShift() {
         "🎉",
         "Well done heute, Team! 🎉",
         text,
-        isTest
+        isCurrentTeacher()
             ? "Zur Veranstaltung"
             : "Weiter zur Endinventur",
         function () {
 
             if (
-                isTest
+                isCurrentTeacher()
             ) {
 
                 showScreen(
                     eventWorkspaceScreen
                 );
 
-                return;
-            }
+            } else {
 
-            openEventEndInventory();
+                openEventEndInventory();
+            }
         }
     );
 }
 
+
+// ============================================================
+// EVENT END INVENTORY
+// ============================================================
 
 function openEventEndInventory() {
 
     const event =
         getCurrentEvent();
 
-    if (!event) {
+    if (
+        !event
+    ) {
+
         return;
     }
 
-    eventEndInventoryTitle.textContent =
+    setText(
+        "eventEndInventoryTitle",
         "Endinventur · " +
-        event.name;
+        event.name
+    );
 
     renderEventEndInventory();
 
@@ -6679,91 +8885,92 @@ function openEventEndInventory() {
 
 function renderEventEndInventory() {
 
+    if (
+        !eventEndInventoryList
+    ) {
+
+        return;
+    }
+
     const event =
         getCurrentEvent();
 
     eventEndInventoryList.innerHTML =
         "";
 
-    if (!event) {
+    if (
+        !event
+    ) {
+
         return;
     }
 
     const rows =
         [];
 
-    if (
-        Array.isArray(
-            event.products
-        ) &&
-        event.products.length >
-        0
-    ) {
+    (
+        event.products ||
+        []
+    ).forEach(
+        function (
+            product
+        ) {
 
-        event.products.forEach(
-            function (product) {
+            rows.push(
+                {
+
+                    name:
+                        product.name,
+
+                    icon:
+                        product.icon ||
+                        "🎪"
+                }
+            );
+        }
+    );
+
+    (
+        event.start_inventory ||
+        []
+    ).forEach(
+        function (
+            item
+        ) {
+
+            const exists =
+                rows.some(
+                    function (
+                        row
+                    ) {
+
+                        return (
+                            row.name.toLowerCase() ===
+                            String(
+                                item.product_name ||
+                                ""
+                            ).toLowerCase()
+                        );
+                    }
+                );
+
+            if (
+                !exists
+            ) {
 
                 rows.push(
                     {
-                        key:
-                            product.id,
 
                         name:
-                            product.name,
+                            item.product_name,
 
                         icon:
-                            product.icon
-                                || "🎪"
+                            "📦"
                     }
                 );
             }
-        );
-    }
-
-    if (
-        Array.isArray(
-            event.start_inventory
-        )
-    ) {
-
-        event.start_inventory.forEach(
-            function (item) {
-
-                const existing =
-                    rows.find(
-                        function (row) {
-
-                            return (
-                                row.name
-                                    .toLowerCase() ===
-                                String(
-                                    item.product_name ||
-                                    ""
-                                ).toLowerCase()
-                            );
-                        }
-                    );
-
-                if (!existing) {
-
-                    rows.push(
-                        {
-                            key:
-                                createId(
-                                    "stock"
-                                ),
-
-                            name:
-                                item.product_name,
-
-                            icon:
-                                "📦"
-                        }
-                    );
-                }
-            }
-        );
-    }
+        }
+    );
 
     if (
         rows.length ===
@@ -6771,20 +8978,28 @@ function renderEventEndInventory() {
     ) {
 
         eventEndInventoryList.innerHTML =
-            '<div class="no-data">Keine Produkte vorhanden.</div>';
+            `
+                <div class="no-data">
+                    Keine Produkte vorhanden.
+                </div>
+            `;
 
         return;
     }
 
     rows.forEach(
-        function (row) {
+        function (
+            row
+        ) {
 
             const previous =
                 (
                     event.end_inventory ||
                     []
                 ).find(
-                    function (item) {
+                    function (
+                        item
+                    ) {
 
                         return (
                             String(
@@ -6808,12 +9023,12 @@ function renderEventEndInventory() {
                 "inventory-count-row";
 
             card.innerHTML = `
+
                 <div class="inventory-count-product">
 
                     <span>
                         ${escapeHtml(
-                            row.icon ||
-                            "📦"
+                            row.icon
                         )}
                     </span>
 
@@ -6862,9 +9077,11 @@ function renderEventEndInventory() {
 }
 
 
-eventEndInventoryBackButton.addEventListener(
+on(
+    "eventEndInventoryBackButton",
     "click",
     function () {
+
         showScreen(
             eventWorkspaceScreen
         );
@@ -6872,14 +9089,19 @@ eventEndInventoryBackButton.addEventListener(
 );
 
 
-saveEventEndInventoryButton.addEventListener(
+on(
+    "saveEventEndInventoryButton",
     "click",
     function () {
 
         const event =
             getCurrentEvent();
 
-        if (!event) {
+        if (
+            !event ||
+            !eventEndInventoryList
+        ) {
+
             return;
         }
 
@@ -6895,21 +9117,21 @@ saveEventEndInventoryButton.addEventListener(
             false;
 
         inputs.forEach(
-            function (input) {
-
-                const value =
-                    input.value.trim();
+            function (
+                input
+            ) {
 
                 if (
-                    value ===
+                    input.value.trim() ===
                     ""
                 ) {
+
                     return;
                 }
 
                 const quantity =
                     Number(
-                        value
+                        input.value
                     );
 
                 if (
@@ -6928,6 +9150,7 @@ saveEventEndInventoryButton.addEventListener(
 
                 rows.push(
                     {
+
                         product_name:
                             input.dataset.productName,
 
@@ -6989,9 +9212,7 @@ saveEventEndInventoryButton.addEventListener(
         showSiteMessage(
             "✅",
             "Endinventur gespeichert",
-            "Die Endinventur für „" +
-                event.name +
-                "“ wurde gespeichert.",
+            "Die Endinventur wurde gespeichert.",
             "Weiter",
             function () {
 
@@ -7000,9 +9221,6 @@ saveEventEndInventoryButton.addEventListener(
 
                 eventSaleCart =
                     [];
-
-                eventReceivedAmount =
-                    "";
 
                 showScreen(
                     homeScreen
@@ -7013,15 +9231,9 @@ saveEventEndInventoryButton.addEventListener(
 );
 
 
-eventWorkspaceBackButton.addEventListener(
-    "click",
-    function () {
-        showScreen(
-            eventListScreen
-        );
-    }
-);
-
+// ============================================================
+// SITE POPUP
+// ============================================================
 
 function showSiteMessage(
     icon,
@@ -7031,23 +9243,54 @@ function showSiteMessage(
     callback
 ) {
 
-    siteMessageIcon.textContent =
-        icon;
+    if (
+        !siteMessageModal
+    ) {
 
-    siteMessageTitle.textContent =
-        title;
+        if (
+            callback
+        ) {
 
-    siteMessageText.textContent =
-        text;
+            callback();
+        }
 
-    siteMessagePrimaryButton.textContent =
-        buttonText;
+        return;
+    }
+
+    if (
+        siteMessageIcon
+    ) {
+
+        siteMessageIcon.textContent =
+            icon;
+    }
+
+    if (
+        siteMessageTitle
+    ) {
+
+        siteMessageTitle.textContent =
+            title;
+    }
+
+    if (
+        siteMessageText
+    ) {
+
+        siteMessageText.textContent =
+            text;
+    }
+
+    if (
+        siteMessagePrimaryButton
+    ) {
+
+        siteMessagePrimaryButton.textContent =
+            buttonText;
+    }
 
     siteMessageCallback =
-        typeof callback ===
-        "function"
-            ? callback
-            : null;
+        callback || null;
 
     siteMessageModal.style.display =
         "flex";
@@ -7059,9 +9302,23 @@ function showSiteMessage(
 }
 
 
-siteMessagePrimaryButton.addEventListener(
+on(
+    "siteMessagePrimaryButton",
     "click",
     function () {
+
+        if (
+            siteMessageModal
+        ) {
+
+            siteMessageModal.style.display =
+                "none";
+
+            siteMessageModal.setAttribute(
+                "aria-hidden",
+                "true"
+            );
+        }
 
         const callback =
             siteMessageCallback;
@@ -7069,175 +9326,28 @@ siteMessagePrimaryButton.addEventListener(
         siteMessageCallback =
             null;
 
-        siteMessageModal.style.display =
-            "none";
+        if (
+            callback
+        ) {
 
-        siteMessageModal.setAttribute(
-            "aria-hidden",
-            "true"
-        );
-
-        if (callback) {
             callback();
         }
     }
 );
 
 
-function getEventById(
-    eventId
-) {
-
-    return loadEvents().find(
-        function (event) {
-            return event.id ===
-                eventId;
-        }
-    ) || null;
-}
-
-
-function getCurrentEvent() {
-
-    if (
-        !currentEventId
-    ) {
-        return null;
-    }
-
-    return getEventById(
-        currentEventId
-    );
-}
-
-
-function updateCurrentEvent(
-    event
-) {
-
-    const events =
-        loadEvents();
-
-    const index =
-        events.findIndex(
-            function (item) {
-                return (
-                    item.id ===
-                    event.id
-                );
-            }
-        );
-
-    if (
-        index ===
-        -1
-    ) {
-
-        events.push(
-            event
-        );
-
-    } else {
-
-        events[
-            index
-        ] =
-            event;
-    }
-
-    saveEvents(
-        events
-    );
-}
-
-
-function setDefaultDates() {
-
-    const today =
-        getLocalDateKey(
-            new Date()
-        );
-
-    if (
-        !invoiceDateInput.value
-    ) {
-
-        invoiceDateInput.value =
-            today;
-    }
-
-    if (
-        !eventInvoiceDateInput.value
-    ) {
-
-        eventInvoiceDateInput.value =
-            today;
-    }
-
-    if (
-        !eventDateInput.value
-    ) {
-
-        eventDateInput.value =
-            today;
-    }
-}
-
-
-function createId(
-    prefix
-) {
-
-    const random =
-        Math.random()
-            .toString(36)
-            .slice(2, 9);
-
-    return (
-        prefix +
-        "-" +
-        Date.now() +
-        "-" +
-        random
-    );
-}
-
-
-function formatEventDate(
-    value
-) {
-
-    if (!value) {
-        return "";
-    }
-
-    const date =
-        new Date(
-            value +
-            "T12:00:00"
-        );
-
-    return date.toLocaleDateString(
-        "de-DE",
-        {
-            day:
-                "2-digit",
-
-            month:
-                "2-digit",
-
-            year:
-                "numeric"
-        }
-    );
-}
-
+// ============================================================
+// HELPERS
+// ============================================================
 
 function parseGermanNumber(
     value
 ) {
 
-    if (!value) {
+    if (
+        !value
+    ) {
+
         return 0;
     }
 
@@ -7308,6 +9418,30 @@ function roundMoney(
 }
 
 
+function getFullName(
+    person
+) {
+
+    if (
+        !person
+    ) {
+
+        return "";
+    }
+
+    return [
+        person.first_name,
+        person.last_name
+    ]
+        .filter(
+            Boolean
+        )
+        .join(
+            " "
+        );
+}
+
+
 function getLocalDateKey(
     date
 ) {
@@ -7341,20 +9475,150 @@ function getDateForFileName() {
 }
 
 
-function getFullName(
-    person
+function formatEventDate(
+    value
 ) {
 
-    if (!person) {
+    if (
+        !value
+    ) {
+
         return "";
     }
 
-    return [
-        person.first_name,
-        person.last_name
-    ]
-        .filter(Boolean)
-        .join(" ");
+    const date =
+        new Date(
+            value +
+            "T12:00:00"
+        );
+
+    return date.toLocaleDateString(
+        "de-DE",
+        {
+            day:
+                "2-digit",
+
+            month:
+                "2-digit",
+
+            year:
+                "numeric"
+        }
+    );
+}
+
+
+function setDefaultDates() {
+
+    const today =
+        getLocalDateKey(
+            new Date()
+        );
+
+    if (
+        invoiceDateInput &&
+        !invoiceDateInput.value
+    ) {
+
+        invoiceDateInput.value =
+            today;
+    }
+
+    if (
+        eventInvoiceDateInput &&
+        !eventInvoiceDateInput.value
+    ) {
+
+        eventInvoiceDateInput.value =
+            today;
+    }
+
+    if (
+        eventDateInput &&
+        !eventDateInput.value
+    ) {
+
+        eventDateInput.value =
+            today;
+    }
+}
+
+
+function createId(
+    prefix
+) {
+
+    return (
+        prefix +
+        "-" +
+        Date.now() +
+        "-" +
+        Math.random()
+            .toString(
+                36
+            )
+            .slice(
+                2,
+                8
+            )
+    );
+}
+
+
+function createProductId(
+    name
+) {
+
+    const base =
+        name
+            .toLowerCase()
+            .normalize(
+                "NFD"
+            )
+            .replace(
+                /[\u0300-\u036f]/g,
+                ""
+            )
+            .replace(
+                /[^a-z0-9]+/g,
+                "-"
+            )
+            .replace(
+                /^-+|-+$/g,
+                ""
+            ) ||
+        "produkt";
+
+    let id =
+        base;
+
+    let number =
+        2;
+
+    while (
+        products.some(
+            function (
+                product
+            ) {
+
+                return (
+                    product.id ===
+                    id
+                );
+            }
+        )
+    ) {
+
+        id =
+            base +
+            "-" +
+            number;
+
+        number +=
+            1;
+    }
+
+    return id;
 }
 
 
@@ -7363,7 +9627,8 @@ function escapeHtml(
 ) {
 
     return String(
-        value ?? ""
+        value ??
+        ""
     )
         .replaceAll(
             "&",
@@ -7398,6 +9663,6 @@ function escapeAttribute(
 }
 
 
-// ========================================
+// ============================================================
 // END
-// ========================================
+// ============================================================
