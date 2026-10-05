@@ -76,6 +76,14 @@ const adminButton = document.getElementById("adminButton");
 const reportsHomeButton = document.getElementById("reportsHomeButton");
 const eventButton = document.getElementById("eventButton");
 
+const studentHomeMenu = document.getElementById("studentHomeMenu");
+const teacherHomeMenu = document.getElementById("teacherHomeMenu");
+
+const teacherSaleButton = document.getElementById("teacherSaleButton");
+const teacherBakeryButton = document.getElementById("teacherBakeryButton");
+const teacherEventButton = document.getElementById("teacherEventButton");
+const teacherAdminButton = document.getElementById("teacherAdminButton");
+
 // ========================================
 // BÄCKEREI
 // ========================================
