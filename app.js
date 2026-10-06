@@ -1,802 +1,169 @@
 // ========================================
-// LAUTER MACHER
-// APP.JS — STABILISIERTE VERSION
-// ========================================
-
-
-// ========================================
-// SUPABASE AUTHENTIFIZIERUNG
+// LAUTER MACHER — APP.JS
+// Version de réparation stable
+// Compatible avec le index.html actuel
 // ========================================
 
 const SUPABASE_URL = "https://gsbkfrjhierqopkwpqjc.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzIiwicmVmIjoiZ3Nia2ZyamllcnFvcGt3cHFqYyIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzkwOTIyNzI4LCJleHAiOjIxMDY0OTg3Mjh9.BV5aYeAO2nE5SjiEOCs3GA1hwQpg0IJzEl5wizApUVU";
 
-const supabaseClient = window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_ANON_KEY
-);
+const SUPABASE_ANON_KEY =
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzIiwicmVmIjoiZ3Nia2ZyamllcnFvcGt3cHFqYyIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzkwOTIyNzI4LCJleHAiOjIxMDY0OTg3Mjh9.BV5aYeAO2nE5SjiEOCs3GA1hwQpg0IJzEl5wizApUVU";
 
-let currentPerson = null;
-let selectedLoginPerson = null;
-let currentReturnScreen = null;
-let saleTestMode = false;
+const supabaseClient =
+    window.supabase?.createClient
+        ? window.supabase.createClient(
+            SUPABASE_URL,
+            SUPABASE_ANON_KEY
+        )
+        : null;
+
+
+// ========================================
+// DOM HELPERS
+// ========================================
+
+const $ = (id) =>
+    document.getElementById(id);
+
+function on(element, event, handler) {
+    if (element) {
+        element.addEventListener(
+            event,
+            handler
+        );
+    }
+}
+
+function setText(element, value) {
+    if (element) {
+        element.textContent =
+            value ?? "";
+    }
+}
+
+function setHidden(element, value) {
+    if (element) {
+        element.hidden =
+            Boolean(value);
+    }
+}
 
 
 // ========================================
 // SCREENS
 // ========================================
 
-const identityScreen = document.getElementById("identityScreen");
-const pinLoginScreen = document.getElementById("pinLoginScreen");
-const homeScreen = document.getElementById("homeScreen");
-const saleScreen = document.getElementById("saleScreen");
-const paymentScreen = document.getElementById("paymentScreen");
-const successScreen = document.getElementById("successScreen");
-const bakeryMenuScreen = document.getElementById("bakeryMenuScreen");
-const eventMenuScreen = document.getElementById("eventMenuScreen");
-const adminScreen = document.getElementById("adminScreen");
-const reportsScreen = document.getElementById("reportsScreen");
-const inventoryScreen = document.getElementById("inventoryScreen");
-const inventoryCountScreen = document.getElementById("inventoryCountScreen");
-const productsScreen = document.getElementById("productsScreen");
-
-
-// ========================================
-// LOGIN
-// ========================================
-
-const peopleGrid = document.getElementById("peopleGrid");
-const identityError = document.getElementById("identityError");
-const selectedPersonName = document.getElementById("selectedPersonName");
-const loginPinInput = document.getElementById("loginPinInput");
-const pinLoginError = document.getElementById("pinLoginError");
-const loginBackButton = document.getElementById("loginBackButton");
-const loginConfirmButton = document.getElementById("loginConfirmButton");
-
-
-// ========================================
-// GLOBAL HEADER
-// ========================================
-
-const appHeader = document.getElementById("appHeader");
-const currentPersonName = document.getElementById("currentPersonName");
-const homeRoleLabel = document.getElementById("homeRoleLabel");
-const logoutButton = document.getElementById("logoutButton");
-const notificationButton = document.getElementById("notificationButton");
-const notificationCount = document.getElementById("notificationCount");
-
-
-// ========================================
-// HOME
-// ========================================
-
-const saleButton = document.getElementById("saleButton");
-const bakeryButton = document.getElementById("bakeryButton");
-const adminButton = document.getElementById("adminButton");
-const reportsHomeButton = document.getElementById("reportsHomeButton");
-const eventButton = document.getElementById("eventButton");
-
-const studentHomeMenu = document.getElementById("studentHomeMenu");
-const teacherHomeMenu = document.getElementById("teacherHomeMenu");
-
-const teacherSaleButton = document.getElementById("teacherSaleButton");
-const teacherBakeryButton = document.getElementById("teacherBakeryButton");
-const teacherEventButton = document.getElementById("teacherEventButton");
-const teacherAdminButton = document.getElementById("teacherAdminButton");
-
-// ========================================
-// BÄCKEREI
-// ========================================
-
-const bakeryBackButton = document.getElementById("bakeryBackButton");
-const bakeryCashButton = document.getElementById("bakeryCashButton");
-const bakeryServiceButton = document.getElementById("bakeryServiceButton");
-
-
-// ========================================
-// SONDERVERANSTALTUNG
-// ========================================
-
-const eventBackButton = document.getElementById("eventBackButton");
-const futureFunctionButtons = document.querySelectorAll(".future-function");
-
-
-// ========================================
-// SALE
-// ========================================
-
-const saleBackButton = document.getElementById("saleBackButton");
-const drinksGrid = document.getElementById("drinksGrid");
-const bakeryGrid = document.getElementById("bakeryGrid");
-const cartItems = document.getElementById("cartItems");
-const cartTotal = document.getElementById("cartTotal");
-const payButton = document.getElementById("payButton");
-
-
-// ========================================
-// PAYMENT
-// ========================================
-
-const paymentBackButton = document.getElementById("paymentBackButton");
-const paymentTotal = document.getElementById("paymentTotal");
-const amountReceived = document.getElementById("amountReceived");
-const changeAmount = document.getElementById("changeAmount");
-const paidButton = document.getElementById("paidButton");
-const paymentKeys = document.querySelectorAll(".payment-key");
-const deletePaymentButton = document.getElementById("deletePaymentButton");
-
-
-// ========================================
-// SUCCESS
-// ========================================
-
-const successChange = document.getElementById("successChange");
-const newOrderButton = document.getElementById("newOrderButton");
-const successHomeButton = document.getElementById("successHomeButton");
-
-
-// ========================================
-// BEARBEITEN
-// ========================================
-
-const adminBackButton = document.getElementById("adminBackButton");
-const productsButton = document.getElementById("productsButton");
-const inventoryButton = document.getElementById("inventoryButton");
-const editMenuTitle = document.getElementById("editMenuTitle");
-const editMenuDescription = document.getElementById("editMenuDescription");
-const inventoryMenuTitle = document.getElementById("inventoryMenuTitle");
-const inventoryMenuDescription = document.getElementById("inventoryMenuDescription");
-
-
-// ========================================
-// PRODUCTS
-// ========================================
-
-const productsBackButton = document.getElementById("productsBackButton");
-const adminProductsList = document.getElementById("adminProductsList");
-const addProductButton = document.getElementById("addProductButton");
-const productModal = document.getElementById("productModal");
-const closeProductModalButton = document.getElementById("closeProductModalButton");
-const cancelProductButton = document.getElementById("cancelProductButton");
-const saveProductButton = document.getElementById("saveProductButton");
-const productModalTitle = document.getElementById("productModalTitle");
-const productNameInput = document.getElementById("productNameInput");
-const productPriceInput = document.getElementById("productPriceInput");
-const productCategoryInput = document.getElementById("productCategoryInput");
-const productIconInput = document.getElementById("productIconInput");
-
-
-// ========================================
-// INVENTORY — TEACHER
-// ========================================
-
-const inventoryBackButton = document.getElementById("inventoryBackButton");
-const inventoryList = document.getElementById("inventoryList");
-const inventoryModal = document.getElementById("inventoryModal");
-const closeInventoryModalButton = document.getElementById("closeInventoryModalButton");
-const cancelInventoryButton = document.getElementById("cancelInventoryButton");
-const saveInventoryButton = document.getElementById("saveInventoryButton");
-const inventoryProductLabel = document.getElementById("inventoryProductLabel");
-const inventoryAmountInput = document.getElementById("inventoryAmountInput");
-
-
-// ========================================
-// INVENTUR — STUDENT
-// ========================================
-
-const inventoryCountBackButton = document.getElementById("inventoryCountBackButton");
-const inventoryCountList = document.getElementById("inventoryCountList");
-const submitInventoryButton = document.getElementById("submitInventoryButton");
-
-
-// ========================================
-// REPORTS
-// ========================================
-
-const reportsBackButton = document.getElementById("reportsBackButton");
-const periodTabs = document.querySelectorAll(".period-tab");
-const reportDateLabel = document.getElementById("reportDateLabel");
-const reportRevenue = document.getElementById("reportRevenue");
-const reportTransactions = document.getElementById("reportTransactions");
-const reportDrinks = document.getElementById("reportDrinks");
-const reportBakery = document.getElementById("reportBakery");
-const reportProducts = document.getElementById("reportProducts");
-const exportReportButton = document.getElementById("exportReportButton");
-const clearReportsButton = document.getElementById("clearReportsButton");
-
-
-// ========================================
-// VARIABLES / LOCAL DATA
-// ========================================
-
-let cart = [];
-let receivedAmount = "";
-let currentReportPeriod = "day";
-let editingProductId = null;
-let inventoryProductId = null;
-let productsSyncInProgress = false;
-
-const STORAGE_KEYS = {
-    products: "lauterMacher_products_v1",
-    sales: "lauterMacher_sales_v1",
-    inventory: "lauterMacher_inventory_v1",
-    inventorySubmissions: "lauterMacher_inventory_submissions_v1"
-};
-
-let products = loadProducts();
-let sales = loadSales();
-let inventory = loadInventory();
-
-
-// ========================================
-// INITIALISATION
-// ========================================
-
-document.addEventListener("DOMContentLoaded", async function () {
-    renderProducts();
-    updateCart();
-    updateInventoryMenus();
-    hideAppHeader();
-    showScreen(identityScreen);
-    await initialiseAuthentication();
-});
-
-
-// ========================================
-// AUTHENTICATION
-// ========================================
-
-async function initialiseAuthentication() {
-    try {
-        const { data: sessionData } = await supabaseClient.auth.getSession();
-
-        if (sessionData && sessionData.session) {
-            const restoredPerson = await loadCurrentPerson(sessionData.session);
-
-            if (restoredPerson) {
-                await applyLoggedInState(restoredPerson);
-                return;
-            }
-
-            await supabaseClient.auth.signOut();
-        }
-
-        await loadLoginPeople();
-    } catch (error) {
-        console.error("Authentifizierung konnte nicht initialisiert werden.", error);
-        identityError.textContent = "Die Anmeldung konnte nicht geladen werden.";
-        await loadLoginPeople();
-    }
-}
-
-
-async function loadLoginPeople() {
-    identityError.textContent = "";
-    peopleGrid.innerHTML = '<div class="login-loading">Personen werden geladen …</div>';
-
-    const { data, error } = await supabaseClient
-        .from("login_people")
-        .select("id, first_name, last_name, person_type")
-        .order("person_type")
-        .order("last_name")
-        .order("first_name");
-
-    if (error) {
-        console.error("Login-Personen konnten nicht geladen werden.", error);
-        peopleGrid.innerHTML = "";
-        identityError.textContent = "Personen konnten nicht geladen werden. Bitte Internetverbindung prüfen.";
-        return;
-    }
-
-    peopleGrid.innerHTML = "";
-
-    data.forEach(function (person) {
-        const button = document.createElement("button");
-        button.type = "button";
-        button.className = "person-login-card";
-
-        const fullName = [person.first_name, person.last_name]
-            .filter(Boolean)
-            .join(" ");
-
-        button.innerHTML = `
-            <span class="person-login-icon">${person.person_type === "lehrer" ? "👨‍🏫" : "👤"}</span>
-            <span class="person-login-name">${escapeHtml(fullName)}</span>
-            <span class="person-login-type">${person.person_type === "lehrer" ? "Lehrkraft" : "Schüler/in"}</span>
-        `;
-
-        button.addEventListener("click", function () {
-            selectLoginPerson(person);
-        });
-
-        peopleGrid.appendChild(button);
-    });
-
-    if (data.length === 0) {
-        identityError.textContent = "Keine aktiven Personen gefunden.";
-    }
-}
-
-
-function selectLoginPerson(person) {
-    selectedLoginPerson = person;
-    selectedPersonName.textContent = [person.first_name, person.last_name]
-        .filter(Boolean)
-        .join(" ");
-    loginPinInput.value = "";
-    pinLoginError.textContent = "";
-
-    showScreen(pinLoginScreen);
-    hideAppHeader();
-
-    setTimeout(function () {
-        loginPinInput.focus();
-    }, 50);
-}
-
-
-loginBackButton.addEventListener("click", function () {
-    selectedLoginPerson = null;
-    loginPinInput.value = "";
-    pinLoginError.textContent = "";
-    hideAppHeader();
-    showScreen(identityScreen);
-});
-
-
-loginPinInput.addEventListener("input", function () {
-    loginPinInput.value = loginPinInput.value
-        .replace(/[^0-9]/g, "")
-        .slice(0, 4);
-
-    pinLoginError.textContent = "";
-});
-
-
-loginPinInput.addEventListener("keydown", function (event) {
-    if (event.key === "Enter") {
-        loginConfirmButton.click();
-    }
-});
-
-
-loginConfirmButton.addEventListener("click", loginWithPin);
-
-
-async function loginWithPin() {
-    if (!selectedLoginPerson) {
-        return;
-    }
-
-    const pin = loginPinInput.value;
-
-    if (!/^[0-9]{4}$/.test(pin)) {
-        pinLoginError.textContent = "Bitte eine 4-stellige PIN eingeben.";
-        loginPinInput.focus();
-        return;
-    }
-
-    loginConfirmButton.disabled = true;
-    loginConfirmButton.textContent = "Anmeldung …";
-    pinLoginError.textContent = "";
-
-    try {
-        const { data, error } = await supabaseClient.functions.invoke(
-            "login-with-pin",
-            {
-                body: {
-                    person_id: selectedLoginPerson.id,
-                    pin: pin
-                }
-            }
-        );
-
-        if (error) {
-            throw error;
-        }
-
-        if (!data || !data.success || !data.token_hash || !data.verification_type) {
-            throw new Error("Ungültige Antwort vom Login-Service.");
-        }
-
-        const { data: otpData, error: otpError } = await supabaseClient.auth.verifyOtp({
-            token_hash: data.token_hash,
-            type: data.verification_type
-        });
-
-        if (otpError) {
-            throw otpError;
-        }
-
-        const person = await loadCurrentPerson(otpData.session);
-
-        if (!person) {
-            throw new Error("Person konnte nach der Anmeldung nicht geladen werden.");
-        }
-
-        await applyLoggedInState(person);
-    } catch (error) {
-        console.error("Login fehlgeschlagen.", error);
-        pinLoginError.textContent = "Falsche PIN oder Anmeldung nicht möglich.";
-        loginPinInput.value = "";
-        loginPinInput.focus();
-    } finally {
-        loginConfirmButton.disabled = false;
-        loginConfirmButton.textContent = "Einloggen";
-    }
-}
-
-
-async function loadCurrentPerson(session) {
-    if (!session || !session.user) {
-        return null;
-    }
-
-    const { data, error } = await supabaseClient
-        .from("people")
-        .select("id, first_name, last_name, person_type, active")
-        .eq("auth_user_id", session.user.id)
-        .eq("active", true)
-        .single();
-
-    if (error) {
-        console.error("Aktuelle Person konnte nicht geladen werden.", error);
-        return null;
-    }
-
-    return data;
-}
-
-
-async function applyLoggedInState(person) {
-    currentPerson = person;
-    selectedLoginPerson = null;
-
-    currentPersonName.textContent = [person.first_name, person.last_name]
-        .filter(Boolean)
-        .join(" ");
-
-    updateHomeForPerson();
-    updateInventoryMenus();
-    updateNotificationBadge();
-    await refreshProductsFromSupabase();
-    showAppHeader();
-    showScreen(homeScreen);
-}
-
-
-logoutButton.addEventListener("click", async function () {
-    try {
-        await supabaseClient.auth.signOut();
-    } catch (error) {
-        console.error("Abmeldung fehlgeschlagen.", error);
-    }
-
-    currentPerson = null;
-    selectedLoginPerson = null;
-    resetSale();
-    currentPersonName.textContent = "-";
-    hideAppHeader();
-    showScreen(identityScreen);
-    await loadLoginPeople();
-});
-
-
-supabaseClient.auth.onAuthStateChange(function (_event, session) {
-    if (!session && currentPerson) {
-        currentPerson = null;
-        hideAppHeader();
-        showScreen(identityScreen);
-    }
-});
-
-
-// ========================================
-// HEADER
-// ========================================
-
-function showAppHeader() {
-    appHeader.classList.add("visible");
-}
-
-
-function hideAppHeader() {
-    appHeader.classList.remove("visible");
-}
-
-
-function updateHomeForPerson() {
-    const isTeacher = isCurrentTeacher();
-
-    homeRoleLabel.textContent = isTeacher ? "Lehrkraft" : "Schüler/in";
-    studentHomeMenu.hidden = isTeacher;
-    teacherHomeMenu.hidden = !isTeacher;
-    reportsHomeButton.hidden = false;
-}
-
-
-function isCurrentTeacher() {
-    return Boolean(
-        currentPerson &&
-        currentPerson.person_type === "lehrer"
+const screens =
+    Array.from(
+        document.querySelectorAll(
+            ".screen"
+        )
     );
-}
+
+const identityScreen =
+    $("identityScreen");
+
+const pinLoginScreen =
+    $("pinLoginScreen");
+
+const homeScreen =
+    $("homeScreen");
+
+const saleScreen =
+    $("saleScreen");
+
+const paymentScreen =
+    $("paymentScreen");
+
+const successScreen =
+    $("successScreen");
+
+const bakeryMenuScreen =
+    $("bakeryMenuScreen");
+
+const bakeryCashScreen =
+    $("bakeryCashScreen");
+
+const bakeryOutputScreen =
+    $("bakeryOutputScreen");
+
+const adminScreen =
+    $("adminScreen");
+
+const inventoryScreen =
+    $("inventoryScreen");
+
+const inventoryCountScreen =
+    $("inventoryCountScreen");
+
+const inventoryInvoicesScreen =
+    $("inventoryInvoicesScreen");
+
+const productsScreen =
+    $("productsScreen");
+
+const reportsScreen =
+    $("reportsScreen");
+
+const eventListScreen =
+    $("eventListScreen");
+
+const eventCreateScreen =
+    $("eventCreateScreen");
+
+const eventStartSetupScreen =
+    $("eventStartSetupScreen");
+
+const eventProductsScreen =
+    $("eventProductsScreen");
+
+const eventWorkspaceScreen =
+    $("eventWorkspaceScreen");
+
+const eventCashScreen =
+    $("eventCashScreen");
+
+const eventOutputScreen =
+    $("eventOutputScreen");
+
+const eventEndInventoryScreen =
+    $("eventEndInventoryScreen");
 
 
-function updateInventoryMenus() {
-    const isTeacher = isCurrentTeacher();
-
-    if (isTeacher) {
-        editMenuTitle.textContent = "Bearbeiten";
-        editMenuDescription.textContent = "Produkte, Preise und Inventar verwalten.";
-        inventoryMenuTitle.textContent = "Inventar";
-        inventoryMenuDescription.textContent = "Bestand verwalten";
-    } else {
-        editMenuTitle.textContent = "Bearbeiten";
-        editMenuDescription.textContent = "Produkte und Preise selbstständig bearbeiten.";
-        inventoryMenuTitle.textContent = "Inventur";
-        inventoryMenuDescription.textContent = "Bestand zählen und an den Professor senden";
-    }
-}
+let currentReturnScreen =
+    homeScreen;
 
 
-function updateNotificationBadge() {
-    if (!isCurrentTeacher()) {
-        notificationCount.hidden = true;
-        notificationCount.textContent = "0";
-        return;
-    }
-
-    const submissions = loadInventorySubmissions();
-    const pendingCount = submissions.length;
-
-    if (pendingCount > 0) {
-        notificationCount.hidden = false;
-        notificationCount.textContent = String(pendingCount);
-    } else {
-        notificationCount.hidden = true;
-        notificationCount.textContent = "0";
-    }
-}
-
-
-notificationButton.addEventListener("click", function () {
-    // Die Glocke bleibt bewusst ohne Meldungstext.
-    // Das echte Benachrichtigungssystem folgt später.
-});
-
-
-// ========================================
-// SUPABASE — PRODUCTS
-// ========================================
-
-function mapDbCategoryToAppCategory(category) {
-    if (category === "getränke" || category === "drink") {
-        return "drink";
-    }
-
-    if (category === "bäckerei" || category === "bakery") {
-        return "bakery";
-    }
-
-    return category;
-}
-
-
-function mapAppCategoryToDbCategory(category) {
-    if (category === "drink" || category === "getränke") {
-        return "getränke";
-    }
-
-    if (category === "bakery" || category === "bäckerei") {
-        return "bäckerei";
-    }
-
-    return category;
-}
-
-
-function mapDbProductToAppProduct(product) {
-    return {
-        id: String(product.id),
-        name: String(product.name || ""),
-        price: Number(product.price || 0),
-        category: mapDbCategoryToAppCategory(product.category),
-        icon: String(product.icon || "🥤"),
-        active: product.active !== false
-    };
-}
-
-
-async function refreshProductsFromSupabase() {
-    if (!currentPerson || productsSyncInProgress) {
-        return false;
-    }
-
-    productsSyncInProgress = true;
-
-    try {
-        const { data, error } = await supabaseClient
-            .from("products")
-            .select("id, name, price, category, icon, active, created_at")
-            .eq("active", true)
-            .order("created_at", { ascending: true })
-            .order("name", { ascending: true });
-
-        if (error) {
-            throw error;
-        }
-
-        products = (data || []).map(mapDbProductToAppProduct);
-        saveProducts();
-        renderProducts();
-
-        if (
-            productsScreen &&
-            productsScreen.classList.contains("screen-visible")
-        ) {
-            renderAdminProducts();
-        }
-
-        return true;
-    } catch (error) {
-        console.error(
-            "Produkte konnten nicht aus Supabase geladen werden.",
-            error
-        );
-        return false;
-    } finally {
-        productsSyncInProgress = false;
-    }
-}
-
-
-// ========================================
-// LOCAL STORAGE — PRODUCTS
-// ========================================
-
-function loadProducts() {
-    try {
-        const saved = localStorage.getItem(STORAGE_KEYS.products);
-
-        if (saved) {
-            const parsed = JSON.parse(saved);
-
-            if (Array.isArray(parsed)) {
-                return parsed;
-            }
-        }
-    } catch (error) {
-        console.error("Produkte konnten nicht geladen werden.", error);
-    }
-
-    return PRODUCTS.map(function (product) {
-        return { ...product };
-    });
-}
-
-
-function saveProducts() {
-    localStorage.setItem(
-        STORAGE_KEYS.products,
-        JSON.stringify(products)
-    );
-}
-
-
-// ========================================
-// LOCAL STORAGE — SALES
-// ========================================
-
-function loadSales() {
-    try {
-        const saved = localStorage.getItem(STORAGE_KEYS.sales);
-
-        if (saved) {
-            const parsed = JSON.parse(saved);
-
-            if (Array.isArray(parsed)) {
-                return parsed;
-            }
-        }
-    } catch (error) {
-        console.error("Verkaufsdaten konnten nicht geladen werden.", error);
-    }
-
-    return [];
-}
-
-
-function saveSales() {
-    localStorage.setItem(
-        STORAGE_KEYS.sales,
-        JSON.stringify(sales)
-    );
-}
-
-
-// ========================================
-// LOCAL STORAGE — INVENTORY
-// ========================================
-
-function loadInventory() {
-    try {
-        const saved = localStorage.getItem(STORAGE_KEYS.inventory);
-
-        if (saved) {
-            const parsed = JSON.parse(saved);
-
-            if (parsed && typeof parsed === "object") {
-                return parsed;
-            }
-        }
-    } catch (error) {
-        console.error("Inventar konnte nicht geladen werden.", error);
-    }
-
-    return {};
-}
-
-
-function saveInventory() {
-    localStorage.setItem(
-        STORAGE_KEYS.inventory,
-        JSON.stringify(inventory)
-    );
-}
-
-
-// ========================================
-// LOCAL STORAGE — INVENTURMELDUNGEN
-// ========================================
-
-function loadInventorySubmissions() {
-    try {
-        const saved = localStorage.getItem(
-            STORAGE_KEYS.inventorySubmissions
-        );
-
-        const parsed = saved ? JSON.parse(saved) : [];
-
-        return Array.isArray(parsed) ? parsed : [];
-    } catch (error) {
-        console.error(
-            "Inventurmeldungen konnten nicht geladen werden.",
-            error
-        );
-        return [];
-    }
-}
-
-
-function saveInventorySubmissions(submissions) {
-    localStorage.setItem(
-        STORAGE_KEYS.inventorySubmissions,
-        JSON.stringify(submissions)
-    );
-}
-
-
-// ========================================
-// SCREEN NAVIGATION
-// ========================================
-
-function showScreen(screen, returnScreen = null) {
+function showScreen(
+    screen,
+    returnScreen = homeScreen
+) {
     if (!screen) {
         return;
     }
 
+    screens.forEach(
+        function (item) {
+            item.style.display =
+                "none";
+
+            item.classList.remove(
+                "screen-visible"
+            );
+        }
+    );
+
+    screen.style.display =
+        "block";
+
+    screen.classList.add(
+        "screen-visible"
+    );
+
     if (returnScreen) {
-        currentReturnScreen = returnScreen;
+        currentReturnScreen =
+            returnScreen;
     }
-
-    document.querySelectorAll(".screen").forEach(function (item) {
-        item.classList.remove("screen-visible");
-        item.style.display = "none";
-    });
-
-    screen.style.display = "block";
-    screen.classList.add("screen-visible");
 
     window.scrollTo({
         top: 0,
@@ -806,797 +173,2527 @@ function showScreen(screen, returnScreen = null) {
 
 
 // ========================================
+// HEADER / LOGIN
+// ========================================
+
+const appHeader =
+    $("appHeader");
+
+const currentPersonName =
+    $("currentPersonName");
+
+const notificationButton =
+    $("notificationButton");
+
+const notificationCount =
+    $("notificationCount");
+
+const logoutButton =
+    $("logoutButton");
+
+const peopleGrid =
+    $("peopleGrid");
+
+const identityError =
+    $("identityError");
+
+const selectedPersonName =
+    $("selectedPersonName");
+
+const loginPinInput =
+    $("loginPinInput");
+
+const pinLoginError =
+    $("pinLoginError");
+
+const loginBackButton =
+    $("loginBackButton");
+
+const loginConfirmButton =
+    $("loginConfirmButton");
+
+const studentHomeMenu =
+    $("studentHomeMenu");
+
+const teacherHomeMenu =
+    $("teacherHomeMenu");
+
+const homeRoleLabel =
+    $("homeRoleLabel");
+
+
+let currentPerson =
+    null;
+
+let selectedLoginPerson =
+    null;
+
+
+// ========================================
+// HOME
+// ========================================
+
+const saleButton =
+    $("saleButton");
+
+const teacherSaleButton =
+    $("teacherSaleButton");
+
+const bakeryButton =
+    $("bakeryButton");
+
+const teacherBakeryButton =
+    $("teacherBakeryButton");
+
+const adminButton =
+    $("adminButton");
+
+const teacherAdminButton =
+    $("teacherAdminButton");
+
+const reportsHomeButton =
+    $("reportsHomeButton");
+
+const eventButton =
+    $("eventButton");
+
+const teacherEventButton =
+    $("teacherEventButton");
+
+
+function isTeacher() {
+    return (
+        currentPerson &&
+        currentPerson.person_type ===
+            "lehrer"
+    );
+}
+
+
+function showHeader() {
+    if (appHeader) {
+        appHeader.classList.add(
+            "visible"
+        );
+    }
+}
+
+
+function hideHeader() {
+    if (appHeader) {
+        appHeader.classList.remove(
+            "visible"
+        );
+    }
+}
+
+
+function updateHome() {
+    const teacher =
+        isTeacher();
+
+    setText(
+        homeRoleLabel,
+        teacher
+            ? "Lehrkraft"
+            : ""
+    );
+
+    setHidden(
+        studentHomeMenu,
+        teacher
+    );
+
+    setHidden(
+        teacherHomeMenu,
+        !teacher
+    );
+
+    setHidden(
+        reportsHomeButton,
+        !teacher
+    );
+}
+
+
+function updateNotificationBadge() {
+    if (!isTeacher()) {
+        setHidden(
+            notificationCount,
+            true
+        );
+
+        return;
+    }
+
+    const count =
+        inventorySubmissions.length;
+
+    setText(
+        notificationCount,
+        count
+    );
+
+    setHidden(
+        notificationCount,
+        count === 0
+    );
+}
+
+
+// ========================================
+// LOCAL STORAGE
+// ========================================
+
+const KEYS = {
+    products:
+        "lauterMacher_products_v1",
+
+    sales:
+        "lauterMacher_sales_v1",
+
+    inventory:
+        "lauterMacher_inventory_v1",
+
+    submissions:
+        "lauterMacher_inventory_submissions_v1"
+};
+
+
+function load(
+    key,
+    fallback
+) {
+    try {
+        const value =
+            localStorage.getItem(
+                key
+            );
+
+        if (value === null) {
+            return fallback;
+        }
+
+        return JSON.parse(value);
+
+    } catch (error) {
+        console.error(
+            "LocalStorage konnte nicht geladen werden:",
+            key,
+            error
+        );
+
+        return fallback;
+    }
+}
+
+
+function save(
+    key,
+    value
+) {
+    try {
+        localStorage.setItem(
+            key,
+            JSON.stringify(value)
+        );
+    } catch (error) {
+        console.error(
+            "LocalStorage konnte nicht gespeichert werden:",
+            key,
+            error
+        );
+    }
+}
+
+
+// ========================================
+// FALLBACK PRODUKTE
+// ========================================
+
+const DEFAULT_PRODUCTS = [
+
+    {
+        id: "wasser",
+        name: "Wasser",
+        price: 1,
+        category: "drink",
+        icon: "💧",
+        active: true
+    },
+
+    {
+        id: "apfelsaft",
+        name: "Apfelsaft",
+        price: 1.5,
+        category: "drink",
+        icon: "🧃",
+        active: true
+    },
+
+    {
+        id: "capri-sun",
+        name: "Capri-Sun",
+        price: 1.5,
+        category: "drink",
+        icon: "🧃",
+        active: true
+    },
+
+    {
+        id: "fake-cola",
+        name: "Fake Cola",
+        price: 1.5,
+        category: "drink",
+        icon: "🥤",
+        active: true
+    },
+
+    {
+        id: "fake-fanta",
+        name: "Fake Fanta",
+        price: 1.5,
+        category: "drink",
+        icon: "🥤",
+        active: true
+    },
+
+    {
+        id: "fake-sprite",
+        name: "Fake Sprite",
+        price: 1.5,
+        category: "drink",
+        icon: "🥤",
+        active: true
+    },
+
+    {
+        id: "isodrink",
+        name: "Isodrink",
+        price: 2,
+        category: "drink",
+        icon: "⚡",
+        active: true
+    }
+
+];
+
+
+let products =
+    load(
+        KEYS.products,
+        DEFAULT_PRODUCTS
+    );
+
+
+let sales =
+    load(
+        KEYS.sales,
+        []
+    );
+
+
+let inventory =
+    load(
+        KEYS.inventory,
+        {}
+    );
+
+
+let inventorySubmissions =
+    load(
+        KEYS.submissions,
+        []
+    );
+
+
+// ========================================
+// PRODUCTS — CATEGORY HELPERS
+// ========================================
+
+function appCategory(
+    category
+) {
+    if (
+        category ===
+            "getränke"
+    ) {
+        return "drink";
+    }
+
+    if (
+        category ===
+            "bäckerei"
+    ) {
+        return "bakery";
+    }
+
+    return category;
+}
+
+
+function dbCategory(
+    category
+) {
+    if (
+        category ===
+            "drink"
+    ) {
+        return "getränke";
+    }
+
+    if (
+        category ===
+            "bakery"
+    ) {
+        return "bäckerei";
+    }
+
+    return category;
+}
+
+
+function mapProduct(
+    product
+) {
+    return {
+        id:
+            String(
+                product.id
+            ),
+
+        name:
+            String(
+                product.name ||
+                    ""
+            ),
+
+        price:
+            Number(
+                product.price ||
+                    0
+            ),
+
+        category:
+            appCategory(
+                product.category
+            ),
+
+        icon:
+            String(
+                product.icon ||
+                    "🥤"
+            ),
+
+        active:
+            product.active !==
+            false
+    };
+}
+
+
+// ========================================
+// SUPABASE — PRODUCTS
+// ========================================
+
+async function syncProducts() {
+
+    if (
+        !supabaseClient ||
+        !currentPerson
+    ) {
+        return false;
+    }
+
+    try {
+
+        const {
+            data,
+            error
+        } =
+            await supabaseClient
+                .from(
+                    "products"
+                )
+                .select(
+                    "id,name,price,category,icon,active,created_at"
+                )
+                .eq(
+                    "active",
+                    true
+                )
+                .order(
+                    "created_at",
+                    {
+                        ascending:
+                            true
+                    }
+                )
+                .order(
+                    "name",
+                    {
+                        ascending:
+                            true
+                    }
+                );
+
+        if (error) {
+            throw error;
+        }
+
+        products =
+            (
+                data || []
+            ).map(
+                mapProduct
+            );
+
+        save(
+            KEYS.products,
+            products
+        );
+
+        renderProducts();
+
+        if (
+            productsScreen &&
+            productsScreen.classList.contains(
+                "screen-visible"
+            )
+        ) {
+            renderAdminProducts();
+        }
+
+        return true;
+
+    } catch (error) {
+
+        console.error(
+            "Produkte konnten nicht synchronisiert werden.",
+            error
+        );
+
+        return false;
+    }
+}
+
+
+// ========================================
+// LOGIN — PERSONEN LADEN
+// ========================================
+
+async function loadPeople() {
+
+    if (!supabaseClient) {
+
+        setText(
+            identityError,
+            "Supabase konnte nicht geladen werden. Bitte die Seite neu laden."
+        );
+
+        return;
+    }
+
+    setText(
+        identityError,
+        ""
+    );
+
+    if (peopleGrid) {
+        peopleGrid.innerHTML =
+            `
+                <div class="login-loading">
+                    Personen werden geladen …
+                </div>
+            `;
+    }
+
+    const {
+        data,
+        error
+    } =
+        await supabaseClient
+            .from(
+                "login_people"
+            )
+            .select(
+                "id,first_name,last_name,person_type"
+            )
+            .order(
+                "person_type"
+            )
+            .order(
+                "last_name"
+            )
+            .order(
+                "first_name"
+            );
+
+    if (error) {
+
+        console.error(
+            "Login-Personen konnten nicht geladen werden.",
+            error
+        );
+
+        if (peopleGrid) {
+            peopleGrid.innerHTML =
+                "";
+        }
+
+        setText(
+            identityError,
+            "Personen konnten nicht geladen werden. Bitte erneut versuchen."
+        );
+
+        return;
+    }
+
+    renderPeople(
+        data || []
+    );
+}
+
+
+function renderPeople(
+    people
+) {
+
+    if (!peopleGrid) {
+        return;
+    }
+
+    peopleGrid.innerHTML =
+        "";
+
+    people.forEach(
+        function (person) {
+
+            const button =
+                document.createElement(
+                    "button"
+                );
+
+            button.type =
+                "button";
+
+            button.className =
+                "person-login-card";
+
+            const fullName =
+                [
+                    person.first_name,
+                    person.last_name
+                ]
+                    .filter(Boolean)
+                    .join(" ");
+
+            button.innerHTML = `
+                <span class="person-login-icon">
+                    ${
+                        person.person_type ===
+                        "lehrer"
+                            ? "👨‍🏫"
+                            : "👤"
+                    }
+                </span>
+
+                <span class="person-login-name">
+                    ${escapeHtml(fullName)}
+                </span>
+
+                <span class="person-login-type">
+                    ${
+                        person.person_type ===
+                        "lehrer"
+                            ? "Lehrkraft"
+                            : "Schüler/in"
+                    }
+                </span>
+            `;
+
+            on(
+                button,
+                "click",
+                function () {
+                    selectLoginPerson(
+                        person
+                    );
+                }
+            );
+
+            peopleGrid.appendChild(
+                button
+            );
+        }
+    );
+
+    if (
+        people.length ===
+        0
+    ) {
+        setText(
+            identityError,
+            "Keine aktiven Personen gefunden."
+        );
+    }
+}
+
+
+function selectLoginPerson(
+    person
+) {
+
+    selectedLoginPerson =
+        person;
+
+    setText(
+        selectedPersonName,
+        [
+            person.first_name,
+            person.last_name
+        ]
+            .filter(Boolean)
+            .join(" ")
+    );
+
+    if (loginPinInput) {
+        loginPinInput.value =
+            "";
+    }
+
+    setText(
+        pinLoginError,
+        ""
+    );
+
+    hideHeader();
+
+    showScreen(
+        pinLoginScreen
+    );
+
+    setTimeout(
+        function () {
+
+            if (
+                loginPinInput
+            ) {
+                loginPinInput.focus();
+            }
+
+        },
+        50
+    );
+}
+
+
+// ========================================
+// LOGIN — PIN
+// ========================================
+
+on(
+    loginBackButton,
+    "click",
+    function () {
+
+        selectedLoginPerson =
+            null;
+
+        if (loginPinInput) {
+            loginPinInput.value =
+                "";
+        }
+
+        setText(
+            pinLoginError,
+            ""
+        );
+
+        hideHeader();
+
+        showScreen(
+            identityScreen
+        );
+    }
+);
+
+
+on(
+    loginPinInput,
+    "input",
+    function () {
+
+        loginPinInput.value =
+            loginPinInput.value
+                .replace(
+                    /[^0-9]/g,
+                    ""
+                )
+                .slice(
+                    0,
+                    4
+                );
+
+        setText(
+            pinLoginError,
+            ""
+        );
+    }
+);
+
+
+on(
+    loginPinInput,
+    "keydown",
+    function (event) {
+
+        if (
+            event.key ===
+            "Enter"
+        ) {
+
+            if (
+                loginConfirmButton
+            ) {
+                loginConfirmButton.click();
+            }
+        }
+    }
+);
+
+
+on(
+    loginConfirmButton,
+    "click",
+    loginWithPin
+);
+
+
+async function loginWithPin() {
+
+    if (
+        !selectedLoginPerson ||
+        !supabaseClient
+    ) {
+        return;
+    }
+
+    const pin =
+        loginPinInput
+            ? loginPinInput.value
+            : "";
+
+    if (
+        !/^[0-9]{4}$/.test(
+            pin
+        )
+    ) {
+
+        setText(
+            pinLoginError,
+            "Bitte eine 4-stellige PIN eingeben."
+        );
+
+        return;
+    }
+
+    loginConfirmButton.disabled =
+        true;
+
+    setText(
+        loginConfirmButton,
+        "Anmeldung …"
+    );
+
+    try {
+
+        const {
+            data,
+            error
+        } =
+            await supabaseClient
+                .functions
+                .invoke(
+                    "login-with-pin",
+                    {
+                        body: {
+                            person_id:
+                                selectedLoginPerson.id,
+                            pin:
+                                pin
+                        }
+                    }
+                );
+
+        if (error) {
+            throw error;
+        }
+
+        if (
+            !data ||
+            !data.success ||
+            !data.token_hash ||
+            !data.verification_type
+        ) {
+            throw new Error(
+                "Ungültige Antwort vom Login-Service."
+            );
+        }
+
+        const {
+            data:
+                otpData,
+            error:
+                otpError
+        } =
+            await supabaseClient
+                .auth
+                .verifyOtp(
+                    {
+                        token_hash:
+                            data.token_hash,
+
+                        type:
+                            data.verification_type
+                    }
+                );
+
+        if (otpError) {
+            throw otpError;
+        }
+
+        const person =
+            await loadCurrentPerson(
+                otpData.session
+            );
+
+        if (!person) {
+            throw new Error(
+                "Person konnte nicht geladen werden."
+            );
+        }
+
+        await setLoggedIn(
+            person
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Login fehlgeschlagen.",
+            error
+        );
+
+        setText(
+            pinLoginError,
+            "Falsche PIN oder Anmeldung nicht möglich."
+        );
+
+        if (loginPinInput) {
+            loginPinInput.value =
+                "";
+
+            loginPinInput.focus();
+        }
+
+    } finally {
+
+        loginConfirmButton.disabled =
+            false;
+
+        setText(
+            loginConfirmButton,
+            "Einloggen"
+        );
+    }
+}
+
+
+async function loadCurrentPerson(
+    session
+) {
+
+    if (
+        !session ||
+        !session.user ||
+        !supabaseClient
+    ) {
+        return null;
+    }
+
+    const {
+        data,
+        error
+    } =
+        await supabaseClient
+            .from(
+                "people"
+            )
+            .select(
+                "id,first_name,last_name,person_type,active"
+            )
+            .eq(
+                "auth_user_id",
+                session.user.id
+            )
+            .eq(
+                "active",
+                true
+            )
+            .single();
+
+    if (error) {
+        console.error(
+            "Aktuelle Person konnte nicht geladen werden.",
+            error
+        );
+
+        return null;
+    }
+
+    return data;
+}
+
+
+async function setLoggedIn(
+    person
+) {
+
+    currentPerson =
+        person;
+
+    selectedLoginPerson =
+        null;
+
+    setText(
+        currentPersonName,
+        [
+            person.first_name,
+            person.last_name
+        ]
+            .filter(Boolean)
+            .join(" ")
+    );
+
+    sessionSalesCount =
+        0;
+
+    sessionRevenue =
+        0;
+
+    updateHome();
+
+    updateInventoryMenus();
+
+    updateNotificationBadge();
+
+    await syncProducts();
+
+    showHeader();
+
+    showScreen(
+        homeScreen
+    );
+}
+
+
+// ========================================
+// LOGOUT
+// ========================================
+
+on(
+    logoutButton,
+    "click",
+    async function () {
+
+        try {
+
+            if (
+                supabaseClient
+            ) {
+                await supabaseClient
+                    .auth
+                    .signOut();
+            }
+
+        } catch (error) {
+
+            console.error(
+                "Abmeldung fehlgeschlagen.",
+                error
+            );
+        }
+
+        currentPerson =
+            null;
+
+        selectedLoginPerson =
+            null;
+
+        resetSale();
+
+        setText(
+            currentPersonName,
+            "-"
+        );
+
+        hideHeader();
+
+        showScreen(
+            identityScreen
+        );
+
+        await loadPeople();
+    }
+);
+
+
+if (
+    supabaseClient
+) {
+
+    supabaseClient
+        .auth
+        .onAuthStateChange(
+            function (
+                _event,
+                session
+            ) {
+
+                if (
+                    !session &&
+                    currentPerson
+                ) {
+
+                    currentPerson =
+                        null;
+
+                    hideHeader();
+
+                    showScreen(
+                        identityScreen
+                    );
+
+                    loadPeople();
+                }
+            }
+        );
+}
+
+
+// ========================================
 // HOME NAVIGATION
 // ========================================
 
-async function openSaleScreen() {
-    saleTestMode = isCurrentTeacher();
-    await refreshProductsFromSupabase();
+on(
+    saleButton,
+    "click",
+    function () {
+        openSale(
+            false
+        );
+    }
+);
+
+
+on(
+    teacherSaleButton,
+    "click",
+    function () {
+        openSale(
+            true
+        );
+    }
+);
+
+
+async function openSale(
+    testMode
+) {
+
+    saleTestMode =
+        Boolean(
+            testMode
+        );
+
+    await syncProducts();
+
     resetSale();
-    showScreen(saleScreen, homeScreen);
+
+    saleTestMode =
+        Boolean(
+            testMode
+        );
+
+    showScreen(
+        saleScreen,
+        homeScreen
+    );
 }
 
 
-function openBakeryMenu() {
-    showScreen(bakeryMenuScreen, homeScreen);
-}
+on(
+    bakeryButton,
+    "click",
+    function () {
+        showScreen(
+            bakeryMenuScreen,
+            homeScreen
+        );
+    }
+);
 
 
-function openEventMenu() {
-    showScreen(eventMenuScreen, homeScreen);
-}
+on(
+    teacherBakeryButton,
+    "click",
+    function () {
+        showScreen(
+            bakeryMenuScreen,
+            homeScreen
+        );
+    }
+);
+
+
+on(
+    adminButton,
+    "click",
+    function () {
+        openEditMenu();
+    }
+);
+
+
+on(
+    teacherAdminButton,
+    "click",
+    function () {
+        openEditMenu();
+    }
+);
 
 
 function openEditMenu() {
     updateInventoryMenus();
-    showScreen(adminScreen, homeScreen);
+
+    showScreen(
+        adminScreen,
+        homeScreen
+    );
 }
 
 
-saleButton.addEventListener("click", openSaleScreen);
-teacherSaleButton.addEventListener("click", openSaleScreen);
+on(
+    reportsHomeButton,
+    "click",
+    function () {
 
-bakeryButton.addEventListener("click", openBakeryMenu);
-teacherBakeryButton.addEventListener("click", openBakeryMenu);
+        if (!isTeacher()) {
+            return;
+        }
 
-eventButton.addEventListener("click", openEventMenu);
-teacherEventButton.addEventListener("click", openEventMenu);
+        currentReportPeriod =
+            "day";
 
-adminButton.addEventListener("click", openEditMenu);
-teacherAdminButton.addEventListener("click", openEditMenu);
+        updatePeriodTabs();
 
+        renderReport();
 
-reportsHomeButton.addEventListener("click", function () {
-    if (!isCurrentTeacher()) {
-        return;
+        showScreen(
+            reportsScreen,
+            homeScreen
+        );
     }
-
-    currentReportPeriod = "day";
-    updatePeriodTabs();
-    renderReport();
-    showScreen(reportsScreen, homeScreen);
-});
+);
 
 
 // ========================================
-// BÄCKEREI NAVIGATION
+// BÄCKEREI
+// Noch unverändert
 // ========================================
 
-bakeryBackButton.addEventListener("click", function () {
-    showScreen(homeScreen);
-});
+on(
+    bakeryBackButton,
+    "click",
+    function () {
+        showScreen(
+            homeScreen
+        );
+    }
+);
 
 
-bakeryCashButton.addEventListener("click", function () {
-    alert("Die Bäckerei-Kasse wird noch gemeinsam festgelegt.");
-});
+on(
+    bakeryCashButton,
+    "click",
+    function () {
+        showScreen(
+            bakeryCashScreen,
+            bakeryMenuScreen
+        );
+    }
+);
 
 
-bakeryServiceButton.addEventListener("click", function () {
-    alert("Die Bäckerei-Ausgabe wird noch gemeinsam festgelegt.");
-});
+on(
+    bakeryServiceButton,
+    "click",
+    function () {
+        showScreen(
+            bakeryOutputScreen,
+            bakeryMenuScreen
+        );
+    }
+);
+
+
+on(
+    $("bakeryCashBackButton"),
+    "click",
+    function () {
+        showScreen(
+            bakeryMenuScreen
+        );
+    }
+);
+
+
+on(
+    $("bakeryOutputBackButton"),
+    "click",
+    function () {
+        showScreen(
+            bakeryMenuScreen
+        );
+    }
+);
+
+
+on(
+    $("bakeryCashShiftEndButton"),
+    "click",
+    function () {
+        openCompletionModal();
+    }
+);
+
+
+on(
+    $("bakeryOutputShiftEndButton"),
+    "click",
+    function () {
+        openCompletionModal();
+    }
+);
 
 
 // ========================================
-// SONDERVERANSTALTUNG NAVIGATION
-// ========================================
-
-eventBackButton.addEventListener("click", function () {
-    showScreen(homeScreen);
-});
-
-
-futureFunctionButtons.forEach(function (button) {
-    button.addEventListener("click", function () {
-        alert("Diese Funktion wird noch gemeinsam festgelegt.");
-    });
-});
-
-
-// ========================================
-// SALE — RENDER PRODUCTS
+// GETRÄNKE — PRODUKTE
 // ========================================
 
 function renderProducts() {
-    drinksGrid.innerHTML = "";
-    bakeryGrid.innerHTML = "";
 
-    products
-        .filter(function (product) {
-            return product.category === "drink";
-        })
-        .forEach(function (product) {
-            drinksGrid.appendChild(
-                createProductButton(product)
+    const grid =
+        $("drinksGrid");
+
+    if (!grid) {
+        return;
+    }
+
+    grid.innerHTML =
+        "";
+
+    const drinks =
+        products.filter(
+            function (product) {
+                return (
+                    product.category ===
+                        "drink" &&
+                    product.active !==
+                        false
+                );
+            }
+        );
+
+    drinks.forEach(
+        function (product) {
+
+            const button =
+                document.createElement(
+                    "button"
+                );
+
+            button.type =
+                "button";
+
+            button.className =
+                "product-card";
+
+            button.innerHTML = `
+                <span class="product-icon">
+                    ${escapeHtml(product.icon)}
+                </span>
+
+                <span class="product-name">
+                    ${escapeHtml(product.name)}
+                </span>
+
+                <span class="product-price">
+                    ${formatPrice(product.price)}
+                </span>
+            `;
+
+            on(
+                button,
+                "click",
+                function () {
+                    addToCart(
+                        product
+                    );
+                }
             );
-        });
 
-    products
-        .filter(function (product) {
-            return product.category === "bakery";
-        })
-        .forEach(function (product) {
-            bakeryGrid.appendChild(
-                createProductButton(product)
+            grid.appendChild(
+                button
             );
-        });
+        }
+    );
 
-    if (bakeryGrid.children.length === 0) {
-        bakeryGrid.innerHTML = `
-            <div class="coming-soon">
-                Weitere Produkte folgen.
-            </div>
-        `;
+    if (
+        drinks.length === 0
+    ) {
+
+        grid.innerHTML =
+            `
+                <div class="coming-soon">
+                    Keine Getränke vorhanden.
+                </div>
+            `;
     }
 }
 
 
-function createProductButton(product) {
-    const button = document.createElement("button");
-
-    button.type = "button";
-    button.className = "product-card";
-    button.dataset.productId = product.id;
-
-    button.innerHTML = `
-        <span class="product-icon">
-            ${escapeHtml(product.icon)}
-        </span>
-
-        <span class="product-name">
-            ${escapeHtml(product.name)}
-        </span>
-
-        <span class="product-price">
-            ${formatPrice(product.price)}
-        </span>
-    `;
-
-    button.addEventListener("click", function () {
-        addToCart(product);
-    });
-
-    return button;
-}
-
-
 // ========================================
-// CART
+// WARENKORB
 // ========================================
 
-function addToCart(product) {
-    const existingProduct = cart.find(function (item) {
-        return item.id === product.id;
-    });
+let cart = [];
 
-    if (existingProduct) {
-        existingProduct.quantity += 1;
+function addToCart(
+    product
+) {
+
+    const existing =
+        cart.find(
+            function (item) {
+                return (
+                    item.id ===
+                    product.id
+                );
+            }
+        );
+
+    if (existing) {
+
+        existing.quantity +=
+            1;
+
     } else {
-        cart.push({
-            id: product.id,
-            name: product.name,
-            price: Number(product.price),
-            category: product.category,
-            quantity: 1
-        });
+
+        cart.push(
+            {
+                id:
+                    product.id,
+
+                name:
+                    product.name,
+
+                price:
+                    Number(
+                        product.price
+                    ),
+
+                category:
+                    product.category,
+
+                quantity:
+                    1
+            }
+        );
     }
 
     updateCart();
 }
 
 
-function updateCart() {
-    cartItems.innerHTML = "";
+function calculateCartTotal() {
 
-    if (cart.length === 0) {
-        cartItems.innerHTML = `
-            <div class="empty-cart">
-                Noch keine Produkte ausgewählt.
-            </div>
-        `;
-
-        cartTotal.textContent = "0,00 €";
-        payButton.disabled = true;
-        return;
-    }
-
-    cart.forEach(function (product, index) {
-        const item = document.createElement("div");
-
-        item.className = "cart-item";
-
-        const total =
-            Number(product.price) *
-            Number(product.quantity);
-
-        item.innerHTML = `
-            <div class="cart-product-info">
-                <span class="cart-product-name">
-                    ${escapeHtml(product.name)}
-                </span>
-
-                <span class="cart-product-price">
-                    ${formatPrice(total)}
-                </span>
-            </div>
-
-            <div class="cart-controls">
-                <button
-                    type="button"
-                    class="cart-control minus"
-                    data-index="${index}"
-                >
-                    −
-                </button>
-
-                <span class="cart-quantity">
-                    ${product.quantity}
-                </span>
-
-                <button
-                    type="button"
-                    class="cart-control plus"
-                    data-index="${index}"
-                >
-                    +
-                </button>
-            </div>
-        `;
-
-        cartItems.appendChild(item);
-    });
-
-    cartTotal.textContent = formatPrice(
-        calculateTotal()
-    );
-
-    payButton.disabled = false;
-
-    attachCartEvents();
-}
-
-
-function attachCartEvents() {
-    document
-        .querySelectorAll(".cart-control.minus")
-        .forEach(function (button) {
-            button.addEventListener("click", function () {
-                const index =
-                    Number(button.dataset.index);
-
-                if (!cart[index]) {
-                    return;
-                }
-
-                cart[index].quantity -= 1;
-
-                if (cart[index].quantity <= 0) {
-                    cart.splice(index, 1);
-                }
-
-                updateCart();
-            });
-        });
-
-    document
-        .querySelectorAll(".cart-control.plus")
-        .forEach(function (button) {
-            button.addEventListener("click", function () {
-                const index =
-                    Number(button.dataset.index);
-
-                if (!cart[index]) {
-                    return;
-                }
-
-                cart[index].quantity += 1;
-
-                updateCart();
-            });
-        });
-}
-
-
-function calculateTotal() {
     return cart.reduce(
-        function (total, product) {
+        function (
+            totalValue,
+            item
+        ) {
+
             return (
-                total +
-                Number(product.price) *
-                Number(product.quantity)
+                totalValue +
+                Number(
+                    item.price
+                ) *
+                    Number(
+                        item.quantity
+                    )
             );
+
         },
         0
     );
 }
 
 
-saleBackButton.addEventListener("click", function () {
-    resetSale();
-    showScreen(homeScreen);
-});
+function updateCart() {
 
+    const box =
+        $("cartItems");
 
-// ========================================
-// PAYMENT
-// ========================================
-
-payButton.addEventListener("click", function () {
-    if (cart.length === 0) {
+    if (!box) {
         return;
     }
 
-    paymentTotal.textContent =
-        formatPrice(calculateTotal());
-
-    receivedAmount = "";
-
-    updatePaymentDisplay();
-
-    showScreen(
-        paymentScreen,
-        saleScreen
-    );
-});
-
-
-paymentBackButton.addEventListener("click", function () {
-    receivedAmount = "";
-
-    showScreen(saleScreen);
-});
-
-
-paymentKeys.forEach(function (button) {
-    button.addEventListener("click", function () {
-        const value =
-            button.textContent.trim();
-
-        if (value === ",") {
-            addDecimal();
-            return;
-        }
-
-        if (receivedAmount === "0") {
-            receivedAmount = "";
-        }
-
-        if (
-            receivedAmount.includes(",") &&
-            receivedAmount.split(",")[1].length >= 2
-        ) {
-            return;
-        }
-
-        receivedAmount += value;
-
-        updatePaymentDisplay();
-    });
-});
-
-
-function addDecimal() {
-    if (receivedAmount === "") {
-        receivedAmount = "0";
-    }
-
-    if (!receivedAmount.includes(",")) {
-        receivedAmount += ",";
-    }
-
-    updatePaymentDisplay();
-}
-
-
-deletePaymentButton.addEventListener("click", function () {
-    receivedAmount =
-        receivedAmount.slice(0, -1);
-
-    updatePaymentDisplay();
-});
-
-
-function updatePaymentDisplay() {
-    let displayValue =
-        receivedAmount;
+    box.innerHTML =
+        "";
 
     if (
-        displayValue === "" ||
-        displayValue === ","
+        cart.length ===
+        0
     ) {
-        displayValue = "0,00";
-    }
 
-    amountReceived.textContent =
-        displayValue + " €";
+        box.innerHTML =
+            `
+                <div class="empty-cart">
+                    Noch keine Produkte ausgewählt.
+                </div>
+            `;
 
-    calculateChange();
-}
-
-
-function calculateChange() {
-    const total =
-        calculateTotal();
-
-    const received =
-        parseGermanNumber(
-            receivedAmount
+        setText(
+            $("cartTotal"),
+            "0,00 €"
         );
 
-    const change =
-        received - total;
-
-    if (receivedAmount === "") {
-        changeAmount.textContent =
-            "0,00 €";
-
-        paidButton.disabled = true;
-        return;
-    }
-
-    if (change < 0) {
-        changeAmount.textContent =
-            "Noch " +
-            formatPrice(
-                Math.abs(change)
-            );
-
-        paidButton.disabled = true;
-        return;
-    }
-
-    changeAmount.textContent =
-        formatPrice(change);
-
-    paidButton.disabled = false;
-}
-
-
-paidButton.addEventListener("click", function () {
-    const total =
-        calculateTotal();
-
-    const received =
-        parseGermanNumber(
-            receivedAmount
-        );
-
-    if (received < total) {
-        return;
-    }
-
-    const change =
-        received - total;
-
-    saveSale(
-        total,
-        received,
-        change
-    );
-
-    successChange.textContent =
-        formatPrice(change);
-
-    showScreen(successScreen);
-});
-
-
-function saveSale(
-    total,
-    received,
-    change
-) {
-    const saleItems =
-        cart.map(function (item) {
-            return {
-                id: item.id,
-                name: item.name,
-                price: Number(item.price),
-                category: item.category,
-                quantity: Number(item.quantity)
-            };
-        });
-
-    if (saleTestMode) {
-        return;
-    }
-
-    const sale = {
-        id: Date.now(),
-        date: new Date().toISOString(),
-        total: roundMoney(total),
-        received: roundMoney(received),
-        change: roundMoney(change),
-        items: saleItems
-    };
-
-    sales.push(sale);
-
-    saveSales();
-
-    saleItems.forEach(function (item) {
-        if (item.category !== "drink") {
-            return;
+        if (
+            $("payButton")
+        ) {
+            $("payButton")
+                .disabled =
+                true;
         }
 
-        const stock =
-            Number(
-                inventory[item.id] || 0
+        return;
+    }
+
+    cart.forEach(
+        function (
+            item,
+            index
+        ) {
+
+            const row =
+                document.createElement(
+                    "div"
+                );
+
+            row.className =
+                "cart-item";
+
+            row.innerHTML = `
+                <div class="cart-product-info">
+                    <span class="cart-product-name">
+                        ${escapeHtml(item.name)}
+                    </span>
+
+                    <span class="cart-product-price">
+                        ${formatPrice(
+                            item.price *
+                                item.quantity
+                        )}
+                    </span>
+                </div>
+
+                <div class="cart-controls">
+                    <button
+                        type="button"
+                        class="cart-control minus"
+                        data-index="${index}"
+                    >
+                        −
+                    </button>
+
+                    <span class="cart-quantity">
+                        ${item.quantity}
+                    </span>
+
+                    <button
+                        type="button"
+                        class="cart-control plus"
+                        data-index="${index}"
+                    >
+                        +
+                    </button>
+                </div>
+            `;
+
+            box.appendChild(
+                row
             );
-
-        inventory[item.id] =
-            stock - item.quantity;
-    });
-
-    saveInventory();
-}
-
-
-newOrderButton.addEventListener("click", function () {
-    resetSale();
-
-    showScreen(
-        saleScreen,
-        homeScreen
+        }
     );
-});
 
+    setText(
+        $("cartTotal"),
+        formatPrice(
+            calculateCartTotal()
+        )
+    );
 
-successHomeButton.addEventListener("click", function () {
-    resetSale();
+    $("payButton").disabled =
+        false;
 
-    showScreen(homeScreen);
-});
+    box.querySelectorAll(
+        ".cart-control.minus"
+    ).forEach(
+        function (button) {
+
+            on(
+                button,
+                "click",
+                function () {
+
+                    const index =
+                        Number(
+                            button.dataset
+                                .index
+                        );
+
+                    if (
+                        !cart[index]
+                    ) {
+                        return;
+                    }
+
+                    cart[index]
+                        .quantity -=
+                        1;
+
+                    if (
+                        cart[index]
+                            .quantity <=
+                        0
+                    ) {
+
+                        cart.splice(
+                            index,
+                            1
+                        );
+                    }
+
+                    updateCart();
+                }
+            );
+        }
+    );
+
+    box.querySelectorAll(
+        ".cart-control.plus"
+    ).forEach(
+        function (button) {
+
+            on(
+                button,
+                "click",
+                function () {
+
+                    const index =
+                        Number(
+                            button.dataset
+                                .index
+                        );
+
+                    if (
+                        !cart[index]
+                    ) {
+                        return;
+                    }
+
+                    cart[index]
+                        .quantity +=
+                        1;
+
+                    updateCart();
+                }
+            );
+        }
+    );
+}
 
 
 function resetSale() {
-    cart = [];
-    receivedAmount = "";
-    saleTestMode = false;
+
+    cart =
+        [];
+
+    receivedAmount =
+        "";
+
+    sessionSalesCount =
+        0;
+
+    sessionRevenue =
+        0;
 
     updateCart();
 }
 
 
 // ========================================
-// BEARBEITEN
+// PAYMENT
 // ========================================
 
-adminBackButton.addEventListener("click", function () {
-    showScreen(homeScreen);
-});
+let receivedAmount =
+    "";
+
+let sessionSalesCount =
+    0;
+
+let sessionRevenue =
+    0;
+
+let saleTestMode =
+    false;
 
 
-productsButton.addEventListener("click", async function () {
-    await refreshProductsFromSupabase();
-
-    renderAdminProducts();
-
-    showScreen(
-        productsScreen,
-        adminScreen
-    );
-});
-
-
-inventoryButton.addEventListener("click", function () {
-    if (isCurrentTeacher()) {
-        renderInventory();
-
+on(
+    $("saleBackButton"),
+    "click",
+    function () {
+        resetSale();
         showScreen(
-            inventoryScreen,
-            adminScreen
+            homeScreen
+        );
+    }
+);
+
+
+on(
+    $("payButton"),
+    "click",
+    function () {
+
+        if (
+            cart.length ===
+            0
+        ) {
+            return;
+        }
+
+        setText(
+            $("paymentTotal"),
+            formatPrice(
+                calculateCartTotal()
+            )
         );
 
-        return;
+        receivedAmount =
+            "";
+
+        updatePayment();
+
+        showScreen(
+            paymentScreen,
+            saleScreen
+        );
     }
+);
 
-    renderInventoryCount();
 
-    showScreen(
-        inventoryCountScreen,
-        adminScreen
+on(
+    $("paymentBackButton"),
+    "click",
+    function () {
+
+        receivedAmount =
+            "";
+
+        showScreen(
+            saleScreen
+        );
+    }
+);
+
+
+document
+    .querySelectorAll(
+        ".payment-key"
+    )
+    .forEach(
+        function (button) {
+
+            on(
+                button,
+                "click",
+                function () {
+
+                    const value =
+                        button.textContent
+                            .trim();
+
+                    if (
+                        value ===
+                        ","
+                    ) {
+
+                        if (
+                            receivedAmount ===
+                            ""
+                        ) {
+                            receivedAmount =
+                                "0";
+                        }
+
+                        if (
+                            !receivedAmount.includes(
+                                ","
+                            )
+                        ) {
+                            receivedAmount +=
+                                ",";
+                        }
+
+                    } else {
+
+                        if (
+                            receivedAmount ===
+                            "0"
+                        ) {
+                            receivedAmount =
+                                "";
+                        }
+
+                        if (
+                            receivedAmount.includes(
+                                ","
+                            ) &&
+                            receivedAmount
+                                .split(
+                                    ","
+                                )[1]
+                                .length >=
+                                2
+                        ) {
+                            return;
+                        }
+
+                        receivedAmount +=
+                            value;
+                    }
+
+                    updatePayment();
+                }
+            );
+        }
     );
-});
 
 
-// ========================================
-// PRODUCTS — DISPLAY
-// ========================================
+on(
+    $("deletePaymentButton"),
+    "click",
+    function () {
 
-function renderAdminProducts() {
-    adminProductsList.innerHTML = "";
+        receivedAmount =
+            receivedAmount.slice(
+                0,
+                -1
+            );
 
-    if (products.length === 0) {
-        adminProductsList.innerHTML = `
-            <div class="no-data">
-                Keine Produkte vorhanden.
-            </div>
-        `;
+        updatePayment();
+    }
+);
+
+
+function updatePayment() {
+
+    setText(
+        $("amountReceived"),
+        (
+            receivedAmount ||
+            "0,00"
+        ) +
+            " €"
+    );
+
+    const total =
+        calculateCartTotal();
+
+    const received =
+        parseGermanNumber(
+            receivedAmount
+        );
+
+    const change =
+        received -
+        total;
+
+    if (
+        receivedAmount ===
+        ""
+    ) {
+
+        setText(
+            $("changeAmount"),
+            "0,00 €"
+        );
+
+        $("paidButton")
+            .disabled =
+            true;
 
         return;
     }
 
-    products.forEach(function (product) {
-        const row =
-            document.createElement("div");
+    if (
+        change <
+        0
+    ) {
 
-        row.className =
-            "admin-product-row";
+        setText(
+            $("changeAmount"),
+            "Noch " +
+                formatPrice(
+                    Math.abs(
+                        change
+                    )
+                )
+        );
 
-        const categoryLabel =
-            product.category === "drink"
-                ? "Getränk"
-                : "Bäckerei";
+        $("paidButton")
+            .disabled =
+            true;
 
-        row.innerHTML = `
-            <div class="admin-product-icon">
-                ${escapeHtml(product.icon)}
-            </div>
+        return;
+    }
 
-            <div class="admin-product-info">
-                <strong>
-                    ${escapeHtml(product.name)}
-                </strong>
+    setText(
+        $("changeAmount"),
+        formatPrice(change)
+    );
 
-                <small>
-                    ${categoryLabel}
-                </small>
-
-                <div class="admin-product-price">
-                    ${formatPrice(product.price)}
-                </div>
-            </div>
-
-            <div class="admin-product-actions">
-                <button
-                    type="button"
-                    class="icon-action edit-product-button"
-                    data-product-id="${escapeHtml(product.id)}"
-                    title="Bearbeiten"
-                >
-                    ✏️
-                </button>
-
-                <button
-                    type="button"
-                    class="icon-action delete delete-product-button"
-                    data-product-id="${escapeHtml(product.id)}"
-                    title="Löschen"
-                >
-                    🗑️
-                </button>
-            </div>
-        `;
-
-        adminProductsList.appendChild(row);
-    });
-
-    document
-        .querySelectorAll(".edit-product-button")
-        .forEach(function (button) {
-            button.addEventListener(
-                "click",
-                function () {
-                    openProductModal(
-                        button.dataset.productId
-                    );
-                }
-            );
-        });
-
-    document
-        .querySelectorAll(".delete-product-button")
-        .forEach(function (button) {
-            button.addEventListener(
-                "click",
-                function () {
-                    deleteProduct(
-                        button.dataset.productId
-                    );
-                }
-            );
-        });
+    $("paidButton")
+        .disabled =
+        false;
 }
 
 
-addProductButton.addEventListener("click", function () {
-    openProductModal();
-});
+on(
+    $("paidButton"),
+    "click",
+    function () {
+
+        const total =
+            calculateCartTotal();
+
+        const received =
+            parseGermanNumber(
+                receivedAmount
+            );
+
+        if (
+            received <
+            total
+        ) {
+            return;
+        }
+
+        const change =
+            received -
+            total;
+
+        sessionSalesCount +=
+            1;
+
+        sessionRevenue +=
+            total;
+
+        if (
+            !saleTestMode
+        ) {
+
+            const sale =
+                {
+                    id:
+                        Date.now(),
+
+                    date:
+                        new Date()
+                            .toISOString(),
+
+                    total:
+                        roundMoney(
+                            total
+                        ),
+
+                    received:
+                        roundMoney(
+                            received
+                        ),
+
+                    change:
+                        roundMoney(
+                            change
+                        ),
+
+                    items:
+                        cart.map(
+                            function (
+                                item
+                            ) {
+                                return {
+                                    id:
+                                        item.id,
+
+                                    name:
+                                        item.name,
+
+                                    price:
+                                        Number(
+                                            item.price
+                                        ),
+
+                                    category:
+                                        item.category,
+
+                                    quantity:
+                                        Number(
+                                            item.quantity
+                                        )
+                                };
+                            }
+                        )
+                };
+
+            sales.push(
+                sale
+            );
+
+            save(
+                KEYS.sales,
+                sales
+            );
+
+            cart.forEach(
+                function (item) {
+
+                    if (
+                        item.category !==
+                        "drink"
+                    ) {
+                        return;
+                    }
+
+                    inventory[
+                        item.id
+                    ] =
+                        Number(
+                            inventory[
+                                item.id
+                            ] || 0
+                        ) -
+                        Number(
+                            item.quantity
+                        );
+                }
+            );
+
+            save(
+                KEYS.inventory,
+                inventory
+            );
+        }
+
+        setText(
+            $("successChange"),
+            formatPrice(
+                change
+            )
+        );
+
+        setText(
+            $("successTitle"),
+            saleTestMode
+                ? "Testzahlung erfolgreich!"
+                : "Zahlung erfolgreich!"
+        );
+
+        setText(
+            $("successDescription"),
+            saleTestMode
+                ? "Testverkauf in der Testumgebung."
+                : "Verkauf wurde gespeichert."
+        );
+
+        showScreen(
+            successScreen
+        );
+    }
+);
+
+
+on(
+    $("newOrderButton"),
+    "click",
+    function () {
+
+        const teacher =
+            isTeacher();
+
+        resetSale();
+
+        saleTestMode =
+            teacher;
+
+        showScreen(
+            saleScreen,
+            homeScreen
+        );
+    }
+);
+
+
+// ========================================
+// ABSCHLUSSMODAL
+// ========================================
+
+let messageAction =
+    function () {};
+
+
+function openCompletionModal() {
+
+    setText(
+        $("siteMessageIcon"),
+        "🎉"
+    );
+
+    setText(
+        $("siteMessageTitle"),
+        "Well done heute, Team! 🎉"
+    );
+
+    setText(
+        $("siteMessageText"),
+        (
+            isTeacher()
+                ? "Testumgebung: "
+                : ""
+        ) +
+            sessionSalesCount +
+            " Verkäufe · " +
+            formatPrice(
+                sessionRevenue
+            ) +
+            " Umsatz."
+    );
+
+    setText(
+        $("siteMessagePrimaryButton"),
+        "Zur Startseite"
+    );
+
+    messageAction =
+        function () {
+
+            resetSale();
+
+            showScreen(
+                homeScreen
+            );
+        };
+
+    const modal =
+        $("siteMessageModal");
+
+    if (modal) {
+
+        modal.style.display =
+            "flex";
+
+        modal.setAttribute(
+            "aria-hidden",
+            "false"
+        );
+    }
+}
+
+
+function closeMessageModal() {
+
+    const modal =
+        $("siteMessageModal");
+
+    if (modal) {
+
+        modal.style.display =
+            "none";
+
+        modal.setAttribute(
+            "aria-hidden",
+            "true"
+        );
+    }
+
+    const action =
+        messageAction;
+
+    messageAction =
+        function () {};
+
+    action();
+}
+
+
+on(
+    $("successShiftEndButton"),
+    "click",
+    openCompletionModal
+);
+
+
+on(
+    $("siteMessagePrimaryButton"),
+    "click",
+    closeMessageModal
+);
+
+
+on(
+    $("siteMessageModal"),
+    "click",
+    function (event) {
+
+        if (
+            event.target ===
+            $("siteMessageModal")
+        ) {
+            closeMessageModal();
+        }
+    }
+);
+
+
+// ========================================
+// PRODUITS ADMIN
+// ========================================
+
+let editingProductId =
+    null;
+
+
+on(
+    $("productsButton"),
+    "click",
+    async function () {
+
+        await syncProducts();
+
+        renderAdminProducts();
+
+        showScreen(
+            productsScreen,
+            adminScreen
+        );
+    }
+);
+
+
+function renderAdminProducts() {
+
+    const box =
+        $("adminProductsList");
+
+    if (!box) {
+        return;
+    }
+
+    box.innerHTML =
+        "";
+
+    if (
+        products.length ===
+        0
+    ) {
+
+        box.innerHTML =
+            `
+                <div class="no-data">
+                    Keine Produkte vorhanden.
+                </div>
+            `;
+
+        return;
+    }
+
+    products.forEach(
+        function (product) {
+
+            const row =
+                document.createElement(
+                    "div"
+                );
+
+            row.className =
+                "admin-product-row";
+
+            const categoryLabel =
+                product.category ===
+                    "drink"
+                    ? "Getränk"
+                    : "Bäckerei";
+
+            row.innerHTML = `
+                <div class="admin-product-icon">
+                    ${escapeHtml(
+                        product.icon
+                    )}
+                </div>
+
+                <div class="admin-product-info">
+
+                    <strong>
+                        ${escapeHtml(
+                            product.name
+                        )}
+                    </strong>
+
+                    <small>
+                        ${categoryLabel}
+                    </small>
+
+                    <div class="admin-product-price">
+                        ${formatPrice(
+                            product.price
+                        )}
+                    </div>
+
+                </div>
+
+                <div class="admin-product-actions">
+
+                    <button
+                        type="button"
+                        class="icon-action edit-product-button"
+                        data-id="${escapeHtml(
+                            product.id
+                        )}"
+                    >
+                        ✏️
+                    </button>
+
+                    <button
+                        type="button"
+                        class="icon-action delete delete-product-button"
+                        data-id="${escapeHtml(
+                            product.id
+                        )}"
+                    >
+                        🗑️
+                    </button>
+
+                </div>
+            `;
+
+            box.appendChild(
+                row
+            );
+        }
+    );
+
+    box.querySelectorAll(
+        ".edit-product-button"
+    ).forEach(
+        function (button) {
+
+            on(
+                button,
+                "click",
+                function () {
+                    openProductModal(
+                        button.dataset
+                            .id
+                    );
+                }
+            );
+        }
+    );
+
+    box.querySelectorAll(
+        ".delete-product-button"
+    ).forEach(
+        function (button) {
+
+            on(
+                button,
+                "click",
+                function () {
+                    deleteProduct(
+                        button.dataset
+                            .id
+                    );
+                }
+            );
+        }
+    );
+}
+
+
+on(
+    $("addProductButton"),
+    "click",
+    function () {
+        openProductModal();
+    }
+);
 
 
 function openProductModal(
     productId = null
 ) {
-    editingProductId = productId;
 
-    if (productId) {
-        const product =
-            products.find(
-                function (item) {
+    editingProductId =
+        productId;
+
+    const product =
+        productId
+            ? products.find(
+                function (
+                    item
+                ) {
                     return (
                         item.id ===
                         productId
                     );
                 }
-            );
+            )
+            : null;
 
-        if (!product) {
-            return;
-        }
-
-        productModalTitle.textContent =
-            "Produkt bearbeiten";
-
-        productNameInput.value =
-            product.name;
-
-        productPriceInput.value =
-            Number(product.price)
-                .toFixed(2);
-
-        productCategoryInput.value =
-            product.category;
-
-        productIconInput.value =
-            product.icon;
-    } else {
-        productModalTitle.textContent =
-            "Produkt hinzufügen";
-
-        productNameInput.value = "";
-        productPriceInput.value = "";
-        productCategoryInput.value =
-            "drink";
-
-        productIconInput.value =
-            "🥤";
-    }
-
-    productModal.style.display =
-        "flex";
-
-    productModal.setAttribute(
-        "aria-hidden",
-        "false"
+    setText(
+        $("productModalTitle"),
+        product
+            ? "Produkt bearbeiten"
+            : "Produkt hinzufügen"
     );
 
-    setTimeout(function () {
-        productNameInput.focus();
-    }, 50);
+    if (
+        $("productNameInput")
+    ) {
+        $("productNameInput")
+            .value =
+            product
+                ? product.name
+                : "";
+    }
+
+    if (
+        $("productPriceInput")
+    ) {
+        $("productPriceInput")
+            .value =
+            product
+                ? Number(
+                    product.price
+                ).toFixed(2)
+                : "";
+    }
+
+    if (
+        $("productCategoryInput")
+    ) {
+        $("productCategoryInput")
+            .value =
+            product
+                ? product.category
+                : "drink";
+    }
+
+    if (
+        $("productIconInput")
+    ) {
+        $("productIconInput")
+            .value =
+            product
+                ? product.icon
+                : "🥤";
+    }
+
+    if (
+        $("productModal")
+    ) {
+
+        $("productModal")
+            .style.display =
+            "flex";
+
+        $("productModal")
+            .setAttribute(
+                "aria-hidden",
+                "false"
+            );
+    }
 }
 
 
 function closeProductModal() {
-    productModal.style.display =
-        "none";
 
-    productModal.setAttribute(
-        "aria-hidden",
-        "true"
-    );
+    if (
+        $("productModal")
+    ) {
 
-    editingProductId = null;
+        $("productModal")
+            .style.display =
+            "none";
+
+        $("productModal")
+            .setAttribute(
+                "aria-hidden",
+                "true"
+            );
+    }
+
+    editingProductId =
+        null;
 }
 
 
-closeProductModalButton.addEventListener(
+on(
+    $("closeProductModalButton"),
     "click",
     closeProductModal
 );
 
-cancelProductButton.addEventListener(
+
+on(
+    $("cancelProductButton"),
     "click",
     closeProductModal
 );
 
 
-productModal.addEventListener(
+on(
+    $("productModal"),
     "click",
     function (event) {
+
         if (
             event.target ===
-            productModal
+            $("productModal")
         ) {
             closeProductModal();
         }
@@ -1604,59 +2701,60 @@ productModal.addEventListener(
 );
 
 
-// ========================================
-// PRODUCT — SAVE TO SUPABASE
-// ========================================
-
-saveProductButton.addEventListener(
+on(
+    $("saveProductButton"),
     "click",
     async function () {
+
         const name =
-            productNameInput.value.trim();
+            $("productNameInput")
+                ?.value
+                .trim() ||
+            "";
 
         const price =
             Number(
-                productPriceInput.value
+                $("productPriceInput")
+                    ?.value
             );
 
         const category =
-            productCategoryInput.value;
+            $("productCategoryInput")
+                ?.value ||
+            "";
 
         const icon =
-            productIconInput.value.trim() ||
+            $("productIconInput")
+                ?.value
+                .trim() ||
             "🥤";
 
-        if (!name) {
+        if (
+            !name ||
+            !Number.isFinite(
+                price
+            ) ||
+            price < 0 ||
+            ![
+                "drink",
+                "bakery"
+            ].includes(
+                category
+            )
+        ) {
+
             alert(
-                "Bitte einen Produktnamen eingeben."
+                "Bitte gültige Produktdaten eingeben."
             );
 
             return;
         }
 
         if (
-            !Number.isFinite(price) ||
-            price < 0
+            !currentPerson ||
+            !supabaseClient
         ) {
-            alert(
-                "Bitte einen gültigen Preis eingeben."
-            );
 
-            return;
-        }
-
-        if (
-            category !== "drink" &&
-            category !== "bakery"
-        ) {
-            alert(
-                "Ungültige Kategorie."
-            );
-
-            return;
-        }
-
-        if (!currentPerson) {
             alert(
                 "Bitte zuerst anmelden."
             );
@@ -1664,139 +2762,156 @@ saveProductButton.addEventListener(
             return;
         }
 
-        saveProductButton.disabled =
+        $("saveProductButton")
+            .disabled =
             true;
 
-        saveProductButton.textContent =
-            "Speichern …";
-
         try {
-            const dbProduct = {
-                name: name,
-                price: roundMoney(price),
-                category:
-                    mapAppCategoryToDbCategory(
-                        category
-                    ),
-                icon: icon,
-                active: true
-            };
 
-            if (editingProductId) {
+            const payload =
+                {
+                    name:
+                        name,
+
+                    price:
+                        roundMoney(
+                            price
+                        ),
+
+                    category:
+                        dbCategory(
+                            category
+                        ),
+
+                    icon:
+                        icon,
+
+                    active:
+                        true
+                };
+
+            if (
+                editingProductId
+            ) {
+
                 const {
                     data,
                     error
-                } = await supabaseClient
-                    .from("products")
-                    .update(dbProduct)
-                    .eq(
-                        "id",
-                        editingProductId
-                    )
-                    .eq(
-                        "active",
-                        true
-                    )
-                    .select(
-                        "id, name, price, category, icon, active, created_at"
-                    )
-                    .single();
+                } =
+                    await supabaseClient
+                        .from(
+                            "products"
+                        )
+                        .update(
+                            payload
+                        )
+                        .eq(
+                            "id",
+                            editingProductId
+                        )
+                        .select(
+                            "id,name,price,category,icon,active,created_at"
+                        )
+                        .single();
 
                 if (error) {
                     throw error;
                 }
 
-                const updatedProduct =
-                    mapDbProductToAppProduct(
+                const updated =
+                    mapProduct(
                         data
                     );
 
                 products =
                     products.map(
-                        function (product) {
-                            return product.id ===
-                                updatedProduct.id
-                                ? updatedProduct
+                        function (
+                            product
+                        ) {
+
+                            return (
+                                product.id ===
+                                updated.id
+                            )
+                                ? updated
                                 : product;
                         }
                     );
+
             } else {
+
                 const {
                     data,
                     error
-                } = await supabaseClient
-                    .from("products")
-                    .insert({
-                        id: createProductId(name),
-                        ...dbProduct
-                    })
-                    .select(
-                        "id, name, price, category, icon, active, created_at"
-                    )
-                    .single();
+                } =
+                    await supabaseClient
+                        .from(
+                            "products"
+                        )
+                        .insert(
+                            {
+                                id:
+                                    createProductId(
+                                        name
+                                    ),
+
+                                ...payload
+                            }
+                        )
+                        .select(
+                            "id,name,price,category,icon,active,created_at"
+                        )
+                        .single();
 
                 if (error) {
                     throw error;
                 }
 
-                const newProduct =
-                    mapDbProductToAppProduct(
-                        data
-                    );
-
                 products.push(
-                    newProduct
+                    mapProduct(
+                        data
+                    )
                 );
-
-                if (
-                    newProduct.category ===
-                    "drink"
-                ) {
-                    inventory[
-                        newProduct.id
-                    ] = Number(
-                        inventory[
-                            newProduct.id
-                        ] || 0
-                    );
-
-                    saveInventory();
-                }
             }
 
-            saveProducts();
+            save(
+                KEYS.products,
+                products
+            );
 
             renderProducts();
+
             renderAdminProducts();
 
             closeProductModal();
-        } catch (error) {
+
+        } catch (
+            error
+        ) {
+
             console.error(
-                "Produkt konnte nicht in Supabase gespeichert werden.",
+                "Produkt konnte nicht gespeichert werden.",
                 error
             );
 
             alert(
-                "Das Produkt konnte nicht gespeichert werden. Bitte erneut versuchen."
+                "Das Produkt konnte nicht gespeichert werden."
             );
-        } finally {
-            saveProductButton.disabled =
-                false;
 
-            saveProductButton.textContent =
-                "Speichern";
+        } finally {
+
+            $("saveProductButton")
+                .disabled =
+                false;
         }
     }
 );
 
 
-// ========================================
-// PRODUCT — DELETE IN SUPABASE
-// ========================================
-
 async function deleteProduct(
     productId
 ) {
+
     const product =
         products.find(
             function (item) {
@@ -1809,38 +2924,40 @@ async function deleteProduct(
 
     if (
         !product ||
-        !currentPerson
+        !supabaseClient
     ) {
         return;
     }
 
-    const confirmed =
-        confirm(
+    if (
+        !confirm(
             "Produkt „" +
-            product.name +
-            "“ wirklich löschen?"
-        );
-
-    if (!confirmed) {
+                product.name +
+                "“ wirklich löschen?"
+        )
+    ) {
         return;
     }
 
     try {
+
         const {
             error
-        } = await supabaseClient
-            .from("products")
-            .update({
-                active: false
-            })
-            .eq(
-                "id",
-                productId
-            )
-            .eq(
-                "active",
-                true
-            );
+        } =
+            await supabaseClient
+                .from(
+                    "products"
+                )
+                .update(
+                    {
+                        active:
+                            false
+                    }
+                )
+                .eq(
+                    "id",
+                    productId
+                );
 
         if (error) {
             throw error;
@@ -1848,7 +2965,9 @@ async function deleteProduct(
 
         products =
             products.filter(
-                function (item) {
+                function (
+                    item
+                ) {
                     return (
                         item.id !==
                         productId
@@ -1856,146 +2975,164 @@ async function deleteProduct(
                 }
             );
 
-        delete inventory[
-            productId
-        ];
+        save(
+            KEYS.products,
+            products
+        );
 
-        cart =
-            cart.filter(
-                function (item) {
-                    return (
-                        item.id !==
-                        productId
-                    );
-                }
-            );
-
-        saveProducts();
-        saveInventory();
-
-        updateCart();
         renderProducts();
+
         renderAdminProducts();
-    } catch (error) {
+
+    } catch (
+        error
+    ) {
+
         console.error(
-            "Produkt konnte nicht in Supabase gelöscht werden.",
+            "Produkt konnte nicht gelöscht werden.",
             error
         );
 
         alert(
-            "Das Produkt konnte nicht gelöscht werden. Bitte erneut versuchen."
+            "Das Produkt konnte nicht gelöscht werden."
         );
     }
 }
 
 
-productsBackButton.addEventListener(
+// ========================================
+// INVENTUR
+// ========================================
+
+on(
+    $("inventoryButton"),
     "click",
     function () {
-        closeProductModal();
-        showScreen(adminScreen);
+
+        if (
+            isTeacher()
+        ) {
+
+            renderTeacherInventory();
+
+            showScreen(
+                inventoryScreen,
+                adminScreen
+            );
+
+        } else {
+
+            renderStudentInventory();
+
+            showScreen(
+                inventoryCountScreen,
+                adminScreen
+            );
+        }
     }
 );
 
 
-// ========================================
-// INVENTAR — TEACHER
-// ========================================
+function renderTeacherInventory() {
 
-function renderInventory() {
-    inventoryList.innerHTML = "";
+    const box =
+        $("inventoryList");
 
-    const drinks =
-        products.filter(
+    if (!box) {
+        return;
+    }
+
+    box.innerHTML =
+        "";
+
+    products
+        .filter(
             function (product) {
                 return (
                     product.category ===
                     "drink"
                 );
             }
+        )
+        .forEach(
+            function (product) {
+
+                const row =
+                    document.createElement(
+                        "div"
+                    );
+
+                row.className =
+                    "inventory-card";
+
+                row.innerHTML = `
+                    <div class="inventory-product">
+
+                        <span class="inventory-icon">
+                            ${escapeHtml(
+                                product.icon
+                            )}
+                        </span>
+
+                        <div>
+                            <strong>
+                                ${escapeHtml(
+                                    product.name
+                                )}
+                            </strong>
+
+                            <small>
+                                ${formatPrice(
+                                    product.price
+                                )}
+                            </small>
+                        </div>
+
+                    </div>
+
+                    <div class="inventory-stock">
+                        ${
+                            Number(
+                                inventory[
+                                    product.id
+                                ] || 0
+                            )
+                        }
+                        Stück
+                    </div>
+
+                    <button
+                        type="button"
+                        class="inventory-adjust-button"
+                        data-id="${escapeHtml(
+                            product.id
+                        )}"
+                    >
+                        ＋ Bestand
+                    </button>
+                `;
+
+                box.appendChild(
+                    row
+                );
+            }
         );
 
-    if (drinks.length === 0) {
-        inventoryList.innerHTML =
-            `
-                <div class="no-data">
-                    Keine Getränke vorhanden.
-                </div>
-            `;
-
-        return;
-    }
-
-    drinks.forEach(function (product) {
-        const stock =
-            Number(
-                inventory[
-                    product.id
-                ] || 0
-            );
-
-        const card =
-            document.createElement(
-                "div"
-            );
-
-        card.className =
-            "inventory-card";
-
-        let stockClass = "";
-
-        if (stock <= 0) {
-            stockClass = "empty";
-        } else if (stock <= 5) {
-            stockClass = "low";
-        }
-
-        card.innerHTML = `
-            <div class="inventory-product">
-                <span class="inventory-icon">
-                    ${escapeHtml(product.icon)}
-                </span>
-
-                <div>
-                    <strong>
-                        ${escapeHtml(product.name)}
-                    </strong>
-
-                    <small>
-                        ${formatPrice(product.price)}
-                    </small>
-                </div>
-            </div>
-
-            <div class="inventory-stock ${stockClass}">
-                ${stock} Stück
-            </div>
-
-            <button
-                type="button"
-                class="inventory-adjust-button"
-                data-product-id="${escapeHtml(product.id)}"
-            >
-                ＋ Bestand
-            </button>
-        `;
-
-        inventoryList.appendChild(
-            card
-        );
-    });
-
-    document
+    box
         .querySelectorAll(
             ".inventory-adjust-button"
         )
         .forEach(
             function (button) {
-                button.addEventListener(
+
+                on(
+                    button,
                     "click",
                     function () {
+
                         openInventoryModal(
-                            button.dataset.productId
+                            button.dataset
+                                .id
                         );
                     }
                 );
@@ -2004,9 +3141,18 @@ function renderInventory() {
 }
 
 
+let inventoryProductId =
+    null;
+
+
 function openInventoryModal(
     productId
 ) {
+
+    if (!isTeacher()) {
+        return;
+    }
+
     const product =
         products.find(
             function (item) {
@@ -2017,74 +3163,94 @@ function openInventoryModal(
             }
         );
 
-    if (
-        !product ||
-        !isCurrentTeacher()
-    ) {
+    if (!product) {
         return;
     }
 
     inventoryProductId =
         productId;
 
-    inventoryProductLabel.textContent =
+    setText(
+        $("inventoryProductLabel"),
         product.name +
-        " · Aktueller Bestand: " +
-        Number(
-            inventory[
-                productId
-            ] || 0
-        ) +
-        " Stück";
-
-    inventoryAmountInput.value =
-        "";
-
-    inventoryModal.style.display =
-        "flex";
-
-    inventoryModal.setAttribute(
-        "aria-hidden",
-        "false"
+            " · Aktueller Bestand: " +
+            Number(
+                inventory[
+                    productId
+                ] || 0
+            ) +
+            " Stück"
     );
 
-    setTimeout(function () {
-        inventoryAmountInput.focus();
-    }, 50);
+    if (
+        $("inventoryAmountInput")
+    ) {
+        $("inventoryAmountInput")
+            .value =
+            "";
+    }
+
+    if (
+        $("inventoryModal")
+    ) {
+
+        $("inventoryModal")
+            .style.display =
+            "flex";
+
+        $("inventoryModal")
+            .setAttribute(
+                "aria-hidden",
+                "false"
+            );
+    }
 }
 
 
 function closeInventoryModal() {
-    inventoryModal.style.display =
-        "none";
 
-    inventoryModal.setAttribute(
-        "aria-hidden",
-        "true"
-    );
+    if (
+        $("inventoryModal")
+    ) {
+
+        $("inventoryModal")
+            .style.display =
+            "none";
+
+        $("inventoryModal")
+            .setAttribute(
+                "aria-hidden",
+                "true"
+            );
+    }
 
     inventoryProductId =
         null;
 }
 
 
-closeInventoryModalButton.addEventListener(
+on(
+    $("closeInventoryModalButton"),
     "click",
     closeInventoryModal
 );
 
-cancelInventoryButton.addEventListener(
+
+on(
+    $("cancelInventoryButton"),
     "click",
     closeInventoryModal
 );
 
 
-inventoryModal.addEventListener(
+on(
+    $("inventoryModal"),
     "click",
     function (event) {
+
         if (
             event.target ===
-            inventoryModal
+            $("inventoryModal")
         ) {
             closeInventoryModal();
         }
@@ -2092,26 +3258,32 @@ inventoryModal.addEventListener(
 );
 
 
-saveInventoryButton.addEventListener(
+on(
+    $("saveInventoryButton"),
     "click",
     function () {
+
         if (
             !inventoryProductId ||
-            !isCurrentTeacher()
+            !isTeacher()
         ) {
-            closeInventoryModal();
             return;
         }
 
         const amount =
             Number(
-                inventoryAmountInput.value
+                $("inventoryAmountInput")
+                    ?.value
             );
 
         if (
-            !Number.isInteger(amount) ||
-            amount <= 0
+            !Number.isInteger(
+                amount
+            ) ||
+            amount <=
+                0
         ) {
+
             alert(
                 "Bitte eine positive ganze Menge eingeben."
             );
@@ -2126,173 +3298,170 @@ saveInventoryButton.addEventListener(
                 inventory[
                     inventoryProductId
                 ] || 0
-            ) + amount;
+            ) +
+            amount;
 
-        saveInventory();
-        renderInventory();
+        save(
+            KEYS.inventory,
+            inventory
+        );
+
+        renderTeacherInventory();
+
         closeInventoryModal();
     }
 );
 
 
-inventoryBackButton.addEventListener(
-    "click",
-    function () {
-        showScreen(adminScreen);
+// ========================================
+// INVENTUR — SCHÜLER
+// ========================================
+
+function renderStudentInventory() {
+
+    const box =
+        $("inventoryCountList");
+
+    if (!box) {
+        return;
     }
-);
 
-
-// ========================================
-// INVENTUR — STUDENT
-// ========================================
-
-function renderInventoryCount() {
-    inventoryCountList.innerHTML =
+    box.innerHTML =
         "";
 
-    const drinks =
-        products.filter(
+    products
+        .filter(
             function (product) {
                 return (
                     product.category ===
                     "drink"
                 );
             }
+        )
+        .forEach(
+            function (product) {
+
+                const row =
+                    document.createElement(
+                        "div"
+                    );
+
+                row.className =
+                    "inventory-count-row";
+
+                row.innerHTML = `
+                    <div class="inventory-count-product">
+
+                        <span>
+                            ${escapeHtml(
+                                product.icon
+                            )}
+                        </span>
+
+                        <div>
+
+                            <strong>
+                                ${escapeHtml(
+                                    product.name
+                                )}
+                            </strong>
+
+                            <small>
+                                ${formatPrice(
+                                    product.price
+                                )}
+                            </small>
+
+                        </div>
+
+                    </div>
+
+                    <input
+                        class="inventory-count-input"
+                        type="number"
+                        min="0"
+                        step="1"
+                        data-product-id="${escapeHtml(
+                            product.id
+                        )}"
+                        placeholder="0"
+                    >
+                `;
+
+                box.appendChild(
+                    row
+                );
+            }
         );
-
-    if (drinks.length === 0) {
-        inventoryCountList.innerHTML =
-            `
-                <div class="no-data">
-                    Keine Getränke vorhanden.
-                </div>
-            `;
-
-        return;
-    }
-
-    drinks.forEach(function (product) {
-        const row =
-            document.createElement(
-                "div"
-            );
-
-        row.className =
-            "inventory-count-row";
-
-        row.innerHTML = `
-            <div class="inventory-count-product">
-                <span>
-                    ${escapeHtml(product.icon)}
-                </span>
-
-                <div>
-                    <strong>
-                        ${escapeHtml(product.name)}
-                    </strong>
-
-                    <small>
-                        ${formatPrice(product.price)}
-                    </small>
-                </div>
-            </div>
-
-            <input
-                class="inventory-count-input"
-                type="number"
-                min="0"
-                step="1"
-                inputmode="numeric"
-                data-product-id="${escapeHtml(product.id)}"
-                aria-label="Gezählter Bestand ${escapeHtml(product.name)}"
-                placeholder="0"
-            >
-        `;
-
-        inventoryCountList.appendChild(
-            row
-        );
-    });
 }
 
 
-inventoryCountBackButton.addEventListener(
+on(
+    $("submitInventoryButton"),
     "click",
     function () {
-        showScreen(adminScreen);
-    }
-);
 
-
-submitInventoryButton.addEventListener(
-    "click",
-    function () {
         if (
             !currentPerson ||
             currentPerson.person_type !==
-            "schüler"
+                "schüler"
         ) {
             return;
         }
 
-        const inputs =
-            inventoryCountList.querySelectorAll(
-                ".inventory-count-input"
-            );
+        const counts =
+            [];
 
-        const counts = [];
-        let hasInvalidValue =
+        let invalid =
             false;
 
-        inputs.forEach(
-            function (input) {
-                const value =
-                    input.value.trim();
+        $("inventoryCountList")
+            ?.querySelectorAll(
+                ".inventory-count-input"
+            )
+            .forEach(
+                function (input) {
 
-                if (value === "") {
-                    return;
-                }
+                    if (
+                        input.value ===
+                        ""
+                    ) {
+                        return;
+                    }
 
-                const quantity =
-                    Number(value);
+                    const quantity =
+                        Number(
+                            input.value
+                        );
 
-                if (
-                    !Number.isInteger(
-                        quantity
-                    ) ||
-                    quantity < 0
-                ) {
-                    hasInvalidValue =
-                        true;
+                    if (
+                        !Number.isInteger(
+                            quantity
+                        ) ||
+                        quantity < 0
+                    ) {
 
-                    return;
-                }
+                        invalid =
+                            true;
 
-                const product =
-                    products.find(
-                        function (item) {
-                            return (
-                                item.id ===
-                                input.dataset.productId
-                            );
+                        return;
+                    }
+
+                    counts.push(
+                        {
+                            product_id:
+                                input.dataset
+                                    .productId,
+
+                            quantity:
+                                quantity
                         }
                     );
-
-                if (product) {
-                    counts.push({
-                        product_id:
-                            product.id,
-                        product_name:
-                            product.name,
-                        quantity:
-                            quantity
-                    });
                 }
-            }
-        );
+            );
 
-        if (hasInvalidValue) {
+        if (invalid) {
+
             alert(
                 "Bitte nur ganze Mengen ab 0 eingeben."
             );
@@ -2300,7 +3469,11 @@ submitInventoryButton.addEventListener(
             return;
         }
 
-        if (counts.length === 0) {
+        if (
+            counts.length ===
+            0
+        ) {
+
             alert(
                 "Bitte mindestens eine gezählte Menge eingeben."
             );
@@ -2308,34 +3481,79 @@ submitInventoryButton.addEventListener(
             return;
         }
 
-        const submissions =
-            loadInventorySubmissions();
+        inventorySubmissions.push(
+            {
+                id:
+                    Date.now(),
 
-        submissions.push({
-            id: Date.now(),
-            submitted_at:
-                new Date().toISOString(),
-            person_id:
-                currentPerson.id,
-            person_name:
-                [
-                    currentPerson.first_name,
-                    currentPerson.last_name
-                ]
-                    .filter(Boolean)
-                    .join(" "),
-            counts:
-                counts
-        });
+                submitted_at:
+                    new Date()
+                        .toISOString(),
 
-        saveInventorySubmissions(
-            submissions
+                person_id:
+                    currentPerson.id,
+
+                person_name:
+                    [
+                        currentPerson.first_name,
+                        currentPerson.last_name
+                    ]
+                        .filter(Boolean)
+                        .join(" "),
+
+                counts:
+                    counts
+            }
         );
 
-        renderInventoryCount();
+        save(
+            KEYS.submissions,
+            inventorySubmissions
+        );
+
+        updateNotificationBadge();
+
+        renderStudentInventory();
 
         alert(
-            "Die Inventur wurde an den Professor übermittelt."
+            "Die Inventur wurde an den Lehrer übermittelt."
+        );
+    }
+);
+
+
+// ========================================
+// INVENTUR & RECHNUNGEN
+// Vorläufiger stabiler Platzhalter
+// ========================================
+
+on(
+    $("inventoryInvoicesButton"),
+    "click",
+    function () {
+
+        if (
+            !isTeacher()
+        ) {
+            return;
+        }
+
+        const list =
+            $("invoiceList");
+
+        if (list) {
+
+            list.innerHTML =
+                `
+                    <div class="no-data">
+                        Die gemeinsame Inventur- und Rechnungsverwaltung wird als nächster Backend-Schritt verbunden.
+                    </div>
+                `;
+        }
+
+        showScreen(
+            inventoryInvoicesScreen,
+            adminScreen
         );
     }
 );
@@ -2345,31 +3563,44 @@ submitInventoryButton.addEventListener(
 // REPORTS
 // ========================================
 
-reportsBackButton.addEventListener(
-    "click",
-    function () {
-        showScreen(homeScreen);
+let currentReportPeriod =
+    "day";
+
+
+const periodTabs =
+    Array.from(
+        document.querySelectorAll(
+            ".period-tab"
+        )
+    );
+
+
+periodTabs.forEach(
+    function (tab) {
+
+        on(
+            tab,
+            "click",
+            function () {
+
+                currentReportPeriod =
+                    tab.dataset
+                        .period;
+
+                updatePeriodTabs();
+
+                renderReport();
+            }
+        );
     }
 );
 
 
-periodTabs.forEach(function (tab) {
-    tab.addEventListener(
-        "click",
-        function () {
-            currentReportPeriod =
-                tab.dataset.period;
-
-            updatePeriodTabs();
-            renderReport();
-        }
-    );
-});
-
-
 function updatePeriodTabs() {
+
     periodTabs.forEach(
         function (tab) {
+
             tab.classList.toggle(
                 "active",
                 tab.dataset.period ===
@@ -2381,37 +3612,136 @@ function updatePeriodTabs() {
 
 
 function renderReport() {
-    if (!isCurrentTeacher()) {
+
+    if (!isTeacher()) {
         return;
     }
 
-    const filteredSales =
-        getSalesForPeriod(
-            currentReportPeriod
+    const now =
+        new Date();
+
+    let filtered =
+        sales;
+
+    if (
+        currentReportPeriod ===
+        "day"
+    ) {
+
+        filtered =
+            sales.filter(
+                function (sale) {
+                    return sameDay(
+                        new Date(
+                            sale.date
+                        ),
+                        now
+                    );
+                }
+            );
+    }
+
+    if (
+        currentReportPeriod ===
+        "week"
+    ) {
+
+        const start =
+            getMonday(
+                now
+            );
+
+        const end =
+            new Date(
+                start
+            );
+
+        end.setDate(
+            end.getDate() +
+                7
         );
 
+        filtered =
+            sales.filter(
+                function (sale) {
+
+                    const date =
+                        new Date(
+                            sale.date
+                        );
+
+                    return (
+                        date >=
+                            start &&
+                        date <
+                            end
+                    );
+                }
+            );
+    }
+
+    if (
+        currentReportPeriod ===
+        "month"
+    ) {
+
+        filtered =
+            sales.filter(
+                function (sale) {
+
+                    const date =
+                        new Date(
+                            sale.date
+                        );
+
+                    return (
+                        date.getFullYear() ===
+                            now.getFullYear() &&
+                        date.getMonth() ===
+                            now.getMonth()
+                    );
+                }
+            );
+    }
+
     const revenue =
-        filteredSales.reduce(
-            function (sum, sale) {
+        filtered.reduce(
+            function (
+                totalValue,
+                sale
+            ) {
+
                 return (
-                    sum +
+                    totalValue +
                     Number(
-                        sale.total || 0
+                        sale.total ||
+                            0
                     )
                 );
             },
             0
         );
 
-    let drinkCount = 0;
-    let bakeryCount = 0;
+    let drinkCount =
+        0;
 
-    const productSummary = {};
+    let bakeryCount =
+        0;
 
-    filteredSales.forEach(
+    const summary =
+        {};
+
+    filtered.forEach(
         function (sale) {
-            sale.items.forEach(
-                function (item) {
+
+            (
+                sale.items ||
+                []
+            ).forEach(
+                function (
+                    item
+                ) {
+
                     const quantity =
                         Number(
                             item.quantity ||
@@ -2435,177 +3765,425 @@ function renderReport() {
                     }
 
                     if (
-                        !productSummary[
+                        !summary[
                             item.id
                         ]
                     ) {
-                        productSummary[
+
+                        summary[
                             item.id
-                        ] = {
-                            name:
-                                item.name,
-                            quantity: 0,
-                            revenue: 0
-                        };
+                        ] =
+                            {
+                                name:
+                                    item.name,
+
+                                quantity:
+                                    0,
+
+                                revenue:
+                                    0
+                            };
                     }
 
-                    productSummary[
+                    summary[
                         item.id
                     ].quantity +=
                         quantity;
 
-                    productSummary[
+                    summary[
                         item.id
                     ].revenue +=
                         Number(
                             item.price
-                        ) * quantity;
+                        ) *
+                        quantity;
                 }
             );
         }
     );
 
-    reportRevenue.textContent =
-        formatPrice(revenue);
-
-    reportTransactions.textContent =
-        String(
-            filteredSales.length
-        );
-
-    reportDrinks.textContent =
-        String(drinkCount);
-
-    reportBakery.textContent =
-        String(bakeryCount);
-
-    reportDateLabel.textContent =
-        getReportLabel(
-            currentReportPeriod
-        );
-
-    renderReportProducts(
-        productSummary
+    setText(
+        $("reportRevenue"),
+        formatPrice(
+            revenue
+        )
     );
-}
 
+    setText(
+        $("reportTransactions"),
+        filtered.length
+    );
 
-function renderReportProducts(
-    productSummary
-) {
-    reportProducts.innerHTML =
-        "";
+    setText(
+        $("reportDrinks"),
+        drinkCount
+    );
 
-    const entries =
-        Object.values(
-            productSummary
-        ).sort(
-            function (a, b) {
-                return (
-                    b.quantity -
-                    a.quantity
-                );
-            }
-        );
+    setText(
+        $("reportBakery"),
+        bakeryCount
+    );
 
-    if (entries.length === 0) {
-        reportProducts.innerHTML =
-            `
-                <div class="no-data">
-                    Keine Verkäufe in diesem Zeitraum.
-                </div>
-            `;
+    setText(
+        $("reportDateLabel"),
+        now.toLocaleDateString(
+            "de-DE"
+        )
+    );
 
-        return;
-    }
+    const reportBox =
+        $("reportProducts");
 
-    entries.forEach(
-        function (item) {
-            const row =
-                document.createElement(
-                    "div"
-                );
+    if (
+        reportBox
+    ) {
 
-            row.className =
-                "report-product-row";
+        reportBox.innerHTML =
+            "";
 
-            row.innerHTML = `
-                <span class="report-product-name">
-                    ${escapeHtml(item.name)}
-                </span>
+        const entries =
+            Object.values(
+                summary
+            ).sort(
+                function (
+                    a,
+                    b
+                ) {
+                    return (
+                        b.quantity -
+                        a.quantity
+                    );
+                }
+            );
 
-                <span class="report-product-quantity">
-                    ${item.quantity} Stück
-                </span>
+        if (
+            entries.length ===
+            0
+        ) {
 
-                <span class="report-product-revenue">
-                    ${formatPrice(item.revenue)}
-                </span>
-            `;
+            reportBox.innerHTML =
+                `
+                    <div class="no-data">
+                        Keine Verkäufe in diesem Zeitraum.
+                    </div>
+                `;
 
-            reportProducts.appendChild(
-                row
+        } else {
+
+            entries.forEach(
+                function (
+                    item
+                ) {
+
+                    const row =
+                        document.createElement(
+                            "div"
+                        );
+
+                    row.className =
+                        "report-product-row";
+
+                    row.innerHTML = `
+                        <span class="report-product-name">
+                            ${escapeHtml(
+                                item.name
+                            )}
+                        </span>
+
+                        <span class="report-product-quantity">
+                            ${item.quantity} Stück
+                        </span>
+
+                        <span class="report-product-revenue">
+                            ${formatPrice(
+                                item.revenue
+                            )}
+                        </span>
+                    `;
+
+                    reportBox.appendChild(
+                        row
+                    );
+                }
             );
         }
-    );
+    }
 }
 
 
-function getSalesForPeriod(
-    period
-) {
-    const now =
-        new Date();
+on(
+    $("clearReportsButton"),
+    "click",
+    function () {
 
-    return sales.filter(
-        function (sale) {
-            const date =
-                new Date(
-                    sale.date
-                );
-
-            if (
-                period ===
-                "day"
-            ) {
-                return isSameDay(
-                    date,
-                    now
-                );
-            }
-
-            if (
-                period ===
-                "week"
-            ) {
-                return isSameWeek(
-                    date,
-                    now
-                );
-            }
-
-            if (
-                period ===
-                "month"
-            ) {
-                return (
-                    date.getFullYear() ===
-                        now.getFullYear() &&
-                    date.getMonth() ===
-                        now.getMonth()
-                );
-            }
-
-            return false;
+        if (!isTeacher()) {
+            return;
         }
+
+        if (
+            sales.length ===
+            0
+        ) {
+            alert(
+                "Es gibt keine Verkaufsdaten."
+            );
+
+            return;
+        }
+
+        if (
+            !confirm(
+                "Möchtest du wirklich ALLE Verkaufsdaten löschen?"
+            )
+        ) {
+            return;
+        }
+
+        sales =
+            [];
+
+        save(
+            KEYS.sales,
+            sales
+        );
+
+        renderReport();
+    }
+);
+
+
+// ========================================
+// EVENTS
+// ========================================
+
+on(
+    eventButton,
+    "click",
+    function () {
+        openEvents();
+    }
+);
+
+
+on(
+    teacherEventButton,
+    "click",
+    function () {
+        openEvents();
+    }
+);
+
+
+function openEvents() {
+
+    if (
+        $("createEventButton")
+    ) {
+        $("createEventButton")
+            .hidden =
+            !isTeacher();
+    }
+
+    setText(
+        $("eventListTitle"),
+        isTeacher()
+            ? "Veranstaltungen verwalten"
+            : "Veranstaltungen"
+    );
+
+    setText(
+        $("eventListDescription"),
+        isTeacher()
+            ? "Neue Veranstaltungen erstellen oder bestehende öffnen."
+            : "Wähle eine Veranstaltung aus."
+    );
+
+    showScreen(
+        eventListScreen,
+        homeScreen
     );
 }
 
 
-function isSameDay(
+on(
+    $("eventListBackButton"),
+    "click",
+    function () {
+        showScreen(
+            homeScreen
+        );
+    }
+);
+
+
+on(
+    $("createEventButton"),
+    "click",
+    function () {
+
+        if (!isTeacher()) {
+            return;
+        }
+
+        setText(
+            $("eventNameInput"),
+            ""
+        );
+
+        if (
+            $("eventNameInput")
+        ) {
+            $("eventNameInput")
+                .value =
+                "";
+        }
+
+        if (
+            $("eventDateInput")
+        ) {
+            $("eventDateInput")
+                .value =
+                getTodayInputDate();
+        }
+
+        showScreen(
+            eventCreateScreen,
+            eventListScreen
+        );
+    }
+);
+
+
+on(
+    $("eventCreateBackButton"),
+    "click",
+    function () {
+        showScreen(
+            eventListScreen
+        );
+    }
+);
+
+
+// ========================================
+// EVENT-PLACEHOLDER
+// ========================================
+
+[
+    "eventStartInventoryYesButton",
+    "eventStartInventoryNoButton",
+    "eventStartSetupContinueButton",
+    "addEventStartStockButton",
+    "addEventInvoiceButton",
+    "eventProductsContinueButton",
+    "addEventProductButton",
+    "studentEventCashButton",
+    "studentEventOutputButton",
+    "teacherEventCashButton",
+    "teacherEventOutputButton",
+    "teacherEventEndInventoryButton",
+    "eventCashShiftEndButton",
+    "eventOutputShiftEndButton",
+    "saveEventEndInventoryButton"
+].forEach(
+    function (id) {
+
+        on(
+            $(id),
+            "click",
+            function () {
+
+                showSimpleMessage(
+                    "🎪",
+                    "Sonderveranstaltung",
+                    "Dieser Teil wird im nächsten Backend-Schritt mit Supabase verbunden."
+                );
+            }
+        );
+    }
+);
+
+
+[
+    "eventStartSetupBackButton",
+    "eventProductsBackButton",
+    "eventWorkspaceBackButton",
+    "eventCashBackButton",
+    "eventOutputBackButton",
+    "eventEndInventoryBackButton"
+].forEach(
+    function (id) {
+
+        on(
+            $(id),
+            "click",
+            function () {
+
+                showScreen(
+                    eventListScreen
+                );
+            }
+        );
+    }
+);
+
+
+function showSimpleMessage(
+    icon,
+    title,
+    message
+) {
+
+    setText(
+        $("siteMessageIcon"),
+        icon
+    );
+
+    setText(
+        $("siteMessageTitle"),
+        title
+    );
+
+    setText(
+        $("siteMessageText"),
+        message
+    );
+
+    setText(
+        $("siteMessagePrimaryButton"),
+        "Schließen"
+    );
+
+    messageAction =
+        function () {};
+
+    const modal =
+        $("siteMessageModal");
+
+    if (
+        modal
+    ) {
+
+        modal.style.display =
+            "flex";
+
+        modal.setAttribute(
+            "aria-hidden",
+            "false"
+        );
+    }
+}
+
+
+// ========================================
+// HELPERS
+// ========================================
+
+function sameDay(
     a,
     b
 ) {
+
     return (
         a.getFullYear() ===
             b.getFullYear() &&
@@ -2617,30 +4195,10 @@ function isSameDay(
 }
 
 
-function isSameWeek(
-    date,
-    reference
-) {
-    const start =
-        getMonday(reference);
-
-    const end =
-        new Date(start);
-
-    end.setDate(
-        start.getDate() + 7
-    );
-
-    return (
-        date >= start &&
-        date < end
-    );
-}
-
-
 function getMonday(
     date
 ) {
+
     const result =
         new Date(
             date.getFullYear(),
@@ -2652,7 +4210,8 @@ function getMonday(
         result.getDay();
 
     const difference =
-        day === 0
+        day ===
+        0
             ? -6
             : 1 - day;
 
@@ -2672,307 +4231,33 @@ function getMonday(
 }
 
 
-function getReportLabel(
-    period
-) {
-    const now =
-        new Date();
-
-    if (
-        period === "day"
-    ) {
-        return (
-            "Heute · " +
-            now.toLocaleDateString(
-                "de-DE"
-            )
-        );
-    }
-
-    if (
-        period === "week"
-    ) {
-        const monday =
-            getMonday(now);
-
-        const sunday =
-            new Date(
-                monday
-            );
-
-        sunday.setDate(
-            monday.getDate() +
-                6
-        );
-
-        return (
-            "Woche · " +
-            monday.toLocaleDateString(
-                "de-DE"
-            ) +
-            " – " +
-            sunday.toLocaleDateString(
-                "de-DE"
-            )
-        );
-    }
-
-    return (
-        "Monat · " +
-        now.toLocaleDateString(
-            "de-DE",
-            {
-                month:
-                    "long",
-                year:
-                    "numeric"
-            }
-        )
-    );
-}
-
-
-// ========================================
-// REPORT EXPORT
-// ========================================
-
-exportReportButton.addEventListener(
-    "click",
-    exportReportAsCSV
-);
-
-
-function exportReportAsCSV() {
-    if (!isCurrentTeacher()) {
-        return;
-    }
-
-    const filteredSales =
-        getSalesForPeriod(
-            currentReportPeriod
-        );
-
-    const rows = [
-        [
-            "Datum",
-            "Produkt",
-            "Kategorie",
-            "Menge",
-            "Einzelpreis",
-            "Umsatz"
-        ]
-    ];
-
-    filteredSales.forEach(
-        function (sale) {
-            sale.items.forEach(
-                function (item) {
-                    rows.push([
-                        new Date(
-                            sale.date
-                        ).toLocaleString(
-                            "de-DE"
-                        ),
-
-                        item.name,
-
-                        item.category ===
-                        "drink"
-                            ? "Getränk"
-                            : "Bäckerei",
-
-                        item.quantity,
-
-                        Number(
-                            item.price
-                        )
-                            .toFixed(2)
-                            .replace(
-                                ".",
-                                ","
-                            ),
-
-                        (
-                            Number(
-                                item.price
-                            ) *
-                            Number(
-                                item.quantity
-                            )
-                        )
-                            .toFixed(2)
-                            .replace(
-                                ".",
-                                ","
-                            )
-                    ]);
-                }
-            );
-        }
-    );
-
-    if (rows.length === 1) {
-        alert(
-            "Keine Verkaufsdaten für diesen Zeitraum."
-        );
-
-        return;
-    }
-
-    const csv =
-        rows
-            .map(
-                function (row) {
-                    return row
-                        .map(csvEscape)
-                        .join(";");
-                }
-            )
-            .join("\n");
-
-    const blob =
-        new Blob(
-            [
-                "\uFEFF" +
-                    csv
-            ],
-            {
-                type:
-                    "text/csv;charset=utf-8;"
-            }
-        );
-
-    const url =
-        URL.createObjectURL(
-            blob
-        );
-
-    const link =
-        document.createElement(
-            "a"
-        );
-
-    link.href = url;
-
-    link.download =
-        "LauterMacher_" +
-        currentReportPeriod +
-        "_" +
-        getDateForFileName() +
-        ".csv";
-
-    document.body.appendChild(
-        link
-    );
-
-    link.click();
-
-    link.remove();
-
-    URL.revokeObjectURL(
-        url
-    );
-}
-
-
-function csvEscape(
-    value
-) {
-    const text =
-        String(
-            value ?? ""
-        );
-
-    if (
-        text.includes(";") ||
-        text.includes('"') ||
-        text.includes("\n")
-    ) {
-        return (
-            '"' +
-            text.replaceAll(
-                '"',
-                '""'
-            ) +
-            '"'
-        );
-    }
-
-    return text;
-}
-
-
-// ========================================
-// REPORT — CLEAR
-// ========================================
-
-clearReportsButton.addEventListener(
-    "click",
-    function () {
-        if (!isCurrentTeacher()) {
-            return;
-        }
-
-        if (sales.length === 0) {
-            alert(
-                "Es gibt keine Verkaufsdaten."
-            );
-
-            return;
-        }
-
-        const confirmed =
-            confirm(
-                "Möchtest du wirklich ALLE Verkaufsdaten löschen?"
-            );
-
-        if (!confirmed) {
-            return;
-        }
-
-        sales = [];
-
-        saveSales();
-
-        renderReport();
-
-        alert(
-            "Alle Verkaufsdaten wurden gelöscht."
-        );
-    }
-);
-
-
-// ========================================
-// HELPERS
-// ========================================
-
 function parseGermanNumber(
     value
 ) {
+
     if (!value) {
         return 0;
     }
 
     return Number(
-        String(value).replace(
+        String(
+            value
+        ).replace(
             ",",
             "."
         )
-    );
+    ) || 0;
 }
 
 
 function formatPrice(
     value
 ) {
-    const number =
-        Number(
-            value || 0
-        );
 
     return (
-        number
+        Number(
+            value || 0
+        )
             .toFixed(2)
             .replace(
                 ".",
@@ -2986,22 +4271,32 @@ function formatPrice(
 function roundMoney(
     value
 ) {
-    return Math.round(
-        (
-            Number(value) +
-            Number.EPSILON
-        ) * 100
-    ) / 100;
+
+    return (
+        Math.round(
+            (
+                Number(
+                    value
+                ) +
+                Number.EPSILON
+            ) *
+                100
+        ) /
+        100
+    );
 }
 
 
 function createProductId(
     name
 ) {
+
     const base =
         name
             .toLowerCase()
-            .normalize("NFD")
+            .normalize(
+                "NFD"
+            )
             .replace(
                 /[\u0300-\u036f]/g,
                 ""
@@ -3024,7 +4319,9 @@ function createProductId(
 
     while (
         products.some(
-            function (product) {
+            function (
+                product
+            ) {
                 return (
                     product.id ===
                     id
@@ -3032,6 +4329,7 @@ function createProductId(
             }
         )
     ) {
+
         id =
             base +
             "-" +
@@ -3045,7 +4343,8 @@ function createProductId(
 }
 
 
-function getDateForFileName() {
+function getTodayInputDate() {
+
     const date =
         new Date();
 
@@ -3053,7 +4352,8 @@ function getDateForFileName() {
         date.getFullYear() +
         "-" +
         String(
-            date.getMonth() + 1
+            date.getMonth() +
+                1
         ).padStart(
             2,
             "0"
@@ -3072,6 +4372,7 @@ function getDateForFileName() {
 function escapeHtml(
     value
 ) {
+
     return String(
         value ?? ""
     )
@@ -3095,4 +4396,114 @@ function escapeHtml(
             "'",
             "&#039;"
         );
+}
+
+
+// ========================================
+// BOOT
+// ========================================
+
+async function boot() {
+
+    /*
+        Très important :
+        l'écran de connexion est affiché
+        AVANT toute opération réseau.
+    */
+
+    hideHeader();
+
+    showScreen(
+        identityScreen
+    );
+
+    updateHome();
+
+    updateInventoryMenus();
+
+    renderProducts();
+
+    updateCart();
+
+    try {
+
+        if (
+            !supabaseClient
+        ) {
+
+            setText(
+                identityError,
+                "Supabase konnte nicht geladen werden. Bitte die Seite neu laden."
+            );
+
+            return;
+        }
+
+        const {
+            data,
+            error
+        } =
+            await supabaseClient
+                .auth
+                .getSession();
+
+        if (error) {
+            throw error;
+        }
+
+        if (
+            data &&
+            data.session
+        ) {
+
+            const person =
+                await loadCurrentPerson(
+                    data.session
+                );
+
+            if (person) {
+
+                await setLoggedIn(
+                    person
+                );
+
+                return;
+            }
+
+            await supabaseClient
+                .auth
+                .signOut();
+        }
+
+        await loadPeople();
+
+    } catch (error) {
+
+        console.error(
+            "Boot fehlgeschlagen.",
+            error
+        );
+
+        setText(
+            identityError,
+            "Die Anmeldung konnte nicht geladen werden. Bitte erneut versuchen."
+        );
+    }
+}
+
+
+// Lancement après chargement du DOM
+if (
+    document.readyState ===
+    "loading"
+) {
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        boot
+    );
+
+} else {
+
+    boot();
 }
