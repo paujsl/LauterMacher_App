@@ -295,11 +295,9 @@ async function loadPeople() {
     try {
 
         const response =
-            await fetch(
-                SUPABASE_URL +
-                "/rest/v1/login_people" +
-                "?select=id,first_name,last_name,person_type" +
-                "&order=person_type,last_name,first_name",
+    await fetch(
+        SUPABASE_URL +
+        "/rest/v1/rpc/get_login_people",
                 {
                     method: "GET",
 
