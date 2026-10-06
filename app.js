@@ -1097,10 +1097,12 @@ document.addEventListener(
         syncProductsFromSupabase();
 
         showScreen(
-            identityScreen
-        );
+    identityScreen
+);
 
-        await initialiseAuthentication();
+await initialiseAuthentication();
+
+await syncProductsFromSupabase();
     }
 );
 
