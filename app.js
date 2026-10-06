@@ -1094,6 +1094,8 @@ document.addEventListener(
 
         hideAppHeader();
 
+        syncProductsFromSupabase();
+
         showScreen(
             identityScreen
         );
@@ -2038,6 +2040,101 @@ function saveProducts() {
     );
 }
 
+// ========================================
+// SUPABASE — PRODUITS
+// ========================================
+
+async function syncProductsFromSupabase() {
+
+    try {
+
+        const result =
+            await supabaseClient
+                .from("products")
+                .select(
+                    "id,name,price,purchase_price,category,icon,active"
+                )
+                .eq(
+                    "active",
+                    true
+                )
+                .order(
+                    "category"
+                )
+                .order(
+                    "name"
+                );
+
+
+        if (result.error) {
+            throw result.error;
+        }
+
+
+        const data =
+            result.data || [];
+
+
+        products =
+            data.map(function (product) {
+
+                return {
+                    id:
+                        product.id,
+
+                    name:
+                        product.name,
+
+                    price:
+                        Number(product.price),
+
+                    purchase_price:
+                        product.purchase_price === null
+                            ? null
+                            : Number(
+                                product.purchase_price
+                            ),
+
+                    category:
+                        product.category === "getränke"
+                            ? "drink"
+                            : "bakery",
+
+                    icon:
+                        product.icon || "🥤"
+                };
+
+            });
+
+
+        console.log(
+            "Produkte aus Supabase geladen:",
+            products.length
+        );
+
+
+        renderProducts();
+
+
+        if (
+            typeof renderAdminProducts ===
+            "function"
+        ) {
+
+            renderAdminProducts();
+
+        }
+
+
+    } catch (error) {
+
+        console.error(
+            "Produkte konnten nicht aus Supabase geladen werden:",
+            error
+        );
+
+    }
+}
 
 function loadSales() {
 
