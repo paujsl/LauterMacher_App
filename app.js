@@ -684,13 +684,7 @@ async function syncProducts() {
 
 async function loadPeople() {
 
-    if (!supabaseClient) {
-
-        setText(
-            identityError,
-            "Supabase konnte nicht geladen werden. Bitte die Seite neu laden."
-        );
-
+    if (!peopleGrid) {
         return;
     }
 
@@ -699,59 +693,77 @@ async function loadPeople() {
         ""
     );
 
-    if (peopleGrid) {
-        peopleGrid.innerHTML =
-            `
-                <div class="login-loading">
-                    Personen werden geladen …
-                </div>
-            `;
-    }
+    peopleGrid.innerHTML = `
+        <div class="login-loading">
+            Personen werden geladen …
+        </div>
+    `;
 
-    const {
-        data,
-        error
-    } =
-        await supabaseClient
-            .from(
-                "login_people"
-            )
-            .select(
-                "id,first_name,last_name,person_type"
-            )
-            .order(
-                "person_type"
-            )
-            .order(
-                "last_name"
-            )
-            .order(
-                "first_name"
+    try {
+
+        const response = await fetch(
+            SUPABASE_URL +
+            "/rest/v1/login_people" +
+            "?select=id,first_name,last_name,person_type" +
+            "&order=person_type,last_name,first_name",
+            {
+                method: "GET",
+
+                headers: {
+                    "apikey":
+                        SUPABASE_ANON_KEY,
+
+                    "Authorization":
+                        "Bearer " +
+                        SUPABASE_ANON_KEY,
+
+                    "Content-Type":
+                        "application/json"
+                }
+            }
+        );
+
+        if (!response.ok) {
+
+            const errorText =
+                await response.text();
+
+            throw new Error(
+                "HTTP " +
+                response.status +
+                " · " +
+                errorText
             );
+        }
 
-    if (error) {
+        const people =
+            await response.json();
+
+        console.log(
+            "Login-Personen geladen:",
+            people
+        );
+
+        renderPeople(
+            Array.isArray(people)
+                ? people
+                : []
+        );
+
+    } catch (error) {
 
         console.error(
-            "Login-Personen konnten nicht geladen werden.",
+            "Login-Personen konnten nicht geladen werden:",
             error
         );
 
-        if (peopleGrid) {
-            peopleGrid.innerHTML =
-                "";
-        }
+        peopleGrid.innerHTML = "";
 
         setText(
             identityError,
-            "Personen konnten nicht geladen werden. Bitte erneut versuchen."
+            "Die Personen konnten nicht geladen werden."
         );
-
-        return;
     }
-
-    renderPeople(
-        data || []
-    );
 }
 
 
