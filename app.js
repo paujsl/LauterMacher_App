@@ -289,6 +289,7 @@ function hideHeader() {
 
 
 function updateHome() {
+
     const teacher =
         isTeacher();
 
@@ -313,6 +314,58 @@ function updateHome() {
         reportsHomeButton,
         !teacher
     );
+}
+
+
+function updateInventoryMenus() {
+
+    const teacher =
+        isTeacher();
+
+    if (teacher) {
+
+        setText(
+            $("editMenuTitle"),
+            "Bearbeiten"
+        );
+
+        setText(
+            $("editMenuDescription"),
+            "Produkte, Preise und Inventar verwalten."
+        );
+
+        setText(
+            $("inventoryMenuTitle"),
+            "Inventar"
+        );
+
+        setText(
+            $("inventoryMenuDescription"),
+            "Bestand verwalten"
+        );
+
+    } else {
+
+        setText(
+            $("editMenuTitle"),
+            "Bearbeiten"
+        );
+
+        setText(
+            $("editMenuDescription"),
+            "Produkte und Preise selbstständig bearbeiten."
+        );
+
+        setText(
+            $("inventoryMenuTitle"),
+            "Inventur"
+        );
+
+        setText(
+            $("inventoryMenuDescription"),
+            "Bestand zählen und an den Lehrer schicken"
+        );
+    }
 }
 
 
