@@ -1094,15 +1094,13 @@ document.addEventListener(
 
         hideAppHeader();
 
-        syncProductsFromSupabase();
-
         showScreen(
-    identityScreen
-);
+            identityScreen
+        );
 
-await initialiseAuthentication();
+        await initialiseAuthentication();
 
-await syncProductsFromSupabase();
+        await syncProductsFromSupabase();
     }
 );
 
