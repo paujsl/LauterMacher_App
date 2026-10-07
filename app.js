@@ -7776,6 +7776,637 @@ function initialiseStaticUi() {
         );
 }
 
+/* =====================================================================
+   LAUTERMACHER V3.1
+   Schüler-Korrekturen
+   ===================================================================== */
+
+
+/* =====================================================================
+   V3.1 — HEADER
+   ===================================================================== */
+
+function ensureV31HeaderVisible() {
+
+    if (!state.currentPerson) {
+        return;
+    }
+
+    const header =
+        $("appHeader");
+
+    if (!header) {
+        return;
+    }
+
+    header.hidden = false;
+
+    header.removeAttribute(
+        "hidden"
+    );
+
+    header.classList.add(
+        "visible"
+    );
+
+    document.body.classList.add(
+        "authenticated"
+    );
+
+    setText(
+        "currentPersonName",
+        fullName(
+            state.currentPerson
+        )
+    );
+
+    setText(
+        "currentPersonRole",
+        isTeacher()
+            ? "Lehrkraft"
+            : "Schüler/in"
+    );
+}
+
+
+/* =====================================================================
+   V3.1 — BÄCKEREI AUSGABE
+   ===================================================================== */
+
+function isBakeryOrderCompleted(order) {
+
+    const status =
+        String(
+            order?.status || ""
+        ).toLowerCase();
+
+    return [
+        "ausgegeben",
+        "fertig",
+        "served",
+        "erledigt",
+        "completed"
+    ].includes(status);
+}
+
+
+function renderBakeryOrders(orders) {
+
+    const openContainer =
+        $("bakeryOutputOrders");
+
+    const completedContainer =
+        $("bakeryCompletedOrders");
+
+    if (!openContainer) {
+        return;
+    }
+
+    const safeOrders =
+        Array.isArray(orders)
+            ? orders
+            : [];
+
+    const openOrders =
+        safeOrders.filter(
+            order =>
+                !isBakeryOrderCompleted(
+                    order
+                )
+        );
+
+    const completedOrders =
+        safeOrders
+            .filter(
+                order =>
+                    isBakeryOrderCompleted(
+                        order
+                    )
+            )
+            .slice(0, 20);
+
+
+    setText(
+        "bakeryOpenOrderCount",
+        String(
+            openOrders.length
+        )
+    );
+
+    setText(
+        "bakeryCompletedOrderCount",
+        String(
+            completedOrders.length
+        )
+    );
+
+
+    /* ---------------------------------------------------------
+       OFFENE BESTELLUNGEN
+       --------------------------------------------------------- */
+
+    if (!openOrders.length) {
+
+        openContainer.innerHTML = `
+            <div class="empty-state">
+                Keine offenen Bestellungen.
+            </div>
+        `;
+
+    } else {
+
+        openContainer.innerHTML =
+            openOrders
+                .map(
+                    order => {
+
+                        const items =
+                            order.items ||
+                            order.order_items ||
+                            [];
+
+                        return `
+                            <div class="output-order-card">
+
+                                <strong class="output-order-number">
+                                    #${String(
+                                        order.order_number ?? "—"
+                                    ).padStart(3, "0")}
+                                </strong>
+
+                                <div class="output-order-items">
+
+                                    ${
+                                        items
+                                            .map(
+                                                item => `
+                                                    <div class="output-order-item">
+
+                                                        <strong>
+                                                            ${integer(
+                                                                item.quantity
+                                                            )}×
+                                                        </strong>
+
+                                                        ${escapeHtml(
+                                                            item.product_name ||
+                                                            item.name ||
+                                                            ""
+                                                        )}
+
+                                                    </div>
+                                                `
+                                            )
+                                            .join("")
+                                    }
+
+                                </div>
+
+                                <button
+                                    type="button"
+                                    class="primary-action"
+                                    data-serve-bakery="${escapeHtml(
+                                        order.id
+                                    )}"
+                                >
+                                    Ausgegeben
+                                </button>
+
+                            </div>
+                        `;
+                    }
+                )
+                .join("");
+    }
+
+
+    /* ---------------------------------------------------------
+       FERTIGE BESTELLUNGEN
+       --------------------------------------------------------- */
+
+    if (!completedContainer) {
+        return;
+    }
+
+    if (!completedOrders.length) {
+
+        completedContainer.innerHTML = `
+            <div class="empty-state">
+                Noch keine fertigen Bestellungen.
+            </div>
+        `;
+
+        return;
+    }
+
+    completedContainer.innerHTML =
+        completedOrders
+            .map(
+                order => {
+
+                    const items =
+                        order.items ||
+                        order.order_items ||
+                        [];
+
+                    return `
+                        <div class="completed-order-card">
+
+                            <strong>
+                                #${String(
+                                    order.order_number ?? "—"
+                                ).padStart(3, "0")}
+                            </strong>
+
+                            <small>
+                                ${
+                                    items
+                                        .map(
+                                            item =>
+                                                `${integer(
+                                                    item.quantity
+                                                )}× ${escapeHtml(
+                                                    item.product_name ||
+                                                    item.name ||
+                                                    ""
+                                                )}`
+                                        )
+                                        .join(", ")
+                                }
+                            </small>
+
+                        </div>
+                    `;
+                }
+            )
+            .join("");
+}
+
+
+/* =====================================================================
+   V3.1 — BÄCKEREI SCHICHTENDE
+   ===================================================================== */
+
+function showBakeryShiftFinished(
+    role
+) {
+
+    const oldOverlay =
+        $("bakeryShiftFinishedOverlay");
+
+    oldOverlay?.remove();
+
+
+    const overlay =
+        document.createElement(
+            "div"
+        );
+
+    overlay.id =
+        "bakeryShiftFinishedOverlay";
+
+    overlay.className =
+        "team-finished-overlay";
+
+
+    const description =
+        role === "output"
+            ? "Danke! Deine Schicht an der Ausgabe ist beendet."
+            : "Danke! Deine Schicht an der Kasse ist beendet.";
+
+
+    overlay.innerHTML = `
+        <div
+            class="team-finished-card"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="bakeryShiftFinishedTitle"
+        >
+
+            <span class="team-finished-icon">
+                🎉
+            </span>
+
+            <h2 id="bakeryShiftFinishedTitle">
+                Gut gemacht heute, Team!
+            </h2>
+
+            <p>
+                ${description}
+            </p>
+
+            <button
+                id="bakeryShiftFinishedButton"
+                class="primary-action"
+                type="button"
+            >
+                Weiter
+            </button>
+
+        </div>
+    `;
+
+
+    document.body.appendChild(
+        overlay
+    );
+
+
+    $("bakeryShiftFinishedButton")
+        ?.addEventListener(
+            "click",
+            () => {
+
+                overlay.remove();
+
+                state.bakeryCart = {};
+
+                renderBakeryCart();
+
+                goHome();
+            }
+        );
+}
+
+
+/* =====================================================================
+   V3.1 — PRODUKT-AKTIONEN SICHERSTELLEN
+   ===================================================================== */
+
+function renderProductAdmin() {
+
+    const container =
+        $("productAdminList");
+
+    if (!container) {
+        return;
+    }
+
+
+    let products =
+        state.products.filter(
+            product =>
+                product.active !== false
+        );
+
+
+    if (
+        state.productFilter !==
+        "all"
+    ) {
+
+        products =
+            products.filter(
+                product =>
+                    product.category ===
+                    state.productFilter
+            );
+    }
+
+
+    if (!products.length) {
+
+        container.innerHTML = `
+            <div class="empty-state">
+                Keine Produkte.
+            </div>
+        `;
+
+        return;
+    }
+
+
+    container.innerHTML =
+        products
+            .map(
+                product => `
+                    <div class="product-admin-row">
+
+                        <div class="product-admin-icon">
+                            ${escapeHtml(
+                                product.icon ||
+                                "🛒"
+                            )}
+                        </div>
+
+                        <div class="product-admin-info">
+
+                            <strong>
+                                ${escapeHtml(
+                                    product.name
+                                )}
+                            </strong>
+
+                            <small>
+                                ${escapeHtml(
+                                    categoryLabel(
+                                        product.category
+                                    )
+                                )}
+                            </small>
+
+                        </div>
+
+                        <div class="product-admin-price">
+                            ${money(
+                                product.price
+                            )}
+                        </div>
+
+                        <div class="product-admin-actions">
+
+                            <button
+                                type="button"
+                                class="product-edit-button"
+                                data-edit-product="${escapeHtml(
+                                    product.id
+                                )}"
+                            >
+                                ✏️ Bearbeiten
+                            </button>
+
+                            <button
+                                type="button"
+                                class="product-delete-button"
+                                data-delete-product="${escapeHtml(
+                                    product.id
+                                )}"
+                            >
+                                🗑️ Löschen
+                            </button>
+
+                        </div>
+
+                    </div>
+                `
+            )
+            .join("");
+}
+
+
+/* =====================================================================
+   V3.1 — BÄCKEREI BUTTONS
+   ===================================================================== */
+
+document.addEventListener(
+    "click",
+    async event => {
+
+        const target =
+            event.target.closest(
+                "button"
+            );
+
+        if (!target) {
+            return;
+        }
+
+
+        /* ---------------------------------------------------------
+           Bäckerei Menü → Kasse
+           HTML verwendet bakeryCashierButton.
+           --------------------------------------------------------- */
+
+        if (
+            target.id ===
+            "bakeryCashierButton"
+        ) {
+
+            state.bakeryCart = {};
+
+            renderBakeryCart();
+
+            renderSaleProducts(
+                "bakeryProductGrid",
+                "bäckerei",
+                state.bakeryCart,
+                renderBakeryCart
+            );
+
+            showScreen(
+                "bakerySaleScreen"
+            );
+
+            return;
+        }
+
+
+        /* ---------------------------------------------------------
+           Kasse → Schicht beenden
+           Keine Gratisgetränke.
+           --------------------------------------------------------- */
+
+        if (
+            target.id ===
+            "bakeryCashShiftEndButton"
+        ) {
+
+            showBakeryShiftFinished(
+                "cash"
+            );
+
+            return;
+        }
+
+
+        /* ---------------------------------------------------------
+           Ausgabe → Schicht beenden
+           Nur Information / Bestätigung.
+           Keine Gratisgetränke.
+           --------------------------------------------------------- */
+
+        if (
+            target.id ===
+            "bakeryOutputShiftEndButton"
+        ) {
+
+            showBakeryShiftFinished(
+                "output"
+            );
+
+            return;
+        }
+    },
+    true
+);
+
+
+/* =====================================================================
+   V3.1 — HEADER WATCHDOG
+   ===================================================================== */
+
+/*
+   Der Header darf nach erfolgreichem Login nicht wieder verschwinden.
+   Das ist absichtlich defensiv, damit Navigation und Realtime-Refreshes
+   ihn nicht versehentlich ausblenden.
+*/
+
+const v31HeaderObserver =
+    new MutationObserver(
+        () => {
+
+            if (
+                state.currentPerson &&
+                state.currentScreenId !==
+                    "identityScreen" &&
+                state.currentScreenId !==
+                    "pinLoginScreen"
+            ) {
+
+                const header =
+                    $("appHeader");
+
+                if (
+                    header &&
+                    (
+                        header.hidden ||
+                        !header.classList.contains(
+                            "visible"
+                        )
+                    )
+                ) {
+
+                    ensureV31HeaderVisible();
+                }
+            }
+        }
+    );
+
+
+v31HeaderObserver.observe(
+    document.body,
+    {
+        attributes: true,
+        subtree: true,
+        attributeFilter: [
+            "hidden",
+            "class"
+        ]
+    }
+);
+
+
+/* =====================================================================
+   V3.1 — LOGIN HEADER REFRESH
+   ===================================================================== */
+
+window.setInterval(
+    () => {
+
+        if (
+            state.currentPerson &&
+            state.currentScreenId !==
+                "identityScreen" &&
+            state.currentScreenId !==
+                "pinLoginScreen"
+        ) {
+
+            ensureV31HeaderVisible();
+        }
+
+    },
+    1500
+);
 
 /* =====================================================================
    START
