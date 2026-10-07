@@ -2113,6 +2113,7 @@ async function syncProductsFromSupabase() {
             products.length
         );
 
+        saveProducts();
 
         renderProducts();
 
@@ -4226,7 +4227,7 @@ if (
 on(
     "saveProductButton",
     "click",
-    function () {
+    async function () {
 
         const name =
             productNameInput.value.trim();
@@ -4258,8 +4259,7 @@ on(
             !Number.isFinite(
                 price
             ) ||
-            price <
-            0
+            price < 0
         ) {
 
             alert(
@@ -4270,10 +4270,8 @@ on(
         }
 
         if (
-            category !==
-            "drink" &&
-            category !==
-            "bakery"
+            category !== "drink" &&
+            category !== "bakery"
         ) {
 
             alert(
@@ -4283,101 +4281,115 @@ on(
             return;
         }
 
-        if (
-            editingProductId
-        ) {
+        const databaseCategory =
+            category === "drink"
+                ? "getränke"
+                : "bäckerei";
 
-            const product =
-                products.find(
-                    function (
-                        item
-                    ) {
+        try {
 
-                        return (
-                            item.id ===
+            if (
+                editingProductId
+            ) {
+
+                const {
+                    error
+                } =
+                    await supabaseClient
+                        .from(
+                            "products"
+                        )
+                        .update({
+                            name:
+                                name,
+
+                            price:
+                                roundMoney(
+                                    price
+                                ),
+
+                            category:
+                                databaseCategory,
+
+                            icon:
+                                icon
+                        })
+                        .eq(
+                            "id",
                             editingProductId
                         );
-                    }
-                );
-
-            if (
-                !product
-            ) {
-
-                return;
-            }
-
-            product.name =
-                name;
-
-            product.price =
-                roundMoney(
-                    price
-                );
-
-            product.category =
-                category;
-
-            product.icon =
-                icon;
-
-        } else {
-
-            const newProduct = {
-
-                id:
-                    createProductId(
-                        name
-                    ),
-
-                name:
-                    name,
-
-                price:
-                    roundMoney(
-                        price
-                    ),
-
-                category:
-                    category,
-
-                icon:
-                    icon
-            };
-
-            products.push(
-                newProduct
-            );
-
-            if (
-                newProduct.category ===
-                "drink"
-            ) {
 
                 if (
-                    inventory[
-                        newProduct.id
-                    ] ===
-                    undefined
+                    error
                 ) {
 
-                    inventory[
-                        newProduct.id
-                    ] =
-                        0;
+                    throw error;
+                }
 
-                    saveInventory();
+            } else {
+
+                const newProductId =
+                    createProductId(
+                        name
+                    );
+
+                const {
+                    error
+                } =
+                    await supabaseClient
+                        .from(
+                            "products"
+                        )
+                        .insert({
+                            id:
+                                newProductId,
+
+                            name:
+                                name,
+
+                            price:
+                                roundMoney(
+                                    price
+                                ),
+
+                            purchase_price:
+                                null,
+
+                            category:
+                                databaseCategory,
+
+                            icon:
+                                icon,
+
+                            active:
+                                true
+                        });
+
+                if (
+                    error
+                ) {
+
+                    throw error;
                 }
             }
+
+            await syncProductsFromSupabase();
+
+            closeProductModal();
+
+        } catch (
+            error
+        ) {
+
+            console.error(
+                "Produkt konnte nicht gespeichert werden:",
+                error
+            );
+
+            alert(
+                "Das Produkt konnte nicht gespeichert werden."
+            );
         }
-
-        saveProducts();
-
-        renderProducts();
-
-        renderAdminProducts();
-
-        closeProductModal();
     }
 );
 
