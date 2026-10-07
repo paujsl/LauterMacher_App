@@ -5380,3 +5380,390 @@ body #breadcrumb,
         max-width: 45vw !important;
     }
 }
+/* =====================================================================
+   LAUTERMACHER — V6
+   RESTAURATION DU DESIGN V4
+   Conserver le logo et le bandeau V5
+   ===================================================================== */
+
+
+/* POLICE ET COULEURS PRINCIPALES */
+
+html,
+body,
+button,
+input,
+select,
+textarea {
+    font-family:
+        Inter,
+        ui-sans-serif,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+}
+
+.screen h1,
+.screen h2,
+.screen h3 {
+    color: var(--blue-dark);
+}
+
+
+/* PROFILS — VIOLET */
+
+.person-card {
+    color: var(--purple-dark);
+    border-color: var(--purple);
+    background: var(--white);
+}
+
+.person-card:hover,
+.person-card:focus-visible {
+    border-color: var(--purple-dark);
+    background: var(--purple-soft);
+}
+
+.person-avatar {
+    background: var(--purple-soft);
+}
+
+
+/* PAGE PIN — VIOLET */
+
+#pinLoginScreen .login-card {
+    max-width: 470px;
+}
+
+#loginPinInput {
+    display: block;
+    width: 100%;
+    max-width: 320px;
+    margin: 12px auto 22px;
+    padding: 16px;
+    background: var(--white);
+    color: var(--purple-dark);
+    border: 2px solid var(--purple);
+    border-radius: var(--radius-small);
+    font-size: 1.6rem;
+    font-weight: 900;
+    letter-spacing: 0.35em;
+    text-align: center;
+}
+
+#loginPinInput:focus {
+    border-color: var(--purple-dark);
+    outline-color: var(--purple);
+}
+
+#pinLoginScreen .primary-action {
+    background: var(--purple-dark);
+    border-color: var(--purple-dark);
+}
+
+#pinLoginScreen .secondary-action {
+    color: var(--purple-dark);
+    border-color: var(--purple-dark);
+}
+
+
+/* CLOCHE ET ABMELDEN — VIOLET */
+
+#notificationButton,
+#logoutButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    padding: 9px 14px;
+    background: var(--purple-soft);
+    color: var(--purple-dark);
+    border: 1px solid var(--purple-dark);
+    border-radius: var(--radius-small);
+    font-weight: 800;
+    cursor: pointer;
+}
+
+#notificationButton {
+    position: relative;
+    width: 44px;
+    padding: 0;
+    border-radius: 50%;
+    font-size: 1.25rem;
+}
+
+#notificationButton:hover,
+#logoutButton:hover {
+    background: var(--purple);
+    color: var(--blue-dark);
+}
+
+
+/* FIL D'ARIANE — VIOLET */
+
+#breadcrumb {
+    background: var(--purple) !important;
+    color: var(--purple-dark);
+}
+
+#breadcrumb .breadcrumb-item,
+#breadcrumb .breadcrumb-current {
+    color: var(--purple-dark);
+}
+
+
+/* ACCUEIL — RETROUVER LES CARTES V4 */
+
+.home-menu-grid,
+.admin-menu-grid,
+.choice-grid {
+    display: grid;
+    grid-template-columns:
+        repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+    gap: clamp(14px, 2.5vw, 22px);
+}
+
+.home-menu-card,
+.admin-menu-card,
+.choice-card {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    min-height: 140px;
+    padding: 22px;
+    background: var(--white);
+    color: var(--blue-dark);
+    border: 1px solid var(--grey-200);
+    border-radius: var(--radius-large);
+    box-shadow: var(--shadow-small);
+    text-align: left;
+    gap: 16px;
+    transition:
+        transform var(--transition),
+        box-shadow var(--transition),
+        border-color var(--transition);
+}
+
+.home-menu-card:hover,
+.admin-menu-card:hover,
+.choice-card:hover {
+    border-color: var(--purple-dark);
+    box-shadow: var(--shadow);
+    transform: translateY(-2px);
+}
+
+.home-menu-icon,
+.admin-menu-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 62px;
+    width: 62px;
+    height: 62px;
+    background: var(--blue-light);
+    border-radius: var(--radius);
+    font-size: 2rem;
+}
+
+.home-menu-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: 5px;
+}
+
+.home-menu-text strong,
+.admin-menu-card strong,
+.choice-card strong {
+    color: var(--blue-dark);
+    font-size: 1.15rem;
+    font-weight: 850;
+}
+
+.home-menu-text small,
+.admin-menu-card small,
+.choice-card small {
+    color: var(--grey-600);
+}
+
+.home-menu-arrow {
+    margin-left: auto;
+    color: var(--blue);
+    font-size: 1.8rem;
+}
+
+
+/* KASSE — STRUCTURE V4 */
+
+.sale-layout {
+    display: grid;
+    grid-template-columns:
+        minmax(0, 1fr)
+        minmax(290px, 380px);
+    align-items: start;
+    gap: clamp(16px, 3vw, 28px);
+}
+
+.sale-products-panel,
+.cart-panel {
+    min-width: 0;
+}
+
+.product-grid {
+    display: grid;
+    grid-template-columns:
+        repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+}
+
+.cart-panel {
+    padding: 20px;
+    background: var(--white);
+    border: 1px solid var(--grey-200);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+}
+
+.section-heading h2,
+.cart-panel h2 {
+    color: var(--blue-dark);
+}
+
+.section-heading p {
+    color: var(--grey-600);
+}
+
+
+/* BOUTONS DE PAIEMENT — BLEU V4 */
+
+.pay-button,
+.paid-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 52px;
+    padding: 12px 18px;
+    background: var(--blue);
+    color: var(--white);
+    border: 2px solid var(--blue);
+    border-radius: var(--radius-small);
+    font-size: 1.05rem;
+    font-weight: 850;
+}
+
+.pay-button:hover:not(:disabled),
+.paid-button:hover:not(:disabled) {
+    background: var(--blue-dark);
+    border-color: var(--blue-dark);
+}
+
+
+/* BOUTONS RETOUR — BLEU V4 */
+
+.back-button {
+    display: inline-flex;
+    align-items: center;
+    min-height: 42px;
+    padding: 9px 14px;
+    background: transparent;
+    color: var(--blue);
+    border: 1px solid var(--grey-300);
+    border-radius: var(--radius-small);
+    font-weight: 800;
+}
+
+.back-button:hover {
+    background: var(--blue-light);
+}
+
+
+/* RECHNUNGEN — UNE LIGNE PAR FACTURE */
+
+#invoiceList {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: 10px;
+}
+
+#invoiceList .invoice-row {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: space-between;
+    min-width: 0;
+    width: 100%;
+    padding: 12px;
+    gap: clamp(4px, 1vw, 14px);
+    background: var(--white);
+    border: 1px solid var(--grey-200);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-small);
+}
+
+#invoiceList .invoice-row > * {
+    min-width: 0;
+}
+
+#invoiceList .invoice-row strong,
+#invoiceList .invoice-row small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: clamp(0.65rem, 1.4vw, 0.95rem);
+}
+
+
+/* RESPONSIVE — IPAD ET TÉLÉPHONE */
+
+@media (max-width: 760px) {
+    .sale-layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .cart-panel {
+        position: static;
+    }
+
+    .product-grid {
+        grid-template-columns:
+            repeat(auto-fill, minmax(125px, 1fr));
+    }
+
+    .home-menu-grid,
+    .admin-menu-grid,
+    .choice-grid {
+        grid-template-columns:
+            repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+    }
+}
+
+@media (max-width: 520px) {
+    .home-menu-card,
+    .admin-menu-card,
+    .choice-card {
+        padding: 14px;
+        min-height: 105px;
+        gap: 10px;
+    }
+
+    .home-menu-icon,
+    .admin-menu-icon {
+        flex-basis: 48px;
+        width: 48px;
+        height: 48px;
+        font-size: 1.5rem;
+    }
+
+    .product-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    #invoiceList .invoice-row {
+        padding: 8px 6px;
+        gap: 4px;
+    }
+}
