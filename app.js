@@ -1,7 +1,7 @@
 "use strict";
 
 /* =====================================================================
-   LAUTERMACHER — APP.JS V4.0.0
+   LAUTERMACHER — APP.JS V5.0.0
    Supabase = source de vérité. Aucun localStorage métier.
    ===================================================================== */
 
@@ -358,7 +358,9 @@ $("drinksPaymentKeypad")?.addEventListener("click",e=>{
     else state.drinksReceivedCents=centsAppend(state.drinksReceivedCents,key.dataset.value);
     renderDrinksPayment();
 });
-$("drinksPaidButton")?.addEventListener("click",async()=>{
+$("drinksPaidButton")?.addEventListener("click",async event=>{
+    event.preventDefault();
+   
     const total=cartTotal(state.drinksCart),received=state.drinksReceivedCents/100;
     if(total<=0||received+0.0001<total)return;
     const btn=$("drinksPaidButton");btn.disabled=true;
@@ -443,7 +445,9 @@ $("bakeryPaymentKeypad")?.addEventListener("click",e=>{
     else state.bakeryReceivedCents=centsAppend(state.bakeryReceivedCents,key.dataset.value);
     renderBakeryPayment();
 });
-$("bakeryPaidButton")?.addEventListener("click",async()=>{
+$("bakeryPaidButton")?.addEventListener("click",async event=>{
+    event.preventDefault();
+   
     const total=cartTotal(state.bakeryCart),received=state.bakeryReceivedCents/100;if(total<=0||received+0.0001<total)return;
     const btn=$("bakeryPaidButton");btn.disabled=true;
     try{
@@ -1598,7 +1602,7 @@ async function loadStudents() {
         )
         .eq(
             "person_type",
-            "schueler"
+            "schüler"
         )
         .eq(
             "active",
@@ -2417,7 +2421,7 @@ async function loadNotificationRecipients() {
         )
         .eq(
             "person_type",
-            "schueler"
+            "schüler"
         )
         .eq(
             "active",
@@ -2459,7 +2463,7 @@ async function loadNotificationRecipients() {
             />
 
             <span>
-                Alle Schüler
+                Alle
             </span>
 
         </label>
@@ -3837,7 +3841,9 @@ async function openEventWorkspace(event) {
 
 $("closeEventButton")?.addEventListener(
     "click",
-    async () => {
+    async event => {
+
+        event.preventDefault();
 
         if (
             !isTeacher() ||
@@ -8456,6 +8462,7 @@ async function initialiseAuthentication() {
                  */
 
                 if (
+                    !DEVELOPMENT_MODE &&
                     !isTeacher() &&
                     !schoolOpenNow()
                 ) {
