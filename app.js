@@ -1100,7 +1100,6 @@ document.addEventListener(
 
         await initialiseAuthentication();
 
-        await syncProductsFromSupabase();
     }
 );
 
@@ -1135,6 +1134,8 @@ async function initialiseAuthentication() {
                 applyLoggedInState(
                     person
                 );
+
+                await syncProductsFromSupabase();
 
                 return;
             }
