@@ -1914,13 +1914,21 @@ function updateInventoryMenus() {
                 "Inventur & Rechnungen";
         }
 
-        if (
-            inventoryMenuDescription
-        ) {
+if (
+    inventoryMenuTitle
+) {
 
-            inventoryMenuDescription.textContent =
-                "Bestände, gekaufte Mengen und Kosten erfassen";
-        }
+    inventoryMenuTitle.textContent =
+        "Inventur";
+}
+
+if (
+    inventoryMenuDescription
+) {
+
+    inventoryMenuDescription.textContent =
+        "Bestände erfassen und verwalten";
+}
 
         setHidden(
             "inventoryInvoicesButton",
