@@ -1911,24 +1911,16 @@ function updateInventoryMenus() {
         ) {
 
             inventoryMenuTitle.textContent =
-                "Inventur & Rechnungen";
+                "Inventur";
         }
 
-if (
-    inventoryMenuTitle
-) {
+        if (
+            inventoryMenuDescription
+        ) {
 
-    inventoryMenuTitle.textContent =
-        "Inventur";
-}
-
-if (
-    inventoryMenuDescription
-) {
-
-    inventoryMenuDescription.textContent =
-        "Bestände erfassen und verwalten";
-}
+            inventoryMenuDescription.textContent =
+                "Bestände erfassen und verwalten";
+        }
 
         setHidden(
             "inventoryInvoicesButton",
