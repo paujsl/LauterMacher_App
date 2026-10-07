@@ -924,6 +924,14 @@
                     💶 Bezahlen
                 </button>
 
+                <button
+                   id="bakeryCashShiftEndButton"
+                   class="secondary-action full-width-button"
+                   type="button"
+                >
+    Schicht beenden
+</button>
+
             </aside>
 
         </section>
@@ -1087,110 +1095,109 @@
          BÄCKEREI — AUSGABE
          ========================================================= -->
 
-    <main
-        id="bakeryOutputScreen"
-        class="screen output-page"
+   <main
+    id="bakeryOutputScreen"
+    class="screen"
+>
+
+    <div
+        id="bakeryOutputTestBanner"
+        class="test-environment-banner"
+        hidden
     >
+        ⚠️ Testumgebung – keine Daten werden gespeichert
+    </div>
 
-        <div
-            id="bakeryOutputTestBanner"
-            class="test-environment-banner"
-            hidden
+    <header class="screen-header">
+
+        <button
+            id="bakeryOutputBackButton"
+            class="back-button"
+            type="button"
         >
-            ⚠️ Testumgebung – keine Daten werden gespeichert
-        </div>
+            ← Bäckerei
+        </button>
+
+        <h1>🍽️ Bäckerei – Ausgabe</h1>
+
+    </header>
 
 
-        <header class="screen-header">
+    <section class="bakery-output-layout">
 
-            <button
-                id="bakeryOutputBackButton"
-                class="back-button"
-                type="button"
-            >
-                ← Bäckerei
-            </button>
+        <!-- 80 % — OFFENE BESTELLUNGEN -->
 
-            <h1>🍽️ Bäckerei – Ausgabe</h1>
+        <div class="bakery-open-orders-panel">
 
-        </header>
-
-
-        <section class="output-content">
-
-            <div class="section-heading">
+            <div class="bakery-output-heading">
 
                 <div>
                     <h2>Offene Bestellungen</h2>
-
                     <p>
-                        Neue Bestellungen erscheinen automatisch.
+                        Bestellung vorbereiten und anschließend
+                        als ausgegeben markieren.
                     </p>
                 </div>
 
                 <span
                     id="bakeryOpenOrderCount"
-                    class="count-badge"
+                    class="bakery-order-count"
                 >
                     0
                 </span>
 
             </div>
 
-
             <div
                 id="bakeryOutputOrders"
-                class="output-orders-grid"
+                class="bakery-output-orders"
             ></div>
 
-
-            <div
-                id="bakeryOutputEmpty"
-                class="empty-state"
-            >
-                <span>✨</span>
-
-                <strong>Alles erledigt!</strong>
-
-                <p>
-                    Momentan gibt es keine offene Bestellung.
-                </p>
-            </div>
+        </div>
 
 
-            <section
-                id="bakeryCompletedOrdersSection"
-                class="completed-orders-section"
-            >
+        <!-- 20 % — FERTIGE BESTELLUNGEN -->
 
-                <div class="section-heading">
+        <aside class="bakery-completed-orders-panel">
 
-                    <div>
-                        <h2>Fertige Bestellungen</h2>
+            <div class="bakery-output-heading">
 
-                        <p>
-                            Zuletzt ausgegebene Bestellungen
-                        </p>
-                    </div>
-
-                    <span
-                        id="bakeryCompletedOrderCount"
-                        class="count-badge secondary-count-badge"
-                    >
-                        0
-                    </span>
-
+                <div>
+                    <h2>Fertige Bestellungen</h2>
                 </div>
 
-                <div
-                    id="bakeryCompletedOrders"
-                    class="completed-orders-list"
-                ></div>
+                <span
+                    id="bakeryCompletedOrderCount"
+                    class="bakery-order-count"
+                >
+                    0
+                </span>
 
-            </section>
+            </div>
 
-        </section>
-    </main>
+            <div
+                id="bakeryCompletedOrders"
+                class="bakery-completed-orders"
+            ></div>
+
+        </aside>
+
+    </section>
+
+
+    <div class="bakery-shift-end-area">
+
+        <button
+            id="bakeryOutputShiftEndButton"
+            class="secondary-action"
+            type="button"
+        >
+            Schicht beenden
+        </button>
+
+    </div>
+
+</main>
 
 
     <!-- =========================================================
