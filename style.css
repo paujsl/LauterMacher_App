@@ -3614,3 +3614,161 @@ body.authenticated .app-header[hidden] {
     }
 
 }
+
+/* =========================================================
+   LAUTERMACHER V3.2 — PATCH CIBLÉ
+   ========================================================= */
+
+
+/* ---------------------------------------------------------
+   BANDEAU
+   --------------------------------------------------------- */
+
+.app-header {
+    background: rgba(255, 255, 255, 0.50) !important;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+}
+
+/*
+   Le logo prend exactement la hauteur disponible du bandeau.
+*/
+
+.app-header .header-logo,
+.app-header .app-logo,
+.app-header .logo-image {
+    height: 100% !important;
+    max-height: none !important;
+    width: auto !important;
+    object-fit: contain;
+}
+
+.app-header .logo-button,
+.app-header .home-logo-button {
+    height: 100% !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    display: flex;
+    align-items: stretch;
+}
+
+.app-header .logo-button img,
+.app-header .home-logo-button img {
+    height: 100% !important;
+    width: auto !important;
+    max-height: none !important;
+    object-fit: contain;
+}
+
+
+/* ---------------------------------------------------------
+   FIL D'ARIANE
+   Sous le bandeau, violet opaque
+   --------------------------------------------------------- */
+
+.breadcrumb {
+    position: relative !important;
+    z-index: 5;
+
+    width: 100%;
+
+    margin: 0 !important;
+    padding: 10px 24px !important;
+
+    background: transparent !important;
+
+    color: #6f42c1 !important;
+
+    font-weight: 700;
+}
+
+.breadcrumb-item,
+.breadcrumb-current,
+.breadcrumb button,
+.breadcrumb a,
+.breadcrumb span {
+    color: #6f42c1 !important;
+}
+
+.breadcrumb-current {
+    font-weight: 800;
+}
+
+
+/* ---------------------------------------------------------
+   LEHRKRAFT BADGE — ROT
+   --------------------------------------------------------- */
+
+body.teacher-mode .current-person-role,
+body.teacher-mode .role-badge,
+.current-person-role.teacher-role,
+.role-badge.teacher-role {
+    background: #d83a3a !important;
+    color: #ffffff !important;
+    border-color: #d83a3a !important;
+}
+
+
+/* ---------------------------------------------------------
+   BERICHTE — EXPORT oben rechts, hors graphique
+   --------------------------------------------------------- */
+
+.reports-top-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+
+    width: 100%;
+
+    margin: 0 0 18px;
+}
+
+.reports-top-actions #exportReportButton,
+.reports-top-actions #reportExportButton,
+.reports-top-actions #exportExcelButton {
+    width: auto;
+    margin: 0;
+}
+
+
+/* ---------------------------------------------------------
+   BEARBEITEN — 5 cartes
+   --------------------------------------------------------- */
+
+.edit-menu-grid {
+    grid-template-columns:
+        repeat(
+            auto-fit,
+            minmax(190px, 1fr)
+        ) !important;
+}
+
+
+/* ---------------------------------------------------------
+   ÉVÉNEMENTS TERMINÉS
+   --------------------------------------------------------- */
+
+.event-list-row.event-closed {
+    cursor: default !important;
+    opacity: 0.78;
+}
+
+.event-list-row.event-closed:hover {
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.event-closed-badge {
+    display: inline-flex;
+    align-items: center;
+
+    padding: 5px 10px;
+
+    border-radius: 999px;
+
+    background: #edf1f4;
+    color: #65737d;
+
+    font-size: 0.8rem;
+    font-weight: 800;
+}
