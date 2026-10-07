@@ -2,36 +2,105 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#bdb3e6">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    >
+
+    <meta name="theme-color" content="#09436a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+
     <title>Lauter Macher</title>
-    <link rel="stylesheet" href="style.css?v=8">
+
+    <link rel="stylesheet" href="style.css?v=1.0.0">
 </head>
 
 <body>
 
-    <header id="appHeader" class="app-header">
+    <!-- =========================================================
+         GLOBAL HEADER
+         ========================================================= -->
+
+    <header id="appHeader" class="app-header" hidden>
         <div class="app-header-inner">
-            <div class="app-header-logo-wrap">
+
+            <button
+                id="homeLogoButton"
+                class="header-logo-button"
+                type="button"
+                aria-label="Zur Startseite"
+            >
                 <img
-                    src="./Logo_LM.png?v=8"
-                    alt="Lauter Macher Logo"
+                    src="./Logo_LM.png"
+                    alt="Lauter Macher"
                     class="app-header-logo"
                 >
-            </div>
+            </button>
 
             <div class="app-header-actions">
-                <strong id="currentPersonName" class="current-person-name">-</strong>
 
-                <button
-                    id="notificationButton"
-                    class="notification-button"
-                    type="button"
-                    aria-label="Benachrichtigungen"
+                <strong
+                    id="currentPersonName"
+                    class="current-person-name"
                 >
-                    🔔
-                    <span id="notificationCount" class="notification-count" hidden>0</span>
-                </button>
+                    -
+                </strong>
+
+                <div class="notification-wrapper">
+
+                    <button
+                        id="notificationButton"
+                        class="notification-button"
+                        type="button"
+                        aria-label="Benachrichtigungen"
+                        aria-expanded="false"
+                    >
+                        🔔
+
+                        <span
+                            id="notificationCount"
+                            class="notification-count"
+                            hidden
+                        >
+                            0
+                        </span>
+                    </button>
+
+                    <div
+                        id="notificationPopover"
+                        class="notification-popover"
+                        hidden
+                    >
+                        <div class="notification-popover-header">
+                            <strong>Benachrichtigungen</strong>
+
+                            <button
+                                id="closeNotificationPopoverButton"
+                                class="icon-button"
+                                type="button"
+                                aria-label="Schließen"
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        <div
+                            id="notificationPreviewList"
+                            class="notification-preview-list"
+                        ></div>
+
+                        <button
+                            id="showAllNotificationsButton"
+                            class="secondary-action"
+                            type="button"
+                        >
+                            Alle anzeigen
+                        </button>
+                    </div>
+
+                </div>
 
                 <button
                     id="logoutButton"
@@ -40,20 +109,34 @@
                 >
                     Abmelden
                 </button>
+
             </div>
         </div>
     </header>
 
-    <main id="identityScreen" class="screen login-screen" style="display:block;">
-        <div class="login-card">
+
+    <!-- =========================================================
+         LOGIN — PERSON AUSWÄHLEN
+         ========================================================= -->
+
+    <main
+        id="identityScreen"
+        class="screen login-screen"
+        style="display:block;"
+    >
+        <section class="login-card">
+
             <img
-                src="./Logo_LM.png?v=8"
-                alt="Lauter Macher Logo"
+                src="./Logo_LM.png"
+                alt="Lauter Macher"
                 class="login-logo"
             >
 
-            <h1>Lauter Macher</h1>
-            <p class="login-subtitle">Wer bist du?</p>
+            <h1>Willkommen!</h1>
+
+            <p class="login-subtitle">
+                Wer bist du?
+            </p>
 
             <div
                 id="peopleGrid"
@@ -63,18 +146,33 @@
 
             <p
                 id="identityError"
-                class="login-error"
+                class="form-message error-message"
                 role="alert"
             ></p>
-        </div>
+
+        </section>
     </main>
 
-    <main id="pinLoginScreen" class="screen login-screen">
-        <div class="login-card pin-login-card">
-            <div class="selected-person-icon">🔐</div>
 
-            <p class="login-subtitle">PIN eingeben</p>
-            <h2 id="selectedPersonName">-</h2>
+    <!-- =========================================================
+         LOGIN — PIN
+         ========================================================= -->
+
+    <main
+        id="pinLoginScreen"
+        class="screen login-screen"
+    >
+        <section class="login-card pin-login-card">
+
+            <div class="large-screen-icon">🔐</div>
+
+            <p class="login-subtitle">
+                PIN eingeben
+            </p>
+
+            <h1 id="selectedPersonName">
+                -
+            </h1>
 
             <input
                 id="loginPinInput"
@@ -89,903 +187,3043 @@
 
             <p
                 id="pinLoginError"
-                class="login-error"
+                class="form-message error-message"
                 role="alert"
             ></p>
 
-            <div class="login-actions">
-                <button id="loginBackButton" class="secondary-button" type="button">
+            <div class="button-row">
+
+                <button
+                    id="loginBackButton"
+                    class="secondary-action"
+                    type="button"
+                >
                     ← Andere Person
                 </button>
-                <button id="loginConfirmButton" class="primary-login-button" type="button">
+
+                <button
+                    id="loginConfirmButton"
+                    class="primary-action"
+                    type="button"
+                >
                     Einloggen
                 </button>
+
             </div>
-        </div>
+
+        </section>
     </main>
 
-    <main id="homeScreen" class="screen home-screen">
+
+    <!-- =========================================================
+         HOME
+         ========================================================= -->
+
+    <main
+        id="homeScreen"
+        class="screen home-screen"
+    >
         <section class="home-content">
+
             <div class="home-heading">
-                <span id="homeRoleLabel" class="home-role-label"></span>
-                <h1>Was möchtest du machen?</h1>
+                <span
+                    id="homeRoleLabel"
+                    class="role-badge"
+                ></span>
+
+                <h1>
+                    Was möchtest du machen?
+                </h1>
             </div>
 
-            <div id="studentHomeMenu" class="home-menu-list">
-                <button id="saleButton" class="home-menu-card" type="button">
+            <div class="home-menu-grid">
+
+                <button
+                    id="homeDrinksButton"
+                    class="home-menu-card"
+                    type="button"
+                >
                     <span class="home-menu-icon">🥤</span>
+
                     <span class="home-menu-text">
                         <strong>Getränke</strong>
-                        <small>1 Funktion</small>
+                        <small id="homeDrinksDescription">
+                            Kasse
+                        </small>
                     </span>
+
+                    <span
+                        id="homeDrinksTestBadge"
+                        class="test-badge"
+                        hidden
+                    >
+                        TEST
+                    </span>
+
                     <span class="home-menu-arrow">›</span>
                 </button>
 
-                <button id="bakeryButton" class="home-menu-card" type="button">
-                    <span class="home-menu-icon">🥐</span>
+
+                <button
+                    id="homeBakeryButton"
+                    class="home-menu-card"
+                    type="button"
+                >
+                    <span class="home-menu-icon">🥨</span>
+
                     <span class="home-menu-text">
                         <strong>Bäckerei</strong>
-                        <small>2 Funktionen</small>
+                        <small id="homeBakeryDescription">
+                            Kasse &amp; Ausgabe
+                        </small>
                     </span>
+
+                    <span
+                        id="homeBakeryTestBadge"
+                        class="test-badge"
+                        hidden
+                    >
+                        TEST
+                    </span>
+
                     <span class="home-menu-arrow">›</span>
                 </button>
 
-                <button id="adminButton" class="home-menu-card" type="button">
+
+                <button
+                    id="homeEditButton"
+                    class="home-menu-card"
+                    type="button"
+                >
                     <span class="home-menu-icon">✏️</span>
+
                     <span class="home-menu-text">
                         <strong>Bearbeiten</strong>
-                        <small>2 Funktionen</small>
+                        <small>
+                            Produkte &amp; Inventur
+                        </small>
                     </span>
+
                     <span class="home-menu-arrow">›</span>
                 </button>
 
-                <button id="eventButton" class="home-menu-card" type="button">
-                    <span class="home-menu-icon">🎪</span>
-                    <span class="home-menu-text">
-                        <strong>Sonderveranstaltung</strong>
-                        <small>Veranstaltungen</small>
-                    </span>
-                    <span class="home-menu-arrow">›</span>
-                </button>
-            </div>
 
-            <div id="teacherHomeMenu" class="home-menu-list" hidden>
-                <button id="teacherSaleButton" class="home-menu-card" type="button">
-                    <span class="home-menu-icon">🥤</span>
-                    <span class="home-menu-text">
-                        <strong>Getränke</strong>
-                        <small>1 Funktion</small>
-                    </span>
-                    <span class="test-badge">🖊️ Testumgebung</span>
-                    <span class="home-menu-arrow">›</span>
-                </button>
-
-                <button id="teacherBakeryButton" class="home-menu-card" type="button">
-                    <span class="home-menu-icon">🥐</span>
-                    <span class="home-menu-text">
-                        <strong>Bäckerei</strong>
-                        <small>2 Funktionen</small>
-                    </span>
-                    <span class="test-badge">🖊️ Testumgebung</span>
-                    <span class="home-menu-arrow">›</span>
-                </button>
-
-                <button id="teacherAdminButton" class="home-menu-card" type="button">
-                    <span class="home-menu-icon">✏️</span>
-                    <span class="home-menu-text">
-                        <strong>Bearbeiten</strong>
-                        <small>4 Funktionen</small>
-                    </span>
-                    <span class="home-menu-arrow">›</span>
-                </button>
-
-                <button id="reportsHomeButton" class="home-menu-card" type="button">
+                <button
+                    id="homeReportsButton"
+                    class="home-menu-card teacher-only"
+                    type="button"
+                    hidden
+                >
                     <span class="home-menu-icon">📊</span>
+
                     <span class="home-menu-text">
                         <strong>Berichte</strong>
-                        <small>Tag · Woche · Monat</small>
+                        <small>
+                            Umsatz, Gewinn &amp; Verkäufe
+                        </small>
                     </span>
+
                     <span class="home-menu-arrow">›</span>
                 </button>
 
-                <button id="teacherEventButton" class="home-menu-card" type="button">
+
+                <button
+                    id="homeEventsButton"
+                    class="home-menu-card"
+                    type="button"
+                >
                     <span class="home-menu-icon">🎪</span>
+
                     <span class="home-menu-text">
                         <strong>Sonderveranstaltung</strong>
-                        <small>Veranstaltungen</small>
+                        <small>
+                            Veranstaltungen öffnen
+                        </small>
                     </span>
-                    <span class="test-badge">🖊️ Testumgebung</span>
+
                     <span class="home-menu-arrow">›</span>
                 </button>
+
             </div>
+
         </section>
     </main>
 
-    <main id="bakeryMenuScreen" class="screen function-menu-screen">
-        <header class="screen-header">
-            <button id="bakeryBackButton" class="back-button" type="button">← Startseite</button>
-            <h1>🥐 Bäckerei</h1>
-        </header>
 
-        <section class="function-menu-content">
-            <div class="work-in-progress">
-                <strong>Bäckerei</strong>
-                <p>Die genaue Arbeitsweise von Kasse und Ausgabe wird noch gemeinsam festgelegt.</p>
-            </div>
+    <!-- =========================================================
+         GETRÄNKE — KASSE
+         ========================================================= -->
 
-            <button id="bakeryCashButton" class="function-menu-card" type="button">
-                <span>💶</span>
-                <strong>Kasse</strong>
-                <small>In Vorbereitung</small>
-                <b>›</b>
-            </button>
+    <main
+        id="drinksSaleScreen"
+        class="screen sale-page"
+    >
 
-            <button id="bakeryServiceButton" class="function-menu-card" type="button">
-                <span>🥐</span>
-                <strong>Ausgabe</strong>
-                <small>In Vorbereitung</small>
-                <b>›</b>
-            </button>
-        </section>
-    </main>
-
-    <main id="bakeryCashScreen" class="screen function-menu-screen">
-        <header class="screen-header">
-            <button id="bakeryCashBackButton" class="back-button" type="button">← Bäckerei</button>
-            <h1>💶 Bäckerei · Kasse</h1>
-        </header>
-
-        <section class="function-menu-content">
-            <div class="work-in-progress">
-                <strong>Kasse in Vorbereitung</strong>
-                <p>Die Produkte und der genaue Ablauf der Bäckerei-Kasse werden später gemeinsam festgelegt.</p>
-            </div>
-        </section>
-
-        <div class="fixed-bottom-action">
-            <button id="bakeryCashShiftEndButton" class="primary-action" type="button">
-                Schicht beenden
-            </button>
+        <div
+            id="drinksTestBanner"
+            class="test-environment-banner"
+            hidden
+        >
+            ⚠️ Testumgebung – keine Daten werden gespeichert
         </div>
-    </main>
 
-    <main id="bakeryOutputScreen" class="screen function-menu-screen">
         <header class="screen-header">
-            <button id="bakeryOutputBackButton" class="back-button" type="button">← Bäckerei</button>
-            <h1>🥐 Bäckerei · Ausgabe</h1>
+
+            <button
+                id="drinksSaleBackButton"
+                class="back-button"
+                type="button"
+            >
+                ← Startseite
+            </button>
+
+            <h1>🥤 Getränke</h1>
+
+            <span
+                id="drinksSaleModeBadge"
+                class="screen-mode-badge"
+                hidden
+            >
+                TEST
+            </span>
+
         </header>
 
-        <section class="function-menu-content">
-            <div class="work-in-progress">
-                <strong>Ausgabe in Vorbereitung</strong>
-                <p>Die genaue Vorbereitung und Ausgabe der Bäckerei-Bestellungen wird später gemeinsam festgelegt.</p>
-            </div>
-        </section>
+        <section class="sale-layout">
 
-        <div class="fixed-bottom-action">
-            <button id="bakeryOutputShiftEndButton" class="primary-action" type="button">
-                Schicht beenden
-            </button>
+            <div class="sale-products-panel">
+
+                <div class="section-heading">
+                    <div>
+                        <h2>Produkte</h2>
+                        <p>Produkt antippen, um es hinzuzufügen.</p>
+                    </div>
+                </div>
+
+                <div
+                    id="drinksProductGrid"
+                    class="product-grid"
+                ></div>
+
+            </div>
+
+
+            <aside class="cart-panel">
+
+                <div class="section-heading">
+                    <div>
+                        <h2>🛒 Warenkorb</h2>
+                        <p>Aktuelle Bestellung</p>
+                    </div>
+                </div>
+
+                <div
+                    id="drinksCartItems"
+                    class="cart-items"
+                ></div>
+
+                <div class="cart-total">
+                    <span>Gesamt</span>
+                    <strong id="drinksCartTotal">
+                        0,00 €
+                    </strong>
+                </div>
+
+                <button
+                    id="drinksPayButton"
+                    class="pay-button"
+                    type="button"
+                    disabled
+                >
+                    💶 Bezahlen
+                </button>
+
+                <button
+                    id="drinksShiftEndButton"
+                    class="secondary-action full-width-button"
+                    type="button"
+                >
+                    Schicht beenden
+                </button>
+
+            </aside>
+
+        </section>
+    </main>
+
+
+    <!-- =========================================================
+         GETRÄNKE — BEZAHLEN
+         ========================================================= -->
+
+    <main
+        id="drinksPaymentScreen"
+        class="screen payment-page"
+    >
+
+        <div
+            id="drinksPaymentTestBanner"
+            class="test-environment-banner"
+            hidden
+        >
+            ⚠️ Testumgebung – keine Daten werden gespeichert
         </div>
-    </main>
 
-    <main id="saleScreen" class="screen">
         <header class="screen-header">
-            <button id="saleBackButton" class="back-button" type="button">← Startseite</button>
-            <h1>🥤 Getränke · Kasse</h1>
-        </header>
 
-        <section class="product-section">
-            <div class="section-title">
-                <span class="section-icon">🥤</span>
-                <h2>Getränke</h2>
-            </div>
-            <div id="drinksGrid" class="product-grid"></div>
-        </section>
-
-        <section class="cart-section">
-            <div class="section-title">
-                <span class="section-icon">🛒</span>
-                <h2>Warenkorb</h2>
-            </div>
-
-            <div id="cartItems" class="cart-items"></div>
-
-            <div class="cart-total">
-                <span>Gesamt</span>
-                <strong id="cartTotal">0,00 €</strong>
-            </div>
-
-            <button id="payButton" class="pay-button" type="button" disabled>
-                💰 Bezahlen
+            <button
+                id="drinksPaymentBackButton"
+                class="back-button"
+                type="button"
+            >
+                ← Getränke
             </button>
-        </section>
-    </main>
 
-    <main id="paymentScreen" class="screen">
-        <header class="screen-header">
-            <button id="paymentBackButton" class="back-button" type="button">← Kasse</button>
-            <h1>💰 Bezahlen</h1>
+            <h1>💶 Bezahlen</h1>
+
         </header>
 
         <section class="payment-container">
-            <div class="payment-label">Zu zahlen</div>
-            <div id="paymentTotal" class="payment-total">0,00 €</div>
 
-            <div class="payment-label">Kunde gibt</div>
-            <div id="amountReceived" class="amount-received">0,00 €</div>
+            <div class="payment-summary-card">
+
+                <span>Zu zahlen</span>
+
+                <strong
+                    id="drinksPaymentTotal"
+                    class="payment-total"
+                >
+                    0,00 €
+                </strong>
+
+            </div>
+
+
+            <div class="payment-summary-card">
+
+                <span>Kunde gibt</span>
+
+                <strong
+                    id="drinksAmountReceived"
+                    class="amount-received"
+                >
+                    0,00 €
+                </strong>
+
+            </div>
+
 
             <div class="change-container">
+
                 <span>Rückgeld</span>
-                <strong id="changeAmount">0,00 €</strong>
+
+                <strong id="drinksChangeAmount">
+                    0,00 €
+                </strong>
+
             </div>
 
-            <div class="payment-keypad">
-                <button class="payment-key" type="button">1</button>
-                <button class="payment-key" type="button">2</button>
-                <button class="payment-key" type="button">3</button>
-                <button class="payment-key" type="button">4</button>
-                <button class="payment-key" type="button">5</button>
-                <button class="payment-key" type="button">6</button>
-                <button class="payment-key" type="button">7</button>
-                <button class="payment-key" type="button">8</button>
-                <button class="payment-key" type="button">9</button>
-                <button class="payment-key decimal-key" type="button">,</button>
-                <button class="payment-key" type="button">0</button>
-                <button id="deletePaymentButton" class="payment-key delete-key" type="button">⌫</button>
+
+            <div
+                id="drinksPaymentKeypad"
+                class="payment-keypad"
+            >
+                <button class="payment-key" type="button" data-value="1">1</button>
+                <button class="payment-key" type="button" data-value="2">2</button>
+                <button class="payment-key" type="button" data-value="3">3</button>
+                <button class="payment-key" type="button" data-value="4">4</button>
+                <button class="payment-key" type="button" data-value="5">5</button>
+                <button class="payment-key" type="button" data-value="6">6</button>
+                <button class="payment-key" type="button" data-value="7">7</button>
+                <button class="payment-key" type="button" data-value="8">8</button>
+                <button class="payment-key" type="button" data-value="9">9</button>
+                <button class="payment-key" type="button" data-value="00">00</button>
+                <button class="payment-key" type="button" data-value="0">0</button>
+
+                <button
+                    id="drinksDeletePaymentButton"
+                    class="payment-key delete-key"
+                    type="button"
+                >
+                    ⌫
+                </button>
             </div>
 
-            <button id="paidButton" class="paid-button" type="button" disabled>
-                ✔ Bezahlt
+            <button
+                id="drinksPaidButton"
+                class="paid-button"
+                type="button"
+                disabled
+            >
+                ✓ Bezahlt
             </button>
+
         </section>
     </main>
 
-    <main id="successScreen" class="screen success-screen">
-        <div class="success-content">
+
+    <!-- =========================================================
+         GETRÄNKE — ERFOLG
+         ========================================================= -->
+
+    <main
+        id="drinksSuccessScreen"
+        class="screen success-screen"
+    >
+        <section class="success-content">
+
             <div class="success-icon">✓</div>
 
-            <h1 id="successTitle">Zahlung erfolgreich!</h1>
-            <p id="successDescription">Verkauf wurde gespeichert.</p>
+            <h1>Zahlung erfolgreich!</h1>
+
+            <p id="drinksSuccessDescription">
+                Verkauf wurde gespeichert.
+            </p>
 
             <div class="success-change">
                 Rückgeld:
-                <strong id="successChange">0,00 €</strong>
+                <strong id="drinksSuccessChange">
+                    0,00 €
+                </strong>
             </div>
 
             <div class="success-actions">
-                <button id="newOrderButton" class="new-order-button" type="button">
+
+                <button
+                    id="drinksNewOrderButton"
+                    class="primary-action"
+                    type="button"
+                >
                     🛒 Neue Bestellung
                 </button>
 
-                <button id="successShiftEndButton" class="primary-action" type="button">
+                <button
+                    id="drinksSuccessShiftEndButton"
+                    class="secondary-action"
+                    type="button"
+                >
                     Schicht beenden
                 </button>
+
             </div>
-        </div>
+
+        </section>
     </main>
 
-    <main id="adminScreen" class="screen admin-screen">
-        <header class="screen-header admin-header">
-            <button id="adminBackButton" class="back-button" type="button">← Startseite</button>
-            <h1>✏️ Bearbeiten</h1>
+
+    <!-- =========================================================
+         SCHICHTENDE — KOSTENLOSE GETRÄNKE
+         ========================================================= -->
+
+    <main
+        id="freeDrinksScreen"
+        class="screen free-drinks-page"
+    >
+
+        <div
+            id="freeDrinksTestBanner"
+            class="test-environment-banner"
+            hidden
+        >
+            ⚠️ Testumgebung – keine Daten werden gespeichert
+        </div>
+
+        <header class="screen-header">
+
+            <button
+                id="freeDrinksBackButton"
+                class="back-button"
+                type="button"
+            >
+                ← Zurück
+            </button>
+
+            <h1>🥤 Schicht beenden</h1>
+
         </header>
 
-        <section class="admin-dashboard">
-            <div class="admin-welcome">
-                <span>✏️</span>
+        <section class="content-card">
+
+            <div class="celebration-heading">
+                <span>🎉</span>
                 <div>
-                    <strong id="editMenuTitle">Bearbeiten</strong>
-                    <p id="editMenuDescription">Produkte und Inventur verwalten.</p>
+                    <h2>Gut gemacht heute, Team!</h2>
+                    <p>
+                        Welche kostenlosen Getränke habt ihr heute genommen?
+                    </p>
                 </div>
             </div>
 
+            <div
+                id="freeDrinksList"
+                class="quantity-product-list"
+            ></div>
+
+            <div class="button-row">
+
+                <button
+                    id="freeDrinksNoneButton"
+                    class="secondary-action"
+                    type="button"
+                >
+                    Keine
+                </button>
+
+                <button
+                    id="freeDrinksSaveButton"
+                    class="primary-action"
+                    type="button"
+                >
+                    Speichern &amp; Schicht beenden
+                </button>
+
+            </div>
+
+        </section>
+    </main>
+
+
+    <!-- =========================================================
+         BÄCKEREI — MENÜ
+         ========================================================= -->
+
+    <main
+        id="bakeryMenuScreen"
+        class="screen"
+    >
+
+        <div
+            id="bakeryMenuTestBanner"
+            class="test-environment-banner"
+            hidden
+        >
+            ⚠️ Testumgebung – keine Daten werden gespeichert
+        </div>
+
+        <header class="screen-header">
+
+            <button
+                id="bakeryMenuBackButton"
+                class="back-button"
+                type="button"
+            >
+                ← Startseite
+            </button>
+
+            <h1>🥨 Bäckerei</h1>
+
+        </header>
+
+        <section class="choice-grid">
+
+            <button
+                id="bakeryCashierButton"
+                class="choice-card"
+                type="button"
+            >
+                <span>🛒</span>
+                <strong>Kasse</strong>
+                <small>Bestellung aufnehmen &amp; bezahlen</small>
+            </button>
+
+            <button
+                id="bakeryOutputButton"
+                class="choice-card"
+                type="button"
+            >
+                <span>🍽️</span>
+                <strong>Ausgabe</strong>
+                <small>Bestellungen vorbereiten &amp; ausgeben</small>
+            </button>
+
+        </section>
+    </main>
+
+
+    <!-- =========================================================
+         BÄCKEREI — KASSE
+         ========================================================= -->
+
+    <main
+        id="bakerySaleScreen"
+        class="screen sale-page"
+    >
+
+        <div
+            id="bakerySaleTestBanner"
+            class="test-environment-banner"
+            hidden
+        >
+            ⚠️ Testumgebung – keine Daten werden gespeichert
+        </div>
+
+        <header class="screen-header">
+
+            <button
+                id="bakerySaleBackButton"
+                class="back-button"
+                type="button"
+            >
+                ← Bäckerei
+            </button>
+
+            <h1>🥨 Bäckerei – Kasse</h1>
+
+        </header>
+
+        <section class="sale-layout">
+
+            <div class="sale-products-panel">
+
+                <div class="section-heading">
+                    <div>
+                        <h2>Produkte</h2>
+                        <p>Produkt antippen, um es hinzuzufügen.</p>
+                    </div>
+                </div>
+
+                <div
+                    id="bakeryProductGrid"
+                    class="product-grid"
+                ></div>
+
+            </div>
+
+
+            <aside class="cart-panel">
+
+                <div class="section-heading">
+                    <div>
+                        <h2>🛒 Warenkorb</h2>
+                        <p>Aktuelle Bestellung</p>
+                    </div>
+                </div>
+
+                <div
+                    id="bakeryCartItems"
+                    class="cart-items"
+                ></div>
+
+                <div class="cart-total">
+                    <span>Gesamt</span>
+                    <strong id="bakeryCartTotal">
+                        0,00 €
+                    </strong>
+                </div>
+
+                <button
+                    id="bakeryPayButton"
+                    class="pay-button"
+                    type="button"
+                    disabled
+                >
+                    💶 Bezahlen
+                </button>
+
+            </aside>
+
+        </section>
+    </main>
+
+
+    <!-- =========================================================
+         BÄCKEREI — BEZAHLEN
+         ========================================================= -->
+
+    <main
+        id="bakeryPaymentScreen"
+        class="screen payment-page"
+    >
+
+        <div
+            id="bakeryPaymentTestBanner"
+            class="test-environment-banner"
+            hidden
+        >
+            ⚠️ Testumgebung – keine Daten werden gespeichert
+        </div>
+
+        <header class="screen-header">
+
+            <button
+                id="bakeryPaymentBackButton"
+                class="back-button"
+                type="button"
+            >
+                ← Bäckerei
+            </button>
+
+            <h1>💶 Bezahlen</h1>
+
+        </header>
+
+        <section class="payment-container">
+
+            <div class="payment-summary-card">
+                <span>Zu zahlen</span>
+
+                <strong
+                    id="bakeryPaymentTotal"
+                    class="payment-total"
+                >
+                    0,00 €
+                </strong>
+            </div>
+
+            <div class="payment-summary-card">
+                <span>Kunde gibt</span>
+
+                <strong
+                    id="bakeryAmountReceived"
+                    class="amount-received"
+                >
+                    0,00 €
+                </strong>
+            </div>
+
+            <div class="change-container">
+                <span>Rückgeld</span>
+
+                <strong id="bakeryChangeAmount">
+                    0,00 €
+                </strong>
+            </div>
+
+            <div
+                id="bakeryPaymentKeypad"
+                class="payment-keypad"
+            >
+                <button class="payment-key" type="button" data-value="1">1</button>
+                <button class="payment-key" type="button" data-value="2">2</button>
+                <button class="payment-key" type="button" data-value="3">3</button>
+                <button class="payment-key" type="button" data-value="4">4</button>
+                <button class="payment-key" type="button" data-value="5">5</button>
+                <button class="payment-key" type="button" data-value="6">6</button>
+                <button class="payment-key" type="button" data-value="7">7</button>
+                <button class="payment-key" type="button" data-value="8">8</button>
+                <button class="payment-key" type="button" data-value="9">9</button>
+                <button class="payment-key" type="button" data-value="00">00</button>
+                <button class="payment-key" type="button" data-value="0">0</button>
+
+                <button
+                    id="bakeryDeletePaymentButton"
+                    class="payment-key delete-key"
+                    type="button"
+                >
+                    ⌫
+                </button>
+            </div>
+
+            <button
+                id="bakeryPaidButton"
+                class="paid-button"
+                type="button"
+                disabled
+            >
+                ✓ Bezahlt
+            </button>
+
+        </section>
+    </main>
+
+
+    <!-- =========================================================
+         BÄCKEREI — ERFOLG / BESTELLNUMMER
+         ========================================================= -->
+
+    <main
+        id="bakerySuccessScreen"
+        class="screen success-screen"
+    >
+        <section class="success-content">
+
+            <div class="success-icon">✓</div>
+
+            <h1>Zahlung erfolgreich!</h1>
+
+            <p>Bestellnummer</p>
+
+            <div
+                id="bakerySuccessOrderNumber"
+                class="big-order-number"
+            >
+                ---
+            </div>
+
+            <div class="success-change">
+                Rückgeld:
+                <strong id="bakerySuccessChange">
+                    0,00 €
+                </strong>
+            </div>
+
+            <button
+                id="bakeryNewOrderButton"
+                class="primary-action"
+                type="button"
+            >
+                🛒 Neue Bestellung
+            </button>
+
+        </section>
+    </main>
+
+
+    <!-- =========================================================
+         BÄCKEREI — AUSGABE
+         ========================================================= -->
+
+    <main
+        id="bakeryOutputScreen"
+        class="screen output-page"
+    >
+
+        <div
+            id="bakeryOutputTestBanner"
+            class="test-environment-banner"
+            hidden
+        >
+            ⚠️ Testumgebung – keine Daten werden gespeichert
+        </div>
+
+        <header class="screen-header">
+
+            <button
+                id="bakeryOutputBackButton"
+                class="back-button"
+                type="button"
+            >
+                ← Bäckerei
+            </button>
+
+            <h1>🍽️ Bäckerei – Ausgabe</h1>
+
+        </header>
+
+        <section class="output-content">
+
+            <div class="section-heading">
+                <div>
+                    <h2>Offene Bestellungen</h2>
+                    <p>
+                        Neue Bestellungen erscheinen automatisch.
+                    </p>
+                </div>
+
+                <span
+                    id="bakeryOpenOrderCount"
+                    class="count-badge"
+                >
+                    0
+                </span>
+            </div>
+
+            <div
+                id="bakeryOutputOrders"
+                class="output-orders-grid"
+            ></div>
+
+            <div
+                id="bakeryOutputEmpty"
+                class="empty-state"
+            >
+                <span>✨</span>
+                <strong>Alles erledigt!</strong>
+                <p>Momentan gibt es keine offene Bestellung.</p>
+            </div>
+
+        </section>
+    </main>
+
+
+    <!-- =========================================================
+         BEARBEITEN
+         ========================================================= -->
+
+    <main
+        id="editMenuScreen"
+        class="screen admin-page"
+    >
+
+        <header class="screen-header">
+
+            <button
+                id="editMenuBackButton"
+                class="back-button"
+                type="button"
+            >
+                ← Startseite
+            </button>
+
+            <h1>✏️ Bearbeiten</h1>
+
+        </header>
+
+        <section class="admin-content">
+
             <div class="admin-menu-grid edit-menu-grid">
-                <button id="productsButton" class="admin-menu-card" type="button">
+
+                <button
+                    id="productsButton"
+                    class="admin-menu-card"
+                    type="button"
+                >
                     <span class="admin-menu-icon">🥤</span>
                     <strong>Produkte</strong>
                     <small>Produkte &amp; Preise bearbeiten</small>
                 </button>
 
-                <button id="inventoryButton" class="admin-menu-card" type="button">
-                    <span class="admin-menu-icon">📦</span>
-                    <strong id="inventoryMenuTitle">Inventur</strong>
-                    <small id="inventoryMenuDescription">Bestand zählen und an den Lehrer schicken</small>
-                </button>
 
-                <button id="inventoryInvoicesButton" class="admin-menu-card teacher-only-edit-card" type="button" hidden>
+                <button
+                    id="invoicesButton"
+                    class="admin-menu-card teacher-only"
+                    type="button"
+                    hidden
+                >
                     <span class="admin-menu-icon">🧾</span>
                     <strong>Rechnungen</strong>
-                    <small>Rechnungen erfassen und verwalten</small>
+                    <small>Rechnungen erfassen</small>
                 </button>
 
-                <button id="studentsButton" class="admin-menu-card teacher-only-edit-card" type="button" hidden>
+
+                <button
+                    id="inventoryButton"
+                    class="admin-menu-card"
+                    type="button"
+                >
+                    <span class="admin-menu-icon">📦</span>
+                    <strong>Inventur</strong>
+
+                    <small id="inventoryMenuDescription">
+                        Bestand zählen und an den Lehrer schicken
+                    </small>
+                </button>
+
+
+                <button
+                    id="studentsButton"
+                    class="admin-menu-card teacher-only"
+                    type="button"
+                    hidden
+                >
                     <span class="admin-menu-icon">👩‍🎓</span>
                     <strong>Schüler</strong>
                     <small>Schüler verwalten</small>
                 </button>
+
             </div>
+
         </section>
     </main>
 
-    <main id="inventoryScreen" class="screen admin-page">
+
+    <!-- =========================================================
+         PRODUKTE
+         ========================================================= -->
+
+    <main
+        id="productsScreen"
+        class="screen admin-page"
+    >
+
         <header class="screen-header">
-            <button id="inventoryBackButton" class="back-button" type="button">← Bearbeiten</button>
-            <h1>📦 Inventar</h1>
-        </header>
-
-        <section class="admin-content">
-            <div class="inventory-intro">
-                <strong>Getränkebestand</strong>
-                <p>Hier kann die Lehrkraft den tatsächlichen Bestand verwalten.</p>
-            </div>
-
-            <div id="inventoryList" class="inventory-list"></div>
-        </section>
-    </main>
-
-    <main id="inventoryCountScreen" class="screen admin-page">
-        <header class="screen-header">
-            <button id="inventoryCountBackButton" class="back-button" type="button">← Bearbeiten</button>
-            <h1>📦 Inventur</h1>
-        </header>
-
-        <section class="admin-content">
-            <div class="inventory-count-intro">
-                <strong>Bestand zählen</strong>
-                <p>Bitte trage die tatsächlich gezählte Menge ein. Der Bestand wird erst nach Prüfung durch den Lehrer geändert.</p>
-            </div>
-
-            <div id="inventoryCountList" class="inventory-count-list"></div>
-
-            <button id="submitInventoryButton" class="primary-action inventory-submit-button" type="button">
-                📤 Inventur an LEHRER schicken
-            </button>
-        </section>
-    </main>
-
-<main id="inventoryInvoicesScreen" class="screen admin-page">
-    <header class="screen-header">
-        <button id="inventoryInvoicesBackButton" class="back-button" type="button">
-            ← Bearbeiten
-        </button>
-
-        <h1>🧾 Rechnungen</h1>
-    </header>
-
-    <section class="admin-content">
-
-        <div class="page-intro-card">
-            <strong>Rechnungen eintragen</strong>
-            <p>Rechnungen erfassen und anschließend den Warenbestand bearbeiten.</p>
-        </div>
-
-        <div class="form-panel">
-
-            <div class="form-grid">
-
-                <label>
-                    Rechnungsnummer
-                    <input
-                        id="invoiceNumberInput"
-                        type="text"
-                        readonly
-                        placeholder="TT/MM/JJ_01"
-                    >
-                </label>
-
-                <label>
-                    Bereich
-                    <select id="invoiceContextInput">
-                        <option value="getränke">Getränke</option>
-                        <option value="bäckerei">Bäckerei</option>
-                        <option value="sonderveranstaltung">Sonderveranstaltung</option>
-                    </select>
-                </label>
-
-                <label>
-                    Rechnungsdatum
-                    <input
-                        id="invoiceDateInput"
-                        type="date"
-                    >
-                </label>
-
-                <label>
-                    Laden
-                    <input
-                        id="invoiceSupplierInput"
-                        type="text"
-                        placeholder="z. B. Kaufland"
-                        autocomplete="off"
-                    >
-                </label>
-
-                <label>
-                    Gesamtkosten
-                    <input
-                        id="invoiceAmountInput"
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        inputmode="decimal"
-                        placeholder="0,00"
-                    >
-                </label>
-
-            </div>
 
             <button
-                id="saveInvoiceButton"
-                class="primary-action"
+                id="productsBackButton"
+                class="back-button"
                 type="button"
             >
-                Hinzufügen
+                ← Bearbeiten
             </button>
 
-        </div>
+            <h1>🥤 Produkte</h1>
 
-        <div class="form-panel">
+        </header>
 
-            <div class="panel-heading">
-                <h2>Letzte Einträge</h2>
+        <section class="admin-content">
+
+            <div class="section-heading">
+
+                <div>
+                    <h2>Produkte &amp; Preise</h2>
+                    <p>
+                        Änderungen werden automatisch synchronisiert.
+                    </p>
+                </div>
+
+                <button
+                    id="addProductButton"
+                    class="primary-action teacher-only"
+                    type="button"
+                    hidden
+                >
+                    + Produkt
+                </button>
+
+            </div>
+
+            <div class="filter-tabs">
+
+                <button
+                    class="filter-tab active"
+                    type="button"
+                    data-product-filter="all"
+                >
+                    Alle
+                </button>
+
+                <button
+                    class="filter-tab"
+                    type="button"
+                    data-product-filter="getränke"
+                >
+                    🥤 Getränke
+                </button>
+
+                <button
+                    class="filter-tab"
+                    type="button"
+                    data-product-filter="bäckerei"
+                >
+                    🥨 Bäckerei
+                </button>
+
             </div>
 
             <div
-                id="invoiceList"
-                class="record-list"
-                aria-live="polite"
+                id="productAdminList"
+                class="product-admin-list"
+            ></div>
+
+        </section>
+    </main>
+
+
+    <!-- =========================================================
+         INVENTUR — SCHÜLER
+         ========================================================= -->
+
+    <main
+        id="studentInventoryScreen"
+        class="screen admin-page"
+    >
+
+        <header class="screen-header">
+
+            <button
+                id="studentInventoryBackButton"
+                class="back-button"
+                type="button"
             >
-                <div class="no-data">
-                    Noch keine Rechnungen vorhanden.
-                </div>
-            </div>
-
-        </div>
-
-    </section>
-</main>
-
-    <main id="productsScreen" class="screen admin-page">
-        <header class="screen-header">
-            <button id="productsBackButton" class="back-button" type="button">← Bearbeiten</button>
-            <h1>🥤 Produkte</h1>
-        </header>
-
-        <section class="admin-content">
-            <div class="product-admin-toolbar">
-                <div>
-                    <strong>Produkte verwalten</strong>
-                    <p>Neue Produkte hinzufügen oder Preise ändern.</p>
-                </div>
-
-                <button id="addProductButton" class="primary-action small-action" type="button">
-                    ＋ Produkt
-                </button>
-            </div>
-
-            <div id="adminProductsList" class="admin-products-list"></div>
-        </section>
-    </main>
-
-    <main id="reportsScreen" class="screen admin-page">
-        <header class="screen-header">
-            <button id="reportsBackButton" class="back-button" type="button">← Startseite</button>
-            <h1>📊 Berichte</h1>
-        </header>
-
-        <section class="admin-content">
-            <div class="period-tabs">
-                <button class="period-tab active" data-period="day" type="button">Heute</button>
-                <button class="period-tab" data-period="week" type="button">Woche</button>
-                <button class="period-tab" data-period="month" type="button">Monat</button>
-            </div>
-
-            <div id="reportDateLabel" class="report-date-label"></div>
-
-            <div class="report-summary-grid">
-                <div class="summary-card">
-                    <span>💶</span>
-                    <small>Umsatz</small>
-                    <strong id="reportRevenue">0,00 €</strong>
-                </div>
-
-                <div class="summary-card">
-                    <span>🧾</span>
-                    <small>Verkäufe</small>
-                    <strong id="reportTransactions">0</strong>
-                </div>
-
-                <div class="summary-card">
-                    <span>🥤</span>
-                    <small>Getränke</small>
-                    <strong id="reportDrinks">0</strong>
-                </div>
-
-                <div class="summary-card">
-                    <span>🥨</span>
-                    <small>Bäckerei</small>
-                    <strong id="reportBakery">0</strong>
-                </div>
-            </div>
-
-            <div class="report-panel">
-                <div class="panel-heading">
-                    <h2>Verkaufte Produkte</h2>
-                </div>
-                <div id="reportProducts" class="report-product-list"></div>
-            </div>
-
-            <div class="report-actions">
-                <button id="exportReportButton" class="primary-action" type="button">
-                    📥 Bericht als CSV exportieren
-                </button>
-
-                <button id="clearReportsButton" class="danger-action" type="button">
-                    🗑️ Alle Verkaufsdaten löschen
-                </button>
-            </div>
-        </section>
-    </main>
-
-    <main id="eventListScreen" class="screen admin-page">
-        <header class="screen-header">
-            <button id="eventListBackButton" class="back-button" type="button">← Startseite</button>
-            <h1>🎪 Sonderveranstaltung</h1>
-        </header>
-
-        <section class="admin-content">
-            <div class="page-intro-card">
-                <strong id="eventListTitle">Veranstaltungen</strong>
-                <p id="eventListDescription">Wähle eine Veranstaltung aus.</p>
-            </div>
-
-            <button id="createEventButton" class="primary-action" type="button" hidden>
-                ＋ Neue Veranstaltung
+                ← Bearbeiten
             </button>
 
-            <div id="eventList" class="event-list"></div>
-        </section>
-    </main>
+            <h1>📦 Inventur</h1>
 
-    <main id="eventCreateScreen" class="screen admin-page">
-        <header class="screen-header">
-            <button id="eventCreateBackButton" class="back-button" type="button">← Veranstaltungen</button>
-            <h1>🎪 Veranstaltung erstellen</h1>
         </header>
 
         <section class="admin-content">
-            <div class="form-panel">
-                <div class="form-grid">
-                    <label>
-                        Name der Veranstaltung
-                        <input id="eventNameInput" type="text" placeholder="z. B. Sommerfest">
-                    </label>
 
-                    <label>
-                        Datum
-                        <input id="eventDateInput" type="date">
-                    </label>
-                </div>
+            <div class="info-card">
+                <strong>Getränkebestand zählen</strong>
 
-                <div class="choice-block">
-                    <strong>Gibt es einen Inventarbestand am Anfang?</strong>
-                    <div class="choice-buttons">
-                        <button id="eventStartInventoryYesButton" class="choice-button" type="button">Ja</button>
-                        <button id="eventStartInventoryNoButton" class="choice-button" type="button">Nein</button>
+                <p>
+                    Trage die tatsächlich gezählte Menge ein.
+                    Der offizielle Bestand wird dadurch nicht direkt geändert.
+                </p>
+            </div>
+
+            <div
+                id="studentInventoryList"
+                class="inventory-count-list"
+            ></div>
+
+            <button
+                id="submitStudentInventoryButton"
+                class="primary-action full-width-button"
+                type="button"
+            >
+                📤 Inventur an Lehrer schicken
+            </button>
+
+            <p
+                id="studentInventoryMessage"
+                class="form-message"
+            ></p>
+
+        </section>
+    </main>
+
+
+    <!-- =========================================================
+         INVENTUR — LEHRER
+         ========================================================= -->
+
+    <main
+        id="teacherInventoryScreen"
+        class="screen admin-page teacher-only"
+        hidden
+    >
+
+        <header class="screen-header">
+
+            <button
+                id="teacherInventoryBackButton"
+                class="back-button"
+                type="button"
+            >
+                ← Bearbeiten
+            </button>
+
+            <h1>📦 Inventur</h1>
+
+        </header>
+
+        <section class="admin-content">
+
+            <div
+                id="inventoryInvoiceContextCard"
+                class="context-card"
+                hidden
+            >
+                <span>🧾 Wareneingang zu Rechnung</span>
+
+                <strong id="inventoryInvoiceNumber">
+                    -
+                </strong>
+
+                <small id="inventoryInvoiceSupplier">
+                    -
+                </small>
+            </div>
+
+
+            <div class="info-card">
+                <strong>Getränkebestand</strong>
+
+                <p>
+                    Hier werden Wareneingänge erfasst.
+                    Die eingegebene Menge wird zum aktuellen Bestand addiert.
+                </p>
+            </div>
+
+
+            <div
+                id="teacherInventoryList"
+                class="teacher-inventory-list"
+            ></div>
+
+
+            <section class="submissions-section">
+
+                <div class="section-heading">
+                    <div>
+                        <h2>Inventuren der Schüler</h2>
+                        <p>Eingereichte Zählungen</p>
                     </div>
                 </div>
-            </div>
+
+                <div
+                    id="inventorySubmissionsList"
+                    class="submission-list"
+                ></div>
+
+            </section>
+
         </section>
     </main>
 
-    <main id="eventStartSetupScreen" class="screen admin-page">
+
+    <!-- =========================================================
+         RECHNUNGEN
+         ========================================================= -->
+
+    <main
+        id="invoicesScreen"
+        class="screen admin-page teacher-only"
+        hidden
+    >
+
         <header class="screen-header">
-            <button id="eventStartSetupBackButton" class="back-button" type="button">← Veranstaltung</button>
-            <h1>📦 Anfangsbestand</h1>
+
+            <button
+                id="invoicesBackButton"
+                class="back-button"
+                type="button"
+            >
+                ← Bearbeiten
+            </button>
+
+            <h1>🧾 Rechnungen</h1>
+
         </header>
 
-        <section class="admin-content dual-form-page">
-            <div class="page-intro-card">
-                <strong id="eventStartSetupTitle">Anfangsbestand</strong>
-                <p>Trage den Bestand ein und erfasse hier direkt die zugehörigen Rechnungen.</p>
-            </div>
+        <section class="admin-content">
 
-            <div class="form-panel">
-                <div class="panel-heading">
-                    <h2>📦 Startbestand</h2>
-                </div>
-                <div id="eventStartInventoryList" class="event-inventory-editor"></div>
-                <button id="addEventStartStockButton" class="secondary-action" type="button">
-                    ＋ Produkt / Menge hinzufügen
-                </button>
-            </div>
-
-            <div class="form-panel">
-                <div class="panel-heading">
-                    <h2>🧾 Rechnung</h2>
-                </div>
+            <form
+                id="invoiceForm"
+                class="form-card"
+            >
 
                 <div class="form-grid">
-                    <label>
-                        Datum
-                        <input id="eventInvoiceDateInput" type="date">
+
+                    <label class="form-field">
+                        <span>Rechnungsnummer</span>
+
+                        <input
+                            id="invoiceNumberInput"
+                            type="text"
+                            readonly
+                            placeholder="Wird automatisch erstellt"
+                        >
                     </label>
 
-                    <label>
-                        Lieferant
-                        <input id="eventInvoiceSupplierInput" type="text" placeholder="Lieferant">
+
+                    <label class="form-field">
+                        <span>Bereich</span>
+
+                        <select id="invoiceContextSelect">
+                            <option value="getränke">Getränke</option>
+                            <option value="bäckerei">Bäckerei</option>
+                            <option value="sonderveranstaltung">
+                                Sonderveranstaltung
+                            </option>
+                        </select>
                     </label>
 
-                    <label>
-                        Rechnungsnummer
-                        <input id="eventInvoiceNumberInput" type="text" placeholder="Rechnungsnummer">
+
+                    <label
+                        id="invoiceEventField"
+                        class="form-field"
+                        hidden
+                    >
+                        <span>Veranstaltung</span>
+
+                        <select id="invoiceEventSelect"></select>
                     </label>
 
-                    <label>
-                        Produkt
-                        <input id="eventInvoiceProductInput" type="text" placeholder="Produktname">
+
+                    <label class="form-field">
+                        <span>Rechnungsdatum</span>
+
+                        <input
+                            id="invoiceDateInput"
+                            type="date"
+                            required
+                        >
                     </label>
 
-                    <label>
-                        Menge
-                        <input id="eventInvoiceQuantityInput" type="number" min="1" step="1" inputmode="numeric" placeholder="0">
+
+                    <label class="form-field">
+                        <span>Laden</span>
+
+                        <input
+                            id="invoiceSupplierInput"
+                            type="text"
+                            placeholder="z. B. Kaufland"
+                        >
                     </label>
 
-                    <label>
-                        Gesamtkosten (€)
-                        <input id="eventInvoiceAmountInput" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00">
+
+                    <label class="form-field">
+                        <span>Gesamtkosten</span>
+
+                        <div class="money-input-wrap">
+                            <input
+                                id="invoiceTotalInput"
+                                type="text"
+                                inputmode="decimal"
+                                placeholder="0,00"
+                                required
+                            >
+
+                            <span>€</span>
+                        </div>
                     </label>
+
                 </div>
 
-                <button id="addEventInvoiceButton" class="secondary-action" type="button">
-                    ＋ Rechnung hinzufügen
+
+                <button
+                    id="saveInvoiceButton"
+                    class="primary-action full-width-button"
+                    type="submit"
+                >
+                    + Hinzufügen
                 </button>
 
-                <div id="eventInvoiceList" class="record-list"></div>
-            </div>
+                <p
+                    id="invoiceFormMessage"
+                    class="form-message"
+                ></p>
 
-            <button id="eventStartSetupContinueButton" class="primary-action" type="button">
-                Weiter zu Produkte &amp; Preise
-            </button>
+            </form>
+
+
+            <section class="recent-section">
+
+                <div class="section-heading">
+                    <div>
+                        <h2>Letzte Einträge</h2>
+                        <p>Die letzten 10 Rechnungen</p>
+                    </div>
+                </div>
+
+                <div
+                    id="invoiceList"
+                    class="invoice-list"
+                ></div>
+
+            </section>
+
         </section>
     </main>
 
-    <main id="eventProductsScreen" class="screen admin-page">
+
+    <!-- =========================================================
+         SCHÜLER VERWALTEN
+         ========================================================= -->
+
+    <main
+        id="studentsScreen"
+        class="screen admin-page teacher-only"
+        hidden
+    >
+
         <header class="screen-header">
-            <button id="eventProductsBackButton" class="back-button" type="button">← Veranstaltung</button>
-            <h1>🏷️ Produkte &amp; Preise</h1>
+
+            <button
+                id="studentsBackButton"
+                class="back-button"
+                type="button"
+            >
+                ← Bearbeiten
+            </button>
+
+            <h1>👩‍🎓 Schüler</h1>
+
         </header>
 
         <section class="admin-content">
-            <div class="page-intro-card">
-                <strong id="eventProductsTitle">Produkte erstellen</strong>
-                <p>Erstelle die Produkte dieser Veranstaltung mit einer eigenen Ikone und einem Preis.</p>
+
+            <div class="section-heading">
+
+                <div>
+                    <h2>Schüler verwalten</h2>
+                    <p>
+                        Namen und PINs bearbeiten oder neue Schüler hinzufügen.
+                    </p>
+                </div>
+
+                <button
+                    id="addStudentButton"
+                    class="primary-action"
+                    type="button"
+                >
+                    + Schüler
+                </button>
+
             </div>
 
-            <button id="addEventProductButton" class="primary-action" type="button">
-                ＋ Produkt hinzufügen
-            </button>
+            <div
+                id="studentsList"
+                class="students-list"
+            ></div>
 
-            <div id="eventProductsList" class="admin-products-list"></div>
-
-            <button id="eventProductsContinueButton" class="primary-action" type="button">
-                Weiter
-            </button>
         </section>
     </main>
 
-    <main id="eventWorkspaceScreen" class="screen admin-page">
+
+    <!-- =========================================================
+         BERICHTE
+         ========================================================= -->
+
+    <main
+        id="reportsScreen"
+        class="screen reports-page teacher-only"
+        hidden
+    >
+
         <header class="screen-header">
-            <button id="eventWorkspaceBackButton" class="back-button" type="button">← Veranstaltungen</button>
-            <h1>🎪 <span id="eventWorkspaceName">Veranstaltung</span></h1>
+
+            <button
+                id="reportsBackButton"
+                class="back-button"
+                type="button"
+            >
+                ← Startseite
+            </button>
+
+            <h1>📊 Berichte</h1>
+
+        </header>
+
+        <section class="reports-content">
+
+            <div class="report-hero-card">
+
+                <div class="section-heading">
+
+                    <div>
+                        <h2>Gewinn im Schuljahr</h2>
+
+                        <p id="reportCurrentDate">
+                            -
+                        </p>
+                    </div>
+
+                    <button
+                        id="exportReportsButton"
+                        class="secondary-action"
+                        type="button"
+                    >
+                        📗 Excel exportieren
+                    </button>
+
+                </div>
+
+                <div
+                    id="schoolYearProfitChart"
+                    class="profit-chart"
+                    aria-label="Gewinn pro Monat"
+                ></div>
+
+            </div>
+
+
+            <div
+                id="reportPeriodTabs"
+                class="period-tabs"
+            >
+
+                <button
+                    class="period-tab active"
+                    type="button"
+                    data-report-period="today"
+                >
+                    Heute
+                </button>
+
+                <button
+                    class="period-tab"
+                    type="button"
+                    data-report-period="week"
+                >
+                    Woche
+                </button>
+
+                <button
+                    class="period-tab"
+                    type="button"
+                    data-report-period="month"
+                >
+                    Monat
+                </button>
+
+                <button
+                    class="period-tab"
+                    type="button"
+                    data-report-period="schoolyear"
+                >
+                    Schuljahr
+                </button>
+
+            </div>
+
+
+            <div class="report-kpi-grid">
+
+                <article class="report-kpi-card">
+                    <span>💶 Umsatz</span>
+                    <strong id="reportRevenue">0,00 €</strong>
+                </article>
+
+                <article class="report-kpi-card">
+                    <span>📈 Gewinn</span>
+                    <strong id="reportProfit">—</strong>
+                </article>
+
+                <article class="report-kpi-card">
+                    <span>🥤 Getränke</span>
+                    <strong id="reportDrinksRevenue">0,00 €</strong>
+                </article>
+
+                <article class="report-kpi-card">
+                    <span>🥨 Bäckerei</span>
+                    <strong id="reportBakeryRevenue">0,00 €</strong>
+                </article>
+
+                <article class="report-kpi-card">
+                    <span>🧾 Verkäufe</span>
+                    <strong id="reportSalesCount">0</strong>
+                </article>
+
+            </div>
+
+
+            <article class="top-product-card">
+
+                <div class="top-product-icon">
+                    <span id="reportTopProductIcon">🏆</span>
+                </div>
+
+                <div>
+                    <small id="reportTopProductLabel">
+                        Produkt des Tages
+                    </small>
+
+                    <strong id="reportTopProductName">
+                        —
+                    </strong>
+                </div>
+
+            </article>
+
+
+            <section class="report-detail-card">
+
+                <div class="section-heading">
+
+                    <div>
+                        <h2>Verkaufte Produkte</h2>
+                        <p>Details des ausgewählten Zeitraums</p>
+                    </div>
+
+                </div>
+
+
+                <div
+                    id="reportSortButtons"
+                    class="sort-buttons"
+                >
+                    <button
+                        class="sort-button active"
+                        type="button"
+                        data-report-sort="revenue"
+                    >
+                        Umsatz
+                    </button>
+
+                    <button
+                        class="sort-button"
+                        type="button"
+                        data-report-sort="profit"
+                    >
+                        Gewinn
+                    </button>
+
+                    <button
+                        class="sort-button"
+                        type="button"
+                        data-report-sort="quantity"
+                    >
+                        Menge
+                    </button>
+                </div>
+
+
+                <div class="table-scroll">
+
+                    <table class="data-table">
+
+                        <thead>
+                            <tr>
+                                <th>Produkt</th>
+                                <th>Menge</th>
+                                <th>Bestand</th>
+                                <th>Umsatz</th>
+                                <th>Gewinn</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="reportProductTableBody"></tbody>
+
+                    </table>
+
+                </div>
+
+            </section>
+
+
+            <section class="report-detail-card">
+
+                <div class="section-heading">
+                    <div>
+                        <h2>Sonderveranstaltungen</h2>
+                        <p>Umsatz und Ergebnis je Veranstaltung</p>
+                    </div>
+                </div>
+
+                <div
+                    id="reportEventsList"
+                    class="report-events-list"
+                ></div>
+
+            </section>
+
+        </section>
+    </main>
+
+
+    <!-- =========================================================
+         SONVERANSTALTUNGEN — LISTE
+         ========================================================= -->
+
+    <main
+        id="eventsScreen"
+        class="screen events-page"
+    >
+
+        <header class="screen-header">
+
+            <button
+                id="eventsBackButton"
+                class="back-button"
+                type="button"
+            >
+                ← Startseite
+            </button>
+
+            <h1>🎪 Sonderveranstaltung</h1>
+
+        </header>
+
+        <section class="events-content">
+
+            <div
+                class="section-heading teacher-only"
+                id="teacherEventActions"
+                hidden
+            >
+
+                <div>
+                    <h2>Veranstaltungen</h2>
+                    <p>Neue Veranstaltung anlegen</p>
+                </div>
+
+                <button
+                    id="createEventButton"
+                    class="primary-action"
+                    type="button"
+                >
+                    + Veranstaltung
+                </button>
+
+            </div>
+
+
+            <section class="event-list-section">
+
+                <div class="section-heading">
+                    <div>
+                        <h2>Aktuelle &amp; kommende Veranstaltungen</h2>
+                    </div>
+                </div>
+
+                <div
+                    id="upcomingEventsList"
+                    class="event-list"
+                ></div>
+
+            </section>
+
+
+            <section class="event-list-section">
+
+                <div class="section-heading">
+                    <div>
+                        <h2>Letzte Veranstaltungen</h2>
+                        <p>Die letzten 5 abgeschlossenen Veranstaltungen</p>
+                    </div>
+                </div>
+
+                <div
+                    id="pastEventsList"
+                    class="event-list"
+                ></div>
+
+            </section>
+
+        </section>
+    </main>
+
+
+    <!-- =========================================================
+         EVENT ERSTELLEN — TYP
+         ========================================================= -->
+
+    <main
+        id="eventTypeScreen"
+        class="screen event-create-page teacher-only"
+        hidden
+    >
+
+        <header class="screen-header">
+
+            <button
+                id="eventTypeBackButton"
+                class="back-button"
+                type="button"
+            >
+                ← Veranstaltungen
+            </button>
+
+            <h1>🎪 Neue Veranstaltung</h1>
+
+        </header>
+
+        <section class="choice-grid">
+
+            <button
+                id="createFoodEventButton"
+                class="choice-card"
+                type="button"
+            >
+                <span>🍔</span>
+                <strong>Food</strong>
+                <small>
+                    Produkte, Kasse, Ausgabe &amp; Inventur
+                </small>
+            </button>
+
+            <button
+                id="createOtherEventButton"
+                class="choice-card"
+                type="button"
+            >
+                <span>🎟️</span>
+                <strong>Anderes</strong>
+                <small>
+                    Veranstaltung mit direktem Umsatz
+                </small>
+            </button>
+
+        </section>
+    </main>
+
+
+    <!-- =========================================================
+         EVENT ERSTELLEN — FORMULAR
+         ========================================================= -->
+
+    <main
+        id="eventCreateScreen"
+        class="screen event-create-page teacher-only"
+        hidden
+    >
+
+        <header class="screen-header">
+
+            <button
+                id="eventCreateBackButton"
+                class="back-button"
+                type="button"
+            >
+                ← Typ wählen
+            </button>
+
+            <h1 id="eventCreateTitle">
+                Neue Veranstaltung
+            </h1>
+
         </header>
 
         <section class="admin-content">
-            <div class="page-intro-card">
-                <strong id="eventWorkspaceDate">-</strong>
-                <p>Wähle den Arbeitsbereich.</p>
+
+            <form
+                id="eventCreateForm"
+                class="form-card"
+            >
+
+                <input
+                    id="eventCreateTypeInput"
+                    type="hidden"
+                    value="food"
+                >
+
+
+                <label class="form-field">
+                    <span>Name</span>
+
+                    <input
+                        id="eventNameInput"
+                        type="text"
+                        placeholder="z. B. Schulfest"
+                        required
+                    >
+                </label>
+
+
+                <label class="form-field">
+                    <span>Datum</span>
+
+                    <input
+                        id="eventDateInput"
+                        type="date"
+                        required
+                    >
+                </label>
+
+
+                <label class="form-field">
+                    <span>Notiz</span>
+
+                    <textarea
+                        id="eventDescriptionInput"
+                        rows="3"
+                        placeholder="Optional"
+                    ></textarea>
+                </label>
+
+
+                <label
+                    id="eventDirectRevenueField"
+                    class="form-field"
+                    hidden
+                >
+                    <span>Umsatz</span>
+
+                    <div class="money-input-wrap">
+                        <input
+                            id="eventDirectRevenueInput"
+                            type="text"
+                            inputmode="decimal"
+                            placeholder="0,00"
+                        >
+                        <span>€</span>
+                    </div>
+                </label>
+
+
+                <label
+                    id="eventStartInventoryField"
+                    class="toggle-field"
+                >
+                    <input
+                        id="eventStartInventoryInput"
+                        type="checkbox"
+                    >
+
+                    <span>
+                        Startinventur für diese Veranstaltung erfassen
+                    </span>
+                </label>
+
+
+                <button
+                    id="saveEventButton"
+                    class="primary-action full-width-button"
+                    type="submit"
+                >
+                    Veranstaltung erstellen
+                </button>
+
+                <p
+                    id="eventCreateMessage"
+                    class="form-message"
+                ></p>
+
+            </form>
+
+        </section>
+    </main>
+
+
+    <!-- =========================================================
+         EVENT — WORKSPACE
+         ========================================================= -->
+
+    <main
+        id="eventWorkspaceScreen"
+        class="screen events-page"
+    >
+
+        <header class="screen-header">
+
+            <button
+                id="eventWorkspaceBackButton"
+                class="back-button"
+                type="button"
+            >
+                ← Veranstaltungen
+            </button>
+
+            <div class="screen-title-stack">
+                <h1 id="eventWorkspaceName">
+                    Veranstaltung
+                </h1>
+
+                <small id="eventWorkspaceDate">
+                    -
+                </small>
             </div>
 
-            <div id="eventWorkspaceStudentOptions" class="event-option-grid">
-                <button id="studentEventCashButton" class="event-option-card" type="button">
-                    <span>💶</span>
+        </header>
+
+
+        <section class="events-content">
+
+            <div
+                id="eventWorkspaceInfo"
+                class="context-card"
+            ></div>
+
+
+            <div
+                id="foodEventWorkspace"
+                class="event-workspace-grid"
+            >
+
+                <button
+                    id="eventProductsButton"
+                    class="admin-menu-card"
+                    type="button"
+                >
+                    <span class="admin-menu-icon">🍔</span>
+                    <strong>Produkte &amp; Preise</strong>
+                    <small>Produkte für diese Veranstaltung</small>
+                </button>
+
+
+                <button
+                    id="eventCashierButton"
+                    class="admin-menu-card"
+                    type="button"
+                >
+                    <span class="admin-menu-icon">🛒</span>
                     <strong>Kasse</strong>
-                    <small>Verkauf durchführen</small>
+
+                    <small id="eventCashierDescription">
+                        Bestellungen aufnehmen
+                    </small>
+
+                    <span
+                        id="eventCashierTestBadge"
+                        class="test-badge"
+                        hidden
+                    >
+                        TEST
+                    </span>
                 </button>
 
-                <button id="studentEventOutputButton" class="event-option-card" type="button">
-                    <span>📤</span>
+
+                <button
+                    id="eventOutputButton"
+                    class="admin-menu-card"
+                    type="button"
+                >
+                    <span class="admin-menu-icon">🍽️</span>
                     <strong>Ausgabe</strong>
-                    <small>Ausgabe der Veranstaltung</small>
-                </button>
-            </div>
 
-            <div id="eventWorkspaceTeacherOptions" class="event-option-grid" hidden>
-                <button id="teacherEventCashButton" class="event-option-card" type="button">
-                    <span>💶</span>
-                    <strong>Kasse</strong>
-                    <small>Testumgebung</small>
-                </button>
+                    <small id="eventOutputDescription">
+                        Bestellungen ausgeben
+                    </small>
 
-                <button id="teacherEventOutputButton" class="event-option-card" type="button">
-                    <span>📤</span>
-                    <strong>Ausgabe</strong>
-                    <small>Testumgebung</small>
+                    <span
+                        id="eventOutputTestBadge"
+                        class="test-badge"
+                        hidden
+                    >
+                        TEST
+                    </span>
                 </button>
 
-                <button id="teacherEventEndInventoryButton" class="event-option-card" type="button">
-                    <span>📦</span>
+
+                <button
+                    id="eventEndInventoryButton"
+                    class="admin-menu-card"
+                    type="button"
+                >
+                    <span class="admin-menu-icon">📦</span>
                     <strong>Endinventur</strong>
-                    <small>Lehrkraft oder Schüler</small>
+                    <small>Bestand am Ende zählen</small>
                 </button>
+
             </div>
+
+
+            <div
+                id="otherEventWorkspace"
+                class="other-event-panel"
+                hidden
+            >
+
+                <div class="report-kpi-card">
+                    <span>💶 Umsatz</span>
+
+                    <strong id="otherEventRevenueDisplay">
+                        0,00 €
+                    </strong>
+                </div>
+
+                <button
+                    id="editOtherEventRevenueButton"
+                    class="primary-action teacher-only"
+                    type="button"
+                    hidden
+                >
+                    Umsatz bearbeiten
+                </button>
+
+            </div>
+
         </section>
     </main>
 
-    <main id="eventCashScreen" class="screen">
+
+    <!-- =========================================================
+         EVENT — PRODUKTE
+         ========================================================= -->
+
+    <main
+        id="eventProductsScreen"
+        class="screen admin-page"
+    >
+
         <header class="screen-header">
-            <button id="eventCashBackButton" class="back-button" type="button">← Veranstaltung</button>
-            <h1>💶 <span id="eventCashTitle">Kasse</span></h1>
-        </header>
 
-        <section class="product-section">
-            <div class="section-title">
-                <span class="section-icon">🎪</span>
-                <h2 id="eventCashProductHeading">Veranstaltungsprodukte</h2>
-            </div>
-            <div id="eventCashProductsGrid" class="product-grid"></div>
-        </section>
-
-        <section class="cart-section">
-            <div class="section-title">
-                <span class="section-icon">🛒</span>
-                <h2>Warenkorb</h2>
-            </div>
-
-            <div id="eventCartItems" class="cart-items"></div>
-
-            <div class="cart-total">
-                <span>Gesamt</span>
-                <strong id="eventCartTotal">0,00 €</strong>
-            </div>
-
-            <button id="eventPayButton" class="pay-button" type="button" disabled>
-                💰 Bezahlen
+            <button
+                id="eventProductsBackButton"
+                class="back-button"
+                type="button"
+            >
+                ← Veranstaltung
             </button>
-        </section>
 
-        <div class="fixed-bottom-action">
-            <button id="eventCashShiftEndButton" class="primary-action" type="button">
-                Schicht beenden
-            </button>
-        </div>
-    </main>
+            <h1>🍔 Produkte &amp; Preise</h1>
 
-    <main id="eventOutputScreen" class="screen function-menu-screen">
-        <header class="screen-header">
-            <button id="eventOutputBackButton" class="back-button" type="button">← Veranstaltung</button>
-            <h1>📤 <span id="eventOutputTitle">Ausgabe</span></h1>
-        </header>
-
-        <section class="function-menu-content">
-            <div class="work-in-progress event-output-info">
-                <strong>Ausgabe</strong>
-                <p>Der genaue Ablauf der Ausgabe wird noch gemeinsam festgelegt. Der Bereich ist bereits Teil des Veranstaltungsablaufs.</p>
-            </div>
-
-            <div id="eventOutputOrders" class="event-output-orders"></div>
-        </section>
-
-        <div class="fixed-bottom-action">
-            <button id="eventOutputShiftEndButton" class="primary-action" type="button">
-                Schicht beenden
-            </button>
-        </div>
-    </main>
-
-    <main id="eventEndInventoryScreen" class="screen admin-page">
-        <header class="screen-header">
-            <button id="eventEndInventoryBackButton" class="back-button" type="button">← Veranstaltung</button>
-            <h1>📦 Endinventur</h1>
         </header>
 
         <section class="admin-content">
-            <div class="page-intro-card">
-                <strong id="eventEndInventoryTitle">Endinventur</strong>
-                <p>Trage die tatsächlich gezählten Mengen ein. Diese Inventur kann von der Lehrkraft oder von Schülern ausgefüllt werden.</p>
+
+            <div class="section-heading">
+
+                <div>
+                    <h2>Veranstaltungsprodukte</h2>
+                    <p>
+                        Bestehende Produkte auswählen oder ein eigenes Produkt anlegen.
+                    </p>
+                </div>
+
+                <button
+                    id="addCustomEventProductButton"
+                    class="primary-action"
+                    type="button"
+                >
+                    + Eigenes Produkt
+                </button>
+
             </div>
 
-            <div id="eventEndInventoryList" class="inventory-count-list"></div>
 
-            <button id="saveEventEndInventoryButton" class="primary-action inventory-submit-button" type="button">
-                📦 Endinventur speichern
-            </button>
+            <div class="form-card">
+
+                <label class="form-field">
+                    <span>Bestehendes Produkt hinzufügen</span>
+
+                    <select id="globalProductForEventSelect"></select>
+                </label>
+
+                <button
+                    id="addGlobalProductToEventButton"
+                    class="secondary-action full-width-button"
+                    type="button"
+                >
+                    + Ausgewähltes Produkt hinzufügen
+                </button>
+
+            </div>
+
+
+            <div
+                id="eventProductsList"
+                class="product-admin-list"
+            ></div>
+
         </section>
     </main>
 
-    <div id="eventProductModal" class="modal" aria-hidden="true">
-        <div class="form-box">
-            <button id="closeEventProductModalButton" class="modal-close" type="button">×</button>
 
-            <h2 id="eventProductModalTitle">Produkt hinzufügen</h2>
+    <!-- =========================================================
+         EVENT — KASSE
+         ========================================================= -->
 
-            <label for="eventProductNameInput">Name</label>
-            <input id="eventProductNameInput" type="text" autocomplete="off">
+    <main
+        id="eventSaleScreen"
+        class="screen sale-page"
+    >
 
-            <label for="eventProductPriceInput">Preis (€)</label>
-            <input id="eventProductPriceInput" type="number" inputmode="decimal" min="0" step="0.01">
-
-            <label for="eventProductIconInput">Symbol / Emoji</label>
-            <input id="eventProductIconInput" type="text" value="🎪" maxlength="4" autocomplete="off">
-
-            <div class="form-actions">
-                <button id="cancelEventProductButton" class="secondary-action" type="button">Abbrechen</button>
-                <button id="saveEventProductButton" class="primary-action" type="button">Speichern</button>
-            </div>
+        <div
+            id="eventSaleTestBanner"
+            class="test-environment-banner"
+            hidden
+        >
+            ⚠️ Testumgebung – keine Daten werden gespeichert
         </div>
-    </div>
 
-    <div id="productModal" class="modal" aria-hidden="true">
-        <div class="form-box">
-            <button id="closeProductModalButton" class="modal-close" type="button">×</button>
+        <header class="screen-header">
 
-            <h2 id="productModalTitle">Produkt hinzufügen</h2>
-
-            <label for="productNameInput">Name</label>
-            <input id="productNameInput" type="text" autocomplete="off">
-
-            <label for="productPriceInput">Preis (€)</label>
-            <input id="productPriceInput" type="number" inputmode="decimal" min="0" step="0.01">
-
-            <label for="productCategoryInput">Kategorie</label>
-            <select id="productCategoryInput">
-                <option value="drink">Getränk</option>
-                <option value="bakery">Bäckerei</option>
-            </select>
-
-            <label for="productIconInput">Symbol / Emoji</label>
-            <input id="productIconInput" type="text" value="🥤" maxlength="4" autocomplete="off">
-
-            <div class="form-actions">
-                <button id="cancelProductButton" class="secondary-action" type="button">Abbrechen</button>
-                <button id="saveProductButton" class="primary-action" type="button">Speichern</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="inventoryModal" class="modal" aria-hidden="true">
-        <div class="form-box">
-            <button id="closeInventoryModalButton" class="modal-close" type="button">×</button>
-
-            <h2>📦 Bestand ändern</h2>
-            <p id="inventoryProductLabel" class="form-help"></p>
-
-            <label for="inventoryAmountInput">Menge hinzufügen</label>
-            <input id="inventoryAmountInput" type="number" inputmode="numeric" step="1" min="1">
-
-            <div class="form-actions">
-                <button id="cancelInventoryButton" class="secondary-action" type="button">Abbrechen</button>
-                <button id="saveInventoryButton" class="primary-action" type="button">Speichern</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="siteMessageModal" class="modal" aria-hidden="true">
-        <div class="site-message-card">
-            <div id="siteMessageIcon" class="site-message-icon">🎉</div>
-            <h2 id="siteMessageTitle">Well done heute, Team! 🎉</h2>
-            <p id="siteMessageText"></p>
-
-            <button id="siteMessagePrimaryButton" class="primary-action" type="button">
-                Weiter
+            <button
+                id="eventSaleBackButton"
+                class="back-button"
+                type="button"
+            >
+                ← Veranstaltung
             </button>
+
+            <h1 id="eventSaleTitle">
+                🎪 Kasse
+            </h1>
+
+        </header>
+
+        <section class="sale-layout">
+
+            <div class="sale-products-panel">
+
+                <div
+                    id="eventSaleProductGrid"
+                    class="product-grid"
+                ></div>
+
+            </div>
+
+            <aside class="cart-panel">
+
+                <div class="section-heading">
+                    <div>
+                        <h2>🛒 Warenkorb</h2>
+                    </div>
+                </div>
+
+                <div
+                    id="eventCartItems"
+                    class="cart-items"
+                ></div>
+
+                <div class="cart-total">
+                    <span>Gesamt</span>
+
+                    <strong id="eventCartTotal">
+                        0,00 €
+                    </strong>
+                </div>
+
+                <button
+                    id="eventPayButton"
+                    class="pay-button"
+                    type="button"
+                    disabled
+                >
+                    💶 Bezahlen
+                </button>
+
+                <button
+                    id="eventShiftEndButton"
+                    class="secondary-action full-width-button"
+                    type="button"
+                >
+                    Schicht beenden
+                </button>
+
+            </aside>
+
+        </section>
+    </main>
+
+
+    <!-- =========================================================
+         EVENT — BEZAHLEN
+         ========================================================= -->
+
+    <main
+        id="eventPaymentScreen"
+        class="screen payment-page"
+    >
+
+        <div
+            id="eventPaymentTestBanner"
+            class="test-environment-banner"
+            hidden
+        >
+            ⚠️ Testumgebung – keine Daten werden gespeichert
+        </div>
+
+        <header class="screen-header">
+
+            <button
+                id="eventPaymentBackButton"
+                class="back-button"
+                type="button"
+            >
+                ← Kasse
+            </button>
+
+            <h1>💶 Bezahlen</h1>
+
+        </header>
+
+        <section class="payment-container">
+
+            <div class="payment-summary-card">
+                <span>Zu zahlen</span>
+
+                <strong
+                    id="eventPaymentTotal"
+                    class="payment-total"
+                >
+                    0,00 €
+                </strong>
+            </div>
+
+            <div class="payment-summary-card">
+                <span>Kunde gibt</span>
+
+                <strong
+                    id="eventAmountReceived"
+                    class="amount-received"
+                >
+                    0,00 €
+                </strong>
+            </div>
+
+            <div class="change-container">
+                <span>Rückgeld</span>
+
+                <strong id="eventChangeAmount">
+                    0,00 €
+                </strong>
+            </div>
+
+            <div
+                id="eventPaymentKeypad"
+                class="payment-keypad"
+            >
+                <button class="payment-key" type="button" data-value="1">1</button>
+                <button class="payment-key" type="button" data-value="2">2</button>
+                <button class="payment-key" type="button" data-value="3">3</button>
+                <button class="payment-key" type="button" data-value="4">4</button>
+                <button class="payment-key" type="button" data-value="5">5</button>
+                <button class="payment-key" type="button" data-value="6">6</button>
+                <button class="payment-key" type="button" data-value="7">7</button>
+                <button class="payment-key" type="button" data-value="8">8</button>
+                <button class="payment-key" type="button" data-value="9">9</button>
+                <button class="payment-key" type="button" data-value="00">00</button>
+                <button class="payment-key" type="button" data-value="0">0</button>
+
+                <button
+                    id="eventDeletePaymentButton"
+                    class="payment-key delete-key"
+                    type="button"
+                >
+                    ⌫
+                </button>
+            </div>
+
+            <button
+                id="eventPaidButton"
+                class="paid-button"
+                type="button"
+                disabled
+            >
+                ✓ Bezahlt
+            </button>
+
+        </section>
+    </main>
+
+
+    <!-- =========================================================
+         EVENT — ERFOLG
+         ========================================================= -->
+
+    <main
+        id="eventSuccessScreen"
+        class="screen success-screen"
+    >
+
+        <section class="success-content">
+
+            <div class="success-icon">✓</div>
+
+            <h1>Zahlung erfolgreich!</h1>
+
+            <p>Bestellnummer</p>
+
+            <div
+                id="eventSuccessOrderNumber"
+                class="big-order-number"
+            >
+                ---
+            </div>
+
+            <div class="success-change">
+                Rückgeld:
+
+                <strong id="eventSuccessChange">
+                    0,00 €
+                </strong>
+            </div>
+
+            <button
+                id="eventNewOrderButton"
+                class="primary-action"
+                type="button"
+            >
+                🛒 Neue Bestellung
+            </button>
+
+        </section>
+    </main>
+
+
+    <!-- =========================================================
+         EVENT — AUSGABE
+         ========================================================= -->
+
+    <main
+        id="eventOutputScreen"
+        class="screen output-page"
+    >
+
+        <div
+            id="eventOutputTestBanner"
+            class="test-environment-banner"
+            hidden
+        >
+            ⚠️ Testumgebung – keine Daten werden gespeichert
+        </div>
+
+        <header class="screen-header">
+
+            <button
+                id="eventOutputBackButton"
+                class="back-button"
+                type="button"
+            >
+                ← Veranstaltung
+            </button>
+
+            <h1>🍽️ Ausgabe</h1>
+
+        </header>
+
+        <section class="output-content">
+
+            <div class="section-heading">
+
+                <div>
+                    <h2>Offene Bestellungen</h2>
+                    <p>
+                        Neue Bestellungen erscheinen automatisch.
+                    </p>
+                </div>
+
+                <span
+                    id="eventOpenOrderCount"
+                    class="count-badge"
+                >
+                    0
+                </span>
+
+            </div>
+
+            <div
+                id="eventOutputOrders"
+                class="output-orders-grid"
+            ></div>
+
+            <div
+                id="eventOutputEmpty"
+                class="empty-state"
+            >
+                <span>✨</span>
+                <strong>Alles erledigt!</strong>
+                <p>Momentan gibt es keine offene Bestellung.</p>
+            </div>
+
+        </section>
+    </main>
+
+
+    <!-- =========================================================
+         EVENT — ENDINVENTUR
+         ========================================================= -->
+
+    <main
+        id="eventEndInventoryScreen"
+        class="screen admin-page"
+    >
+
+        <header class="screen-header">
+
+            <button
+                id="eventEndInventoryBackButton"
+                class="back-button"
+                type="button"
+            >
+                ← Veranstaltung
+            </button>
+
+            <h1>📦 Endinventur</h1>
+
+        </header>
+
+        <section class="admin-content">
+
+            <div class="info-card">
+                <strong>Bestand am Veranstaltungsende</strong>
+
+                <p>
+                    Trage die tatsächlich verbliebene Menge ein.
+                </p>
+            </div>
+
+            <div
+                id="eventEndInventoryList"
+                class="inventory-count-list"
+            ></div>
+
+            <button
+                id="saveEventEndInventoryButton"
+                class="primary-action full-width-button"
+                type="button"
+            >
+                Endinventur speichern
+            </button>
+
+            <p
+                id="eventEndInventoryMessage"
+                class="form-message"
+            ></p>
+
+        </section>
+    </main>
+
+
+    <!-- =========================================================
+         BENACHRICHTIGUNGEN
+         ========================================================= -->
+
+    <main
+        id="notificationsScreen"
+        class="screen admin-page"
+    >
+
+        <header class="screen-header">
+
+            <button
+                id="notificationsBackButton"
+                class="back-button"
+                type="button"
+            >
+                ← Zurück
+            </button>
+
+            <h1>🔔 Benachrichtigungen</h1>
+
+        </header>
+
+        <section class="admin-content">
+
+            <div
+                id="notificationsList"
+                class="notifications-list"
+            ></div>
+
+            <div
+                id="notificationsEmpty"
+                class="empty-state"
+            >
+                <span>🔔</span>
+                <strong>Keine Benachrichtigungen</strong>
+                <p>Hier ist momentan alles ruhig.</p>
+            </div>
+
+        </section>
+    </main>
+
+
+    <!-- =========================================================
+         MODAL — PRODUKT
+         ========================================================= -->
+
+    <div
+        id="productModal"
+        class="modal-overlay"
+        hidden
+    >
+        <div
+            class="modal-card"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="productModalTitle"
+        >
+
+            <div class="modal-header">
+
+                <h2 id="productModalTitle">
+                    Produkt
+                </h2>
+
+                <button
+                    id="closeProductModalButton"
+                    class="icon-button"
+                    type="button"
+                    aria-label="Schließen"
+                >
+                    ✕
+                </button>
+
+            </div>
+
+
+            <form id="productForm">
+
+                <input
+                    id="productIdInput"
+                    type="hidden"
+                >
+
+
+                <label class="form-field">
+                    <span>Name</span>
+
+                    <input
+                        id="productNameInput"
+                        type="text"
+                        required
+                    >
+                </label>
+
+
+                <label class="form-field">
+                    <span>Preis</span>
+
+                    <div class="money-input-wrap">
+
+                        <input
+                            id="productPriceInput"
+                            type="text"
+                            inputmode="decimal"
+                            placeholder="0,00"
+                            required
+                        >
+
+                        <span>€</span>
+
+                    </div>
+                </label>
+
+
+                <label class="form-field">
+                    <span>Bereich</span>
+
+                    <select
+                        id="productCategoryInput"
+                        required
+                    >
+                        <option value="getränke">
+                            Getränke
+                        </option>
+
+                        <option value="bäckerei">
+                            Bäckerei
+                        </option>
+                    </select>
+                </label>
+
+
+                <div class="form-field">
+
+                    <span>Symbol</span>
+
+                    <input
+                        id="productIconInput"
+                        type="text"
+                        maxlength="8"
+                        placeholder="🥤"
+                    >
+
+                    <div
+                        id="productEmojiGrid"
+                        class="emoji-grid"
+                    >
+                        <button type="button" data-emoji="💧">💧</button>
+                        <button type="button" data-emoji="🧃">🧃</button>
+                        <button type="button" data-emoji="🥤">🥤</button>
+                        <button type="button" data-emoji="🍊">🍊</button>
+                        <button type="button" data-emoji="🍎">🍎</button>
+                        <button type="button" data-emoji="⚡">⚡</button>
+                        <button type="button" data-emoji="🥛">🥛</button>
+                        <button type="button" data-emoji="🥨">🥨</button>
+                        <button type="button" data-emoji="🥖">🥖</button>
+                        <button type="button" data-emoji="🧀">🧀</button>
+                        <button type="button" data-emoji="🍩">🍩</button>
+                        <button type="button" data-emoji="🍗">🍗</button>
+                        <button type="button" data-emoji="🥪">🥪</button>
+                        <button type="button" data-emoji="🍰">🍰</button>
+                        <button type="button" data-emoji="🍪">🍪</button>
+                        <button type="button" data-emoji="🍔">🍔</button>
+                    </div>
+
+                </div>
+
+
+                <label class="toggle-field">
+                    <input
+                        id="productActiveInput"
+                        type="checkbox"
+                        checked
+                    >
+
+                    <span>Produkt aktiv</span>
+                </label>
+
+
+                <div class="modal-actions">
+
+                    <button
+                        id="cancelProductButton"
+                        class="secondary-action"
+                        type="button"
+                    >
+                        Abbrechen
+                    </button>
+
+                    <button
+                        id="saveProductButton"
+                        class="primary-action"
+                        type="submit"
+                    >
+                        Speichern
+                    </button>
+
+                </div>
+
+                <p
+                    id="productFormMessage"
+                    class="form-message"
+                ></p>
+
+            </form>
+
         </div>
     </div>
 
-    <script src="js/products.js?v=8"></script>
+
+    <!-- =========================================================
+         MODAL — SCHÜLER
+         ========================================================= -->
+
+    <div
+        id="studentModal"
+        class="modal-overlay"
+        hidden
+    >
+        <div
+            class="modal-card"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="studentModalTitle"
+        >
+
+            <div class="modal-header">
+
+                <h2 id="studentModalTitle">
+                    Schüler
+                </h2>
+
+                <button
+                    id="closeStudentModalButton"
+                    class="icon-button"
+                    type="button"
+                    aria-label="Schließen"
+                >
+                    ✕
+                </button>
+
+            </div>
+
+
+            <form id="studentForm">
+
+                <input
+                    id="studentIdInput"
+                    type="hidden"
+                >
+
+
+                <label class="form-field">
+                    <span>Vorname</span>
+
+                    <input
+                        id="studentFirstNameInput"
+                        type="text"
+                        required
+                    >
+                </label>
+
+
+                <label class="form-field">
+                    <span>Nachname</span>
+
+                    <input
+                        id="studentLastNameInput"
+                        type="text"
+                    >
+                </label>
+
+
+                <label class="form-field">
+                    <span>Schülernummer</span>
+
+                    <input
+                        id="studentNumberInput"
+                        type="text"
+                    >
+                </label>
+
+
+                <label class="form-field">
+                    <span>
+                        PIN
+                        <small id="studentPinHint">
+                            4 Ziffern
+                        </small>
+                    </span>
+
+                    <input
+                        id="studentPinInput"
+                        type="password"
+                        inputmode="numeric"
+                        pattern="[0-9]*"
+                        maxlength="4"
+                    >
+                </label>
+
+
+                <div class="modal-actions">
+
+                    <button
+                        id="cancelStudentButton"
+                        class="secondary-action"
+                        type="button"
+                    >
+                        Abbrechen
+                    </button>
+
+                    <button
+                        id="saveStudentButton"
+                        class="primary-action"
+                        type="submit"
+                    >
+                        Speichern
+                    </button>
+
+                </div>
+
+                <p
+                    id="studentFormMessage"
+                    class="form-message"
+                ></p>
+
+            </form>
+
+        </div>
+    </div>
+
+
+    <!-- =========================================================
+         MODAL — EVENT PRODUCT
+         ========================================================= -->
+
+    <div
+        id="eventProductModal"
+        class="modal-overlay"
+        hidden
+    >
+        <div
+            class="modal-card"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="eventProductModalTitle"
+        >
+
+            <div class="modal-header">
+
+                <h2 id="eventProductModalTitle">
+                    Veranstaltungsprodukt
+                </h2>
+
+                <button
+                    id="closeEventProductModalButton"
+                    class="icon-button"
+                    type="button"
+                    aria-label="Schließen"
+                >
+                    ✕
+                </button>
+
+            </div>
+
+
+            <form id="eventProductForm">
+
+                <input
+                    id="eventProductIdInput"
+                    type="hidden"
+                >
+
+
+                <label class="form-field">
+                    <span>Name</span>
+
+                    <input
+                        id="eventProductNameInput"
+                        type="text"
+                        required
+                    >
+                </label>
+
+
+                <label class="form-field">
+                    <span>Preis</span>
+
+                    <div class="money-input-wrap">
+
+                        <input
+                            id="eventProductPriceInput"
+                            type="text"
+                            inputmode="decimal"
+                            placeholder="0,00"
+                            required
+                        >
+
+                        <span>€</span>
+
+                    </div>
+                </label>
+
+
+                <div class="form-field">
+
+                    <span>Symbol</span>
+
+                    <input
+                        id="eventProductIconInput"
+                        type="text"
+                        maxlength="8"
+                        placeholder="🎪"
+                    >
+
+                    <div
+                        id="eventProductEmojiGrid"
+                        class="emoji-grid"
+                    >
+                        <button type="button" data-emoji="🥞">🥞</button>
+                        <button type="button" data-emoji="🍟">🍟</button>
+                        <button type="button" data-emoji="🌭">🌭</button>
+                        <button type="button" data-emoji="🍔">🍔</button>
+                        <button type="button" data-emoji="🍕">🍕</button>
+                        <button type="button" data-emoji="🧇">🧇</button>
+                        <button type="button" data-emoji="🍰">🍰</button>
+                        <button type="button" data-emoji="🍪">🍪</button>
+                        <button type="button" data-emoji="🥤">🥤</button>
+                        <button type="button" data-emoji="🧃">🧃</button>
+                        <button type="button" data-emoji="🎪">🎪</button>
+                        <button type="button" data-emoji="⭐">⭐</button>
+                    </div>
+
+                </div>
+
+
+                <div class="modal-actions">
+
+                    <button
+                        id="cancelEventProductButton"
+                        class="secondary-action"
+                        type="button"
+                    >
+                        Abbrechen
+                    </button>
+
+                    <button
+                        id="saveEventProductButton"
+                        class="primary-action"
+                        type="submit"
+                    >
+                        Speichern
+                    </button>
+
+                </div>
+
+                <p
+                    id="eventProductFormMessage"
+                    class="form-message"
+                ></p>
+
+            </form>
+
+        </div>
+    </div>
+
+
+    <!-- =========================================================
+         MODAL — OTHER EVENT REVENUE
+         ========================================================= -->
+
+    <div
+        id="otherEventRevenueModal"
+        class="modal-overlay"
+        hidden
+    >
+        <div
+            class="modal-card"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="otherEventRevenueModalTitle"
+        >
+
+            <div class="modal-header">
+
+                <h2 id="otherEventRevenueModalTitle">
+                    Umsatz bearbeiten
+                </h2>
+
+                <button
+                    id="closeOtherEventRevenueModalButton"
+                    class="icon-button"
+                    type="button"
+                    aria-label="Schließen"
+                >
+                    ✕
+                </button>
+
+            </div>
+
+
+            <form id="otherEventRevenueForm">
+
+                <label class="form-field">
+                    <span>Umsatz</span>
+
+                    <div class="money-input-wrap">
+
+                        <input
+                            id="otherEventRevenueInput"
+                            type="text"
+                            inputmode="decimal"
+                            placeholder="0,00"
+                            required
+                        >
+
+                        <span>€</span>
+
+                    </div>
+                </label>
+
+
+                <div class="modal-actions">
+
+                    <button
+                        id="cancelOtherEventRevenueButton"
+                        class="secondary-action"
+                        type="button"
+                    >
+                        Abbrechen
+                    </button>
+
+                    <button
+                        id="saveOtherEventRevenueButton"
+                        class="primary-action"
+                        type="submit"
+                    >
+                        Speichern
+                    </button>
+
+                </div>
+
+                <p
+                    id="otherEventRevenueMessage"
+                    class="form-message"
+                ></p>
+
+            </form>
+
+        </div>
+    </div>
+
+
+    <!-- =========================================================
+         MODAL — CONFIRM
+         ========================================================= -->
+
+    <div
+        id="confirmModal"
+        class="modal-overlay"
+        hidden
+    >
+        <div
+            class="modal-card small-modal-card"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="confirmModalTitle"
+        >
+
+            <div class="modal-header">
+                <h2 id="confirmModalTitle">
+                    Bestätigen
+                </h2>
+            </div>
+
+            <p id="confirmModalMessage"></p>
+
+            <div class="modal-actions">
+
+                <button
+                    id="confirmModalCancelButton"
+                    class="secondary-action"
+                    type="button"
+                >
+                    Abbrechen
+                </button>
+
+                <button
+                    id="confirmModalConfirmButton"
+                    class="danger-action"
+                    type="button"
+                >
+                    Bestätigen
+                </button>
+
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- =========================================================
+         GLOBAL TOAST / STATUS
+         ========================================================= -->
+
+    <div
+        id="toastContainer"
+        class="toast-container"
+        aria-live="polite"
+        aria-atomic="true"
+    ></div>
+
+
+    <!-- =========================================================
+         SCRIPTS
+
+         products.js wurde in V1 vollständig entfernt.
+         Supabase ist die einzige Produkt-Datenquelle.
+         ========================================================= -->
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="app.js?v=20"></script>
+    <script src="app.js?v=1.0.0"></script>
 
 </body>
 </html>
