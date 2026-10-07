@@ -5215,3 +5215,168 @@ input[type="number"]::-webkit-outer-spin-button {
 /* =====================================================================
    FIN — LAUTERMACHER STYLE.CSS V4.0.0
    ===================================================================== */
+/* =====================================================================
+   LAUTERMACHER — STYLE.CSS V5.0.0
+   Ajustements V5 :
+   - Header violet semi-transparent
+   - Logo nettement plus grand
+   - Aucun autre élément de l'interface n'est modifié
+   ===================================================================== */
+
+
+/* =====================================================================
+   HEADER V5
+   ===================================================================== */
+
+/*
+ * Le bandeau principal utilise le violet LauterMacher avec transparence.
+ * !important est volontaire ici afin que les anciennes règles V4
+ * ne puissent plus remettre un fond blanc ou remplacer cette couleur.
+ */
+
+html body #appHeader.app-header,
+body #appHeader,
+#appHeader,
+.app-header {
+    background-color: rgba(189, 179, 230, 0.72) !important;
+    background-image: none !important;
+
+    border-bottom:
+        1px solid
+        rgba(120, 104, 181, 0.28) !important;
+
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+}
+
+
+/*
+ * Le breadcrumb reste volontairement violet opaque.
+ * Il reste distinct du bandeau principal.
+ */
+
+html body #breadcrumb.breadcrumb,
+body #breadcrumb,
+#breadcrumb,
+.breadcrumb {
+    background-color: rgb(189, 179, 230) !important;
+    background-image: none !important;
+}
+
+
+/* =====================================================================
+   LOGO V5
+   ===================================================================== */
+
+/*
+ * Le fichier Logo_LM.png est très horizontal.
+ *
+ * En V4, sa hauteur était limitée exactement à celle du header,
+ * ce qui donnait visuellement un logo beaucoup trop petit.
+ *
+ * En V5, le logo peut dépasser visuellement la hauteur du bandeau
+ * sans augmenter la hauteur de tout le header.
+ */
+
+#homeLogoButton.header-logo-button {
+    position: relative !important;
+
+    flex: 0 0 auto !important;
+
+    height: var(--header-height) !important;
+
+    overflow: visible !important;
+
+    z-index: 2;
+}
+
+
+#homeLogoButton img.app-header-logo,
+#appHeader .app-header-logo,
+.app-header-logo {
+    width: auto !important;
+
+    height: 112px !important;
+    max-height: none !important;
+
+    max-width: min(
+        52vw,
+        470px
+    ) !important;
+
+    object-fit: contain !important;
+    object-position: left center !important;
+
+    transform: none !important;
+}
+
+
+/*
+ * Le conteneur du header laisse le logo dépasser proprement.
+ */
+
+#appHeader,
+#appHeader .app-header-inner {
+    overflow: visible !important;
+}
+
+
+/* =====================================================================
+   HEADER ACTIONS
+   ===================================================================== */
+
+/*
+ * Le nom, la cloche et le bouton Abmelden restent au-dessus
+ * du logo si l'espace devient réduit.
+ */
+
+#appHeader .app-header-actions {
+    position: relative;
+    z-index: 3;
+
+    flex-shrink: 0;
+}
+
+
+/* =====================================================================
+   TABLETTE / PETITS ÉCRANS
+   ===================================================================== */
+
+@media (
+    max-width: 760px
+) {
+
+    /*
+     * L'ancien V4 imposait de nouveau
+     * height: var(--header-height) !important.
+     * Cette règle V5 prend volontairement le dessus.
+     */
+
+    #homeLogoButton img.app-header-logo,
+    #appHeader .app-header-logo,
+    .app-header-logo {
+        height: 94px !important;
+        max-height: none !important;
+
+        max-width: 47vw !important;
+    }
+}
+
+
+/* =====================================================================
+   TRÈS PETITS ÉCRANS
+   ===================================================================== */
+
+@media (
+    max-width: 520px
+) {
+
+    #homeLogoButton img.app-header-logo,
+    #appHeader .app-header-logo,
+    .app-header-logo {
+        height: 82px !important;
+        max-height: none !important;
+
+        max-width: 45vw !important;
+    }
+}
