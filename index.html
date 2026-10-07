@@ -8,13 +8,13 @@
         content="width=device-width, initial-scale=1.0, viewport-fit=cover"
     >
 
-    <meta name="theme-color" content="#09436a">
+    <meta name="theme-color" content="#bdb3e6">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
 
     <title>Lauter Macher</title>
 
-    <link rel="stylesheet" href="style.css?v=1.0.0">
+    <link rel="stylesheet" href="style.css?v=2.0.0">
 </head>
 
 <body>
@@ -39,14 +39,68 @@
                 >
             </button>
 
+            <div class="app-header-center">
+
+                <nav
+                    id="breadcrumb"
+                    class="breadcrumb"
+                    aria-label="Navigation"
+                >
+                    <button
+                        id="breadcrumbHomeButton"
+                        class="breadcrumb-item breadcrumb-home"
+                        type="button"
+                    >
+                        Startseite
+                    </button>
+
+                    <span
+                        id="breadcrumbSeparator"
+                        class="breadcrumb-separator"
+                        hidden
+                    >
+                        ›
+                    </span>
+
+                    <span
+                        id="breadcrumbCurrent"
+                        class="breadcrumb-current"
+                        hidden
+                    ></span>
+                </nav>
+
+            </div>
+
             <div class="app-header-actions">
 
-                <strong
-                    id="currentPersonName"
-                    class="current-person-name"
+                <div
+                    id="currentPersonProfile"
+                    class="current-person-profile"
                 >
-                    -
-                </strong>
+                    <span
+                        id="currentPersonAvatar"
+                        class="current-person-avatar"
+                    >
+                        👤
+                    </span>
+
+                    <div class="current-person-details">
+                        <strong
+                            id="currentPersonName"
+                            class="current-person-name"
+                        >
+                            -
+                        </strong>
+
+                        <small
+                            id="currentPersonRole"
+                            class="current-person-role"
+                        >
+                            -
+                        </small>
+                    </div>
+                </div>
+
 
                 <div class="notification-wrapper">
 
@@ -68,13 +122,19 @@
                         </span>
                     </button>
 
+
                     <div
                         id="notificationPopover"
                         class="notification-popover"
                         hidden
                     >
+
                         <div class="notification-popover-header">
-                            <strong>Benachrichtigungen</strong>
+
+                            <div>
+                                <strong>Benachrichtigungen</strong>
+                                <small>Neuigkeiten für dich</small>
+                            </div>
 
                             <button
                                 id="closeNotificationPopoverButton"
@@ -84,23 +144,28 @@
                             >
                                 ✕
                             </button>
+
                         </div>
+
 
                         <div
                             id="notificationPreviewList"
                             class="notification-preview-list"
                         ></div>
 
+
                         <button
                             id="showAllNotificationsButton"
-                            class="secondary-action"
+                            class="secondary-action full-width-button"
                             type="button"
                         >
-                            Alle anzeigen
+                            Alle Benachrichtigungen
                         </button>
+
                     </div>
 
                 </div>
+
 
                 <button
                     id="logoutButton"
@@ -111,6 +176,7 @@
                 </button>
 
             </div>
+
         </div>
     </header>
 
@@ -226,6 +292,7 @@
         <section class="home-content">
 
             <div class="home-heading">
+
                 <span
                     id="homeRoleLabel"
                     class="role-badge"
@@ -234,7 +301,13 @@
                 <h1>
                     Was möchtest du machen?
                 </h1>
+
+                <p id="homeWelcomeText" class="home-welcome-text">
+                    Wähle einen Bereich aus.
+                </p>
+
             </div>
+
 
             <div class="home-menu-grid">
 
@@ -247,6 +320,7 @@
 
                     <span class="home-menu-text">
                         <strong>Getränke</strong>
+
                         <small id="homeDrinksDescription">
                             Kasse
                         </small>
@@ -273,6 +347,7 @@
 
                     <span class="home-menu-text">
                         <strong>Bäckerei</strong>
+
                         <small id="homeBakeryDescription">
                             Kasse &amp; Ausgabe
                         </small>
@@ -299,7 +374,8 @@
 
                     <span class="home-menu-text">
                         <strong>Bearbeiten</strong>
-                        <small>
+
+                        <small id="homeEditDescription">
                             Produkte &amp; Inventur
                         </small>
                     </span>
@@ -318,8 +394,9 @@
 
                     <span class="home-menu-text">
                         <strong>Berichte</strong>
+
                         <small>
-                            Umsatz, Gewinn &amp; Verkäufe
+                            Umsatz, Kosten &amp; Gewinn
                         </small>
                     </span>
 
@@ -336,6 +413,7 @@
 
                     <span class="home-menu-text">
                         <strong>Sonderveranstaltung</strong>
+
                         <small>
                             Veranstaltungen öffnen
                         </small>
@@ -367,6 +445,7 @@
             ⚠️ Testumgebung – keine Daten werden gespeichert
         </div>
 
+
         <header class="screen-header">
 
             <button
@@ -388,6 +467,7 @@
             </span>
 
         </header>
+
 
         <section class="sale-layout">
 
@@ -424,6 +504,7 @@
 
                 <div class="cart-total">
                     <span>Gesamt</span>
+
                     <strong id="drinksCartTotal">
                         0,00 €
                     </strong>
@@ -469,6 +550,7 @@
             ⚠️ Testumgebung – keine Daten werden gespeichert
         </div>
 
+
         <header class="screen-header">
 
             <button
@@ -483,10 +565,10 @@
 
         </header>
 
+
         <section class="payment-container">
 
             <div class="payment-summary-card">
-
                 <span>Zu zahlen</span>
 
                 <strong
@@ -495,12 +577,10 @@
                 >
                     0,00 €
                 </strong>
-
             </div>
 
 
             <div class="payment-summary-card">
-
                 <span>Kunde gibt</span>
 
                 <strong
@@ -509,18 +589,15 @@
                 >
                     0,00 €
                 </strong>
-
             </div>
 
 
             <div class="change-container">
-
                 <span>Rückgeld</span>
 
                 <strong id="drinksChangeAmount">
                     0,00 €
                 </strong>
-
             </div>
 
 
@@ -531,12 +608,15 @@
                 <button class="payment-key" type="button" data-value="1">1</button>
                 <button class="payment-key" type="button" data-value="2">2</button>
                 <button class="payment-key" type="button" data-value="3">3</button>
+
                 <button class="payment-key" type="button" data-value="4">4</button>
                 <button class="payment-key" type="button" data-value="5">5</button>
                 <button class="payment-key" type="button" data-value="6">6</button>
+
                 <button class="payment-key" type="button" data-value="7">7</button>
                 <button class="payment-key" type="button" data-value="8">8</button>
                 <button class="payment-key" type="button" data-value="9">9</button>
+
                 <button class="payment-key" type="button" data-value="00">00</button>
                 <button class="payment-key" type="button" data-value="0">0</button>
 
@@ -548,6 +628,7 @@
                     ⌫
                 </button>
             </div>
+
 
             <button
                 id="drinksPaidButton"
@@ -582,6 +663,7 @@
 
             <div class="success-change">
                 Rückgeld:
+
                 <strong id="drinksSuccessChange">
                     0,00 €
                 </strong>
@@ -628,6 +710,7 @@
             ⚠️ Testumgebung – keine Daten werden gespeichert
         </div>
 
+
         <header class="screen-header">
 
             <button
@@ -642,22 +725,29 @@
 
         </header>
 
+
         <section class="content-card">
 
             <div class="celebration-heading">
+
                 <span>🎉</span>
+
                 <div>
                     <h2>Gut gemacht heute, Team!</h2>
+
                     <p>
                         Welche kostenlosen Getränke habt ihr heute genommen?
                     </p>
                 </div>
+
             </div>
+
 
             <div
                 id="freeDrinksList"
                 class="quantity-product-list"
             ></div>
+
 
             <div class="button-row">
 
@@ -700,6 +790,7 @@
             ⚠️ Testumgebung – keine Daten werden gespeichert
         </div>
 
+
         <header class="screen-header">
 
             <button
@@ -714,6 +805,7 @@
 
         </header>
 
+
         <section class="choice-grid">
 
             <button
@@ -722,9 +814,14 @@
                 type="button"
             >
                 <span>🛒</span>
+
                 <strong>Kasse</strong>
-                <small>Bestellung aufnehmen &amp; bezahlen</small>
+
+                <small>
+                    Bestellung aufnehmen &amp; bezahlen
+                </small>
             </button>
+
 
             <button
                 id="bakeryOutputButton"
@@ -732,8 +829,12 @@
                 type="button"
             >
                 <span>🍽️</span>
+
                 <strong>Ausgabe</strong>
-                <small>Bestellungen vorbereiten &amp; ausgeben</small>
+
+                <small>
+                    Bestellungen vorbereiten &amp; ausgeben
+                </small>
             </button>
 
         </section>
@@ -757,6 +858,7 @@
             ⚠️ Testumgebung – keine Daten werden gespeichert
         </div>
 
+
         <header class="screen-header">
 
             <button
@@ -770,6 +872,7 @@
             <h1>🥨 Bäckerei – Kasse</h1>
 
         </header>
+
 
         <section class="sale-layout">
 
@@ -806,6 +909,7 @@
 
                 <div class="cart-total">
                     <span>Gesamt</span>
+
                     <strong id="bakeryCartTotal">
                         0,00 €
                     </strong>
@@ -843,6 +947,7 @@
             ⚠️ Testumgebung – keine Daten werden gespeichert
         </div>
 
+
         <header class="screen-header">
 
             <button
@@ -850,12 +955,13 @@
                 class="back-button"
                 type="button"
             >
-                ← Bäckerei
+                ← Kasse
             </button>
 
             <h1>💶 Bezahlen</h1>
 
         </header>
+
 
         <section class="payment-container">
 
@@ -870,6 +976,7 @@
                 </strong>
             </div>
 
+
             <div class="payment-summary-card">
                 <span>Kunde gibt</span>
 
@@ -881,6 +988,7 @@
                 </strong>
             </div>
 
+
             <div class="change-container">
                 <span>Rückgeld</span>
 
@@ -889,6 +997,7 @@
                 </strong>
             </div>
 
+
             <div
                 id="bakeryPaymentKeypad"
                 class="payment-keypad"
@@ -896,12 +1005,15 @@
                 <button class="payment-key" type="button" data-value="1">1</button>
                 <button class="payment-key" type="button" data-value="2">2</button>
                 <button class="payment-key" type="button" data-value="3">3</button>
+
                 <button class="payment-key" type="button" data-value="4">4</button>
                 <button class="payment-key" type="button" data-value="5">5</button>
                 <button class="payment-key" type="button" data-value="6">6</button>
+
                 <button class="payment-key" type="button" data-value="7">7</button>
                 <button class="payment-key" type="button" data-value="8">8</button>
                 <button class="payment-key" type="button" data-value="9">9</button>
+
                 <button class="payment-key" type="button" data-value="00">00</button>
                 <button class="payment-key" type="button" data-value="0">0</button>
 
@@ -913,6 +1025,7 @@
                     ⌫
                 </button>
             </div>
+
 
             <button
                 id="bakeryPaidButton"
@@ -928,7 +1041,7 @@
 
 
     <!-- =========================================================
-         BÄCKEREI — ERFOLG / BESTELLNUMMER
+         BÄCKEREI — ERFOLG
          ========================================================= -->
 
     <main
@@ -952,6 +1065,7 @@
 
             <div class="success-change">
                 Rückgeld:
+
                 <strong id="bakerySuccessChange">
                     0,00 €
                 </strong>
@@ -986,6 +1100,7 @@
             ⚠️ Testumgebung – keine Daten werden gespeichert
         </div>
 
+
         <header class="screen-header">
 
             <button
@@ -1000,11 +1115,14 @@
 
         </header>
 
+
         <section class="output-content">
 
             <div class="section-heading">
+
                 <div>
                     <h2>Offene Bestellungen</h2>
+
                     <p>
                         Neue Bestellungen erscheinen automatisch.
                     </p>
@@ -1016,21 +1134,60 @@
                 >
                     0
                 </span>
+
             </div>
+
 
             <div
                 id="bakeryOutputOrders"
                 class="output-orders-grid"
             ></div>
 
+
             <div
                 id="bakeryOutputEmpty"
                 class="empty-state"
             >
                 <span>✨</span>
+
                 <strong>Alles erledigt!</strong>
-                <p>Momentan gibt es keine offene Bestellung.</p>
+
+                <p>
+                    Momentan gibt es keine offene Bestellung.
+                </p>
             </div>
+
+
+            <section
+                id="bakeryCompletedOrdersSection"
+                class="completed-orders-section"
+            >
+
+                <div class="section-heading">
+
+                    <div>
+                        <h2>Fertige Bestellungen</h2>
+
+                        <p>
+                            Zuletzt ausgegebene Bestellungen
+                        </p>
+                    </div>
+
+                    <span
+                        id="bakeryCompletedOrderCount"
+                        class="count-badge secondary-count-badge"
+                    >
+                        0
+                    </span>
+
+                </div>
+
+                <div
+                    id="bakeryCompletedOrders"
+                    class="completed-orders-list"
+                ></div>
+
+            </section>
 
         </section>
     </main>
@@ -1059,6 +1216,7 @@
 
         </header>
 
+
         <section class="admin-content">
 
             <div class="admin-menu-grid edit-menu-grid">
@@ -1069,8 +1227,12 @@
                     type="button"
                 >
                     <span class="admin-menu-icon">🥤</span>
+
                     <strong>Produkte</strong>
-                    <small>Produkte &amp; Preise bearbeiten</small>
+
+                    <small>
+                        Produkte &amp; Preise bearbeiten
+                    </small>
                 </button>
 
 
@@ -1081,8 +1243,12 @@
                     hidden
                 >
                     <span class="admin-menu-icon">🧾</span>
+
                     <strong>Rechnungen</strong>
-                    <small>Rechnungen erfassen</small>
+
+                    <small>
+                        Rechnungen erfassen
+                    </small>
                 </button>
 
 
@@ -1092,11 +1258,20 @@
                     type="button"
                 >
                     <span class="admin-menu-icon">📦</span>
+
                     <strong>Inventur</strong>
 
                     <small id="inventoryMenuDescription">
                         Bestand zählen und an den Lehrer schicken
                     </small>
+
+                    <span
+                        id="inventoryPendingBadge"
+                        class="menu-notification-badge"
+                        hidden
+                    >
+                        0
+                    </span>
                 </button>
 
 
@@ -1107,8 +1282,12 @@
                     hidden
                 >
                     <span class="admin-menu-icon">👩‍🎓</span>
+
                     <strong>Schüler</strong>
-                    <small>Schüler verwalten</small>
+
+                    <small>
+                        Schüler verwalten
+                    </small>
                 </button>
 
             </div>
@@ -1140,12 +1319,14 @@
 
         </header>
 
+
         <section class="admin-content">
 
             <div class="section-heading">
 
                 <div>
                     <h2>Produkte &amp; Preise</h2>
+
                     <p>
                         Änderungen werden automatisch synchronisiert.
                     </p>
@@ -1153,14 +1334,14 @@
 
                 <button
                     id="addProductButton"
-                    class="primary-action teacher-only"
+                    class="primary-action"
                     type="button"
-                    hidden
                 >
                     + Produkt
                 </button>
 
             </div>
+
 
             <div class="filter-tabs">
 
@@ -1189,6 +1370,7 @@
                 </button>
 
             </div>
+
 
             <div
                 id="productAdminList"
@@ -1222,21 +1404,27 @@
 
         </header>
 
+
         <section class="admin-content">
 
             <div class="info-card">
+
                 <strong>Getränkebestand zählen</strong>
 
                 <p>
                     Trage die tatsächlich gezählte Menge ein.
-                    Der offizielle Bestand wird dadurch nicht direkt geändert.
+                    Der offizielle Bestand wird erst geändert,
+                    wenn der Lehrer die Inventur bestätigt.
                 </p>
+
             </div>
+
 
             <div
                 id="studentInventoryList"
                 class="inventory-count-list"
             ></div>
+
 
             <button
                 id="submitStudentInventoryButton"
@@ -1245,6 +1433,7 @@
             >
                 📤 Inventur an Lehrer schicken
             </button>
+
 
             <p
                 id="studentInventoryMessage"
@@ -1279,6 +1468,7 @@
 
         </header>
 
+
         <section class="admin-content">
 
             <div
@@ -1299,12 +1489,14 @@
 
 
             <div class="info-card">
+
                 <strong>Getränkebestand</strong>
 
                 <p>
                     Hier werden Wareneingänge erfasst.
                     Die eingegebene Menge wird zum aktuellen Bestand addiert.
                 </p>
+
             </div>
 
 
@@ -1317,18 +1509,151 @@
             <section class="submissions-section">
 
                 <div class="section-heading">
+
                     <div>
                         <h2>Inventuren der Schüler</h2>
-                        <p>Eingereichte Zählungen</p>
+
+                        <p>
+                            Eingereichte Zählungen prüfen und übernehmen
+                        </p>
                     </div>
+
+                    <span
+                        id="pendingInventorySubmissionCount"
+                        class="count-badge"
+                    >
+                        0
+                    </span>
+
                 </div>
+
 
                 <div
                     id="inventorySubmissionsList"
                     class="submission-list"
                 ></div>
 
+
+                <div
+                    id="inventorySubmissionsEmpty"
+                    class="empty-state"
+                    hidden
+                >
+                    <span>📦</span>
+
+                    <strong>Keine offenen Inventuren</strong>
+
+                    <p>
+                        Neue Einreichungen von Schülern erscheinen hier automatisch.
+                    </p>
+                </div>
+
             </section>
+
+        </section>
+    </main>
+
+
+    <!-- =========================================================
+         INVENTURVORSCHLAG — LEHRER
+         ========================================================= -->
+
+    <main
+        id="inventoryReviewScreen"
+        class="screen admin-page teacher-only"
+        hidden
+    >
+
+        <header class="screen-header">
+
+            <button
+                id="inventoryReviewBackButton"
+                class="back-button"
+                type="button"
+            >
+                ← Inventur
+            </button>
+
+            <h1>📋 Inventur prüfen</h1>
+
+        </header>
+
+
+        <section class="admin-content">
+
+            <div
+                id="inventoryReviewHeader"
+                class="context-card"
+            >
+                <span>Inventur von</span>
+
+                <strong id="inventoryReviewStudentName">
+                    -
+                </strong>
+
+                <small id="inventoryReviewDate">
+                    -
+                </small>
+            </div>
+
+
+            <div class="info-card">
+
+                <strong>Vorgeschlagener Bestand</strong>
+
+                <p>
+                    Vergleiche den aktuellen Bestand mit der gezählten Menge.
+                    Erst beim Bestätigen wird der offizielle Bestand geändert.
+                </p>
+
+            </div>
+
+
+            <div class="table-scroll">
+
+                <table class="data-table">
+
+                    <thead>
+                        <tr>
+                            <th>Produkt</th>
+                            <th>Aktuell</th>
+                            <th>Gezählt</th>
+                            <th>Differenz</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="inventoryReviewTableBody"></tbody>
+
+                </table>
+
+            </div>
+
+
+            <div class="review-actions">
+
+                <button
+                    id="rejectInventorySubmissionButton"
+                    class="danger-action"
+                    type="button"
+                >
+                    ✕ Ablehnen
+                </button>
+
+                <button
+                    id="approveInventorySubmissionButton"
+                    class="primary-action"
+                    type="button"
+                >
+                    ✓ Bestand übernehmen
+                </button>
+
+            </div>
+
+
+            <p
+                id="inventoryReviewMessage"
+                class="form-message"
+            ></p>
 
         </section>
     </main>
@@ -1358,6 +1683,7 @@
 
         </header>
 
+
         <section class="admin-content">
 
             <form
@@ -1368,6 +1694,7 @@
                 <div class="form-grid">
 
                     <label class="form-field">
+
                         <span>Rechnungsnummer</span>
 
                         <input
@@ -1376,19 +1703,30 @@
                             readonly
                             placeholder="Wird automatisch erstellt"
                         >
+
                     </label>
 
 
                     <label class="form-field">
+
                         <span>Bereich</span>
 
                         <select id="invoiceContextSelect">
-                            <option value="getränke">Getränke</option>
-                            <option value="bäckerei">Bäckerei</option>
+
+                            <option value="getränke">
+                                Getränke
+                            </option>
+
+                            <option value="bäckerei">
+                                Bäckerei
+                            </option>
+
                             <option value="sonderveranstaltung">
                                 Sonderveranstaltung
                             </option>
+
                         </select>
+
                     </label>
 
 
@@ -1397,13 +1735,16 @@
                         class="form-field"
                         hidden
                     >
+
                         <span>Veranstaltung</span>
 
                         <select id="invoiceEventSelect"></select>
+
                     </label>
 
 
                     <label class="form-field">
+
                         <span>Rechnungsdatum</span>
 
                         <input
@@ -1411,10 +1752,12 @@
                             type="date"
                             required
                         >
+
                     </label>
 
 
                     <label class="form-field">
+
                         <span>Laden</span>
 
                         <input
@@ -1422,13 +1765,16 @@
                             type="text"
                             placeholder="z. B. Kaufland"
                         >
+
                     </label>
 
 
                     <label class="form-field">
+
                         <span>Gesamtkosten</span>
 
                         <div class="money-input-wrap">
+
                             <input
                                 id="invoiceTotalInput"
                                 type="text"
@@ -1438,7 +1784,9 @@
                             >
 
                             <span>€</span>
+
                         </div>
+
                     </label>
 
                 </div>
@@ -1452,6 +1800,7 @@
                     + Hinzufügen
                 </button>
 
+
                 <p
                     id="invoiceFormMessage"
                     class="form-message"
@@ -1463,11 +1812,17 @@
             <section class="recent-section">
 
                 <div class="section-heading">
+
                     <div>
                         <h2>Letzte Einträge</h2>
-                        <p>Die letzten 10 Rechnungen</p>
+
+                        <p>
+                            Die letzten 10 Rechnungen
+                        </p>
                     </div>
+
                 </div>
+
 
                 <div
                     id="invoiceList"
@@ -1504,16 +1859,19 @@
 
         </header>
 
+
         <section class="admin-content">
 
             <div class="section-heading">
 
                 <div>
                     <h2>Schüler verwalten</h2>
+
                     <p>
                         Namen und PINs bearbeiten oder neue Schüler hinzufügen.
                     </p>
                 </div>
+
 
                 <button
                     id="addStudentButton"
@@ -1524,6 +1882,7 @@
                 </button>
 
             </div>
+
 
             <div
                 id="studentsList"
@@ -1558,6 +1917,7 @@
 
         </header>
 
+
         <section class="reports-content">
 
             <div class="report-hero-card">
@@ -1572,6 +1932,7 @@
                         </p>
                     </div>
 
+
                     <button
                         id="exportReportsButton"
                         class="secondary-action"
@@ -1581,6 +1942,7 @@
                     </button>
 
                 </div>
+
 
                 <div
                     id="schoolYearProfitChart"
@@ -1634,28 +1996,68 @@
             <div class="report-kpi-grid">
 
                 <article class="report-kpi-card">
+
                     <span>💶 Umsatz</span>
-                    <strong id="reportRevenue">0,00 €</strong>
+
+                    <strong id="reportRevenue">
+                        0,00 €
+                    </strong>
+
                 </article>
 
+
                 <article class="report-kpi-card">
+
+                    <span>🧾 Kosten</span>
+
+                    <strong id="reportCosts">
+                        —
+                    </strong>
+
+                </article>
+
+
+                <article class="report-kpi-card">
+
                     <span>📈 Gewinn</span>
-                    <strong id="reportProfit">—</strong>
+
+                    <strong id="reportProfit">
+                        —
+                    </strong>
+
                 </article>
 
+
                 <article class="report-kpi-card">
+
                     <span>🥤 Getränke</span>
-                    <strong id="reportDrinksRevenue">0,00 €</strong>
+
+                    <strong id="reportDrinksRevenue">
+                        0,00 €
+                    </strong>
+
                 </article>
 
+
                 <article class="report-kpi-card">
+
                     <span>🥨 Bäckerei</span>
-                    <strong id="reportBakeryRevenue">0,00 €</strong>
+
+                    <strong id="reportBakeryRevenue">
+                        0,00 €
+                    </strong>
+
                 </article>
 
+
                 <article class="report-kpi-card">
+
                     <span>🧾 Verkäufe</span>
-                    <strong id="reportSalesCount">0</strong>
+
+                    <strong id="reportSalesCount">
+                        0
+                    </strong>
+
                 </article>
 
             </div>
@@ -1664,10 +2066,13 @@
             <article class="top-product-card">
 
                 <div class="top-product-icon">
-                    <span id="reportTopProductIcon">🏆</span>
+                    <span id="reportTopProductIcon">
+                        🏆
+                    </span>
                 </div>
 
                 <div>
+
                     <small id="reportTopProductLabel">
                         Produkt des Tages
                     </small>
@@ -1675,6 +2080,7 @@
                     <strong id="reportTopProductName">
                         —
                     </strong>
+
                 </div>
 
             </article>
@@ -1686,7 +2092,10 @@
 
                     <div>
                         <h2>Verkaufte Produkte</h2>
-                        <p>Details des ausgewählten Zeitraums</p>
+
+                        <p>
+                            Details des ausgewählten Zeitraums
+                        </p>
                     </div>
 
                 </div>
@@ -1696,6 +2105,7 @@
                     id="reportSortButtons"
                     class="sort-buttons"
                 >
+
                     <button
                         class="sort-button active"
                         type="button"
@@ -1719,6 +2129,7 @@
                     >
                         Menge
                     </button>
+
                 </div>
 
 
@@ -1732,6 +2143,7 @@
                                 <th>Menge</th>
                                 <th>Bestand</th>
                                 <th>Umsatz</th>
+                                <th>Kosten</th>
                                 <th>Gewinn</th>
                             </tr>
                         </thead>
@@ -1748,11 +2160,17 @@
             <section class="report-detail-card">
 
                 <div class="section-heading">
+
                     <div>
                         <h2>Sonderveranstaltungen</h2>
-                        <p>Umsatz und Ergebnis je Veranstaltung</p>
+
+                        <p>
+                            Umsatz, Kosten und Ergebnis je Veranstaltung
+                        </p>
                     </div>
+
                 </div>
+
 
                 <div
                     id="reportEventsList"
@@ -1766,7 +2184,7 @@
 
 
     <!-- =========================================================
-         SONVERANSTALTUNGEN — LISTE
+         SONDERVERANSTALTUNGEN — LISTE
          ========================================================= -->
 
     <main
@@ -1788,18 +2206,23 @@
 
         </header>
 
+
         <section class="events-content">
 
             <div
-                class="section-heading teacher-only"
                 id="teacherEventActions"
+                class="section-heading teacher-only"
                 hidden
             >
 
                 <div>
                     <h2>Veranstaltungen</h2>
-                    <p>Neue Veranstaltung anlegen</p>
+
+                    <p>
+                        Neue Veranstaltung anlegen
+                    </p>
                 </div>
+
 
                 <button
                     id="createEventButton"
@@ -1815,15 +2238,35 @@
             <section class="event-list-section">
 
                 <div class="section-heading">
+
                     <div>
-                        <h2>Aktuelle &amp; kommende Veranstaltungen</h2>
+                        <h2>
+                            Aktuelle &amp; kommende Veranstaltungen
+                        </h2>
                     </div>
+
                 </div>
+
 
                 <div
                     id="upcomingEventsList"
                     class="event-list"
                 ></div>
+
+
+                <div
+                    id="upcomingEventsEmpty"
+                    class="empty-state"
+                    hidden
+                >
+                    <span>🎪</span>
+
+                    <strong>Keine Veranstaltung geplant</strong>
+
+                    <p>
+                        Momentan gibt es keine aktuelle oder kommende Veranstaltung.
+                    </p>
+                </div>
 
             </section>
 
@@ -1831,16 +2274,33 @@
             <section class="event-list-section">
 
                 <div class="section-heading">
+
                     <div>
                         <h2>Letzte Veranstaltungen</h2>
-                        <p>Die letzten 5 abgeschlossenen Veranstaltungen</p>
+
+                        <p>
+                            Die letzten 5 abgeschlossenen Veranstaltungen
+                        </p>
                     </div>
+
                 </div>
+
 
                 <div
                     id="pastEventsList"
                     class="event-list"
                 ></div>
+
+
+                <div
+                    id="pastEventsEmpty"
+                    class="empty-state"
+                    hidden
+                >
+                    <span>🗂️</span>
+
+                    <strong>Noch keine abgeschlossene Veranstaltung</strong>
+                </div>
 
             </section>
 
@@ -1872,6 +2332,7 @@
 
         </header>
 
+
         <section class="choice-grid">
 
             <button
@@ -1880,11 +2341,14 @@
                 type="button"
             >
                 <span>🍔</span>
+
                 <strong>Food</strong>
+
                 <small>
                     Produkte, Kasse, Ausgabe &amp; Inventur
                 </small>
             </button>
+
 
             <button
                 id="createOtherEventButton"
@@ -1892,7 +2356,9 @@
                 type="button"
             >
                 <span>🎟️</span>
+
                 <strong>Anderes</strong>
+
                 <small>
                     Veranstaltung mit direktem Umsatz
                 </small>
@@ -1928,6 +2394,7 @@
 
         </header>
 
+
         <section class="admin-content">
 
             <form
@@ -1943,6 +2410,7 @@
 
 
                 <label class="form-field">
+
                     <span>Name</span>
 
                     <input
@@ -1951,10 +2419,12 @@
                         placeholder="z. B. Schulfest"
                         required
                     >
+
                 </label>
 
 
                 <label class="form-field">
+
                     <span>Datum</span>
 
                     <input
@@ -1962,10 +2432,12 @@
                         type="date"
                         required
                     >
+
                 </label>
 
 
                 <label class="form-field">
+
                     <span>Notiz</span>
 
                     <textarea
@@ -1973,6 +2445,7 @@
                         rows="3"
                         placeholder="Optional"
                     ></textarea>
+
                 </label>
 
 
@@ -1981,17 +2454,22 @@
                     class="form-field"
                     hidden
                 >
+
                     <span>Umsatz</span>
 
                     <div class="money-input-wrap">
+
                         <input
                             id="eventDirectRevenueInput"
                             type="text"
                             inputmode="decimal"
                             placeholder="0,00"
                         >
+
                         <span>€</span>
+
                     </div>
+
                 </label>
 
 
@@ -1999,6 +2477,7 @@
                     id="eventStartInventoryField"
                     class="toggle-field"
                 >
+
                     <input
                         id="eventStartInventoryInput"
                         type="checkbox"
@@ -2007,6 +2486,7 @@
                     <span>
                         Startinventur für diese Veranstaltung erfassen
                     </span>
+
                 </label>
 
 
@@ -2017,6 +2497,7 @@
                 >
                     Veranstaltung erstellen
                 </button>
+
 
                 <p
                     id="eventCreateMessage"
@@ -2048,7 +2529,9 @@
                 ← Veranstaltungen
             </button>
 
+
             <div class="screen-title-stack">
+
                 <h1 id="eventWorkspaceName">
                     Veranstaltung
                 </h1>
@@ -2056,7 +2539,16 @@
                 <small id="eventWorkspaceDate">
                     -
                 </small>
+
             </div>
+
+
+            <span
+                id="eventStatusBadge"
+                class="status-badge"
+            >
+                Offen
+            </span>
 
         </header>
 
@@ -2070,6 +2562,32 @@
 
 
             <div
+                id="eventTeacherControls"
+                class="event-teacher-controls teacher-only"
+                hidden
+            >
+
+                <button
+                    id="closeEventButton"
+                    class="secondary-action"
+                    type="button"
+                >
+                    ✓ Veranstaltung abschließen
+                </button>
+
+                <button
+                    id="reopenEventButton"
+                    class="secondary-action"
+                    type="button"
+                    hidden
+                >
+                    ↻ Veranstaltung wieder öffnen
+                </button>
+
+            </div>
+
+
+            <div
                 id="foodEventWorkspace"
                 class="event-workspace-grid"
             >
@@ -2080,8 +2598,12 @@
                     type="button"
                 >
                     <span class="admin-menu-icon">🍔</span>
+
                     <strong>Produkte &amp; Preise</strong>
-                    <small>Produkte für diese Veranstaltung</small>
+
+                    <small>
+                        Produkte für diese Veranstaltung
+                    </small>
                 </button>
 
 
@@ -2091,6 +2613,7 @@
                     type="button"
                 >
                     <span class="admin-menu-icon">🛒</span>
+
                     <strong>Kasse</strong>
 
                     <small id="eventCashierDescription">
@@ -2113,6 +2636,7 @@
                     type="button"
                 >
                     <span class="admin-menu-icon">🍽️</span>
+
                     <strong>Ausgabe</strong>
 
                     <small id="eventOutputDescription">
@@ -2130,13 +2654,33 @@
 
 
                 <button
+                    id="eventStartInventoryButton"
+                    class="admin-menu-card"
+                    type="button"
+                    hidden
+                >
+                    <span class="admin-menu-icon">📦</span>
+
+                    <strong>Startinventur</strong>
+
+                    <small>
+                        Anfangsbestand erfassen
+                    </small>
+                </button>
+
+
+                <button
                     id="eventEndInventoryButton"
                     class="admin-menu-card"
                     type="button"
                 >
                     <span class="admin-menu-icon">📦</span>
+
                     <strong>Endinventur</strong>
-                    <small>Bestand am Ende zählen</small>
+
+                    <small>
+                        Bestand am Ende zählen
+                    </small>
                 </button>
 
             </div>
@@ -2149,12 +2693,15 @@
             >
 
                 <div class="report-kpi-card">
+
                     <span>💶 Umsatz</span>
 
                     <strong id="otherEventRevenueDisplay">
                         0,00 €
                     </strong>
+
                 </div>
+
 
                 <button
                     id="editOtherEventRevenueButton"
@@ -2162,8 +2709,30 @@
                     type="button"
                     hidden
                 >
-                    Umsatz bearbeiten
+                    + Umsatz eintragen
                 </button>
+
+
+                <section class="recent-section">
+
+                    <div class="section-heading">
+
+                        <div>
+                            <h2>Umsatzeinträge</h2>
+
+                            <p>
+                                Erfasste Einnahmen dieser Veranstaltung
+                            </p>
+                        </div>
+
+                    </div>
+
+                    <div
+                        id="otherEventRevenueEntries"
+                        class="revenue-entry-list"
+                    ></div>
+
+                </section>
 
             </div>
 
@@ -2194,16 +2763,19 @@
 
         </header>
 
+
         <section class="admin-content">
 
             <div class="section-heading">
 
                 <div>
                     <h2>Veranstaltungsprodukte</h2>
+
                     <p>
                         Bestehende Produkte auswählen oder ein eigenes Produkt anlegen.
                     </p>
                 </div>
+
 
                 <button
                     id="addCustomEventProductButton"
@@ -2219,10 +2791,15 @@
             <div class="form-card">
 
                 <label class="form-field">
-                    <span>Bestehendes Produkt hinzufügen</span>
+
+                    <span>
+                        Bestehendes Produkt hinzufügen
+                    </span>
 
                     <select id="globalProductForEventSelect"></select>
+
                 </label>
+
 
                 <button
                     id="addGlobalProductToEventButton"
@@ -2261,6 +2838,7 @@
             ⚠️ Testumgebung – keine Daten werden gespeichert
         </div>
 
+
         <header class="screen-header">
 
             <button
@@ -2277,6 +2855,7 @@
 
         </header>
 
+
         <section class="sale-layout">
 
             <div class="sale-products-panel">
@@ -2287,6 +2866,7 @@
                 ></div>
 
             </div>
+
 
             <aside class="cart-panel">
 
@@ -2302,12 +2882,15 @@
                 ></div>
 
                 <div class="cart-total">
+
                     <span>Gesamt</span>
 
                     <strong id="eventCartTotal">
                         0,00 €
                     </strong>
+
                 </div>
+
 
                 <button
                     id="eventPayButton"
@@ -2317,6 +2900,7 @@
                 >
                     💶 Bezahlen
                 </button>
+
 
                 <button
                     id="eventShiftEndButton"
@@ -2349,6 +2933,7 @@
             ⚠️ Testumgebung – keine Daten werden gespeichert
         </div>
 
+
         <header class="screen-header">
 
             <button
@@ -2363,9 +2948,11 @@
 
         </header>
 
+
         <section class="payment-container">
 
             <div class="payment-summary-card">
+
                 <span>Zu zahlen</span>
 
                 <strong
@@ -2374,9 +2961,12 @@
                 >
                     0,00 €
                 </strong>
+
             </div>
 
+
             <div class="payment-summary-card">
+
                 <span>Kunde gibt</span>
 
                 <strong
@@ -2385,15 +2975,20 @@
                 >
                     0,00 €
                 </strong>
+
             </div>
 
+
             <div class="change-container">
+
                 <span>Rückgeld</span>
 
                 <strong id="eventChangeAmount">
                     0,00 €
                 </strong>
+
             </div>
+
 
             <div
                 id="eventPaymentKeypad"
@@ -2402,12 +2997,15 @@
                 <button class="payment-key" type="button" data-value="1">1</button>
                 <button class="payment-key" type="button" data-value="2">2</button>
                 <button class="payment-key" type="button" data-value="3">3</button>
+
                 <button class="payment-key" type="button" data-value="4">4</button>
                 <button class="payment-key" type="button" data-value="5">5</button>
                 <button class="payment-key" type="button" data-value="6">6</button>
+
                 <button class="payment-key" type="button" data-value="7">7</button>
                 <button class="payment-key" type="button" data-value="8">8</button>
                 <button class="payment-key" type="button" data-value="9">9</button>
+
                 <button class="payment-key" type="button" data-value="00">00</button>
                 <button class="payment-key" type="button" data-value="0">0</button>
 
@@ -2419,6 +3017,7 @@
                     ⌫
                 </button>
             </div>
+
 
             <button
                 id="eventPaidButton"
@@ -2441,7 +3040,6 @@
         id="eventSuccessScreen"
         class="screen success-screen"
     >
-
         <section class="success-content">
 
             <div class="success-icon">✓</div>
@@ -2458,11 +3056,13 @@
             </div>
 
             <div class="success-change">
+
                 Rückgeld:
 
                 <strong id="eventSuccessChange">
                     0,00 €
                 </strong>
+
             </div>
 
             <button
@@ -2494,6 +3094,7 @@
             ⚠️ Testumgebung – keine Daten werden gespeichert
         </div>
 
+
         <header class="screen-header">
 
             <button
@@ -2508,12 +3109,14 @@
 
         </header>
 
+
         <section class="output-content">
 
             <div class="section-heading">
 
                 <div>
                     <h2>Offene Bestellungen</h2>
+
                     <p>
                         Neue Bestellungen erscheinen automatisch.
                     </p>
@@ -2528,26 +3131,65 @@
 
             </div>
 
+
             <div
                 id="eventOutputOrders"
                 class="output-orders-grid"
             ></div>
+
 
             <div
                 id="eventOutputEmpty"
                 class="empty-state"
             >
                 <span>✨</span>
+
                 <strong>Alles erledigt!</strong>
-                <p>Momentan gibt es keine offene Bestellung.</p>
+
+                <p>
+                    Momentan gibt es keine offene Bestellung.
+                </p>
             </div>
+
+
+            <section
+                id="eventCompletedOrdersSection"
+                class="completed-orders-section"
+            >
+
+                <div class="section-heading">
+
+                    <div>
+                        <h2>Fertige Bestellungen</h2>
+
+                        <p>
+                            Zuletzt ausgegebene Bestellungen
+                        </p>
+                    </div>
+
+                    <span
+                        id="eventCompletedOrderCount"
+                        class="count-badge secondary-count-badge"
+                    >
+                        0
+                    </span>
+
+                </div>
+
+
+                <div
+                    id="eventCompletedOrders"
+                    class="completed-orders-list"
+                ></div>
+
+            </section>
 
         </section>
     </main>
 
 
     <!-- =========================================================
-         EVENT — ENDINVENTUR
+         EVENT — START / END INVENTUR
          ========================================================= -->
 
     <main
@@ -2565,24 +3207,33 @@
                 ← Veranstaltung
             </button>
 
-            <h1>📦 Endinventur</h1>
+            <h1 id="eventInventoryScreenTitle">
+                📦 Endinventur
+            </h1>
 
         </header>
+
 
         <section class="admin-content">
 
             <div class="info-card">
-                <strong>Bestand am Veranstaltungsende</strong>
 
-                <p>
+                <strong id="eventInventoryInfoTitle">
+                    Bestand am Veranstaltungsende
+                </strong>
+
+                <p id="eventInventoryInfoText">
                     Trage die tatsächlich verbliebene Menge ein.
                 </p>
+
             </div>
+
 
             <div
                 id="eventEndInventoryList"
                 class="inventory-count-list"
             ></div>
+
 
             <button
                 id="saveEventEndInventoryButton"
@@ -2591,6 +3242,7 @@
             >
                 Endinventur speichern
             </button>
+
 
             <p
                 id="eventEndInventoryMessage"
@@ -2624,20 +3276,47 @@
 
         </header>
 
+
         <section class="admin-content">
+
+            <div class="section-heading">
+
+                <div>
+                    <h2>Alle Benachrichtigungen</h2>
+
+                    <p>
+                        Neue Einträge erscheinen automatisch.
+                    </p>
+                </div>
+
+                <button
+                    id="markAllNotificationsReadButton"
+                    class="secondary-action"
+                    type="button"
+                >
+                    Alle als gelesen markieren
+                </button>
+
+            </div>
+
 
             <div
                 id="notificationsList"
                 class="notifications-list"
             ></div>
 
+
             <div
                 id="notificationsEmpty"
                 class="empty-state"
             >
                 <span>🔔</span>
+
                 <strong>Keine Benachrichtigungen</strong>
-                <p>Hier ist momentan alles ruhig.</p>
+
+                <p>
+                    Hier ist momentan alles ruhig.
+                </p>
             </div>
 
         </section>
@@ -2687,6 +3366,7 @@
 
 
                 <label class="form-field">
+
                     <span>Name</span>
 
                     <input
@@ -2694,10 +3374,12 @@
                         type="text"
                         required
                     >
+
                 </label>
 
 
                 <label class="form-field">
+
                     <span>Preis</span>
 
                     <div class="money-input-wrap">
@@ -2713,10 +3395,12 @@
                         <span>€</span>
 
                     </div>
+
                 </label>
 
 
                 <label class="form-field">
+
                     <span>Bereich</span>
 
                     <select
@@ -2731,6 +3415,7 @@
                             Bäckerei
                         </option>
                     </select>
+
                 </label>
 
 
@@ -2744,6 +3429,7 @@
                         maxlength="8"
                         placeholder="🥤"
                     >
+
 
                     <div
                         id="productEmojiGrid"
@@ -2771,6 +3457,7 @@
 
 
                 <label class="toggle-field">
+
                     <input
                         id="productActiveInput"
                         type="checkbox"
@@ -2778,6 +3465,7 @@
                     >
 
                     <span>Produkt aktiv</span>
+
                 </label>
 
 
@@ -2800,6 +3488,7 @@
                     </button>
 
                 </div>
+
 
                 <p
                     id="productFormMessage"
@@ -2855,6 +3544,7 @@
 
 
                 <label class="form-field">
+
                     <span>Vorname</span>
 
                     <input
@@ -2862,32 +3552,39 @@
                         type="text"
                         required
                     >
+
                 </label>
 
 
                 <label class="form-field">
+
                     <span>Nachname</span>
 
                     <input
                         id="studentLastNameInput"
                         type="text"
                     >
+
                 </label>
 
 
                 <label class="form-field">
+
                     <span>Schülernummer</span>
 
                     <input
                         id="studentNumberInput"
                         type="text"
                     >
+
                 </label>
 
 
                 <label class="form-field">
+
                     <span>
                         PIN
+
                         <small id="studentPinHint">
                             4 Ziffern
                         </small>
@@ -2900,6 +3597,7 @@
                         pattern="[0-9]*"
                         maxlength="4"
                     >
+
                 </label>
 
 
@@ -2922,6 +3620,7 @@
                     </button>
 
                 </div>
+
 
                 <p
                     id="studentFormMessage"
@@ -2977,6 +3676,7 @@
 
 
                 <label class="form-field">
+
                     <span>Name</span>
 
                     <input
@@ -2984,10 +3684,12 @@
                         type="text"
                         required
                     >
+
                 </label>
 
 
                 <label class="form-field">
+
                     <span>Preis</span>
 
                     <div class="money-input-wrap">
@@ -3003,6 +3705,7 @@
                         <span>€</span>
 
                     </div>
+
                 </label>
 
 
@@ -3016,6 +3719,7 @@
                         maxlength="8"
                         placeholder="🎪"
                     >
+
 
                     <div
                         id="eventProductEmojiGrid"
@@ -3058,6 +3762,7 @@
 
                 </div>
 
+
                 <p
                     id="eventProductFormMessage"
                     class="form-message"
@@ -3088,7 +3793,7 @@
             <div class="modal-header">
 
                 <h2 id="otherEventRevenueModalTitle">
-                    Umsatz bearbeiten
+                    Umsatz eintragen
                 </h2>
 
                 <button
@@ -3106,6 +3811,7 @@
             <form id="otherEventRevenueForm">
 
                 <label class="form-field">
+
                     <span>Umsatz</span>
 
                     <div class="money-input-wrap">
@@ -3121,6 +3827,20 @@
                         <span>€</span>
 
                     </div>
+
+                </label>
+
+
+                <label class="form-field">
+
+                    <span>Notiz</span>
+
+                    <input
+                        id="otherEventRevenueNoteInput"
+                        type="text"
+                        placeholder="Optional"
+                    >
+
                 </label>
 
 
@@ -3143,6 +3863,7 @@
                     </button>
 
                 </div>
+
 
                 <p
                     id="otherEventRevenueMessage"
@@ -3172,12 +3893,16 @@
         >
 
             <div class="modal-header">
+
                 <h2 id="confirmModalTitle">
                     Bestätigen
                 </h2>
+
             </div>
 
+
             <p id="confirmModalMessage"></p>
+
 
             <div class="modal-actions">
 
@@ -3216,14 +3941,36 @@
 
 
     <!-- =========================================================
+         GLOBAL LOADING
+         ========================================================= -->
+
+    <div
+        id="globalLoadingOverlay"
+        class="global-loading-overlay"
+        hidden
+    >
+        <div class="global-loading-card">
+
+            <div class="loading-spinner"></div>
+
+            <strong id="globalLoadingText">
+                Wird geladen…
+            </strong>
+
+        </div>
+    </div>
+
+
+    <!-- =========================================================
          SCRIPTS
 
-         products.js wurde in V1 vollständig entfernt.
-         Supabase ist die einzige Produkt-Datenquelle.
+         Supabase = einzige gemeinsame Datenquelle.
+         products.js wird nicht mehr verwendet.
          ========================================================= -->
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="app.js?v=1.0.1"></script>
+
+    <script src="app.js?v=2.0.0"></script>
 
 </body>
 </html>
