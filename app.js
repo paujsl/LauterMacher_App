@@ -1,7 +1,9 @@
 // ============================================================
-// LAUTER MACHER
-// APP.JS
+// LAUTER MACHER — APP.JS V1
+// Supabase = einzige fachliche Datenquelle
 // ============================================================
+
+"use strict";
 
 
 // ============================================================
@@ -22,213 +24,73 @@ const supabaseClient =
 
 
 // ============================================================
-// APPLICATION STATE
+// STATE
 // ============================================================
 
-let currentPerson = null;
-let selectedLoginPerson = null;
+const state = {
 
-let cart = [];
-let receivedAmount = "";
+    currentPerson: null,
+    selectedLoginPerson: null,
 
-let currentReturnScreen = null;
+    products: [],
+    inventory: {},
+    events: [],
+    notifications: [],
 
-let saleTestMode = false;
+    drinksCart: new Map(),
+    bakeryCart: new Map(),
+    eventCart: new Map(),
 
-let currentReportPeriod = "day";
+    drinksPaymentCents: "",
+    bakeryPaymentCents: "",
+    eventPaymentCents: "",
 
-let editingProductId = null;
-let inventoryProductId = null;
+    currentEvent: null,
+    currentEventProducts: [],
 
-let currentEventId = null;
-let eventProductEditingId = null;
+    drinksTestMode: false,
+    bakeryTestMode: false,
+    eventTestMode: false,
 
-let eventSaleCart = [];
-let currentEventSaleTestMode = false;
+    freeDrinksContext: "getränke",
+    freeDrinksEventId: null,
+    freeDrinkQuantities: {},
 
-let eventStartInventoryRows = [];
-let eventSetupInvoices = [];
+    invoiceForInventory: null,
 
-let currentSuccessContext = "daily";
+    productFilter: "all",
+    editingProductId: null,
 
-let siteMessageCallback = null;
+    editingStudent: null,
+    editingEventProduct: null,
 
+    reportPeriod: "today",
+    reportSort: "revenue",
 
-// ============================================================
-// STORAGE KEYS
-// ============================================================
+    bakeryTestOrders: [],
+    eventTestOrders: [],
 
-const STORAGE_KEYS = {
+    realtimeChannel: null,
 
-    products:
-        "lauterMacher_products_v1",
+    previousScreenId: "homeScreen",
 
-    sales:
-        "lauterMacher_sales_v1",
-
-    inventory:
-        "lauterMacher_inventory_v1",
-
-    inventorySubmissions:
-        "lauterMacher_inventory_submissions_v1",
-
-    shiftClosures:
-        "lauterMacher_shift_closures_v1",
-
-    invoices:
-        "lauterMacher_invoices_v1",
-
-    purchases:
-        "lauterMacher_purchases_v1",
-
-    events:
-        "lauterMacher_events_v1"
+    confirmAction: null
 };
-
-
-// ============================================================
-// DEFAULT PRODUCTS
-// ============================================================
-
-const DEFAULT_PRODUCTS = [
-
-    {
-        id:
-            "wasser",
-
-        name:
-            "Wasser",
-
-        price:
-            1.00,
-
-        category:
-            "drink",
-
-        icon:
-            "💧"
-    },
-
-    {
-        id:
-            "apfelsaft",
-
-        name:
-            "Apfelsaft",
-
-        price:
-            1.50,
-
-        category:
-            "drink",
-
-        icon:
-            "🧃"
-    },
-
-    {
-        id:
-            "capri-sun",
-
-        name:
-            "Capri-Sun",
-
-        price:
-            1.50,
-
-        category:
-            "drink",
-
-        icon:
-            "🧃"
-    },
-
-    {
-        id:
-            "fake-cola",
-
-        name:
-            "Fake Cola",
-
-        price:
-            1.50,
-
-        category:
-            "drink",
-
-        icon:
-            "🥤"
-    },
-
-    {
-        id:
-            "fake-fanta",
-
-        name:
-            "Fake Fanta",
-
-        price:
-            1.50,
-
-        category:
-            "drink",
-
-        icon:
-            "🥤"
-    },
-
-    {
-        id:
-            "fake-sprite",
-
-        name:
-            "Fake Sprite",
-
-        price:
-            1.50,
-
-        category:
-            "drink",
-
-        icon:
-            "🥤"
-    },
-
-    {
-        id:
-            "isodrink",
-
-        name:
-            "Isodrink",
-
-        price:
-            2.00,
-
-        category:
-            "drink",
-
-        icon:
-            "⚡"
-    }
-];
 
 
 // ============================================================
 // DOM HELPERS
 // ============================================================
 
-function getElement(id) {
+function el(id) {
     return document.getElementById(id);
 }
 
-
 function on(id, eventName, handler) {
 
-    const element =
-        getElement(id);
+    const element = el(id);
 
     if (element) {
-
         element.addEventListener(
             eventName,
             handler
@@ -236,1264 +98,549 @@ function on(id, eventName, handler) {
     }
 }
 
-
-function setText(id, value) {
-
-    const element =
-        getElement(id);
-
-    if (element) {
-
-        element.textContent =
-            value;
-    }
+function all(selector) {
+    return Array.from(
+        document.querySelectorAll(selector)
+    );
 }
-
 
 function setHidden(id, hidden) {
 
-    const element =
-        getElement(id);
+    const element = el(id);
 
     if (element) {
-
-        element.hidden =
-            hidden;
+        element.hidden = Boolean(hidden);
     }
 }
 
-
-// ============================================================
-// DOM REFERENCES
-// ============================================================
-
-const identityScreen =
-    getElement("identityScreen");
-
-const pinLoginScreen =
-    getElement("pinLoginScreen");
-
-const homeScreen =
-    getElement("homeScreen");
-
-const saleScreen =
-    getElement("saleScreen");
-
-const paymentScreen =
-    getElement("paymentScreen");
-
-const successScreen =
-    getElement("successScreen");
-
-const bakeryMenuScreen =
-    getElement("bakeryMenuScreen");
-
-const bakeryCashScreen =
-    getElement("bakeryCashScreen");
-
-const bakeryOutputScreen =
-    getElement("bakeryOutputScreen");
-
-const adminScreen =
-    getElement("adminScreen");
-
-const reportsScreen =
-    getElement("reportsScreen");
-
-const inventoryScreen =
-    getElement("inventoryScreen");
-
-const inventoryCountScreen =
-    getElement("inventoryCountScreen");
-
-const inventoryInvoicesScreen =
-    getElement("inventoryInvoicesScreen");
-
-const productsScreen =
-    getElement("productsScreen");
-
-const eventListScreen =
-    getElement("eventListScreen");
-
-const eventCreateScreen =
-    getElement("eventCreateScreen");
-
-const eventStartSetupScreen =
-    getElement("eventStartSetupScreen");
-
-const eventProductsScreen =
-    getElement("eventProductsScreen");
-
-const eventWorkspaceScreen =
-    getElement("eventWorkspaceScreen");
-
-const eventCashScreen =
-    getElement("eventCashScreen");
-
-const eventOutputScreen =
-    getElement("eventOutputScreen");
-
-const eventEndInventoryScreen =
-    getElement("eventEndInventoryScreen");
-
-
-// ============================================================
-// AUTH DOM
-// ============================================================
-
-const peopleGrid =
-    getElement("peopleGrid");
-
-const identityError =
-    getElement("identityError");
-
-const selectedPersonName =
-    getElement("selectedPersonName");
-
-const loginPinInput =
-    getElement("loginPinInput");
-
-const pinLoginError =
-    getElement("pinLoginError");
-
-const loginBackButton =
-    getElement("loginBackButton");
-
-const loginConfirmButton =
-    getElement("loginConfirmButton");
-
-
-// ============================================================
-// HEADER
-// ============================================================
-
-const appHeader =
-    getElement("appHeader");
-
-const currentPersonName =
-    getElement("currentPersonName");
-
-const homeRoleLabel =
-    getElement("homeRoleLabel");
-
-const logoutButton =
-    getElement("logoutButton");
-
-const notificationButton =
-    getElement("notificationButton");
-
-const notificationCount =
-    getElement("notificationCount");
-
-
-// ============================================================
-// HOME
-// ============================================================
-
-const studentHomeMenu =
-    getElement("studentHomeMenu");
-
-const teacherHomeMenu =
-    getElement("teacherHomeMenu");
-
-const saleButton =
-    getElement("saleButton");
-
-const teacherSaleButton =
-    getElement("teacherSaleButton");
-
-const bakeryButton =
-    getElement("bakeryButton");
-
-const teacherBakeryButton =
-    getElement("teacherBakeryButton");
-
-const adminButton =
-    getElement("adminButton");
-
-const teacherAdminButton =
-    getElement("teacherAdminButton");
-
-const reportsHomeButton =
-    getElement("reportsHomeButton");
-
-const eventButton =
-    getElement("eventButton");
-
-const teacherEventButton =
-    getElement("teacherEventButton");
-
-
-// ============================================================
-// BÄCKEREI
-// ============================================================
-
-const bakeryBackButton =
-    getElement("bakeryBackButton");
-
-const bakeryCashButton =
-    getElement("bakeryCashButton");
-
-const bakeryServiceButton =
-    getElement("bakeryServiceButton");
-
-const bakeryCashBackButton =
-    getElement("bakeryCashBackButton");
-
-const bakeryOutputBackButton =
-    getElement("bakeryOutputBackButton");
-
-const bakeryCashShiftEndButton =
-    getElement("bakeryCashShiftEndButton");
-
-const bakeryOutputShiftEndButton =
-    getElement("bakeryOutputShiftEndButton");
-
-
-// ============================================================
-// SALE
-// ============================================================
-
-const saleBackButton =
-    getElement("saleBackButton");
-
-const saleShiftEndButton =
-    getElement("saleShiftEndButton");
-
-const drinksGrid =
-    getElement("drinksGrid");
-
-const bakeryGrid =
-    getElement("bakeryGrid");
-
-const cartItems =
-    getElement("cartItems");
-
-const cartTotal =
-    getElement("cartTotal");
-
-const payButton =
-    getElement("payButton");
-
-
-// ============================================================
-// PAYMENT
-// ============================================================
-
-const paymentBackButton =
-    getElement("paymentBackButton");
-
-const paymentTotal =
-    getElement("paymentTotal");
-
-const amountReceived =
-    getElement("amountReceived");
-
-const changeAmount =
-    getElement("changeAmount");
-
-const paidButton =
-    getElement("paidButton");
-
-const deletePaymentButton =
-    getElement("deletePaymentButton");
-
-
-// ============================================================
-// SUCCESS
-// ============================================================
-
-const successTitle =
-    getElement("successTitle");
-
-const successDescription =
-    getElement("successDescription");
-
-const successChange =
-    getElement("successChange");
-
-const newOrderButton =
-    getElement("newOrderButton");
-
-const successShiftEndButton =
-    getElement("successShiftEndButton");
-
-
-// ============================================================
-// EDIT
-// ============================================================
-
-const adminBackButton =
-    getElement("adminBackButton");
-
-const productsButton =
-    getElement("productsButton");
-
-const inventoryButton =
-    getElement("inventoryButton");
-
-const inventoryInvoicesButton =
-    getElement("inventoryInvoicesButton");
-
-const studentsButton =
-    getElement("studentsButton");
-
-const editMenuTitle =
-    getElement("editMenuTitle");
-
-const editMenuDescription =
-    getElement("editMenuDescription");
-
-const inventoryMenuTitle =
-    getElement("inventoryMenuTitle");
-
-const inventoryMenuDescription =
-    getElement("inventoryMenuDescription");
-
-
-// ============================================================
-// PRODUCTS
-// ============================================================
-
-const productsBackButton =
-    getElement("productsBackButton");
-
-const adminProductsList =
-    getElement("adminProductsList");
-
-const addProductButton =
-    getElement("addProductButton");
-
-const productModal =
-    getElement("productModal");
-
-const closeProductModalButton =
-    getElement("closeProductModalButton");
-
-const cancelProductButton =
-    getElement("cancelProductButton");
-
-const saveProductButton =
-    getElement("saveProductButton");
-
-const productModalTitle =
-    getElement("productModalTitle");
-
-const productNameInput =
-    getElement("productNameInput");
-
-const productPriceInput =
-    getElement("productPriceInput");
-
-const productCategoryInput =
-    getElement("productCategoryInput");
-
-const productIconInput =
-    getElement("productIconInput");
-
-
-// ============================================================
-// INVENTORY
-// ============================================================
-
-const inventoryBackButton =
-    getElement("inventoryBackButton");
-
-const inventoryList =
-    getElement("inventoryList");
-
-const inventoryModal =
-    getElement("inventoryModal");
-
-const closeInventoryModalButton =
-    getElement(
-        "closeInventoryModalButton"
-    );
-
-const cancelInventoryButton =
-    getElement("cancelInventoryButton");
-
-const saveInventoryButton =
-    getElement("saveInventoryButton");
-
-const inventoryProductLabel =
-    getElement("inventoryProductLabel");
-
-const inventoryAmountInput =
-    getElement("inventoryAmountInput");
-
-
-// ============================================================
-// INVENTUR STUDENT
-// ============================================================
-
-const inventoryCountBackButton =
-    getElement(
-        "inventoryCountBackButton"
-    );
-
-const inventoryCountList =
-    getElement("inventoryCountList");
-
-const submitInventoryButton =
-    getElement(
-        "submitInventoryButton"
-    );
-
-
-// ============================================================
-// INVOICES
-// ============================================================
-
-const inventoryInvoicesBackButton =
-    getElement(
-        "inventoryInvoicesBackButton"
-    );
-
-const invoiceContextInput =
-    getElement("invoiceContextInput");
-
-const invoiceDateInput =
-    getElement("invoiceDateInput");
-
-const invoiceSupplierInput =
-    getElement("invoiceSupplierInput");
-
-const invoiceNumberInput =
-    getElement("invoiceNumberInput");
-
-const invoiceProductInput =
-    getElement("invoiceProductInput");
-
-const invoiceQuantityInput =
-    getElement("invoiceQuantityInput");
-
-const invoiceAmountInput =
-    getElement("invoiceAmountInput");
-
-const saveInvoiceButton =
-    getElement("saveInvoiceButton");
-
-const purchaseContextInput =
-    getElement("purchaseContextInput");
-
-const purchaseProductInput =
-    getElement("purchaseProductInput");
-
-const purchaseQuantityInput =
-    getElement("purchaseQuantityInput");
-
-const savePurchaseButton =
-    getElement("savePurchaseButton");
-
-const invoiceList =
-    getElement("invoiceList");
-
-
-// ============================================================
-// REPORTS
-// ============================================================
-
-const reportsBackButton =
-    getElement("reportsBackButton");
-
-const reportDateLabel =
-    getElement("reportDateLabel");
-
-const reportRevenue =
-    getElement("reportRevenue");
-
-const reportTransactions =
-    getElement("reportTransactions");
-
-const reportDrinks =
-    getElement("reportDrinks");
-
-const reportBakery =
-    getElement("reportBakery");
-
-const reportProducts =
-    getElement("reportProducts");
-
-const exportReportButton =
-    getElement("exportReportButton");
-
-const clearReportsButton =
-    getElement("clearReportsButton");
-
-const periodTabs =
-    document.querySelectorAll(
-        ".period-tab"
-    );
-
-
-// ============================================================
-// EVENTS
-// ============================================================
-
-const eventListBackButton =
-    getElement("eventListBackButton");
-
-const eventListTitle =
-    getElement("eventListTitle");
-
-const eventListDescription =
-    getElement("eventListDescription");
-
-const createEventButton =
-    getElement("createEventButton");
-
-const eventList =
-    getElement("eventList");
-
-
-const eventCreateBackButton =
-    getElement("eventCreateBackButton");
-
-const eventNameInput =
-    getElement("eventNameInput");
-
-const eventDateInput =
-    getElement("eventDateInput");
-
-const eventStartInventoryYesButton =
-    getElement(
-        "eventStartInventoryYesButton"
-    );
-
-const eventStartInventoryNoButton =
-    getElement(
-        "eventStartInventoryNoButton"
-    );
-
-
-const eventStartSetupBackButton =
-    getElement(
-        "eventStartSetupBackButton"
-    );
-
-const eventStartSetupTitle =
-    getElement("eventStartSetupTitle");
-
-const eventStartInventoryList =
-    getElement(
-        "eventStartInventoryList"
-    );
-
-const addEventStartStockButton =
-    getElement(
-        "addEventStartStockButton"
-    );
-
-const eventInvoiceDateInput =
-    getElement(
-        "eventInvoiceDateInput"
-    );
-
-const eventInvoiceSupplierInput =
-    getElement(
-        "eventInvoiceSupplierInput"
-    );
-
-const eventInvoiceNumberInput =
-    getElement(
-        "eventInvoiceNumberInput"
-    );
-
-const eventInvoiceProductInput =
-    getElement(
-        "eventInvoiceProductInput"
-    );
-
-const eventInvoiceQuantityInput =
-    getElement(
-        "eventInvoiceQuantityInput"
-    );
-
-const eventInvoiceAmountInput =
-    getElement(
-        "eventInvoiceAmountInput"
-    );
-
-const addEventInvoiceButton =
-    getElement(
-        "addEventInvoiceButton"
-    );
-
-const eventInvoiceList =
-    getElement(
-        "eventInvoiceList"
-    );
-
-const eventStartSetupContinueButton =
-    getElement(
-        "eventStartSetupContinueButton"
-    );
-
-
-const eventProductsBackButton =
-    getElement(
-        "eventProductsBackButton"
-    );
-
-const eventProductsTitle =
-    getElement(
-        "eventProductsTitle"
-    );
-
-const addEventProductButton =
-    getElement(
-        "addEventProductButton"
-    );
-
-const eventProductsList =
-    getElement(
-        "eventProductsList"
-    );
-
-const eventProductsContinueButton =
-    getElement(
-        "eventProductsContinueButton"
-    );
-
-
-const eventProductModal =
-    getElement(
-        "eventProductModal"
-    );
-
-const closeEventProductModalButton =
-    getElement(
-        "closeEventProductModalButton"
-    );
-
-const cancelEventProductButton =
-    getElement(
-        "cancelEventProductButton"
-    );
-
-const saveEventProductButton =
-    getElement(
-        "saveEventProductButton"
-    );
-
-const eventProductModalTitle =
-    getElement(
-        "eventProductModalTitle"
-    );
-
-const eventProductNameInput =
-    getElement(
-        "eventProductNameInput"
-    );
-
-const eventProductPriceInput =
-    getElement(
-        "eventProductPriceInput"
-    );
-
-const eventProductIconInput =
-    getElement(
-        "eventProductIconInput"
-    );
-
-
-const eventWorkspaceBackButton =
-    getElement(
-        "eventWorkspaceBackButton"
-    );
-
-const eventWorkspaceName =
-    getElement(
-        "eventWorkspaceName"
-    );
-
-const eventWorkspaceDate =
-    getElement(
-        "eventWorkspaceDate"
-    );
-
-const eventWorkspaceStudentOptions =
-    getElement(
-        "eventWorkspaceStudentOptions"
-    );
-
-const eventWorkspaceTeacherOptions =
-    getElement(
-        "eventWorkspaceTeacherOptions"
-    );
-
-const studentEventCashButton =
-    getElement(
-        "studentEventCashButton"
-    );
-
-const studentEventOutputButton =
-    getElement(
-        "studentEventOutputButton"
-    );
-
-const teacherEventCashButton =
-    getElement(
-        "teacherEventCashButton"
-    );
-
-const teacherEventOutputButton =
-    getElement(
-        "teacherEventOutputButton"
-    );
-
-const teacherEventEndInventoryButton =
-    getElement(
-        "teacherEventEndInventoryButton"
-    );
-
-
-const eventCashBackButton =
-    getElement(
-        "eventCashBackButton"
-    );
-
-const eventCashTitle =
-    getElement(
-        "eventCashTitle"
-    );
-
-const eventCashProductHeading =
-    getElement(
-        "eventCashProductHeading"
-    );
-
-const eventCashProductsGrid =
-    getElement(
-        "eventCashProductsGrid"
-    );
-
-const eventCartItems =
-    getElement(
-        "eventCartItems"
-    );
-
-const eventCartTotal =
-    getElement(
-        "eventCartTotal"
-    );
-
-const eventPayButton =
-    getElement(
-        "eventPayButton"
-    );
-
-const eventCashShiftEndButton =
-    getElement(
-        "eventCashShiftEndButton"
-    );
-
-
-const eventOutputBackButton =
-    getElement(
-        "eventOutputBackButton"
-    );
-
-const eventOutputTitle =
-    getElement(
-        "eventOutputTitle"
-    );
-
-const eventOutputOrders =
-    getElement(
-        "eventOutputOrders"
-    );
-
-const eventOutputShiftEndButton =
-    getElement(
-        "eventOutputShiftEndButton"
-    );
-
-
-const eventEndInventoryBackButton =
-    getElement(
-        "eventEndInventoryBackButton"
-    );
-
-const eventEndInventoryTitle =
-    getElement(
-        "eventEndInventoryTitle"
-    );
-
-const eventEndInventoryList =
-    getElement(
-        "eventEndInventoryList"
-    );
-
-const saveEventEndInventoryButton =
-    getElement(
-        "saveEventEndInventoryButton"
-    );
-
-
-// ============================================================
-// SITE MESSAGE
-// ============================================================
-
-const siteMessageModal =
-    getElement(
-        "siteMessageModal"
-    );
-
-const siteMessageIcon =
-    getElement(
-        "siteMessageIcon"
-    );
-
-const siteMessageTitle =
-    getElement(
-        "siteMessageTitle"
-    );
-
-const siteMessageText =
-    getElement(
-        "siteMessageText"
-    );
-
-const siteMessagePrimaryButton =
-    getElement(
-        "siteMessagePrimaryButton"
-    );
-
-
-// ============================================================
-// LOCAL DATA
-// ============================================================
-
-let products =
-    loadProducts();
-
-let sales =
-    loadSales();
-
-let inventory =
-    loadInventory();
-
-
-// ============================================================
-// DOM READY
-// ============================================================
-
-document.addEventListener(
-    "DOMContentLoaded",
-    async function () {
-
-        setDefaultDates();
-
-        renderProducts();
-
-        updateCart();
-
-        updateInventoryMenus();
-
-        hideAppHeader();
-
-        showScreen(
-            identityScreen
-        );
-
-        await initialiseAuthentication();
-
+function setText(id, value) {
+
+    const element = el(id);
+
+    if (element) {
+        element.textContent =
+            value === null ||
+            value === undefined
+                ? ""
+                : String(value);
     }
-);
+}
 
+function setHTML(id, value) {
 
-// ============================================================
-// AUTH
-// ============================================================
+    const element = el(id);
 
-async function initialiseAuthentication() {
+    if (element) {
+        element.innerHTML = value;
+    }
+}
 
-    try {
+function escapeHtml(value) {
 
-        const {
-            data: sessionData
-        } =
-            await supabaseClient.auth.getSession();
+    return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
 
-        if (
-            sessionData &&
-            sessionData.session
-        ) {
+function euro(value) {
 
-            const person =
-                await loadCurrentPerson(
-                    sessionData.session
-                );
+    const number =
+        Number(value || 0);
 
-            if (
-                person
-            ) {
+    return new Intl.NumberFormat(
+        "de-DE",
+        {
+            style: "currency",
+            currency: "EUR"
+        }
+    ).format(number);
+}
 
-                applyLoggedInState(
-                    person
-                );
+function parseMoney(value) {
 
-                await syncProductsFromSupabase();
+    const cleaned =
+        String(value ?? "")
+            .trim()
+            .replace(/\s/g, "")
+            .replace("€", "")
+            .replace(",", ".");
 
-                startProductsRealtime();
+    const number =
+        Number(cleaned);
 
-                return;
+    return Number.isFinite(number)
+        ? Math.round(number * 100) / 100
+        : NaN;
+}
+
+function localDateKey(date = new Date()) {
+
+    const year =
+        date.getFullYear();
+
+    const month =
+        String(
+            date.getMonth() + 1
+        ).padStart(2, "0");
+
+    const day =
+        String(
+            date.getDate()
+        ).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
+}
+
+function formatDate(value) {
+
+    if (!value) {
+        return "—";
+    }
+
+    const parts =
+        String(value)
+            .slice(0, 10)
+            .split("-");
+
+    if (parts.length !== 3) {
+        return String(value);
+    }
+
+    return `${parts[2]}.${parts[1]}.${parts[0]}`;
+}
+
+function formatDateTime(value) {
+
+    if (!value) {
+        return "—";
+    }
+
+    return new Intl.DateTimeFormat(
+        "de-DE",
+        {
+            dateStyle: "short",
+            timeStyle: "short"
+        }
+    ).format(new Date(value));
+}
+
+function personName(person) {
+
+    if (!person) {
+        return "";
+    }
+
+    return [
+        person.first_name,
+        person.last_name
+    ]
+        .filter(Boolean)
+        .join(" ");
+}
+
+function isTeacher() {
+
+    return Boolean(
+        state.currentPerson &&
+        state.currentPerson.person_type === "lehrer"
+    );
+}
+
+function activeProducts(category = null) {
+
+    return state.products
+        .filter(product => {
+
+            if (!product.active) {
+                return false;
             }
 
-            await supabaseClient.auth.signOut();
-        }
+            if (
+                category &&
+                product.category !== category
+            ) {
+                return false;
+            }
 
-        await loadLoginPeople();
-
-    } catch (error) {
-
-        console.error(
-            "Authentifizierung konnte nicht initialisiert werden.",
-            error
+            return true;
+        })
+        .sort(
+            (a, b) =>
+                String(a.name)
+                    .localeCompare(
+                        String(b.name),
+                        "de"
+                    )
         );
-
-        if (
-            identityError
-        ) {
-
-            identityError.textContent =
-                "Die Anmeldung konnte nicht geladen werden.";
-        }
-
-        await loadLoginPeople();
-    }
 }
 
+function showToast(
+    message,
+    type = "info"
+) {
 
-async function loadLoginPeople() {
+    const container =
+        el("toastContainer");
 
-    if (
-        !peopleGrid
-    ) {
-
+    if (!container) {
         return;
     }
 
-    if (
-        identityError
+    const toast =
+        document.createElement("div");
+
+    toast.className =
+        `toast toast-${type}`;
+
+    toast.textContent =
+        message;
+
+    container.appendChild(toast);
+
+    window.setTimeout(
+        () => {
+            toast.remove();
+        },
+        3500
+    );
+}
+
+function errorMessage(error) {
+
+    console.error(error);
+
+    const raw =
+        error?.message ||
+        error?.error_description ||
+        String(error || "");
+
+    const translations = {
+
+        teacher_required:
+            "Diese Funktion ist nur für Lehrer verfügbar.",
+
+        authentication_required:
+            "Bitte erneut anmelden.",
+
+        product_not_found:
+            "Produkt wurde nicht gefunden.",
+
+        drink_product_not_found:
+            "Getränk wurde nicht gefunden.",
+
+        invalid_quantity:
+            "Die Menge ist ungültig.",
+
+        payment_too_low:
+            "Der erhaltene Betrag ist zu niedrig.",
+
+        items_required:
+            "Bitte mindestens ein Produkt auswählen.",
+
+        event_required:
+            "Bitte eine Veranstaltung auswählen.",
+
+        event_not_found:
+            "Veranstaltung wurde nicht gefunden.",
+
+        food_event_not_found:
+            "Food-Veranstaltung wurde nicht gefunden.",
+
+        editable_food_event_not_found:
+            "Diese Veranstaltung kann nicht mehr bearbeitet werden.",
+
+        event_product_not_found:
+            "Veranstaltungsprodukt wurde nicht gefunden.",
+
+        pin_must_have_four_digits:
+            "Der PIN muss aus genau 4 Ziffern bestehen.",
+
+        first_name_required:
+            "Bitte einen Vornamen eingeben.",
+
+        direct_revenue_required:
+            "Bitte einen gültigen Umsatz eingeben.",
+
+        invalid_revenue:
+            "Bitte einen gültigen Umsatz eingeben.",
+
+        getraenke_invoice_not_found:
+            "Die Getränke-Rechnung wurde nicht gefunden."
+    };
+
+    for (
+        const [key, value]
+        of Object.entries(translations)
     ) {
 
-        identityError.textContent =
-            "";
+        if (raw.includes(key)) {
+            return value;
+        }
     }
 
-    peopleGrid.innerHTML =
-        `
-            <div class="login-loading">
-                Personen werden geladen …
-            </div>
-        `;
+    return raw ||
+        "Es ist ein Fehler aufgetreten.";
+}
+
+
+// ============================================================
+// SCREEN MANAGEMENT
+// ============================================================
+
+function showScreen(id) {
+
+    const target =
+        typeof id === "string"
+            ? el(id)
+            : id;
+
+    if (!target) {
+        return;
+    }
+
+    const current =
+        all(".screen")
+            .find(
+                screen =>
+                    screen.style.display !== "none" &&
+                    !screen.hidden
+            );
+
+    if (
+        current &&
+        current.id !== target.id
+    ) {
+        state.previousScreenId =
+            current.id;
+    }
+
+    all(".screen")
+        .forEach(screen => {
+
+            screen.style.display =
+                "none";
+        });
+
+    target.hidden = false;
+    target.style.display = "block";
+
+    window.scrollTo({
+        top: 0,
+        behavior: "instant"
+    });
+}
+
+function goHome() {
+
+    closeNotificationPopover();
+
+    showScreen("homeScreen");
+}
+
+function updateRoleUI() {
+
+    const teacher =
+        isTeacher();
+
+    all(".teacher-only")
+        .forEach(element => {
+
+            element.hidden =
+                !teacher;
+        });
+
+    setText(
+        "homeRoleLabel",
+        teacher
+            ? "Lehrer"
+            : "Schüler"
+    );
+
+    setText(
+        "homeDrinksDescription",
+        teacher
+            ? "Testumgebung"
+            : "Kasse"
+    );
+
+    setText(
+        "homeBakeryDescription",
+        teacher
+            ? "Testumgebung"
+            : "Kasse & Ausgabe"
+    );
+
+    setHidden(
+        "homeDrinksTestBadge",
+        !teacher
+    );
+
+    setHidden(
+        "homeBakeryTestBadge",
+        !teacher
+    );
+
+    setText(
+        "inventoryMenuDescription",
+        teacher
+            ? "Bestand und Wareneingänge verwalten"
+            : "Bestand zählen und an Lehrer schicken"
+    );
+}
+
+
+// ============================================================
+// AUTHENTICATION
+// ============================================================
+
+async function loadLoginPeople() {
+
+    setHTML(
+        "peopleGrid",
+        ""
+    );
+
+    setText(
+        "identityError",
+        ""
+    );
 
     const {
         data,
         error
     } =
-        await supabaseClient
-            .from(
-                "login_people"
-            )
-            .select(
-                "id, first_name, last_name, person_type"
-            )
-            .order(
-                "person_type"
-            )
-            .order(
-                "last_name"
-            )
-            .order(
-                "first_name"
-            );
-
-    if (
-        error
-    ) {
-
-        console.error(
-            "Fehler beim Laden von login_people:",
-            error
+        await supabaseClient.rpc(
+            "get_login_people"
         );
 
-        peopleGrid.innerHTML =
-            "";
+    if (error) {
 
-        if (
-            identityError
-        ) {
+        setText(
+            "identityError",
+            "Personen konnten nicht geladen werden."
+        );
 
-            identityError.textContent =
-                "Die Personen konnten nicht geladen werden.";
-        }
+        console.error(error);
 
         return;
     }
 
-    peopleGrid.innerHTML =
-        "";
+    const grid =
+        el("peopleGrid");
 
-    (
-        data ||
-        []
-    ).forEach(
-        function (person) {
+    (data || [])
+        .forEach(person => {
 
             const button =
-                document.createElement(
-                    "button"
-                );
+                document.createElement("button");
 
-            button.type =
-                "button";
-
+            button.type = "button";
             button.className =
-                "person-login-card";
-
-            const fullName =
-                getFullName(
-                    person
-                );
+                "person-card";
 
             button.innerHTML = `
-                <span class="person-login-icon">
+                <span class="person-card-icon">
                     ${
-                        person.person_type ===
-                        "lehrer"
+                        person.person_type === "lehrer"
                             ? "👨‍🏫"
-                            : "👤"
+                            : "👩‍🎓"
                     }
                 </span>
 
-                <span class="person-login-name">
-                    ${escapeHtml(
-                        fullName
-                    )}
-                </span>
+                <strong>
+                    ${escapeHtml(personName(person))}
+                </strong>
 
-                <span class="person-login-type">
+                <small>
                     ${
-                        person.person_type ===
-                        "lehrer"
-                            ? "Lehrkraft"
-                            : "Schüler/in"
+                        person.person_type === "lehrer"
+                            ? "Lehrer"
+                            : "Schüler"
                     }
-                </span>
+                </small>
             `;
 
             button.addEventListener(
                 "click",
-                function () {
+                () => {
 
-                    selectLoginPerson(
-                        person
+                    state.selectedLoginPerson =
+                        person;
+
+                    setText(
+                        "selectedPersonName",
+                        personName(person)
+                    );
+
+                    el("loginPinInput").value =
+                        "";
+
+                    setText(
+                        "pinLoginError",
+                        ""
+                    );
+
+                    showScreen(
+                        "pinLoginScreen"
+                    );
+
+                    window.setTimeout(
+                        () =>
+                            el("loginPinInput")
+                                ?.focus(),
+                        50
                     );
                 }
             );
 
-            peopleGrid.appendChild(
-                button
-            );
-        }
-    );
-
-    if (
-        !data ||
-        data.length ===
-        0
-    ) {
-
-        if (
-            identityError
-        ) {
-
-            identityError.textContent =
-                "Keine aktiven Personen gefunden.";
-        }
-    }
+            grid.appendChild(button);
+        });
 }
-
-
-function selectLoginPerson(
-    person
-) {
-
-    selectedLoginPerson =
-        person;
-
-    setText(
-        "selectedPersonName",
-        getFullName(
-            person
-        )
-    );
-
-    if (
-        loginPinInput
-    ) {
-
-        loginPinInput.value =
-            "";
-    }
-
-    if (
-        pinLoginError
-    ) {
-
-        pinLoginError.textContent =
-            "";
-    }
-
-    hideAppHeader();
-
-    showScreen(
-        pinLoginScreen
-    );
-
-    setTimeout(
-        function () {
-
-            if (
-                loginPinInput
-            ) {
-
-                loginPinInput.focus();
-            }
-
-        },
-        50
-    );
-}
-
-
-on(
-    "loginBackButton",
-    "click",
-    function () {
-
-        selectedLoginPerson =
-            null;
-
-        if (
-            loginPinInput
-        ) {
-
-            loginPinInput.value =
-                "";
-        }
-
-        if (
-            pinLoginError
-        ) {
-
-            pinLoginError.textContent =
-                "";
-        }
-
-        hideAppHeader();
-
-        showScreen(
-            identityScreen
-        );
-    }
-);
-
-
-on(
-    "loginPinInput",
-    "input",
-    function () {
-
-        loginPinInput.value =
-            loginPinInput.value
-                .replace(
-                    /[^0-9]/g,
-                    ""
-                )
-                .slice(
-                    0,
-                    4
-                );
-
-        if (
-            pinLoginError
-        ) {
-
-            pinLoginError.textContent =
-                "";
-        }
-    }
-);
-
-
-on(
-    "loginPinInput",
-    "keydown",
-    function (event) {
-
-        if (
-            event.key ===
-            "Enter"
-        ) {
-
-            if (
-                loginConfirmButton
-            ) {
-
-                loginConfirmButton.click();
-            }
-        }
-    }
-);
-
-
-on(
-    "loginConfirmButton",
-    "click",
-    loginWithPin
-);
-
 
 async function loginWithPin() {
 
-    if (
-        !selectedLoginPerson ||
-        !loginPinInput
-    ) {
+    const person =
+        state.selectedLoginPerson;
 
+    const input =
+        el("loginPinInput");
+
+    const button =
+        el("loginConfirmButton");
+
+    if (
+        !person ||
+        !input
+    ) {
         return;
     }
 
     const pin =
-        loginPinInput.value;
+        input.value.trim();
 
-    if (
-        !/^[0-9]{4}$/.test(
-            pin
-        )
-    ) {
+    if (!/^[0-9]{4}$/.test(pin)) {
 
-        pinLoginError.textContent =
-            "Bitte eine 4-stellige PIN eingeben.";
+        setText(
+            "pinLoginError",
+            "Bitte eine 4-stellige PIN eingeben."
+        );
 
-        loginPinInput.focus();
+        input.focus();
 
         return;
     }
 
-    loginConfirmButton.disabled =
-        true;
-
-    loginConfirmButton.textContent =
+    button.disabled = true;
+    button.textContent =
         "Anmeldung …";
 
-    pinLoginError.textContent =
-        "";
+    setText(
+        "pinLoginError",
+        ""
+    );
 
     try {
 
@@ -1501,34 +648,28 @@ async function loginWithPin() {
             data,
             error
         } =
-            await supabaseClient.functions.invoke(
-                "login-with-pin",
-                {
-                    body: {
-
-                        person_id:
-                            selectedLoginPerson.id,
-
-                        pin:
+            await supabaseClient
+                .functions
+                .invoke(
+                    "login-with-pin",
+                    {
+                        body: {
+                            person_id:
+                                person.id,
                             pin
+                        }
                     }
-                }
-            );
+                );
 
-        if (
-            error
-        ) {
-
+        if (error) {
             throw error;
         }
 
         if (
-            !data ||
-            !data.success ||
-            !data.token_hash ||
-            !data.verification_type
+            !data?.success ||
+            !data?.token_hash ||
+            !data?.verification_type
         ) {
-
             throw new Error(
                 "Ungültige Antwort vom Login-Service."
             );
@@ -1538,76 +679,57 @@ async function loginWithPin() {
             data: otpData,
             error: otpError
         } =
-            await supabaseClient.auth.verifyOtp(
-                {
+            await supabaseClient
+                .auth
+                .verifyOtp({
                     token_hash:
                         data.token_hash,
-
                     type:
                         data.verification_type
-                }
-            );
+                });
 
-        if (
-            otpError
-        ) {
-
+        if (otpError) {
             throw otpError;
         }
 
-        const person =
+        const current =
             await loadCurrentPerson(
                 otpData.session
             );
 
-        if (
-            !person
-        ) {
-
+        if (!current) {
             throw new Error(
-                "Person konnte nach der Anmeldung nicht geladen werden."
+                "Person konnte nicht geladen werden."
             );
         }
 
-        applyLoggedInState(
-            person
+        await applyLoggedInState(
+            current
         );
 
     } catch (error) {
 
-        console.error(
-            "Login fehlgeschlagen:",
-            error
+        console.error(error);
+
+        setText(
+            "pinLoginError",
+            "Falsche PIN oder Anmeldung nicht möglich."
         );
 
-        pinLoginError.textContent =
-            "Falsche PIN oder Anmeldung nicht möglich.";
-
-        loginPinInput.value =
-            "";
-
-        loginPinInput.focus();
+        input.value = "";
+        input.focus();
 
     } finally {
 
-        loginConfirmButton.disabled =
-            false;
-
-        loginConfirmButton.textContent =
+        button.disabled = false;
+        button.textContent =
             "Einloggen";
     }
 }
 
+async function loadCurrentPerson(session) {
 
-async function loadCurrentPerson(
-    session
-) {
-
-    if (
-        !session ||
-        !session.user
-    ) {
-
+    if (!session?.user?.id) {
         return null;
     }
 
@@ -1616,11 +738,9 @@ async function loadCurrentPerson(
         error
     } =
         await supabaseClient
-            .from(
-                "people"
-            )
+            .from("people")
             .select(
-                "id, first_name, last_name, person_type, active"
+                "id,person_type,student_number,first_name,last_name,active,auth_user_id"
             )
             .eq(
                 "auth_user_id",
@@ -1630,1390 +750,820 @@ async function loadCurrentPerson(
                 "active",
                 true
             )
-            .single();
+            .maybeSingle();
 
-    if (
-        error
-    ) {
-
-        console.error(
-            "Aktuelle Person konnte nicht geladen werden:",
-            error
-        );
-
-        return null;
+    if (error) {
+        throw error;
     }
 
-    return data;
+    return data || null;
 }
 
-
-function applyLoggedInState(
+async function applyLoggedInState(
     person
 ) {
 
-    currentPerson =
+    state.currentPerson =
         person;
 
-    selectedLoginPerson =
+    state.selectedLoginPerson =
         null;
 
     setText(
         "currentPersonName",
-        getFullName(
-            person
-        )
+        personName(person)
     );
 
-    if (
-        homeRoleLabel
-    ) {
+    el("appHeader").hidden =
+        false;
 
-        homeRoleLabel.textContent =
-            isCurrentTeacher()
-                ? "Lehrkraft"
-                : "";
+    updateRoleUI();
 
-        homeRoleLabel.hidden =
-            !isCurrentTeacher();
-    }
+    await Promise.all([
+        loadProducts(),
+        loadInventory(),
+        loadEvents(),
+        loadNotifications()
+    ]);
 
-    updateHomeForPerson();
+    startRealtime();
 
-    updateInventoryMenus();
-
-    updateNotificationBadge();
-
-    showAppHeader();
-
-    resetSale();
-
-    showScreen(
-        homeScreen
-    );
+    goHome();
 }
 
-
-on(
-    "logoutButton",
-    "click",
-    async function () {
-
-        try {
-
-            await supabaseClient.auth.signOut();
-
-        } catch (error) {
-
-            console.error(
-                "Abmeldung fehlgeschlagen:",
-                error
-            );
-        }
-
-        currentPerson =
-            null;
-
-        selectedLoginPerson =
-            null;
-
-        setText(
-            "currentPersonName",
-            "-"
-        );
-
-        hideAppHeader();
-
-        resetSale();
-
-        showScreen(
-            identityScreen
-        );
-
-        await loadLoginPeople();
-    }
-);
-
-
-supabaseClient.auth.onAuthStateChange(
-    function (
-        _event,
-        session
-    ) {
-
-        if (
-            !session &&
-            currentPerson
-        ) {
-
-            currentPerson =
-                null;
-
-            hideAppHeader();
-
-            showScreen(
-                identityScreen
-            );
-        }
-    }
-);
-
-
-// ============================================================
-// HEADER
-// ============================================================
-
-function showAppHeader() {
-
-    if (
-        appHeader
-    ) {
-
-        appHeader.classList.add(
-            "visible"
-        );
-    }
-}
-
-
-function hideAppHeader() {
-
-    if (
-        appHeader
-    ) {
-
-        appHeader.classList.remove(
-            "visible"
-        );
-    }
-}
-
-
-on(
-    "notificationButton",
-    "click",
-    function () {
-
-        // Der eigentliche Benachrichtigungsbereich
-        // wird später ergänzt.
-    }
-);
-
-
-function updateNotificationBadge() {
-
-    if (
-        !isCurrentTeacher()
-    ) {
-
-        setHidden(
-            "notificationCount",
-            true
-        );
-
-        return;
-    }
-
-    const submissions =
-        loadInventorySubmissions();
-
-    if (
-        submissions.length >
-        0
-    ) {
-
-        const countElement =
-            getElement(
-                "notificationCount"
-            );
-
-        if (
-            countElement
-        ) {
-
-            countElement.hidden =
-                false;
-
-            countElement.textContent =
-                String(
-                    submissions.length
-                );
-        }
-
-    } else {
-
-        setHidden(
-            "notificationCount",
-            true
-        );
-    }
-}
-
-
-// ============================================================
-// HOME
-// ============================================================
-
-function updateHomeForPerson() {
-
-    const teacher =
-        isCurrentTeacher();
-
-    setHidden(
-        "studentHomeMenu",
-        teacher
-    );
-
-    setHidden(
-        "teacherHomeMenu",
-        !teacher
-    );
-}
-
-
-function isCurrentTeacher() {
-
-    return Boolean(
-        currentPerson &&
-        currentPerson.person_type ===
-        "lehrer"
-    );
-}
-
-
-function updateInventoryMenus() {
-
-    const teacher =
-        isCurrentTeacher();
-
-    if (
-        editMenuTitle
-    ) {
-
-        editMenuTitle.textContent =
-            "Bearbeiten";
-    }
-
-    if (
-        teacher
-    ) {
-
-        if (
-            editMenuDescription
-        ) {
-
-            editMenuDescription.textContent =
-                "Produkte, Inventur, Rechnungen und Schüler verwalten.";
-        }
-
-        if (
-            inventoryMenuTitle
-        ) {
-
-            inventoryMenuTitle.textContent =
-                "Inventur";
-        }
-
-        if (
-            inventoryMenuDescription
-        ) {
-
-            inventoryMenuDescription.textContent =
-                "Bestände erfassen und verwalten";
-        }
-
-        setHidden(
-            "inventoryInvoicesButton",
-            false
-        );
-
-        setHidden(
-            "studentsButton",
-            false
-        );
-
-    } else {
-
-        if (
-            editMenuDescription
-        ) {
-
-            editMenuDescription.textContent =
-                "Produkte und Preise selbstständig bearbeiten.";
-        }
-
-        if (
-            inventoryMenuTitle
-        ) {
-
-            inventoryMenuTitle.textContent =
-                "Inventur";
-        }
-
-        if (
-            inventoryMenuDescription
-        ) {
-
-            inventoryMenuDescription.textContent =
-                "Bestand zählen und an den Lehrer schicken";
-        }
-
-        setHidden(
-            "inventoryInvoicesButton",
-            true
-        );
-
-        setHidden(
-            "studentsButton",
-            true
-        );
-    }
-}
-
-
-// ============================================================
-// LOCAL STORAGE
-// ============================================================
-
-function loadProducts() {
+async function initialiseAuthentication() {
 
     try {
 
-        const saved =
-            localStorage.getItem(
-                STORAGE_KEYS.products
-            );
-
-        if (
-            saved
-        ) {
-
-            const parsed =
-                JSON.parse(
-                    saved
-                );
-
-            if (
-                Array.isArray(
-                    parsed
-                )
-            ) {
-
-                return parsed;
-            }
-        }
-
-    } catch (error) {
-
-        console.error(
-            "Produkte konnten nicht geladen werden:",
+        const {
+            data,
             error
-        );
-    }
-
-    const source =
-        typeof PRODUCTS !==
-            "undefined" &&
-        Array.isArray(
-            PRODUCTS
-        )
-            ? PRODUCTS
-            : DEFAULT_PRODUCTS;
-
-    return source.map(
-        function (
-            product
-        ) {
-
-            return {
-                ...product
-            };
-        }
-    );
-}
-
-
-function saveProducts() {
-
-    localStorage.setItem(
-        STORAGE_KEYS.products,
-        JSON.stringify(
-            products
-        )
-    );
-}
-
-// ========================================
-// SUPABASE — PRODUITS
-// ========================================
-
-async function syncProductsFromSupabase() {
-
-    try {
-
-        const result =
+        } =
             await supabaseClient
-                .from("products")
-                .select(
-                    "id,name,price,purchase_price,category,icon,active"
-                )
-                .eq(
-                    "active",
-                    true
-                )
-                .order(
-                    "category"
-                )
-                .order(
-                    "name"
+                .auth
+                .getSession();
+
+        if (error) {
+            throw error;
+        }
+
+        if (data?.session) {
+
+            const person =
+                await loadCurrentPerson(
+                    data.session
                 );
 
+            if (person) {
 
-        if (result.error) {
-            throw result.error;
+                await applyLoggedInState(
+                    person
+                );
+
+                return;
+            }
+
+            await supabaseClient
+                .auth
+                .signOut();
         }
-
-
-        const data =
-            result.data || [];
-
-
-        products =
-            data.map(function (product) {
-
-                return {
-                    id:
-                        product.id,
-
-                    name:
-                        product.name,
-
-                    price:
-                        Number(product.price),
-
-                    purchase_price:
-                        product.purchase_price === null
-                            ? null
-                            : Number(
-                                product.purchase_price
-                            ),
-
-                    category:
-                        product.category === "getränke"
-                            ? "drink"
-                            : "bakery",
-
-                    icon:
-                        product.icon || "🥤"
-                };
-
-            });
-
-
-        console.log(
-            "Produkte aus Supabase geladen:",
-            products.length
-        );
-
-        saveProducts();
-
-        renderProducts();
-
-
-        if (
-            typeof renderAdminProducts ===
-            "function"
-        ) {
-
-            renderAdminProducts();
-
-        }
-
 
     } catch (error) {
 
         console.error(
-            "Produkte konnten nicht aus Supabase geladen werden:",
+            "Initialisierung:",
             error
         );
-
     }
+
+    el("appHeader").hidden =
+        true;
+
+    showScreen("identityScreen");
+
+    await loadLoginPeople();
 }
 
-// ========================================
-// SUPABASE REALTIME — PRODUITS
-// ========================================
+async function logout() {
 
-let productsRealtimeChannel =
-    null;
+    stopRealtime();
+
+    await supabaseClient
+        .auth
+        .signOut();
+
+    state.currentPerson = null;
+    state.selectedLoginPerson = null;
+    state.currentEvent = null;
+
+    clearAllCarts();
+
+    el("appHeader").hidden =
+        true;
+
+    setText(
+        "currentPersonName",
+        "-"
+    );
+
+    showScreen("identityScreen");
+
+    await loadLoginPeople();
+}
 
 
-function startProductsRealtime() {
+// ============================================================
+// DATA LOADERS
+// ============================================================
 
-    if (
-        productsRealtimeChannel
-    ) {
+async function loadProducts() {
+
+    if (!state.currentPerson) {
+        return;
+    }
+
+    const {
+        data,
+        error
+    } =
+        await supabaseClient
+            .from("products")
+            .select("*")
+            .order("name");
+
+    if (error) {
+        throw error;
+    }
+
+    state.products =
+        data || [];
+
+    renderCurrentProductViews();
+}
+
+async function loadInventory() {
+
+    if (!state.currentPerson) {
+        return;
+    }
+
+    const {
+        data,
+        error
+    } =
+        await supabaseClient
+            .from("inventory")
+            .select(
+                "product_id,quantity,updated_at"
+            );
+
+    if (error) {
+        throw error;
+    }
+
+    state.inventory = {};
+
+    (data || [])
+        .forEach(row => {
+
+            state.inventory[
+                row.product_id
+            ] =
+                Number(row.quantity || 0);
+        });
+
+    renderCurrentProductViews();
+}
+
+async function loadEvents() {
+
+    if (!state.currentPerson) {
+        return;
+    }
+
+    const {
+        data,
+        error
+    } =
+        await supabaseClient
+            .from("events")
+            .select("*")
+            .order(
+                "event_date",
+                {
+                    ascending: true
+                }
+            );
+
+    if (error) {
+        throw error;
+    }
+
+    state.events =
+        data || [];
+
+    renderEvents();
+}
+
+async function loadNotifications() {
+
+    if (!state.currentPerson) {
+        return;
+    }
+
+    const {
+        data,
+        error
+    } =
+        await supabaseClient
+            .from("notifications")
+            .select("*")
+            .order(
+                "created_at",
+                {
+                    ascending: false
+                }
+            )
+            .limit(100);
+
+    if (error) {
+
+        console.error(error);
 
         return;
     }
 
-    productsRealtimeChannel =
+    state.notifications =
+        data || [];
+
+    renderNotificationBadge();
+    renderNotificationPreview();
+    renderNotifications();
+}
+
+
+// ============================================================
+// REALTIME
+// ============================================================
+
+function startRealtime() {
+
+    stopRealtime();
+
+    state.realtimeChannel =
         supabaseClient
             .channel(
-                "products-realtime"
-            )
-            .on(
-                "postgres_changes",
-                {
-                    event:
-                        "*",
-
-                    schema:
-                        "public",
-
-                    table:
-                        "products"
-                },
-                async function () {
-
-                    console.log(
-                        "Produktänderung empfangen."
-                    );
-
-                    await syncProductsFromSupabase();
-                }
-            )
-            .subscribe(
-                function (
-                    status
-                ) {
-
-                    console.log(
-                        "Produkte Realtime:",
-                        status
-                    );
-                }
-            );
-}
-
-function loadSales() {
-
-    try {
-
-        const saved =
-            localStorage.getItem(
-                STORAGE_KEYS.sales
+                `lauter-macher-v1-${state.currentPerson.id}`
             );
 
-        const parsed =
-            saved
-                ? JSON.parse(
-                    saved
-                )
-                : [];
-
-        return Array.isArray(
-            parsed
-        )
-            ? parsed
-            : [];
-
-    } catch (error) {
-
-        console.error(
-            "Verkaufsdaten konnten nicht geladen werden:",
-            error
-        );
-
-        return [];
-    }
-}
-
-
-function saveSales() {
-
-    localStorage.setItem(
-        STORAGE_KEYS.sales,
-        JSON.stringify(
-            sales
-        )
-    );
-}
-
-
-function loadInventory() {
-
-    try {
-
-        const saved =
-            localStorage.getItem(
-                STORAGE_KEYS.inventory
-            );
-
-        const parsed =
-            saved
-                ? JSON.parse(
-                    saved
-                )
-                : {};
-
-        return (
-            parsed &&
-            typeof parsed ===
-            "object"
-        )
-            ? parsed
-            : {};
-
-    } catch (error) {
-
-        console.error(
-            "Inventar konnten nicht geladen werden:",
-            error
-        );
-
-        return {};
-    }
-}
-
-
-function saveInventory() {
-
-    localStorage.setItem(
-        STORAGE_KEYS.inventory,
-        JSON.stringify(
-            inventory
-        )
-    );
-}
-
-
-function loadInventorySubmissions() {
-
-    try {
-
-        const saved =
-            localStorage.getItem(
-                STORAGE_KEYS.inventorySubmissions
-            );
-
-        const parsed =
-            saved
-                ? JSON.parse(
-                    saved
-                )
-                : [];
-
-        return Array.isArray(
-            parsed
-        )
-            ? parsed
-            : [];
-
-    } catch (error) {
-
-        console.error(
-            "Inventurmeldungen konnten nicht geladen werden:",
-            error
-        );
-
-        return [];
-    }
-}
-
-
-function saveInventorySubmissions(
-    submissions
-) {
-
-    localStorage.setItem(
-        STORAGE_KEYS.inventorySubmissions,
-        JSON.stringify(
-            submissions
-        )
-    );
-}
-
-
-function loadShiftClosures() {
-
-    try {
-
-        const saved =
-            localStorage.getItem(
-                STORAGE_KEYS.shiftClosures
-            );
-
-        const parsed =
-            saved
-                ? JSON.parse(
-                    saved
-                )
-                : [];
-
-        return Array.isArray(
-            parsed
-        )
-            ? parsed
-            : [];
-
-    } catch (error) {
-
-        console.error(
-            "Schichtabschlüsse konnten nicht geladen werden:",
-            error
-        );
-
-        return [];
-    }
-}
-
-
-function saveShiftClosures(
-    closures
-) {
-
-    localStorage.setItem(
-        STORAGE_KEYS.shiftClosures,
-        JSON.stringify(
-            closures
-        )
-    );
-}
-
-
-function loadInvoices() {
-
-    try {
-
-        const saved =
-            localStorage.getItem(
-                STORAGE_KEYS.invoices
-            );
-
-        const parsed =
-            saved
-                ? JSON.parse(
-                    saved
-                )
-                : [];
-
-        return Array.isArray(
-            parsed
-        )
-            ? parsed
-            : [];
-
-    } catch (error) {
-
-        console.error(
-            "Rechnungen konnten nicht geladen werden:",
-            error
-        );
-
-        return [];
-    }
-}
-
-
-function saveInvoices(
-    invoices
-) {
-
-    localStorage.setItem(
-        STORAGE_KEYS.invoices,
-        JSON.stringify(
-            invoices
-        )
-    );
-}
-
-
-function loadPurchases() {
-
-    try {
-
-        const saved =
-            localStorage.getItem(
-                STORAGE_KEYS.purchases
-            );
-
-        const parsed =
-            saved
-                ? JSON.parse(
-                    saved
-                )
-                : [];
-
-        return Array.isArray(
-            parsed
-        )
-            ? parsed
-            : [];
-
-    } catch (error) {
-
-        console.error(
-            "Wareneingänge konnten nicht geladen werden:",
-            error
-        );
-
-        return [];
-    }
-}
-
-
-function savePurchases(
-    purchases
-) {
-
-    localStorage.setItem(
-        STORAGE_KEYS.purchases,
-        JSON.stringify(
-            purchases
-        )
-    );
-}
-
-
-function loadEvents() {
-
-    try {
-
-        const saved =
-            localStorage.getItem(
-                STORAGE_KEYS.events
-            );
-
-        const parsed =
-            saved
-                ? JSON.parse(
-                    saved
-                )
-                : [];
-
-        return Array.isArray(
-            parsed
-        )
-            ? parsed
-            : [];
-
-    } catch (error) {
-
-        console.error(
-            "Veranstaltungen konnten nicht geladen werden:",
-            error
-        );
-
-        return [];
-    }
-}
-
-
-function saveEvents(
-    events
-) {
-
-    localStorage.setItem(
-        STORAGE_KEYS.events,
-        JSON.stringify(
-            events
-        )
-    );
-}
-
-
-// ============================================================
-// SCREEN NAVIGATION
-// ============================================================
-
-function showScreen(
-    screen,
-    returnScreen = null
-) {
-
-    if (
-        !screen
-    ) {
-
-        return;
-    }
-
-    if (
-        returnScreen
-    ) {
-
-        currentReturnScreen =
-            returnScreen;
-    }
-
-    document
-        .querySelectorAll(
-            ".screen"
-        )
-        .forEach(
-            function (
-                item
-            ) {
-
-                item.style.display =
-                    "none";
-
-                item.classList.remove(
-                    "screen-visible"
+    const tables = [
+        "products",
+        "inventory",
+        "orders",
+        "order_items",
+        "events",
+        "event_products",
+        "event_inventory",
+        "event_orders",
+        "event_order_items",
+        "inventory_submissions",
+        "inventory_submission_items",
+        "invoices",
+        "invoice_items",
+        "employee_free_drinks",
+        "notifications"
+    ];
+
+    tables.forEach(table => {
+
+        state.realtimeChannel.on(
+            "postgres_changes",
+            {
+                event: "*",
+                schema: "public",
+                table
+            },
+            () => {
+                handleRealtimeChange(
+                    table
                 );
             }
         );
+    });
 
-    screen.style.display =
-        "block";
-
-    screen.classList.add(
-        "screen-visible"
-    );
-
-    window.scrollTo(
-        0,
-        0
-    );
+    state.realtimeChannel.subscribe();
 }
 
+function stopRealtime() {
 
-// ============================================================
-// HOME BUTTONS
-// ============================================================
+    if (
+        state.realtimeChannel
+    ) {
 
-on(
-    "saleButton",
-    "click",
-    function () {
+        supabaseClient
+            .removeChannel(
+                state.realtimeChannel
+            );
 
-        openDailyCash(
-            false
-        );
+        state.realtimeChannel =
+            null;
     }
-);
+}
 
-
-on(
-    "teacherSaleButton",
-    "click",
-    function () {
-
-        openDailyCash(
-            true
-        );
-    }
-);
-
-
-function openDailyCash(
-    testMode
+async function handleRealtimeChange(
+    table
 ) {
 
-    saleTestMode =
-        Boolean(
-            testMode
-        );
+    try {
 
-    resetSale();
-
-    showScreen(
-        saleScreen,
-        homeScreen
-    );
-}
-
-
-on(
-    "bakeryButton",
-    "click",
-    openBakeryMenu
-);
-
-
-on(
-    "teacherBakeryButton",
-    "click",
-    openBakeryMenu
-);
-
-
-function openBakeryMenu() {
-
-    showScreen(
-        bakeryMenuScreen,
-        homeScreen
-    );
-}
-
-
-on(
-    "adminButton",
-    "click",
-    openEditMenu
-);
-
-
-on(
-    "teacherAdminButton",
-    "click",
-    openEditMenu
-);
-
-
-function openEditMenu() {
-
-    updateInventoryMenus();
-
-    showScreen(
-        adminScreen,
-        homeScreen
-    );
-}
-
-
-on(
-    "eventButton",
-    "click",
-    openEventList
-);
-
-
-on(
-    "teacherEventButton",
-    "click",
-    openEventList
-);
-
-
-function openEventList() {
-
-    renderEventList();
-
-    showScreen(
-        eventListScreen,
-        homeScreen
-    );
-}
-
-
-on(
-    "reportsHomeButton",
-    "click",
-    function () {
-
-        if (
-            !isCurrentTeacher()
-        ) {
-
-            return;
+        if (table === "products") {
+            await loadProducts();
         }
 
-        currentReportPeriod =
-            "day";
+        if (table === "inventory") {
+            await loadInventory();
+        }
 
-        updatePeriodTabs();
+        if (table === "events") {
+            await loadEvents();
 
-        renderReport();
+            if (state.currentEvent) {
 
-        showScreen(
-            reportsScreen,
-            homeScreen
+                const fresh =
+                    state.events.find(
+                        event =>
+                            event.id ===
+                            state.currentEvent.id
+                    );
+
+                if (fresh) {
+                    state.currentEvent =
+                        fresh;
+                }
+            }
+        }
+
+        if (
+            table === "event_products" &&
+            state.currentEvent
+        ) {
+            await loadCurrentEventProducts();
+        }
+
+        if (
+            table === "orders" ||
+            table === "order_items"
+        ) {
+
+            const screen =
+                visibleScreenId();
+
+            if (
+                screen ===
+                "bakeryOutputScreen"
+            ) {
+                await renderBakeryOutput();
+            }
+        }
+
+        if (
+            table === "event_orders" ||
+            table === "event_order_items"
+        ) {
+
+            const screen =
+                visibleScreenId();
+
+            if (
+                screen ===
+                "eventOutputScreen"
+            ) {
+                await renderEventOutput();
+            }
+        }
+
+        if (
+            table === "notifications" ||
+            table ===
+                "inventory_submissions"
+        ) {
+            await loadNotifications();
+
+            if (
+                isTeacher() &&
+                visibleScreenId() ===
+                    "teacherInventoryScreen"
+            ) {
+                await renderInventorySubmissions();
+            }
+        }
+
+        if (
+            table === "invoices" &&
+            isTeacher() &&
+            visibleScreenId() ===
+                "invoicesScreen"
+        ) {
+            await renderInvoices();
+        }
+
+    } catch (error) {
+
+        console.error(
+            "Realtime:",
+            error
         );
     }
-);
+}
+
+function visibleScreenId() {
+
+    const screen =
+        all(".screen")
+            .find(
+                item =>
+                    item.style.display ===
+                    "block"
+            );
+
+    return screen?.id || "";
+}
 
 
 // ============================================================
-// BÄCKEREI
+// NOTIFICATIONS
 // ============================================================
 
-on(
-    "bakeryBackButton",
-    "click",
-    function () {
+function unreadNotifications() {
 
-        showScreen(
-            homeScreen
+    return state.notifications
+        .filter(
+            notification =>
+                !notification.read_at
         );
+}
+
+function renderNotificationBadge() {
+
+    const count =
+        unreadNotifications().length;
+
+    setText(
+        "notificationCount",
+        count
+    );
+
+    setHidden(
+        "notificationCount",
+        count === 0
+    );
+}
+
+function notificationHTML(
+    notification
+) {
+
+    return `
+        <article class="notification-item ${
+            notification.read_at
+                ? "read"
+                : "unread"
+        }">
+            <div>
+                <strong>
+                    ${escapeHtml(
+                        notification.title ||
+                        "Benachrichtigung"
+                    )}
+                </strong>
+
+                <p>
+                    ${escapeHtml(
+                        notification.message ||
+                        ""
+                    )}
+                </p>
+
+                <small>
+                    ${escapeHtml(
+                        formatDateTime(
+                            notification.created_at
+                        )
+                    )}
+                </small>
+            </div>
+        </article>
+    `;
+}
+
+function renderNotificationPreview() {
+
+    const container =
+        el("notificationPreviewList");
+
+    if (!container) {
+        return;
     }
-);
 
+    const rows =
+        state.notifications.slice(0, 5);
 
-on(
-    "bakeryCashButton",
-    "click",
-    function () {
+    container.innerHTML =
+        rows.length
+            ? rows
+                .map(notificationHTML)
+                .join("")
+            : `
+                <div class="empty-state">
+                    Keine Benachrichtigungen
+                </div>
+            `;
+}
 
-        showScreen(
-            bakeryCashScreen,
-            bakeryMenuScreen
+function renderNotifications() {
+
+    const container =
+        el("notificationsList");
+
+    if (!container) {
+        return;
+    }
+
+    container.innerHTML =
+        state.notifications
+            .map(notificationHTML)
+            .join("");
+
+    setHidden(
+        "notificationsEmpty",
+        state.notifications.length > 0
+    );
+}
+
+async function markVisibleNotificationsRead() {
+
+    const unread =
+        unreadNotifications();
+
+    if (!unread.length) {
+        return;
+    }
+
+    await Promise.all(
+        unread.map(
+            notification =>
+                supabaseClient.rpc(
+                    "mark_notification_read",
+                    {
+                        p_notification_id:
+                            notification.id
+                    }
+                )
+        )
+    );
+
+    await loadNotifications();
+}
+
+function closeNotificationPopover() {
+
+    setHidden(
+        "notificationPopover",
+        true
+    );
+
+    el("notificationButton")
+        ?.setAttribute(
+            "aria-expanded",
+            "false"
         );
-    }
-);
-
-
-on(
-    "bakeryServiceButton",
-    "click",
-    function () {
-
-        showScreen(
-            bakeryOutputScreen,
-            bakeryMenuScreen
-        );
-    }
-);
-
-
-on(
-    "bakeryCashBackButton",
-    "click",
-    function () {
-
-        showScreen(
-            bakeryMenuScreen
-        );
-    }
-);
-
-
-on(
-    "bakeryOutputBackButton",
-    "click",
-    function () {
-
-        showScreen(
-            bakeryMenuScreen
-        );
-    }
-);
-
-
-on(
-    "bakeryCashShiftEndButton",
-    "click",
-    function () {
-
-        endDailyShift(
-            "Bäckerei · Kasse"
-        );
-    }
-);
-
-
-on(
-    "bakeryOutputShiftEndButton",
-    "click",
-    function () {
-
-        endDailyShift(
-            "Bäckerei · Ausgabe"
-        );
-    }
-);
+}
 
 
 // ============================================================
-// DRINKS
+// GENERIC CART
 // ============================================================
 
-function renderProducts() {
+function cartQuantity(
+    cart,
+    id
+) {
 
-    if (
-        !drinksGrid
-    ) {
+    return Number(
+        cart.get(id) || 0
+    );
+}
+
+function changeCart(
+    cart,
+    id,
+    delta
+) {
+
+    const next =
+        Math.max(
+            0,
+            cartQuantity(cart, id) +
+            delta
+        );
+
+    if (next === 0) {
+        cart.delete(id);
+    } else {
+        cart.set(id, next);
+    }
+}
+
+function clearAllCarts() {
+
+    state.drinksCart.clear();
+    state.bakeryCart.clear();
+    state.eventCart.clear();
+
+    state.drinksPaymentCents = "";
+    state.bakeryPaymentCents = "";
+    state.eventPaymentCents = "";
+}
+
+function productCartTotal(
+    cart,
+    products
+) {
+
+    let total = 0;
+
+    cart.forEach(
+        (quantity, id) => {
+
+            const product =
+                products.find(
+                    item =>
+                        item.id === id
+                );
+
+            if (product) {
+
+                total +=
+                    Number(product.price) *
+                    quantity;
+            }
+        }
+    );
+
+    return Math.round(
+        total * 100
+    ) / 100;
+}
+
+function cartPayload(
+    cart,
+    idKey
+) {
+
+    return Array.from(
+        cart.entries()
+    )
+        .filter(
+            ([, quantity]) =>
+                quantity > 0
+        )
+        .map(
+            ([id, quantity]) => ({
+                [idKey]: id,
+                quantity
+            })
+        );
+}
+
+
+// ============================================================
+// PRODUCT CARDS / CARTS
+// ============================================================
+
+function renderProductGrid(
+    containerId,
+    products,
+    cart,
+    rerender
+) {
+
+    const container =
+        el(containerId);
+
+    if (!container) {
+        return;
+    }
+
+    container.innerHTML = "";
+
+    if (!products.length) {
+
+        container.innerHTML = `
+            <div class="empty-state">
+                <span>📦</span>
+                <strong>Keine Produkte</strong>
+            </div>
+        `;
 
         return;
     }
 
-    drinksGrid.innerHTML =
-        "";
+    products.forEach(product => {
 
-    products
-        .filter(
-            function (
-                product
-            ) {
+        const quantity =
+            cartQuantity(
+                cart,
+                product.id
+            );
 
-                return (
-                    product.category ===
-                    "drink"
-                );
+        const button =
+            document.createElement(
+                "button"
+            );
+
+        button.type = "button";
+        button.className =
+            "product-card";
+
+        button.innerHTML = `
+            <span class="product-card-icon">
+                ${escapeHtml(
+                    product.icon || "📦"
+                )}
+            </span>
+
+            <strong>
+                ${escapeHtml(product.name)}
+            </strong>
+
+            <small>
+                ${euro(product.price)}
+            </small>
+
+            ${
+                quantity
+                    ? `<span class="product-quantity-badge">${quantity}</span>`
+                    : ""
             }
-        )
-        .forEach(
-            function (
-                product
-            ) {
+        `;
 
-                drinksGrid.appendChild(
-                    createProductButton(
-                        product
-                    )
+        button.addEventListener(
+            "click",
+            () => {
+
+                changeCart(
+                    cart,
+                    product.id,
+                    1
                 );
+
+                rerender();
             }
         );
 
-    if (
-        drinksGrid.children.length ===
-        0
-    ) {
+        container.appendChild(button);
+    });
+}
 
-        drinksGrid.innerHTML = `
-            <div class="coming-soon">
-                Keine Getränke vorhanden.
+function renderCart(
+    containerId,
+    totalId,
+    payButtonId,
+    cart,
+    products,
+    rerender
+) {
+
+    const container =
+        el(containerId);
+
+    if (!container) {
+        return;
+    }
+
+    container.innerHTML = "";
+
+    if (!cart.size) {
+
+        container.innerHTML = `
+            <div class="empty-state compact">
+                Warenkorb ist leer.
             </div>
         `;
     }
-}
-
-
-function createProductButton(
-    product
-) {
-
-    const button =
-        document.createElement(
-            "button"
-        );
-
-    button.type =
-        "button";
-
-    button.className =
-        "product-card";
-
-    button.dataset.productId =
-        product.id;
-
-    button.innerHTML = `
-        <span class="product-icon">
-            ${escapeHtml(
-                product.icon
-            )}
-        </span>
-
-        <span class="product-name">
-            ${escapeHtml(
-                product.name
-            )}
-        </span>
-
-        <span class="product-price">
-            ${formatPrice(
-                product.price
-            )}
-        </span>
-    `;
-
-    button.addEventListener(
-        "click",
-        function () {
-
-            addToCart(
-                product
-            );
-        }
-    );
-
-    return button;
-}
-
-
-function addToCart(
-    product
-) {
-
-    const existing =
-        cart.find(
-            function (
-                item
-            ) {
-
-                return (
-                    item.id ===
-                    product.id
-                );
-            }
-        );
-
-    if (
-        existing
-    ) {
-
-        existing.quantity +=
-            1;
-
-    } else {
-
-        cart.push(
-            {
-                id:
-                    product.id,
-
-                name:
-                    product.name,
-
-                price:
-                    Number(
-                        product.price
-                    ),
-
-                category:
-                    product.category,
-
-                quantity:
-                    1
-            }
-        );
-    }
-
-    updateCart();
-}
-
-
-function updateCart() {
-
-    if (
-        !cartItems ||
-        !cartTotal ||
-        !payButton
-    ) {
-
-        return;
-    }
-
-    cartItems.innerHTML =
-        "";
-
-    if (
-        cart.length ===
-        0
-    ) {
-
-        cartItems.innerHTML =
-            `
-                <div class="empty-cart">
-                    Noch keine Getränke ausgewählt.
-                </div>
-            `;
-
-        cartTotal.textContent =
-            "0,00 €";
-
-        payButton.disabled =
-            true;
-
-        return;
-    }
 
     cart.forEach(
-        function (
-            product,
-            index
-        ) {
+        (quantity, id) => {
+
+            const product =
+                products.find(
+                    item =>
+                        item.id === id
+                );
+
+            if (!product) {
+                return;
+            }
 
             const row =
                 document.createElement(
@@ -3023,2280 +1573,1995 @@ function updateCart() {
             row.className =
                 "cart-item";
 
-            const productTotal =
-                Number(
-                    product.price
-                ) *
-                Number(
-                    product.quantity
-                );
-
             row.innerHTML = `
-                <div class="cart-product-info">
-
-                    <span class="cart-product-name">
+                <div class="cart-item-main">
+                    <span>
                         ${escapeHtml(
-                            product.name
+                            product.icon || "📦"
                         )}
                     </span>
 
-                    <span class="cart-product-price">
-                        ${formatPrice(
-                            productTotal
-                        )}
-                    </span>
+                    <div>
+                        <strong>
+                            ${escapeHtml(product.name)}
+                        </strong>
 
+                        <small>
+                            ${euro(product.price)}
+                        </small>
+                    </div>
                 </div>
 
-                <div class="cart-controls">
+                <div class="quantity-controls">
+                    <button
+                        type="button"
+                        data-action="minus"
+                    >−</button>
+
+                    <strong>${quantity}</strong>
 
                     <button
                         type="button"
-                        class="cart-control minus"
-                        data-index="${index}"
-                    >
-                        −
-                    </button>
-
-                    <span class="cart-quantity">
-                        ${product.quantity}
-                    </span>
-
-                    <button
-                        type="button"
-                        class="cart-control plus"
-                        data-index="${index}"
-                    >
-                        +
-                    </button>
-
+                        data-action="plus"
+                    >+</button>
                 </div>
             `;
 
-            cartItems.appendChild(
-                row
-            );
-        }
-    );
-
-    cartTotal.textContent =
-        formatPrice(
-            calculateTotal()
-        );
-
-    payButton.disabled =
-        false;
-
-    cartItems
-        .querySelectorAll(
-            ".cart-control.minus"
-        )
-        .forEach(
-            function (
-                button
-            ) {
-
-                button.addEventListener(
-                    "click",
-                    function () {
-
-                        const index =
-                            Number(
-                                button.dataset.index
-                            );
-
-                        if (
-                            !cart[index]
-                        ) {
-
-                            return;
-                        }
-
-                        cart[index].quantity -=
-                            1;
-
-                        if (
-                            cart[index].quantity <=
-                            0
-                        ) {
-
-                            cart.splice(
-                                index,
-                                1
-                            );
-                        }
-
-                        updateCart();
-                    }
-                );
-            }
-        );
-
-    cartItems
-        .querySelectorAll(
-            ".cart-control.plus"
-        )
-        .forEach(
-            function (
-                button
-            ) {
-
-                button.addEventListener(
-                    "click",
-                    function () {
-
-                        const index =
-                            Number(
-                                button.dataset.index
-                            );
-
-                        if (
-                            !cart[index]
-                        ) {
-
-                            return;
-                        }
-
-                        cart[index].quantity +=
-                            1;
-
-                        updateCart();
-                    }
-                );
-            }
-        );
-}
-
-
-function calculateTotal() {
-
-    return cart.reduce(
-        function (
-            total,
-            item
-        ) {
-
-            return (
-                total +
-                Number(
-                    item.price
-                ) *
-                Number(
-                    item.quantity
-                )
-            );
-
-        },
-        0
-    );
-}
-
-
-on(
-    "saleBackButton",
-    "click",
-    function () {
-
-        resetSale();
-
-        showScreen(
-            homeScreen
-        );
-    }
-);
-
-
-// ============================================================
-// PAYMENT
-// ============================================================
-
-on(
-    "payButton",
-    "click",
-    function () {
-
-        if (
-            cart.length ===
-            0
-        ) {
-
-            return;
-        }
-
-        setText(
-            "paymentTotal",
-            formatPrice(
-                calculateTotal()
+            row.querySelector(
+                '[data-action="minus"]'
             )
+                .addEventListener(
+                    "click",
+                    () => {
+
+                        changeCart(
+                            cart,
+                            id,
+                            -1
+                        );
+
+                        rerender();
+                    }
+                );
+
+            row.querySelector(
+                '[data-action="plus"]'
+            )
+                .addEventListener(
+                    "click",
+                    () => {
+
+                        changeCart(
+                            cart,
+                            id,
+                            1
+                        );
+
+                        rerender();
+                    }
+                );
+
+            container.appendChild(row);
+        }
+    );
+
+    const total =
+        productCartTotal(
+            cart,
+            products
         );
 
-        receivedAmount =
-            "";
+    setText(
+        totalId,
+        euro(total)
+    );
 
-        updatePaymentDisplay();
+    const pay =
+        el(payButtonId);
 
-        showScreen(
-            paymentScreen,
-            saleScreen
-        );
+    if (pay) {
+        pay.disabled =
+            total <= 0;
     }
-);
+}
 
 
-on(
-    "paymentBackButton",
-    "click",
-    function () {
+// ============================================================
+// GETRÄNKE
+// ============================================================
 
-        receivedAmount =
-            "";
+function renderDrinksSale() {
 
-        showScreen(
-            saleScreen
-        );
+    const products =
+        activeProducts("getränke");
+
+    renderProductGrid(
+        "drinksProductGrid",
+        products,
+        state.drinksCart,
+        renderDrinksSale
+    );
+
+    renderCart(
+        "drinksCartItems",
+        "drinksCartTotal",
+        "drinksPayButton",
+        state.drinksCart,
+        products,
+        renderDrinksSale
+    );
+
+    setHidden(
+        "drinksTestBanner",
+        !state.drinksTestMode
+    );
+
+    setHidden(
+        "drinksSaleModeBadge",
+        !state.drinksTestMode
+    );
+}
+
+function openDrinks() {
+
+    state.drinksTestMode =
+        isTeacher();
+
+    state.drinksCart.clear();
+    state.drinksPaymentCents = "";
+
+    renderDrinksSale();
+
+    showScreen(
+        "drinksSaleScreen"
+    );
+}
+
+
+// ============================================================
+// BÄCKEREI
+// ============================================================
+
+function renderBakerySale() {
+
+    const products =
+        activeProducts("bäckerei");
+
+    renderProductGrid(
+        "bakeryProductGrid",
+        products,
+        state.bakeryCart,
+        renderBakerySale
+    );
+
+    renderCart(
+        "bakeryCartItems",
+        "bakeryCartTotal",
+        "bakeryPayButton",
+        state.bakeryCart,
+        products,
+        renderBakerySale
+    );
+
+    setHidden(
+        "bakerySaleTestBanner",
+        !state.bakeryTestMode
+    );
+}
+
+function openBakery() {
+
+    state.bakeryTestMode =
+        isTeacher();
+
+    setHidden(
+        "bakeryMenuTestBanner",
+        !state.bakeryTestMode
+    );
+
+    showScreen(
+        "bakeryMenuScreen"
+    );
+}
+
+function openBakerySale() {
+
+    state.bakeryCart.clear();
+    state.bakeryPaymentCents = "";
+
+    renderBakerySale();
+
+    showScreen(
+        "bakerySaleScreen"
+    );
+}
+
+
+// ============================================================
+// PAYMENT KEYPADS
+// ============================================================
+
+function paymentAmount(
+    centsString
+) {
+
+    if (!centsString) {
+        return 0;
     }
-);
 
+    return Number(centsString) /
+        100;
+}
 
-document
-    .querySelectorAll(
-        ".payment-key"
-    )
-    .forEach(
-        function (
-            button
-        ) {
+function appendPaymentDigit(
+    current,
+    value
+) {
 
-            if (
-                button.id ===
-                "deletePaymentButton"
-            ) {
+    let result =
+        String(current || "") +
+        String(value);
 
+    result =
+        result.replace(/^0+(?=\d)/, "");
+
+    return result.slice(0, 8);
+}
+
+function renderPayment(
+    context
+) {
+
+    let total = 0;
+    let cents = "";
+
+    if (context === "drinks") {
+
+        total =
+            productCartTotal(
+                state.drinksCart,
+                activeProducts("getränke")
+            );
+
+        cents =
+            state.drinksPaymentCents;
+    }
+
+    if (context === "bakery") {
+
+        total =
+            productCartTotal(
+                state.bakeryCart,
+                activeProducts("bäckerei")
+            );
+
+        cents =
+            state.bakeryPaymentCents;
+    }
+
+    if (context === "event") {
+
+        total =
+            productCartTotal(
+                state.eventCart,
+                state.currentEventProducts
+            );
+
+        cents =
+            state.eventPaymentCents;
+    }
+
+    const received =
+        paymentAmount(cents);
+
+    const change =
+        Math.max(
+            0,
+            received - total
+        );
+
+    setText(
+        `${context}PaymentTotal`,
+        euro(total)
+    );
+
+    setText(
+        `${context}AmountReceived`,
+        euro(received)
+    );
+
+    setText(
+        `${context}ChangeAmount`,
+        euro(change)
+    );
+
+    const paidButton =
+        el(`${context}PaidButton`);
+
+    if (paidButton) {
+
+        paidButton.disabled =
+            total <= 0 ||
+            received < total;
+    }
+}
+
+function setupPaymentKeypad(
+    context
+) {
+
+    const keypad =
+        el(`${context}PaymentKeypad`);
+
+    if (!keypad) {
+        return;
+    }
+
+    keypad.addEventListener(
+        "click",
+        event => {
+
+            const button =
+                event.target.closest(
+                    "[data-value]"
+                );
+
+            if (!button) {
                 return;
             }
 
-            button.addEventListener(
-                "click",
-                function () {
+            const value =
+                button.dataset.value;
 
-                    const value =
-                        button.textContent.trim();
+            const key =
+                context === "drinks"
+                    ? "drinksPaymentCents"
+                    : context === "bakery"
+                        ? "bakeryPaymentCents"
+                        : "eventPaymentCents";
 
-                    if (
-                        value ===
-                        ","
-                    ) {
+            state[key] =
+                appendPaymentDigit(
+                    state[key],
+                    value
+                );
 
-                        addDecimal();
-
-                        return;
-                    }
-
-                    if (
-                        receivedAmount ===
-                        "0"
-                    ) {
-
-                        receivedAmount =
-                            "";
-                    }
-
-                    if (
-                        receivedAmount.includes(
-                            ","
-                        ) &&
-                        receivedAmount
-                            .split(",")[1]
-                            .length >=
-                            2
-                    ) {
-
-                        return;
-                    }
-
-                    receivedAmount +=
-                        value;
-
-                    updatePaymentDisplay();
-                }
-            );
+            renderPayment(context);
         }
     );
 
+    on(
+        `${context}DeletePaymentButton`,
+        "click",
+        () => {
 
-function addDecimal() {
+            const key =
+                context === "drinks"
+                    ? "drinksPaymentCents"
+                    : context === "bakery"
+                        ? "bakeryPaymentCents"
+                        : "eventPaymentCents";
 
-    if (
-        receivedAmount ===
-        ""
-    ) {
+            state[key] =
+                String(state[key])
+                    .slice(0, -1);
 
-        receivedAmount =
-            "0";
-    }
-
-    if (
-        !receivedAmount.includes(
-            ","
-        )
-    ) {
-
-        receivedAmount +=
-            ",";
-    }
-
-    updatePaymentDisplay();
-}
-
-
-on(
-    "deletePaymentButton",
-    "click",
-    function () {
-
-        receivedAmount =
-            receivedAmount.slice(
-                0,
-                -1
-            );
-
-        updatePaymentDisplay();
-    }
-);
-
-
-function updatePaymentDisplay() {
-
-    let value =
-        receivedAmount;
-
-    if (
-        value ===
-        "" ||
-        value ===
-        ","
-    ) {
-
-        value =
-            "0,00";
-    }
-
-    setText(
-        "amountReceived",
-        value +
-        " €"
+            renderPayment(context);
+        }
     );
+}
 
-    calculateChange();
+function openPayment(
+    context
+) {
+
+    if (context === "drinks") {
+
+        state.drinksPaymentCents =
+            "";
+
+        setHidden(
+            "drinksPaymentTestBanner",
+            !state.drinksTestMode
+        );
+
+        showScreen(
+            "drinksPaymentScreen"
+        );
+    }
+
+    if (context === "bakery") {
+
+        state.bakeryPaymentCents =
+            "";
+
+        setHidden(
+            "bakeryPaymentTestBanner",
+            !state.bakeryTestMode
+        );
+
+        showScreen(
+            "bakeryPaymentScreen"
+        );
+    }
+
+    if (context === "event") {
+
+        state.eventPaymentCents =
+            "";
+
+        setHidden(
+            "eventPaymentTestBanner",
+            !state.eventTestMode
+        );
+
+        showScreen(
+            "eventPaymentScreen"
+        );
+    }
+
+    renderPayment(context);
 }
 
 
-function calculateChange() {
+// ============================================================
+// SAVE SALES
+// ============================================================
+
+async function completeDrinksSale() {
+
+    const products =
+        activeProducts("getränke");
 
     const total =
-        calculateTotal();
+        productCartTotal(
+            state.drinksCart,
+            products
+        );
 
-    const received =
-        parseGermanNumber(
-            receivedAmount
+    const payment =
+        paymentAmount(
+            state.drinksPaymentCents
         );
 
     const change =
-        received -
-        total;
+        payment - total;
 
-    if (
-        receivedAmount ===
-        ""
-    ) {
+    const button =
+        el("drinksPaidButton");
 
-        setText(
-            "changeAmount",
-            "0,00 €"
-        );
+    button.disabled = true;
 
-        if (
-            paidButton
-        ) {
+    try {
 
-            paidButton.disabled =
-                true;
+        if (!state.drinksTestMode) {
+
+            const {
+                error
+            } =
+                await supabaseClient.rpc(
+                    "create_sale_order",
+                    {
+                        p_area:
+                            "getränke",
+
+                        p_items:
+                            cartPayload(
+                                state.drinksCart,
+                                "product_id"
+                            ),
+
+                        p_payment_amount:
+                            payment
+                    }
+                );
+
+            if (error) {
+                throw error;
+            }
+
+            setText(
+                "drinksSuccessDescription",
+                "Verkauf wurde gespeichert."
+            );
+
+        } else {
+
+            setText(
+                "drinksSuccessDescription",
+                "Testverkauf – keine Daten wurden gespeichert."
+            );
         }
 
-        return;
+        setText(
+            "drinksSuccessChange",
+            euro(change)
+        );
+
+        state.drinksCart.clear();
+        state.drinksPaymentCents = "";
+
+        showScreen(
+            "drinksSuccessScreen"
+        );
+
+    } catch (error) {
+
+        showToast(
+            errorMessage(error),
+            "error"
+        );
+
+    } finally {
+
+        button.disabled = false;
+    }
+}
+
+async function completeBakerySale() {
+
+    const products =
+        activeProducts("bäckerei");
+
+    const total =
+        productCartTotal(
+            state.bakeryCart,
+            products
+        );
+
+    const payment =
+        paymentAmount(
+            state.bakeryPaymentCents
+        );
+
+    const change =
+        payment - total;
+
+    const button =
+        el("bakeryPaidButton");
+
+    button.disabled = true;
+
+    try {
+
+        let orderNumber;
+
+        if (!state.bakeryTestMode) {
+
+            const {
+                data,
+                error
+            } =
+                await supabaseClient.rpc(
+                    "create_sale_order",
+                    {
+                        p_area:
+                            "bäckerei",
+
+                        p_items:
+                            cartPayload(
+                                state.bakeryCart,
+                                "product_id"
+                            ),
+
+                        p_payment_amount:
+                            payment
+                    }
+                );
+
+            if (error) {
+                throw error;
+            }
+
+            orderNumber =
+                data.order_number;
+
+        } else {
+
+            orderNumber =
+                randomTestOrderNumber(
+                    state.bakeryTestOrders
+                );
+
+            state.bakeryTestOrders.push({
+                id:
+                    crypto.randomUUID(),
+
+                order_number:
+                    orderNumber,
+
+                status:
+                    "offen",
+
+                created_at:
+                    new Date().toISOString(),
+
+                items:
+                    cartPayload(
+                        state.bakeryCart,
+                        "product_id"
+                    ).map(item => {
+
+                        const product =
+                            products.find(
+                                p =>
+                                    p.id ===
+                                    item.product_id
+                            );
+
+                        return {
+                            product_name:
+                                product?.name || "",
+                            quantity:
+                                item.quantity
+                        };
+                    })
+            });
+        }
+
+        setText(
+            "bakerySuccessOrderNumber",
+            String(orderNumber)
+                .padStart(3, "0")
+        );
+
+        setText(
+            "bakerySuccessChange",
+            euro(change)
+        );
+
+        state.bakeryCart.clear();
+        state.bakeryPaymentCents = "";
+
+        showScreen(
+            "bakerySuccessScreen"
+        );
+
+    } catch (error) {
+
+        showToast(
+            errorMessage(error),
+            "error"
+        );
+
+    } finally {
+
+        button.disabled = false;
+    }
+}
+
+function randomTestOrderNumber(
+    orders
+) {
+
+    const used =
+        new Set(
+            orders
+                .filter(
+                    order =>
+                        order.status !==
+                        "ausgegeben"
+                )
+                .map(
+                    order =>
+                        Number(
+                            order.order_number
+                        )
+                )
+        );
+
+    for (
+        let attempt = 0;
+        attempt < 1000;
+        attempt += 1
+    ) {
+
+        const number =
+            Math.floor(
+                100 +
+                Math.random() * 900
+            );
+
+        if (!used.has(number)) {
+            return number;
+        }
     }
 
-    if (
-        change <
-        0
-    ) {
+    return 999;
+}
 
-        setText(
-            "changeAmount",
-            "Noch " +
-            formatPrice(
-                Math.abs(
-                    change
+
+// ============================================================
+// BÄCKEREI AUSGABE
+// ============================================================
+
+async function renderBakeryOutput() {
+
+    setHidden(
+        "bakeryOutputTestBanner",
+        !state.bakeryTestMode
+    );
+
+    let orders = [];
+
+    if (state.bakeryTestMode) {
+
+        orders =
+            state.bakeryTestOrders
+                .filter(
+                    order =>
+                        order.status ===
+                        "offen"
+                );
+
+    } else {
+
+        const {
+            data,
+            error
+        } =
+            await supabaseClient
+                .from("orders")
+                .select(`
+                    id,
+                    order_number,
+                    status,
+                    created_at,
+                    order_items (
+                        id,
+                        product_name,
+                        quantity
+                    )
+                `)
+                .eq(
+                    "area",
+                    "bäckerei"
                 )
-            )
-        );
+                .eq(
+                    "is_test",
+                    false
+                )
+                .eq(
+                    "status",
+                    "offen"
+                )
+                .order(
+                    "created_at",
+                    {
+                        ascending: true
+                    }
+                );
 
-        if (
-            paidButton
-        ) {
-
-            paidButton.disabled =
-                true;
+        if (error) {
+            throw error;
         }
 
-        return;
+        orders =
+            (data || [])
+                .map(order => ({
+                    ...order,
+                    items:
+                        order.order_items ||
+                        []
+                }));
     }
 
     setText(
-        "changeAmount",
-        formatPrice(
-            change
+        "bakeryOpenOrderCount",
+        orders.length
+    );
+
+    setHidden(
+        "bakeryOutputEmpty",
+        orders.length > 0
+    );
+
+    const container =
+        el("bakeryOutputOrders");
+
+    container.innerHTML = "";
+
+    orders.forEach(order => {
+
+        const card =
+            document.createElement(
+                "article"
+            );
+
+        card.className =
+            "output-order-card";
+
+        card.innerHTML = `
+            <div class="output-order-number">
+                ${String(
+                    order.order_number
+                ).padStart(3, "0")}
+            </div>
+
+            <div class="output-order-items">
+                ${(order.items || [])
+                    .map(
+                        item => `
+                            <div>
+                                <strong>
+                                    ${item.quantity}×
+                                </strong>
+                                ${escapeHtml(
+                                    item.product_name
+                                )}
+                            </div>
+                        `
+                    )
+                    .join("")}
+            </div>
+
+            <button
+                class="primary-action full-width-button"
+                type="button"
+            >
+                ✓ Ausgegeben
+            </button>
+        `;
+
+        card.querySelector("button")
+            .addEventListener(
+                "click",
+                async () => {
+
+                    try {
+
+                        if (
+                            state.bakeryTestMode
+                        ) {
+
+                            const test =
+                                state.bakeryTestOrders
+                                    .find(
+                                        row =>
+                                            row.id ===
+                                            order.id
+                                    );
+
+                            if (test) {
+                                test.status =
+                                    "ausgegeben";
+                            }
+
+                        } else {
+
+                            const {
+                                error
+                            } =
+                                await supabaseClient.rpc(
+                                    "serve_bakery_order",
+                                    {
+                                        p_order_id:
+                                            order.id
+                                    }
+                                );
+
+                            if (error) {
+                                throw error;
+                            }
+                        }
+
+                        await renderBakeryOutput();
+
+                    } catch (error) {
+
+                        showToast(
+                            errorMessage(error),
+                            "error"
+                        );
+                    }
+                }
+            );
+
+        container.appendChild(card);
+    });
+}
+
+
+// ============================================================
+// FREE DRINKS
+// ============================================================
+
+function openFreeDrinks(
+    context = "getränke",
+    eventId = null
+) {
+
+    state.freeDrinksContext =
+        context;
+
+    state.freeDrinksEventId =
+        eventId;
+
+    state.freeDrinkQuantities =
+        {};
+
+    setHidden(
+        "freeDrinksTestBanner",
+        !(
+            state.drinksTestMode ||
+            state.eventTestMode
         )
     );
 
-    if (
-        paidButton
-    ) {
+    renderFreeDrinks();
 
-        paidButton.disabled =
-            false;
-    }
+    showScreen(
+        "freeDrinksScreen"
+    );
 }
 
+function renderFreeDrinks() {
 
-on(
-    "paidButton",
-    "click",
-    function () {
+    const container =
+        el("freeDrinksList");
 
-        const total =
-            calculateTotal();
+    container.innerHTML = "";
 
-        const received =
-            parseGermanNumber(
-                receivedAmount
-            );
+    activeProducts("getränke")
+        .forEach(product => {
 
-        if (
-            received <
-            total
-        ) {
-
-            return;
-        }
-
-        const change =
-            received -
-            total;
-
-        saveDailySale(
-            total,
-            received,
-            change
-        );
-
-        setText(
-            "successTitle",
-            "Zahlung erfolgreich!"
-        );
-
-        setText(
-            "successDescription",
-            saleTestMode
-                ? "Testverkauf – nicht als echte Kassenbuchung gespeichert."
-                : "Verkauf wurde gespeichert."
-        );
-
-        setText(
-            "successChange",
-            formatPrice(
-                change
-            )
-        );
-
-        currentSuccessContext =
-            "daily";
-
-        showScreen(
-            successScreen
-        );
-    }
-);
-
-
-function saveDailySale(
-    total,
-    received,
-    change
-) {
-
-    if (
-        saleTestMode
-    ) {
-
-        return;
-    }
-
-    const saleItems =
-        cart.map(
-            function (
-                item
-            ) {
-
-                return {
-
-                    id:
-                        item.id,
-
-                    name:
-                        item.name,
-
-                    price:
-                        Number(
-                            item.price
-                        ),
-
-                    category:
-                        item.category,
-
-                    quantity:
-                        Number(
-                            item.quantity
-                        )
-                };
-            }
-        );
-
-    const sale = {
-
-        id:
-            Date.now(),
-
-        date:
-            new Date().toISOString(),
-
-        total:
-            roundMoney(
-                total
-            ),
-
-        received:
-            roundMoney(
-                received
-            ),
-
-        change:
-            roundMoney(
-                change
-            ),
-
-        items:
-            saleItems
-    };
-
-    sales.push(
-        sale
-    );
-
-    saveSales();
-
-    saleItems.forEach(
-        function (
-            item
-        ) {
-
-            if (
-                item.category !==
-                "drink"
-            ) {
-
-                return;
-            }
-
-            inventory[
-                item.id
-            ] =
+            const quantity =
                 Number(
-                    inventory[
-                        item.id
-                    ] ||
-                    0
-                ) -
-                item.quantity;
-        }
-    );
+                    state.freeDrinkQuantities[
+                        product.id
+                    ] || 0
+                );
 
-    saveInventory();
+            const row =
+                document.createElement(
+                    "div"
+                );
+
+            row.className =
+                "quantity-product-row";
+
+            row.innerHTML = `
+                <div class="quantity-product-main">
+                    <span>
+                        ${escapeHtml(
+                            product.icon || "🥤"
+                        )}
+                    </span>
+
+                    <strong>
+                        ${escapeHtml(product.name)}
+                    </strong>
+                </div>
+
+                <div class="quantity-controls">
+                    <button
+                        type="button"
+                        data-minus
+                    >−</button>
+
+                    <strong>
+                        ${quantity}
+                    </strong>
+
+                    <button
+                        type="button"
+                        data-plus
+                    >+</button>
+                </div>
+            `;
+
+            row.querySelector(
+                "[data-minus]"
+            )
+                .addEventListener(
+                    "click",
+                    () => {
+
+                        state.freeDrinkQuantities[
+                            product.id
+                        ] =
+                            Math.max(
+                                0,
+                                quantity - 1
+                            );
+
+                        renderFreeDrinks();
+                    }
+                );
+
+            row.querySelector(
+                "[data-plus]"
+            )
+                .addEventListener(
+                    "click",
+                    () => {
+
+                        state.freeDrinkQuantities[
+                            product.id
+                        ] =
+                            quantity + 1;
+
+                        renderFreeDrinks();
+                    }
+                );
+
+            container.appendChild(row);
+        });
 }
 
+async function saveFreeDrinks() {
 
-on(
-    "newOrderButton",
-    "click",
-    function () {
-
-        if (
-            currentSuccessContext ===
-            "event"
-        ) {
-
-            eventSaleCart =
-                [];
-
-            showScreen(
-                eventCashScreen,
-                eventWorkspaceScreen
+    const items =
+        Object.entries(
+            state.freeDrinkQuantities
+        )
+            .filter(
+                ([, quantity]) =>
+                    quantity > 0
+            )
+            .map(
+                ([product_id, quantity]) => ({
+                    product_id,
+                    quantity
+                })
             );
 
-            return;
-        }
+    const testMode =
+        state.freeDrinksContext ===
+        "sonderveranstaltung"
+            ? state.eventTestMode
+            : state.drinksTestMode;
 
-        resetSale();
-
-        showScreen(
-            saleScreen,
-            homeScreen
-        );
-    }
-);
-
-
-function resetSale() {
-
-    cart =
-        [];
-
-    receivedAmount =
-        "";
-
-    updateCart();
-}
-
-
-// ============================================================
-// SCHICHT BEENDEN
-// ============================================================
-
-on(
-    "saleShiftEndButton",
-    "click",
-    function () {
-
-        endDailyShift(
-            "Getränke · Kasse"
-        );
-    }
-);
-
-
-on(
-    "successShiftEndButton",
-    "click",
-    function () {
+    try {
 
         if (
-            currentSuccessContext ===
-            "event"
+            !testMode &&
+            items.length
         ) {
 
-            endEventShift();
+            const {
+                error
+            } =
+                await supabaseClient.rpc(
+                    "record_free_drinks",
+                    {
+                        p_items:
+                            items,
 
-            return;
-        }
+                        p_context:
+                            state.freeDrinksContext,
 
-        endDailyShift(
-            "Getränke · Kasse"
-        );
-    }
-);
-
-
-function endDailyShift(
-    source
-) {
-
-    const today =
-        new Date();
-
-    const todaySales =
-        getSalesForDay(
-            today
-        );
-
-    const count =
-        todaySales.length;
-
-    const revenue =
-        todaySales.reduce(
-            function (
-                sum,
-                sale
-            ) {
-
-                return (
-                    sum +
-                    Number(
-                        sale.total ||
-                        0
-                    )
+                        p_event_id:
+                            state.freeDrinksEventId
+                    }
                 );
-            },
-            0
-        );
 
-    const text =
-        isCurrentTeacher()
-            ? "Testumgebung: Ihr habt heute " +
-                count +
-                " Verkäufe gemacht und " +
-                formatPrice(
-                    revenue
-                ) +
-                " Umsatz erzielt."
-            : "Heute habt ihr " +
-                count +
-                " Verkäufe gemacht und " +
-                formatPrice(
-                    revenue
-                ) +
-                " Umsatz erzielt.";
-
-    showSiteMessage(
-        "🎉",
-        "Well done heute, Team! 🎉",
-        text,
-        "Weiter",
-        function () {
-
-            if (
-                !isCurrentTeacher()
-            ) {
-
-                const closures =
-                    loadShiftClosures();
-
-                closures.push({
-
-                    id:
-                        Date.now(),
-
-                    closed_at:
-                        new Date().toISOString(),
-
-                    work_date:
-                        getLocalDateKey(
-                            today
-                        ),
-
-                    person_id:
-                        currentPerson
-                            ? currentPerson.id
-                            : null,
-
-                    person_name:
-                        currentPerson
-                            ? getFullName(
-                                currentPerson
-                            )
-                            : "",
-
-                    source:
-                        source,
-
-                    transaction_count:
-                        count,
-
-                    revenue:
-                        roundMoney(
-                            revenue
-                        )
-                });
-
-                saveShiftClosures(
-                    closures
-                );
+            if (error) {
+                throw error;
             }
-
-            resetSale();
-
-            showScreen(
-                homeScreen
-            );
         }
-    );
-}
 
+        state.freeDrinkQuantities =
+            {};
 
-function getSalesForDay(
-    date
-) {
+        showToast(
+            testMode
+                ? "Testschicht beendet – keine Daten gespeichert."
+                : "Schicht beendet.",
+            "success"
+        );
 
-    return sales.filter(
-        function (
-            sale
+        if (
+            state.freeDrinksContext ===
+            "sonderveranstaltung" &&
+            state.currentEvent
         ) {
-
-            return isSameDay(
-                new Date(
-                    sale.date
-                ),
-                date
+            openEventWorkspace(
+                state.currentEvent.id
             );
+        } else {
+            goHome();
         }
-    );
+
+    } catch (error) {
+
+        showToast(
+            errorMessage(error),
+            "error"
+        );
+    }
 }
 
 
 // ============================================================
-// BEARBEITEN
+// EDIT MENU
 // ============================================================
 
-on(
-    "adminBackButton",
-    "click",
-    function () {
+function openEditMenu() {
 
-        showScreen(
-            homeScreen
-        );
-    }
-);
+    updateRoleUI();
 
-
-on(
-    "productsButton",
-    "click",
-    function () {
-
-        renderAdminProducts();
-
-        showScreen(
-            productsScreen,
-            adminScreen
-        );
-    }
-);
-
-
-on(
-    "inventoryButton",
-    "click",
-    function () {
-
-        if (
-            isCurrentTeacher()
-        ) {
-
-            renderInventory();
-
-            showScreen(
-                inventoryScreen,
-                adminScreen
-            );
-
-            return;
-        }
-
-        renderInventoryCount();
-
-        showScreen(
-            inventoryCountScreen,
-            adminScreen
-        );
-    }
-);
-
-
-on(
-    "inventoryInvoicesButton",
-    "click",
-    async function () {
-
-        if (
-            !isCurrentTeacher()
-        ) {
-            return;
-        }
-
-        renderInvoiceContextOptions();
-
-        setDefaultDates();
-
-        await updateInvoiceNumberPreview();
-
-        await renderInvoiceList();
-
-        subscribeToInvoicesRealtime();
-
-        showScreen(
-            inventoryInvoicesScreen,
-            adminScreen
-        );
-    }
-);
-
-
-on(
-    "studentsButton",
-    "click",
-    function () {
-
-        if (
-            !isCurrentTeacher()
-        ) {
-
-            return;
-        }
-
-        alert(
-            "Die Schülerverwaltung wird später gemeinsam ergänzt."
-        );
-    }
-);
+    showScreen(
+        "editMenuScreen"
+    );
+}
 
 
 // ============================================================
 // PRODUCTS ADMIN
 // ============================================================
 
-function renderAdminProducts() {
+function renderCurrentProductViews() {
 
     if (
-        !adminProductsList
+        visibleScreenId() ===
+        "drinksSaleScreen"
     ) {
+        renderDrinksSale();
+    }
 
+    if (
+        visibleScreenId() ===
+        "bakerySaleScreen"
+    ) {
+        renderBakerySale();
+    }
+
+    if (
+        visibleScreenId() ===
+        "productsScreen"
+    ) {
+        renderProductAdmin();
+    }
+
+    if (
+        visibleScreenId() ===
+        "studentInventoryScreen"
+    ) {
+        renderStudentInventory();
+    }
+
+    if (
+        visibleScreenId() ===
+        "teacherInventoryScreen"
+    ) {
+        renderTeacherInventory();
+    }
+}
+
+function renderProductAdmin() {
+
+    const container =
+        el("productAdminList");
+
+    if (!container) {
         return;
     }
 
-    adminProductsList.innerHTML =
-        "";
+    let products =
+        state.products.slice();
 
     if (
-        products.length ===
-        0
+        state.productFilter !== "all"
     ) {
 
-        adminProductsList.innerHTML =
-            `
-                <div class="no-data">
-                    Keine Produkte vorhanden.
-                </div>
-            `;
-
-        return;
+        products =
+            products.filter(
+                product =>
+                    product.category ===
+                    state.productFilter
+            );
     }
 
-    products.forEach(
-        function (
-            product
-        ) {
+    products.sort(
+        (a, b) =>
+            String(a.name)
+                .localeCompare(
+                    String(b.name),
+                    "de"
+                )
+    );
 
-            const row =
-                document.createElement(
-                    "div"
-                );
+    container.innerHTML = "";
 
-            row.className =
-                "admin-product-row";
+    products.forEach(product => {
 
-            const category =
-                product.category ===
-                "drink"
-                    ? "Getränk"
-                    : "Bäckerei";
+        const row =
+            document.createElement(
+                "article"
+            );
 
-            row.innerHTML = `
+        row.className =
+            "product-admin-row";
 
-                <div class="admin-product-icon">
+        row.innerHTML = `
+            <div class="product-admin-main">
+                <span class="product-admin-icon">
                     ${escapeHtml(
-                        product.icon
+                        product.icon || "📦"
                     )}
-                </div>
+                </span>
 
-                <div class="admin-product-info">
-
+                <div>
                     <strong>
-                        ${escapeHtml(
-                            product.name
-                        )}
+                        ${escapeHtml(product.name)}
                     </strong>
 
                     <small>
-                        ${category}
+                        ${escapeHtml(product.category)}
+                        ·
+                        ${euro(product.price)}
+                        ${
+                            product.active
+                                ? ""
+                                : " · Inaktiv"
+                        }
                     </small>
-
-                    <div class="admin-product-price">
-                        ${formatPrice(
-                            product.price
-                        )}
-                    </div>
-
                 </div>
+            </div>
 
-                <div class="admin-product-actions">
+            ${
+                isTeacher()
+                    ? `
+                        <button
+                            class="secondary-action"
+                            type="button"
+                        >
+                            Bearbeiten
+                        </button>
+                    `
+                    : ""
+            }
+        `;
 
-                    <button
-                        type="button"
-                        class="icon-action edit-product-button"
-                        data-product-id="${escapeAttribute(
-                            product.id
-                        )}"
-                    >
-                        ✏️
-                    </button>
+        if (isTeacher()) {
 
-                    <button
-                        type="button"
-                        class="icon-action delete delete-product-button"
-                        data-product-id="${escapeAttribute(
-                            product.id
-                        )}"
-                    >
-                        🗑️
-                    </button>
-
-                </div>
-            `;
-
-            adminProductsList.appendChild(
-                row
-            );
-        }
-    );
-
-    adminProductsList
-        .querySelectorAll(
-            ".edit-product-button"
-        )
-        .forEach(
-            function (
-                button
-            ) {
-
-                button.addEventListener(
+            row.querySelector("button")
+                .addEventListener(
                     "click",
-                    function () {
-
+                    () =>
                         openProductModal(
-                            button.dataset.productId
-                        );
-                    }
+                            product
+                        )
                 );
-            }
-        );
+        }
 
-    adminProductsList
-        .querySelectorAll(
-            ".delete-product-button"
-        )
-        .forEach(
-            function (
-                button
-            ) {
-
-                button.addEventListener(
-                    "click",
-                    function () {
-
-                        deleteProduct(
-                            button.dataset.productId
-                        );
-                    }
-                );
-            }
-        );
+        container.appendChild(row);
+    });
 }
 
-
-on(
-    "addProductButton",
-    "click",
-    function () {
-
-        openProductModal();
-    }
-);
-
-
 function openProductModal(
-    productId = null
+    product = null
 ) {
 
-    if (
-        !productModal
-    ) {
-
+    if (!isTeacher()) {
         return;
     }
 
-    editingProductId =
-        productId;
+    state.editingProductId =
+        product?.id || null;
 
-    if (
-        productId
-    ) {
-
-        const product =
-            products.find(
-                function (
-                    item
-                ) {
-
-                    return (
-                        item.id ===
-                        productId
-                    );
-                }
-            );
-
-        if (
-            !product
-        ) {
-
-            return;
-        }
-
-        if (
-            productModalTitle
-        ) {
-
-            productModalTitle.textContent =
-                "Produkt bearbeiten";
-        }
-
-        productNameInput.value =
-            product.name;
-
-        productPriceInput.value =
-            Number(
-                product.price
-            ).toFixed(
-                2
-            );
-
-        productCategoryInput.value =
-            product.category;
-
-        productIconInput.value =
-            product.icon;
-
-    } else {
-
-        if (
-            productModalTitle
-        ) {
-
-            productModalTitle.textContent =
-                "Produkt hinzufügen";
-        }
-
-        productNameInput.value =
-            "";
-
-        productPriceInput.value =
-            "";
-
-        productCategoryInput.value =
-            "drink";
-
-        productIconInput.value =
-            "🥤";
-    }
-
-    productModal.style.display =
-        "flex";
-
-    productModal.setAttribute(
-        "aria-hidden",
-        "false"
+    setText(
+        "productModalTitle",
+        product
+            ? "Produkt bearbeiten"
+            : "Produkt hinzufügen"
     );
 
-    setTimeout(
-        function () {
+    el("productIdInput").value =
+        product?.id || "";
 
-            productNameInput.focus();
+    el("productNameInput").value =
+        product?.name || "";
 
-        },
-        50
+    el("productPriceInput").value =
+        product
+            ? Number(product.price)
+                .toFixed(2)
+                .replace(".", ",")
+            : "";
+
+    el("productCategoryInput").value =
+        product?.category ||
+        "getränke";
+
+    el("productIconInput").value =
+        product?.icon || "🥤";
+
+    el("productActiveInput").checked =
+        product
+            ? Boolean(product.active)
+            : true;
+
+    setText(
+        "productFormMessage",
+        ""
+    );
+
+    setHidden(
+        "productModal",
+        false
     );
 }
-
 
 function closeProductModal() {
 
-    if (
-        !productModal
-    ) {
-
-        return;
-    }
-
-    productModal.style.display =
-        "none";
-
-    productModal.setAttribute(
-        "aria-hidden",
-        "true"
+    setHidden(
+        "productModal",
+        true
     );
 
-    editingProductId =
+    state.editingProductId =
         null;
 }
 
-
-on(
-    "closeProductModalButton",
-    "click",
-    closeProductModal
-);
-
-
-on(
-    "cancelProductButton",
-    "click",
-    closeProductModal
-);
-
-
-if (
-    productModal
+function createProductId(
+    name
 ) {
 
-    productModal.addEventListener(
-        "click",
-        function (
-            event
-        ) {
+    const base =
+        String(name)
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(
+                /[\u0300-\u036f]/g,
+                ""
+            )
+            .replace(/ß/g, "ss")
+            .replace(
+                /[^a-z0-9]+/g,
+                "-"
+            )
+            .replace(
+                /^-+|-+$/g,
+                ""
+            );
 
-            if (
-                event.target ===
-                productModal
-            ) {
-
-                closeProductModal();
-            }
-        }
+    return (
+        base ||
+        `produkt-${Date.now()}`
     );
 }
 
-
-on(
-    "saveProductButton",
-    "click",
-    async function () {
-
-        const name =
-            productNameInput.value.trim();
-
-        const price =
-            Number(
-                productPriceInput.value
-            );
-
-        const category =
-            productCategoryInput.value;
-
-        const icon =
-            productIconInput.value.trim() ||
-            "🥤";
-
-        if (
-            !name
-        ) {
-
-            alert(
-                "Bitte einen Produktnamen eingeben."
-            );
-
-            return;
-        }
-
-        if (
-            !Number.isFinite(
-                price
-            ) ||
-            price < 0
-        ) {
-
-            alert(
-                "Bitte einen gültigen Preis eingeben."
-            );
-
-            return;
-        }
-
-        if (
-            category !== "drink" &&
-            category !== "bakery"
-        ) {
-
-            alert(
-                "Ungültige Kategorie."
-            );
-
-            return;
-        }
-
-        const databaseCategory =
-            category === "drink"
-                ? "getränke"
-                : "bäckerei";
-
-        try {
-
-            if (
-                editingProductId
-            ) {
-
-                const {
-                    error
-                } =
-                    await supabaseClient
-                        .from(
-                            "products"
-                        )
-                        .update({
-                            name:
-                                name,
-
-                            price:
-                                roundMoney(
-                                    price
-                                ),
-
-                            category:
-                                databaseCategory,
-
-                            icon:
-                                icon
-                        })
-                        .eq(
-                            "id",
-                            editingProductId
-                        );
-
-                if (
-                    error
-                ) {
-
-                    throw error;
-                }
-
-            } else {
-
-                const newProductId =
-                    createProductId(
-                        name
-                    );
-
-                const {
-                    error
-                } =
-                    await supabaseClient
-                        .from(
-                            "products"
-                        )
-                        .insert({
-                            id:
-                                newProductId,
-
-                            name:
-                                name,
-
-                            price:
-                                roundMoney(
-                                    price
-                                ),
-
-                            purchase_price:
-                                null,
-
-                            category:
-                                databaseCategory,
-
-                            icon:
-                                icon,
-
-                            active:
-                                true
-                        });
-
-                if (
-                    error
-                ) {
-
-                    throw error;
-                }
-            }
-
-            await syncProductsFromSupabase();
-
-            closeProductModal();
-
-        } catch (
-            error
-        ) {
-
-            console.error(
-                "Produkt konnte nicht gespeichert werden:",
-                error
-            );
-
-            alert(
-                "Das Produkt konnte nicht gespeichert werden."
-            );
-        }
-    }
-);
-
-
-async function deleteProduct(
-    productId
+async function saveProduct(
+    event
 ) {
 
-    const product =
-        products.find(
-            function (
-                item
-            ) {
+    event.preventDefault();
 
-                return (
-                    item.id ===
-                    productId
-                );
-            }
-        );
-
-    if (
-        !product
-    ) {
-
+    if (!isTeacher()) {
         return;
     }
 
-    const confirmed =
-        confirm(
-            "Produkt „" +
-            product.name +
-            "“ wirklich entfernen?"
+    const name =
+        el("productNameInput")
+            .value
+            .trim();
+
+    const price =
+        parseMoney(
+            el("productPriceInput")
+                .value
         );
 
+    const category =
+        el("productCategoryInput")
+            .value;
+
+    const icon =
+        el("productIconInput")
+            .value
+            .trim() ||
+        "📦";
+
+    const active =
+        el("productActiveInput")
+            .checked;
+
     if (
-        !confirmed
+        !name ||
+        !Number.isFinite(price) ||
+        price < 0
     ) {
+
+        setText(
+            "productFormMessage",
+            "Bitte Name und gültigen Preis eingeben."
+        );
 
         return;
     }
 
     try {
 
-        const {
-            error
-        } =
-            await supabaseClient
-                .from(
-                    "products"
-                )
-                .update({
-                    active:
-                        false
-                })
-                .eq(
-                    "id",
-                    productId
-                );
+        if (state.editingProductId) {
 
-        if (
-            error
-        ) {
-
-            throw error;
-        }
-
-        cart =
-            cart.filter(
-                function (
-                    item
-                ) {
-
-                    return (
-                        item.id !==
-                        productId
+            const {
+                error
+            } =
+                await supabaseClient
+                    .from("products")
+                    .update({
+                        name,
+                        price,
+                        category,
+                        icon,
+                        active
+                    })
+                    .eq(
+                        "id",
+                        state.editingProductId
                     );
-                }
-            );
 
-        updateCart();
+            if (error) {
+                throw error;
+            }
 
-        await syncProductsFromSupabase();
+        } else {
 
-    } catch (
-        error
-    ) {
+            let id =
+                createProductId(name);
 
-        console.error(
-            "Produkt konnte nicht entfernt werden:",
-            error
-        );
+            if (
+                state.products.some(
+                    product =>
+                        product.id === id
+                )
+            ) {
+                id =
+                    `${id}-${Date.now()
+                        .toString()
+                        .slice(-5)}`;
+            }
 
-        alert(
-            "Das Produkt konnte nicht entfernt werden."
-        );
-    }
-}
+            const {
+                error
+            } =
+                await supabaseClient
+                    .from("products")
+                    .insert({
+                        id,
+                        name,
+                        price,
+                        category,
+                        icon,
+                        active
+                    });
 
-
-on(
-    "productsBackButton",
-    "click",
-    function () {
+            if (error) {
+                throw error;
+            }
+        }
 
         closeProductModal();
 
-        showScreen(
-            adminScreen
+        await loadProducts();
+
+        showToast(
+            "Produkt gespeichert.",
+            "success"
+        );
+
+    } catch (error) {
+
+        setText(
+            "productFormMessage",
+            errorMessage(error)
         );
     }
-);
+}
 
 
 // ============================================================
-// INVENTORY TEACHER
+// STUDENT INVENTORY
 // ============================================================
 
-function renderInventory() {
+function renderStudentInventory() {
 
-    if (
-        !inventoryList
-    ) {
+    const container =
+        el("studentInventoryList");
 
-        return;
-    }
+    container.innerHTML = "";
 
-    inventoryList.innerHTML =
-        "";
-
-    const drinks =
-        products.filter(
-            function (
-                product
-            ) {
-
-                return (
-                    product.category ===
-                    "drink"
-                );
-            }
-        );
-
-    if (
-        drinks.length ===
-        0
-    ) {
-
-        inventoryList.innerHTML =
-            `
-                <div class="no-data">
-                    Keine Getränke vorhanden.
-                </div>
-            `;
-
-        return;
-    }
-
-    drinks.forEach(
-        function (
-            product
-        ) {
-
-            const stock =
-                Number(
-                    inventory[
-                        product.id
-                    ] ||
-                    0
-                );
+    activeProducts("getränke")
+        .forEach(product => {
 
             const row =
                 document.createElement(
-                    "div"
-                );
-
-            row.className =
-                "inventory-card";
-
-            row.innerHTML = `
-
-                <div class="inventory-product">
-
-                    <span class="inventory-icon">
-                        ${escapeHtml(
-                            product.icon
-                        )}
-                    </span>
-
-                    <div>
-
-                        <strong>
-                            ${escapeHtml(
-                                product.name
-                            )}
-                        </strong>
-
-                        <small>
-                            ${formatPrice(
-                                product.price
-                            )}
-                        </small>
-
-                    </div>
-
-                </div>
-
-                <div class="inventory-stock">
-                    ${stock} Stück
-                </div>
-
-                <button
-                    type="button"
-                    class="inventory-adjust-button"
-                    data-product-id="${escapeAttribute(
-                        product.id
-                    )}"
-                >
-                    ＋ Bestand
-                </button>
-            `;
-
-            inventoryList.appendChild(
-                row
-            );
-        }
-    );
-
-    inventoryList
-        .querySelectorAll(
-            ".inventory-adjust-button"
-        )
-        .forEach(
-            function (
-                button
-            ) {
-
-                button.addEventListener(
-                    "click",
-                    function () {
-
-                        openInventoryModal(
-                            button.dataset.productId
-                        );
-                    }
-                );
-            }
-        );
-}
-
-
-function openInventoryModal(
-    productId
-) {
-
-    if (
-        !isCurrentTeacher()
-    ) {
-
-        return;
-    }
-
-    const product =
-        products.find(
-            function (
-                item
-            ) {
-
-                return (
-                    item.id ===
-                    productId
-                );
-            }
-        );
-
-    if (
-        !product
-    ) {
-
-        return;
-    }
-
-    inventoryProductId =
-        productId;
-
-    if (
-        inventoryProductLabel
-    ) {
-
-        inventoryProductLabel.textContent =
-            product.name +
-            " · Aktueller Bestand: " +
-            Number(
-                inventory[
-                    productId
-                ] ||
-                0
-            ) +
-            " Stück";
-    }
-
-    if (
-        inventoryAmountInput
-    ) {
-
-        inventoryAmountInput.value =
-            "";
-    }
-
-    inventoryModal.style.display =
-        "flex";
-
-    inventoryModal.setAttribute(
-        "aria-hidden",
-        "false"
-    );
-
-    setTimeout(
-        function () {
-
-            inventoryAmountInput.focus();
-
-        },
-        50
-    );
-}
-
-
-function closeInventoryModal() {
-
-    if (
-        !inventoryModal
-    ) {
-
-        return;
-    }
-
-    inventoryModal.style.display =
-        "none";
-
-    inventoryModal.setAttribute(
-        "aria-hidden",
-        "true"
-    );
-
-    inventoryProductId =
-        null;
-}
-
-
-on(
-    "closeInventoryModalButton",
-    "click",
-    closeInventoryModal
-);
-
-
-on(
-    "cancelInventoryButton",
-    "click",
-    closeInventoryModal
-);
-
-
-on(
-    "saveInventoryButton",
-    "click",
-    function () {
-
-        if (
-            !isCurrentTeacher() ||
-            !inventoryProductId
-        ) {
-
-            return;
-        }
-
-        const amount =
-            Number(
-                inventoryAmountInput.value
-            );
-
-        if (
-            !Number.isInteger(
-                amount
-            ) ||
-            amount <=
-            0
-        ) {
-
-            alert(
-                "Bitte eine positive ganze Menge eingeben."
-            );
-
-            return;
-        }
-
-        inventory[
-            inventoryProductId
-        ] =
-            Number(
-                inventory[
-                    inventoryProductId
-                ] ||
-                0
-            ) +
-            amount;
-
-        saveInventory();
-
-        renderInventory();
-
-        closeInventoryModal();
-    }
-);
-
-
-on(
-    "inventoryBackButton",
-    "click",
-    function () {
-
-        closeInventoryModal();
-
-        showScreen(
-            adminScreen
-        );
-    }
-);
-
-
-// ============================================================
-// INVENTUR STUDENT
-// ============================================================
-
-function renderInventoryCount() {
-
-    if (
-        !inventoryCountList
-    ) {
-
-        return;
-    }
-
-    inventoryCountList.innerHTML =
-        "";
-
-    const drinks =
-        products.filter(
-            function (
-                product
-            ) {
-
-                return (
-                    product.category ===
-                    "drink"
-                );
-            }
-        );
-
-    if (
-        drinks.length ===
-        0
-    ) {
-
-        inventoryCountList.innerHTML =
-            `
-                <div class="no-data">
-                    Keine Getränke vorhanden.
-                </div>
-            `;
-
-        return;
-    }
-
-    drinks.forEach(
-        function (
-            product
-        ) {
-
-            const row =
-                document.createElement(
-                    "div"
+                    "label"
                 );
 
             row.className =
                 "inventory-count-row";
 
             row.innerHTML = `
-
-                <div class="inventory-count-product">
-
+                <div>
                     <span>
                         ${escapeHtml(
-                            product.icon
+                            product.icon || "🥤"
                         )}
                     </span>
 
-                    <div>
-
-                        <strong>
-                            ${escapeHtml(
-                                product.name
-                            )}
-                        </strong>
-
-                        <small>
-                            ${formatPrice(
-                                product.price
-                            )}
-                        </small>
-
-                    </div>
-
+                    <strong>
+                        ${escapeHtml(product.name)}
+                    </strong>
                 </div>
 
                 <input
-                    class="inventory-count-input"
                     type="number"
                     min="0"
                     step="1"
                     inputmode="numeric"
-                    data-product-id="${escapeAttribute(
-                        product.id
-                    )}"
+                    data-product-id="${escapeHtml(product.id)}"
                     placeholder="0"
                 >
             `;
 
-            inventoryCountList.appendChild(
-                row
+            container.appendChild(row);
+        });
+}
+
+async function submitStudentInventory() {
+
+    const inputs =
+        all(
+            "#studentInventoryList [data-product-id]"
+        );
+
+    const items =
+        inputs.map(input => ({
+            product_id:
+                input.dataset.productId,
+            quantity:
+                Math.max(
+                    0,
+                    Number(input.value || 0)
+                )
+        }));
+
+    try {
+
+        const {
+            error
+        } =
+            await supabaseClient.rpc(
+                "submit_inventory_count",
+                {
+                    p_items:
+                        items,
+
+                    p_context:
+                        "getränke",
+
+                    p_event_id:
+                        null,
+
+                    p_inventory_type:
+                        "daily"
+                }
             );
+
+        if (error) {
+            throw error;
         }
-    );
+
+        setText(
+            "studentInventoryMessage",
+            "Inventur wurde an den Lehrer geschickt."
+        );
+
+        showToast(
+            "Inventur gesendet.",
+            "success"
+        );
+
+    } catch (error) {
+
+        setText(
+            "studentInventoryMessage",
+            errorMessage(error)
+        );
+    }
 }
 
 
-on(
-    "inventoryCountBackButton",
-    "click",
-    function () {
-
-        showScreen(
-            adminScreen
-        );
-    }
-);
-
-
-on(
-    "submitInventoryButton",
-    "click",
-    function () {
-
-        if (
-            !currentPerson ||
-            currentPerson.person_type !==
-            "schüler"
-        ) {
-
-            return;
-        }
-
-        const inputs =
-            inventoryCountList
-                .querySelectorAll(
-                    ".inventory-count-input"
-                );
-
-        const counts =
-            [];
-
-        let invalid =
-            false;
-
-        inputs.forEach(
-            function (
-                input
-            ) {
-
-                if (
-                    input.value.trim() ===
-                    ""
-                ) {
-
-                    return;
-                }
-
-                const quantity =
-                    Number(
-                        input.value
-                    );
-
-                if (
-                    !Number.isInteger(
-                        quantity
-                    ) ||
-                    quantity <
-                    0
-                ) {
-
-                    invalid =
-                        true;
-
-                    return;
-                }
-
-                const product =
-                    products.find(
-                        function (
-                            item
-                        ) {
-
-                            return (
-                                item.id ===
-                                input.dataset.productId
-                            );
-                        }
-                    );
-
-                if (
-                    product
-                ) {
-
-                    counts.push(
-                        {
-
-                            product_id:
-                                product.id,
-
-                            product_name:
-                                product.name,
-
-                            quantity:
-                                quantity
-                        }
-                    );
-                }
-            }
-        );
-
-        if (
-            invalid
-        ) {
-
-            alert(
-                "Bitte nur ganze Mengen ab 0 eingeben."
-            );
-
-            return;
-        }
-
-        if (
-            counts.length ===
-            0
-        ) {
-
-            alert(
-                "Bitte mindestens eine gezählte Menge eingeben."
-            );
-
-            return;
-        }
-
-        const submissions =
-            loadInventorySubmissions();
-
-        submissions.push(
-            {
-
-                id:
-                    Date.now(),
-
-                submitted_at:
-                    new Date().toISOString(),
-
-                person_id:
-                    currentPerson.id,
-
-                person_name:
-                    getFullName(
-                        currentPerson
-                    ),
-
-                counts:
-                    counts
-            }
-        );
-
-        saveInventorySubmissions(
-            submissions
-        );
-
-        showSiteMessage(
-            "📦",
-            "Inventur gesendet",
-            "Die Inventur wurde an den Lehrer geschickt.",
-            "Weiter",
-            function () {
-
-                renderInventoryCount();
-
-                updateNotificationBadge();
-
-                showScreen(
-                    homeScreen
-                );
-            }
-        );
-    }
-);
-
-
 // ============================================================
-// INVENTUR & RECHNUNGEN
+// TEACHER INVENTORY
 // ============================================================
 
-let invoicesRealtimeChannel = null;
+async function openTeacherInventory(
+    invoice = null
+) {
 
-
-// ------------------------------------------------------------
-// RECHNUNGSBEREICHE
-// ------------------------------------------------------------
-
-function renderInvoiceContextOptions() {
-
-    if (!invoiceContextInput) {
+    if (!isTeacher()) {
         return;
     }
 
-    const currentValue =
-        invoiceContextInput.value ||
-        "getränke";
+    state.invoiceForInventory =
+        invoice;
 
-    invoiceContextInput.innerHTML = "";
+    await loadInventory();
 
-    const options = [
-        {
-            value: "getränke",
-            label: "Getränke"
-        },
-        {
-            value: "bäckerei",
-            label: "Bäckerei"
-        },
-        {
-            value: "sonderveranstaltung",
-            label: "Sonderveranstaltung"
-        }
-    ];
+    renderTeacherInventory();
 
-    options.forEach(
-        function (item) {
+    await renderInventorySubmissions();
 
-            const option =
-                document.createElement(
-                    "option"
-                );
+    showScreen(
+        "teacherInventoryScreen"
+    );
+}
 
-            option.value =
-                item.value;
+function renderTeacherInventory() {
 
-            option.textContent =
-                item.label;
+    const invoice =
+        state.invoiceForInventory;
 
-            invoiceContextInput.appendChild(
-                option
-            );
-        }
+    setHidden(
+        "inventoryInvoiceContextCard",
+        !invoice
     );
 
-    const exists =
-        Array.from(
-            invoiceContextInput.options
-        ).some(
-            function (option) {
+    if (invoice) {
 
-                return (
-                    option.value ===
-                    currentValue
-                );
-            }
+        setText(
+            "inventoryInvoiceNumber",
+            invoice.invoice_number ||
+            "—"
         );
 
-    invoiceContextInput.value =
-        exists
-            ? currentValue
-            : "getränke";
+        setText(
+            "inventoryInvoiceSupplier",
+            invoice.supplier ||
+            "—"
+        );
+    }
+
+    const container =
+        el("teacherInventoryList");
+
+    if (!container) {
+        return;
+    }
+
+    container.innerHTML = "";
+
+    activeProducts("getränke")
+        .forEach(product => {
+
+            const stock =
+                Number(
+                    state.inventory[
+                        product.id
+                    ] || 0
+                );
+
+            const row =
+                document.createElement(
+                    "article"
+                );
+
+            row.className =
+                "teacher-inventory-row";
+
+            row.innerHTML = `
+                <div class="teacher-inventory-product">
+                    <span>
+                        ${escapeHtml(
+                            product.icon || "🥤"
+                        )}
+                    </span>
+
+                    <div>
+                        <strong>
+                            ${escapeHtml(product.name)}
+                        </strong>
+
+                        <small>
+                            Aktuell: ${stock}
+                        </small>
+                    </div>
+                </div>
+
+                <label>
+                    <span>Menge hinzufügen</span>
+                    <input
+                        type="number"
+                        min="1"
+                        step="1"
+                        inputmode="numeric"
+                        data-quantity
+                        placeholder="0"
+                    >
+                </label>
+
+                <label>
+                    <span>Einkaufspreis / Stück</span>
+                    <input
+                        type="text"
+                        inputmode="decimal"
+                        data-price
+                        placeholder="optional"
+                    >
+                </label>
+
+                <button
+                    type="button"
+                    class="primary-action"
+                >
+                    Hinzufügen
+                </button>
+            `;
+
+            row.querySelector("button")
+                .addEventListener(
+                    "click",
+                    async () => {
+
+                        const quantity =
+                            Number(
+                                row.querySelector(
+                                    "[data-quantity]"
+                                ).value
+                            );
+
+                        const priceText =
+                            row.querySelector(
+                                "[data-price]"
+                            ).value.trim();
+
+                        const price =
+                            priceText
+                                ? parseMoney(
+                                    priceText
+                                )
+                                : null;
+
+                        if (
+                            !Number.isInteger(
+                                quantity
+                            ) ||
+                            quantity <= 0
+                        ) {
+
+                            showToast(
+                                "Bitte eine gültige Menge eingeben.",
+                                "error"
+                            );
+
+                            return;
+                        }
+
+                        if (
+                            priceText &&
+                            (
+                                !Number.isFinite(
+                                    price
+                                ) ||
+                                price < 0
+                            )
+                        ) {
+
+                            showToast(
+                                "Bitte einen gültigen Einkaufspreis eingeben.",
+                                "error"
+                            );
+
+                            return;
+                        }
+
+                        try {
+
+                            const {
+                                error
+                            } =
+                                await supabaseClient.rpc(
+                                    "teacher_add_stock",
+                                    {
+                                        p_product_id:
+                                            product.id,
+
+                                        p_quantity:
+                                            quantity,
+
+                                        p_invoice_id:
+                                            invoice?.id ||
+                                            null,
+
+                                        p_unit_purchase_price:
+                                            price
+                                    }
+                                );
+
+                            if (error) {
+                                throw error;
+                            }
+
+                            row.querySelector(
+                                "[data-quantity]"
+                            ).value = "";
+
+                            row.querySelector(
+                                "[data-price]"
+                            ).value = "";
+
+                            await Promise.all([
+                                loadInventory(),
+                                loadProducts()
+                            ]);
+
+                            showToast(
+                                "Wareneingang gespeichert.",
+                                "success"
+                            );
+
+                        } catch (error) {
+
+                            showToast(
+                                errorMessage(error),
+                                "error"
+                            );
+                        }
+                    }
+                );
+
+            container.appendChild(row);
+        });
+}
+
+async function renderInventorySubmissions() {
+
+    if (!isTeacher()) {
+        return;
+    }
+
+    const container =
+        el(
+            "inventorySubmissionsList"
+        );
+
+    if (!container) {
+        return;
+    }
+
+    const {
+        data,
+        error
+    } =
+        await supabaseClient
+            .from(
+                "inventory_submissions"
+            )
+            .select(`
+                id,
+                context,
+                inventory_type,
+                status,
+                submitted_at,
+                submitted_by,
+                inventory_submission_items (
+                    product_name,
+                    quantity
+                )
+            `)
+            .order(
+                "submitted_at",
+                {
+                    ascending: false
+                }
+            )
+            .limit(20);
+
+    if (error) {
+
+        console.error(error);
+
+        container.innerHTML = `
+            <div class="empty-state">
+                Inventuren konnten nicht geladen werden.
+            </div>
+        `;
+
+        return;
+    }
+
+    const submissions =
+        data || [];
+
+    container.innerHTML =
+        submissions.length
+            ? submissions
+                .map(
+                    submission => `
+                        <article class="submission-card">
+                            <div>
+                                <strong>
+                                    ${escapeHtml(
+                                        formatDateTime(
+                                            submission.submitted_at
+                                        )
+                                    )}
+                                </strong>
+
+                                <small>
+                                    ${escapeHtml(
+                                        submission.status ||
+                                        "eingereicht"
+                                    )}
+                                </small>
+                            </div>
+
+                            <div>
+                                ${(submission.inventory_submission_items || [])
+                                    .map(
+                                        item => `
+                                            <span>
+                                                ${escapeHtml(
+                                                    item.product_name
+                                                )}: 
+                                                <strong>
+                                                    ${Number(
+                                                        item.quantity
+                                                    )}
+                                                </strong>
+                                            </span>
+                                        `
+                                    )
+                                    .join(" · ")}
+                            </div>
+                        </article>
+                    `
+                )
+                .join("")
+            : `
+                <div class="empty-state">
+                    Noch keine Inventuren eingereicht.
+                </div>
+            `;
 }
 
 
-function getContextLabel(
-    context
-) {
+// ============================================================
+// INVOICES
+// ============================================================
 
-    if (
-        context ===
-        "getränke"
-    ) {
-        return "Getränke";
+async function openInvoices() {
+
+    if (!isTeacher()) {
+        return;
     }
 
-    if (
-        context ===
-        "bäckerei"
-    ) {
-        return "Bäckerei";
+    const dateInput =
+        el("invoiceDateInput");
+
+    if (!dateInput.value) {
+        dateInput.value =
+            localDateKey();
     }
 
-    if (
-        context ===
-        "sonderveranstaltung"
-    ) {
-        return "Sonderveranstaltung";
-    }
+    await populateInvoiceEvents();
 
-    return context || "";
+    await updateInvoiceNumberPreview();
+
+    await renderInvoices();
+
+    showScreen(
+        "invoicesScreen"
+    );
 }
-
-
-// ------------------------------------------------------------
-// APERÇU DU PROCHAIN NUMÉRO
-// ------------------------------------------------------------
 
 async function updateInvoiceNumberPreview() {
 
-    if (
-        !invoiceNumberInput ||
-        !invoiceDateInput
-    ) {
+    if (!isTeacher()) {
         return;
     }
 
     const date =
-        invoiceDateInput.value;
+        el("invoiceDateInput")
+            .value;
 
     if (!date) {
-
-        invoiceNumberInput.value =
-            "";
-
         return;
     }
-
-    invoiceNumberInput.value =
-        "…";
 
     const {
         data,
@@ -5312,102 +3577,174 @@ async function updateInvoiceNumberPreview() {
 
     if (error) {
 
-        console.error(
-            "Fehler bei Rechnungsnummer:",
-            error
-        );
+        console.error(error);
 
-        invoiceNumberInput.value =
-            "";
+        setText(
+            "invoiceNumberInput",
+            ""
+        );
 
         return;
     }
 
-    invoiceNumberInput.value =
+    el("invoiceNumberInput").value =
         data || "";
 }
 
+async function populateInvoiceEvents() {
 
-// ------------------------------------------------------------
-// RECHNUNG SPEICHERN
-// ------------------------------------------------------------
+    const select =
+        el("invoiceEventSelect");
 
-on(
-    "saveInvoiceButton",
-    "click",
-    async function () {
+    if (!select) {
+        return;
+    }
 
-        if (
-            !isCurrentTeacher()
-        ) {
-            return;
-        }
+    select.innerHTML = "";
 
-        const context =
-            invoiceContextInput
-                ? invoiceContextInput.value
-                : "";
-
-        const date =
-            invoiceDateInput
-                ? invoiceDateInput.value
-                : "";
-
-        const supplier =
-            invoiceSupplierInput
-                ? invoiceSupplierInput.value.trim()
-                : "";
-
-        const amount =
-            invoiceAmountInput
-                ? Number(
-                    String(
-                        invoiceAmountInput.value
-                    ).replace(
-                        ",",
-                        "."
+    state.events
+        .slice()
+        .sort(
+            (a, b) =>
+                String(b.event_date)
+                    .localeCompare(
+                        String(a.event_date)
                     )
-                )
-                : NaN;
+        )
+        .forEach(event => {
 
-        if (!date) {
+            const option =
+                document.createElement(
+                    "option"
+                );
 
-            alert(
-                "Bitte ein Rechnungsdatum auswählen."
-            );
+            option.value =
+                event.id;
 
-            return;
-        }
+            option.textContent =
+                `${event.name} – ${formatDate(
+                    event.event_date
+                )}`;
 
-        if (!supplier) {
+            select.appendChild(option);
+        });
 
-            alert(
-                "Bitte einen Laden eingeben."
-            );
+    const other =
+        document.createElement(
+            "option"
+        );
 
-            return;
-        }
+    other.value =
+        "__create__";
+
+    other.textContent =
+        "Andere Veranstaltung …";
+
+    select.appendChild(other);
+}
+
+function updateInvoiceContextUI() {
+
+    const special =
+        el("invoiceContextSelect")
+            .value ===
+        "sonderveranstaltung";
+
+    setHidden(
+        "invoiceEventField",
+        !special
+    );
+}
+
+async function saveInvoice(
+    event
+) {
+
+    event.preventDefault();
+
+    if (!isTeacher()) {
+        return;
+    }
+
+    const context =
+        el("invoiceContextSelect")
+            .value;
+
+    const date =
+        el("invoiceDateInput")
+            .value;
+
+    const supplier =
+        el("invoiceSupplierInput")
+            .value
+            .trim();
+
+    const total =
+        parseMoney(
+            el("invoiceTotalInput")
+                .value
+        );
+
+    let eventId =
+        null;
+
+    if (
+        context ===
+        "sonderveranstaltung"
+    ) {
+
+        eventId =
+            el("invoiceEventSelect")
+                .value;
 
         if (
-            !Number.isFinite(amount) ||
-            amount < 0
+            eventId ===
+            "__create__"
         ) {
 
-            alert(
-                "Bitte gültige Gesamtkosten eingeben."
+            showToast(
+                "Bitte zuerst die neue Veranstaltung erstellen.",
+                "info"
+            );
+
+            showScreen(
+                "eventTypeScreen"
             );
 
             return;
         }
 
-        if (saveInvoiceButton) {
+        if (!eventId) {
 
-            saveInvoiceButton.disabled =
-                true;
+            setText(
+                "invoiceFormMessage",
+                "Bitte eine Veranstaltung auswählen."
+            );
 
-            saveInvoiceButton.textContent =
-                "Wird gespeichert…";
+            return;
         }
+    }
+
+    if (
+        !date ||
+        !Number.isFinite(total) ||
+        total < 0
+    ) {
+
+        setText(
+            "invoiceFormMessage",
+            "Bitte Datum und gültige Gesamtkosten eingeben."
+        );
+
+        return;
+    }
+
+    const button =
+        el("saveInvoiceButton");
+
+    button.disabled = true;
+
+    try {
 
         const {
             data,
@@ -5426,3587 +3763,1777 @@ on(
                         supplier,
 
                     p_total_amount:
-                        roundMoney(
-                            amount
-                        ),
+                        total,
 
                     p_created_by:
                         null,
 
                     p_event_id:
-                        null
+                        eventId
                 }
             );
 
-        if (saveInvoiceButton) {
-
-            saveInvoiceButton.disabled =
-                false;
-
-            saveInvoiceButton.textContent =
-                "Hinzufügen";
-        }
-
         if (error) {
-
-            console.error(
-                "Fehler beim Speichern der Rechnung:",
-                error
-            );
-
-            alert(
-                "Die Rechnung konnte nicht gespeichert werden."
-            );
-
-            await updateInvoiceNumberPreview();
-
-            return;
+            throw error;
         }
 
-        const savedInvoice =
-            Array.isArray(data)
-                ? data[0]
-                : data;
+        el("invoiceSupplierInput").value =
+            "";
 
-        if (
-            savedInvoice &&
-            savedInvoice.invoice_number
-        ) {
+        el("invoiceTotalInput").value =
+            "";
 
-            invoiceNumberInput.value =
-                savedInvoice.invoice_number;
-        }
-
-        if (invoiceSupplierInput) {
-
-            invoiceSupplierInput.value =
-                "";
-        }
-
-        if (invoiceAmountInput) {
-
-            invoiceAmountInput.value =
-                "";
-        }
-
-        await renderInvoiceList();
+        setText(
+            "invoiceFormMessage",
+            `Rechnung ${data.invoice_number} gespeichert.`
+        );
 
         await updateInvoiceNumberPreview();
+        await renderInvoices();
+
+        showToast(
+            "Rechnung gespeichert.",
+            "success"
+        );
+
+        if (
+            context ===
+            "getränke"
+        ) {
+
+            await openTeacherInventory(
+                data
+            );
+        }
+
+    } catch (error) {
+
+        setText(
+            "invoiceFormMessage",
+            errorMessage(error)
+        );
+
+    } finally {
+
+        button.disabled = false;
     }
-);
+}
 
+async function renderInvoices() {
 
-// ------------------------------------------------------------
-// LETZTE 10 RECHNUNGEN
-// ------------------------------------------------------------
-
-async function renderInvoiceList() {
-
-    if (!invoiceList) {
+    if (!isTeacher()) {
         return;
     }
-
-    invoiceList.innerHTML =
-        `
-            <div class="no-data">
-                Rechnungen werden geladen…
-            </div>
-        `;
 
     const {
         data,
         error
     } =
         await supabaseClient
-            .from(
-                "invoices"
-            )
-            .select(
-                "id, context, invoice_date, supplier, invoice_number, total_amount, created_at"
-            )
+            .from("invoices")
+            .select(`
+                id,
+                context,
+                event_id,
+                invoice_date,
+                supplier,
+                invoice_number,
+                total_amount,
+                created_at
+            `)
             .order(
                 "created_at",
                 {
-                    ascending:
-                        false
+                    ascending: false
                 }
             )
-            .limit(
-                10
-            );
+            .limit(10);
+
+    const container =
+        el("invoiceList");
 
     if (error) {
 
-        console.error(
-            "Fehler beim Laden der Rechnungen:",
-            error
-        );
+        console.error(error);
 
-        invoiceList.innerHTML =
-            `
-                <div class="no-data">
-                    Rechnungen konnten nicht geladen werden.
-                </div>
-            `;
+        container.innerHTML =
+            "Rechnungen konnten nicht geladen werden.";
 
         return;
     }
 
-    const invoices =
-        Array.isArray(data)
-            ? data
-            : [];
-
-    invoiceList.innerHTML =
-        "";
-
-    if (
-        invoices.length ===
-        0
-    ) {
-
-        invoiceList.innerHTML =
-            `
-                <div class="no-data">
-                    Noch keine Rechnungen vorhanden.
-                </div>
-            `;
-
-        return;
-    }
-
-    invoices.forEach(
-        function (invoice) {
-
-            const row =
-                document.createElement(
-                    "div"
-                );
-
-            row.className =
-                "record-row";
-
-            row.innerHTML = `
-                <div>
-
-                    <strong>
-                        🧾 ${escapeHtml(
-                            invoice.invoice_number ||
-                            "Ohne Nummer"
-                        )}
-                    </strong>
-
-                    <small>
-                        ${escapeHtml(
-                            getContextLabel(
-                                invoice.context
-                            )
-                        )}
-                        ·
-                        ${escapeHtml(
-                            formatEventDate(
-                                invoice.invoice_date
-                            )
-                        )}
-                    </small>
-
-                    <small>
-                        ${escapeHtml(
-                            invoice.supplier ||
-                            "Kein Laden"
-                        )}
-                        ·
-                        ${formatPrice(
-                            Number(
-                                invoice.total_amount ||
-                                0
-                            )
-                        )}
-                    </small>
-
-                </div>
-
-                <span class="record-type">
-                    Rechnung
-                </span>
-            `;
-
-            invoiceList.appendChild(
-                row
-            );
-        }
-    );
-}
-
-
-// ------------------------------------------------------------
-// REALTIME
-// ------------------------------------------------------------
-
-function subscribeToInvoicesRealtime() {
-
-    if (
-        invoicesRealtimeChannel
-    ) {
-
-        supabaseClient.removeChannel(
-            invoicesRealtimeChannel
-        );
-
-        invoicesRealtimeChannel =
-            null;
-    }
-
-    invoicesRealtimeChannel =
-        supabaseClient
-            .channel(
-                "invoices-realtime"
-            )
-            .on(
-                "postgres_changes",
-                {
-                    event:
-                        "*",
-
-                    schema:
-                        "public",
-
-                    table:
-                        "invoices"
-                },
-                async function () {
-
-                    if (
-                        isCurrentTeacher()
-                    ) {
-
-                        await renderInvoiceList();
-
-                        await updateInvoiceNumberPreview();
-                    }
-                }
-            )
-            .subscribe();
-}
-
-
-// ------------------------------------------------------------
-// DATE
-// ------------------------------------------------------------
-
-if (invoiceDateInput) {
-
-    invoiceDateInput.addEventListener(
-        "change",
-        function () {
-
-            updateInvoiceNumberPreview();
-        }
-    );
-}
-
-
-// ------------------------------------------------------------
-// ZURÜCK
-// ------------------------------------------------------------
-
-on(
-    "inventoryInvoicesBackButton",
-    "click",
-    function () {
-
-        showScreen(
-            adminScreen
-        );
-    }
-);
-
-// ============================================================
-// REPORTS
-// ============================================================
-
-on(
-    "reportsBackButton",
-    "click",
-    function () {
-
-        showScreen(
-            homeScreen
-        );
-    }
-);
-
-
-periodTabs.forEach(
-    function (
-        tab
-    ) {
-
-        tab.addEventListener(
-            "click",
-            function () {
-
-                currentReportPeriod =
-                    tab.dataset.period;
-
-                updatePeriodTabs();
-
-                renderReport();
-            }
-        );
-    }
-);
-
-
-function updatePeriodTabs() {
-
-    periodTabs.forEach(
-        function (
-            tab
-        ) {
-
-            tab.classList.toggle(
-                "active",
-                tab.dataset.period ===
-                currentReportPeriod
-            );
-        }
-    );
-}
-
-
-function renderReport() {
-
-    if (
-        !isCurrentTeacher()
-    ) {
-
-        return;
-    }
-
-    const filteredSales =
-        getSalesForPeriod(
-            currentReportPeriod
-        );
-
-    const revenue =
-        filteredSales.reduce(
-            function (
-                sum,
-                sale
-            ) {
-
-                return (
-                    sum +
-                    Number(
-                        sale.total ||
-                        0
-                    )
-                );
-            },
-            0
-        );
-
-    let drinks =
-        0;
-
-    let bakery =
-        0;
-
-    const summary =
-        {};
-
-    filteredSales.forEach(
-        function (
-            sale
-        ) {
-
-            (
-                sale.items ||
-                []
-            ).forEach(
-                function (
-                    item
-                ) {
-
-                    const quantity =
-                        Number(
-                            item.quantity ||
-                            0
-                        );
-
-                    if (
-                        item.category ===
-                        "drink"
-                    ) {
-
-                        drinks +=
-                            quantity;
-                    }
-
-                    if (
-                        item.category ===
-                        "bakery"
-                    ) {
-
-                        bakery +=
-                            quantity;
-                    }
-
-                    if (
-                        !summary[
-                            item.id
-                        ]
-                    ) {
-
-                        summary[
-                            item.id
-                        ] =
-                            {
-
-                                name:
-                                    item.name,
-
-                                quantity:
-                                    0,
-
-                                revenue:
-                                    0
-                            };
-                    }
-
-                    summary[
-                        item.id
-                    ].quantity +=
-                        quantity;
-
-                    summary[
-                        item.id
-                    ].revenue +=
-                        Number(
-                            item.price
-                        ) *
-                        quantity;
-                }
-            );
-        }
-    );
-
-    setText(
-        "reportRevenue",
-        formatPrice(
-            revenue
-        )
-    );
-
-    setText(
-        "reportTransactions",
-        filteredSales.length
-    );
-
-    setText(
-        "reportDrinks",
-        drinks
-    );
-
-    setText(
-        "reportBakery",
-        bakery
-    );
-
-    setText(
-        "reportDateLabel",
-        getReportLabel(
-            currentReportPeriod
-        )
-    );
-
-    renderReportProducts(
-        summary
-    );
-}
-
-
-function renderReportProducts(
-    summary
-) {
-
-    if (
-        !reportProducts
-    ) {
-
-        return;
-    }
-
-    reportProducts.innerHTML =
-        "";
-
-    const rows =
-        Object.values(
-            summary
-        ).sort(
-            function (
-                a,
-                b
-            ) {
-
-                return (
-                    b.quantity -
-                    a.quantity
-                );
-            }
-        );
-
-    if (
-        rows.length ===
-        0
-    ) {
-
-        reportProducts.innerHTML =
-            `
-                <div class="no-data">
-                    Keine Verkäufe in diesem Zeitraum.
-                </div>
-            `;
-
-        return;
-    }
-
-    rows.forEach(
-        function (
-            item
-        ) {
-
-            const row =
-                document.createElement(
-                    "div"
-                );
-
-            row.className =
-                "report-product-row";
-
-            row.innerHTML = `
-
-                <span class="report-product-name">
-                    ${escapeHtml(
-                        item.name
-                    )}
-                </span>
-
-                <span class="report-product-quantity">
-                    ${item.quantity} Stück
-                </span>
-
-                <span class="report-product-revenue">
-                    ${formatPrice(
-                        item.revenue
-                    )}
-                </span>
-
-            `;
-
-            reportProducts.appendChild(
-                row
-            );
-        }
-    );
-}
-
-
-function getSalesForPeriod(
-    period
-) {
-
-    const now =
-        new Date();
-
-    return sales.filter(
-        function (
-            sale
-        ) {
-
-            const date =
-                new Date(
-                    sale.date
-                );
-
-            if (
-                period ===
-                "day"
-            ) {
-
-                return isSameDay(
-                    date,
-                    now
-                );
-            }
-
-            if (
-                period ===
-                "week"
-            ) {
-
-                return isSameWeek(
-                    date,
-                    now
-                );
-            }
-
-            if (
-                period ===
-                "month"
-            ) {
-
-                return (
-                    date.getFullYear() ===
-                    now.getFullYear() &&
-                    date.getMonth() ===
-                    now.getMonth()
-                );
-            }
-
-            return false;
-        }
-    );
-}
-
-
-function isSameDay(
-    a,
-    b
-) {
-
-    return (
-        a.getFullYear() ===
-        b.getFullYear() &&
-        a.getMonth() ===
-        b.getMonth() &&
-        a.getDate() ===
-        b.getDate()
-    );
-}
-
-
-function isSameWeek(
-    date,
-    reference
-) {
-
-    const start =
-        getMonday(
-            reference
-        );
-
-    const end =
-        new Date(
-            start
-        );
-
-    end.setDate(
-        start.getDate() +
-        7
-    );
-
-    return (
-        date >=
-        start &&
-        date <
-        end
-    );
-}
-
-
-function getMonday(
-    date
-) {
-
-    const result =
-        new Date(
-            date.getFullYear(),
-            date.getMonth(),
-            date.getDate()
-        );
-
-    const day =
-        result.getDay();
-
-    const difference =
-        day ===
-        0
-            ? -6
-            : 1 - day;
-
-    result.setDate(
-        result.getDate() +
-        difference
-    );
-
-    result.setHours(
-        0,
-        0,
-        0,
-        0
-    );
-
-    return result;
-}
-
-
-function getReportLabel(
-    period
-) {
-
-    const now =
-        new Date();
-
-    if (
-        period ===
-        "day"
-    ) {
-
-        return (
-            "Heute · " +
-            now.toLocaleDateString(
-                "de-DE"
-            )
-        );
-    }
-
-    if (
-        period ===
-        "week"
-    ) {
-
-        const monday =
-            getMonday(
-                now
-            );
-
-        const sunday =
-            new Date(
-                monday
-            );
-
-        sunday.setDate(
-            monday.getDate() +
-            6
-        );
-
-        return (
-            "Woche · " +
-            monday.toLocaleDateString(
-                "de-DE"
-            ) +
-            " – " +
-            sunday.toLocaleDateString(
-                "de-DE"
-            )
-        );
-    }
-
-    return (
-        "Monat · " +
-        now.toLocaleDateString(
-            "de-DE",
-            {
-                month:
-                    "long",
-
-                year:
-                    "numeric"
-            }
-        )
-    );
-}
-
-
-on(
-    "exportReportButton",
-    "click",
-    exportReportAsCSV
-);
-
-
-function exportReportAsCSV() {
-
-    if (
-        !isCurrentTeacher()
-    ) {
-
-        return;
-    }
-
-    const filteredSales =
-        getSalesForPeriod(
-            currentReportPeriod
-        );
-
-    const rows = [
-        [
-            "Datum",
-            "Produkt",
-            "Kategorie",
-            "Menge",
-            "Einzelpreis",
-            "Umsatz"
-        ]
-    ];
-
-    filteredSales.forEach(
-        function (
-            sale
-        ) {
-
-            (
-                sale.items ||
-                []
-            ).forEach(
-                function (
-                    item
-                ) {
-
-                    rows.push(
-                        [
-
-                            new Date(
-                                sale.date
-                            )
-                                .toLocaleString(
-                                    "de-DE"
-                                ),
-
-                            item.name,
-
-                            item.category ===
-                            "drink"
-                                ? "Getränk"
-                                : "Bäckerei",
-
-                            item.quantity,
-
-                            Number(
-                                item.price
-                            )
-                                .toFixed(
-                                    2
-                                )
-                                .replace(
-                                    ".",
-                                    ","
-                                ),
-
-                            (
-                                Number(
-                                    item.price
-                                ) *
-                                Number(
-                                    item.quantity
-                                )
-                            )
-                                .toFixed(
-                                    2
-                                )
-                                .replace(
-                                    ".",
-                                    ","
-                                )
-                        ]
-                    );
-                }
-            );
-        }
-    );
-
-    if (
-        rows.length ===
-        1
-    ) {
-
-        alert(
-            "Keine Verkaufsdaten für diesen Zeitraum."
-        );
-
-        return;
-    }
-
-    const csv =
-        rows
-            .map(
-                function (
-                    row
-                ) {
-
-                    return row
-                        .map(
-                            csvEscape
-                        )
-                        .join(
-                            ";"
-                        );
-                }
-            )
-            .join(
-                "\n"
-            );
-
-    const blob =
-        new Blob(
-            [
-                "\uFEFF" +
-                csv
-            ],
-            {
-                type:
-                    "text/csv;charset=utf-8;"
-            }
-        );
-
-    const url =
-        URL.createObjectURL(
-            blob
-        );
-
-    const link =
-        document.createElement(
-            "a"
-        );
-
-    link.href =
-        url;
-
-    link.download =
-        "LauterMacher_" +
-        currentReportPeriod +
-        "_" +
-        getDateForFileName() +
-        ".csv";
-
-    document.body.appendChild(
-        link
-    );
-
-    link.click();
-
-    link.remove();
-
-    URL.revokeObjectURL(
-        url
-    );
-}
-
-
-function csvEscape(
-    value
-) {
-
-    const text =
-        String(
-            value ??
-            ""
-        );
-
-    if (
-        text.includes(";") ||
-        text.includes('"') ||
-        text.includes("\n")
-    ) {
-
-        return (
-            '"' +
-            text.replaceAll(
-                '"',
-                '""'
-            ) +
-            '"'
-        );
-    }
-
-    return text;
-}
-
-
-on(
-    "clearReportsButton",
-    "click",
-    function () {
-
-        if (
-            !isCurrentTeacher()
-        ) {
-
-            return;
-        }
-
-        if (
-            sales.length ===
-            0
-        ) {
-
-            alert(
-                "Es gibt keine Verkaufsdaten."
-            );
-
-            return;
-        }
-
-        const confirmed =
-            confirm(
-                "Möchtest du wirklich ALLE Verkaufsdaten löschen?"
-            );
-
-        if (
-            !confirmed
-        ) {
-
-            return;
-        }
-
-        sales =
-            [];
-
-        saveSales();
-
-        renderReport();
-
-        alert(
-            "Alle Verkaufsdaten wurden gelöscht."
-        );
-    }
-);
-
-
-// ============================================================
-// SONDERVERANSTALTUNGEN
-// ============================================================
-
-on(
-    "eventListBackButton",
-    "click",
-    function () {
-
-        showScreen(
-            homeScreen
-        );
-    }
-);
-
-
-on(
-    "createEventButton",
-    "click",
-    function () {
-
-        if (
-            !isCurrentTeacher()
-        ) {
-
-            return;
-        }
-
-        eventNameInput.value =
-            "";
-
-        eventDateInput.value =
-            getLocalDateKey(
-                new Date()
-            );
-
-        showScreen(
-            eventCreateScreen,
-            eventListScreen
-        );
-    }
-);
-
-
-function renderEventList() {
-
-    if (
-        !eventList
-    ) {
-
-        return;
-    }
-
-    const teacher =
-        isCurrentTeacher();
-
-    const events =
-        loadEvents()
-            .slice()
-            .sort(
-                function (
-                    a,
-                    b
-                ) {
-
-                    return String(
-                        a.event_date
-                    ).localeCompare(
-                        String(
-                            b.event_date
-                        )
-                    );
-                }
-            );
-
-    if (
-        eventListTitle
-    ) {
-
-        eventListTitle.textContent =
-            teacher
-                ? "Veranstaltungen verwalten"
-                : "Veranstaltungen";
-    }
-
-    if (
-        eventListDescription
-    ) {
-
-        eventListDescription.textContent =
-            teacher
-                ? "Erstelle eine Veranstaltung oder öffne eine bestehende."
-                : "Wähle eine Veranstaltung aus.";
-    }
-
-    if (
-        createEventButton
-    ) {
-
-        createEventButton.hidden =
-            !teacher;
-    }
-
-    eventList.innerHTML =
-        "";
-
-    if (
-        events.length ===
-        0
-    ) {
-
-        eventList.innerHTML =
-            `
-                <div class="no-data">
-                    Noch keine Veranstaltungen vorhanden.
-                </div>
-            `;
-
-        return;
-    }
-
-    events.forEach(
-        function (
-            event
-        ) {
-
-            const card =
-                document.createElement(
-                    "div"
-                );
-
-            card.className =
-                "event-list-card";
-
-            card.innerHTML = `
-
-                <div class="event-list-main">
-
-                    <span class="event-list-icon">
-                        🎪
-                    </span>
-
+    container.innerHTML =
+        (data || [])
+            .map(invoice => `
+                <article class="invoice-list-row">
                     <div>
-
                         <strong>
                             ${escapeHtml(
-                                event.name
+                                invoice.invoice_number ||
+                                "—"
                             )}
                         </strong>
 
                         <small>
-                            ${formatEventDate(
-                                event.event_date
+                            ${escapeHtml(
+                                formatDate(
+                                    invoice.invoice_date
+                                )
+                            )}
+                            ·
+                            ${escapeHtml(
+                                invoice.context
                             )}
                         </small>
-
                     </div>
 
-                </div>
+                    <div>
+                        <span>
+                            ${escapeHtml(
+                                invoice.supplier ||
+                                "—"
+                            )}
+                        </span>
 
-                <button
-                    type="button"
-                    class="primary-action small-action event-open-button"
-                    data-event-id="${escapeAttribute(
-                        event.id
-                    )}"
-                >
-                    Öffnen
-                </button>
-            `;
-
-            eventList.appendChild(
-                card
-            );
-        }
-    );
-
-    eventList
-        .querySelectorAll(
-            ".event-open-button"
-        )
-        .forEach(
-            function (
-                button
-            ) {
-
-                button.addEventListener(
-                    "click",
-                    function () {
-
-                        openEvent(
-                            button.dataset.eventId
-                        );
-                    }
-                );
-            }
-        );
+                        <strong>
+                            ${euro(
+                                invoice.total_amount
+                            )}
+                        </strong>
+                    </div>
+                </article>
+            `)
+            .join("");
 }
 
 
-function getEventById(
-    eventId
-) {
+// ============================================================
+// STUDENTS
+// ============================================================
 
-    return loadEvents().find(
-        function (
-            event
-        ) {
+async function openStudents() {
 
-            return (
-                event.id ===
-                eventId
-            );
-        }
-    ) || null;
-}
-
-
-function getCurrentEvent() {
-
-    return getEventById(
-        currentEventId
-    );
-}
-
-
-function updateCurrentEvent(
-    event
-) {
-
-    const events =
-        loadEvents();
-
-    const index =
-        events.findIndex(
-            function (
-                item
-            ) {
-
-                return (
-                    item.id ===
-                    event.id
-                );
-            }
-        );
-
-    if (
-        index ===
-        -1
-    ) {
-
-        events.push(
-            event
-        );
-
-    } else {
-
-        events[
-            index
-        ] =
-            event;
-    }
-
-    saveEvents(
-        events
-    );
-}
-
-
-function openEvent(
-    eventId
-) {
-
-    const event =
-        getEventById(
-            eventId
-        );
-
-    if (
-        !event
-    ) {
-
+    if (!isTeacher()) {
         return;
     }
 
-    currentEventId =
-        eventId;
-
-    if (
-        isCurrentTeacher() &&
-        event.has_start_inventory &&
-        !event.start_setup_completed
-    ) {
-
-        prepareEventStartSetup(
-            event
-        );
-
-        showScreen(
-            eventStartSetupScreen,
-            eventListScreen
-        );
-
-        return;
-    }
-
-    prepareEventProducts(
-        event
-    );
+    await renderStudents();
 
     showScreen(
-        eventProductsScreen,
-        eventListScreen
+        "studentsScreen"
     );
 }
 
+async function loadStudentList() {
 
-// ============================================================
-// EVENT CREATE
-// ============================================================
+    /*
+     * get_login_people() gibt absichtlich keine PIN-Hashes zurück.
+     * Das ist auch für die Schülerverwaltung die sichere Quelle.
+     */
 
-on(
-    "eventCreateBackButton",
-    "click",
-    function () {
-
-        showScreen(
-            eventListScreen
+    const {
+        data,
+        error
+    } =
+        await supabaseClient.rpc(
+            "get_login_people"
         );
-    }
-);
 
-
-on(
-    "eventStartInventoryYesButton",
-    "click",
-    function () {
-
-        createEvent(
-            true
-        );
-    }
-);
-
-
-on(
-    "eventStartInventoryNoButton",
-    "click",
-    function () {
-
-        createEvent(
-            false
-        );
-    }
-);
-
-
-function createEvent(
-    hasStartInventory
-) {
-
-    if (
-        !isCurrentTeacher()
-    ) {
-
-        return;
+    if (error) {
+        throw error;
     }
 
-    const name =
-        eventNameInput.value.trim();
-
-    const date =
-        eventDateInput.value;
-
-    if (
-        !name
-    ) {
-
-        alert(
-            "Bitte einen Namen für die Veranstaltung eingeben."
+    return (data || [])
+        .filter(
+            person =>
+                person.person_type ===
+                "schüler"
         );
-
-        return;
-    }
-
-    if (
-        !date
-    ) {
-
-        alert(
-            "Bitte ein Datum auswählen."
-        );
-
-        return;
-    }
-
-    const events =
-        loadEvents();
-
-    const event = {
-
-        id:
-            createId(
-                "event"
-            ),
-
-        name:
-            name,
-
-        event_date:
-            date,
-
-        has_start_inventory:
-            hasStartInventory,
-
-        start_inventory:
-            [],
-
-        start_setup_completed:
-            !hasStartInventory,
-
-        invoices:
-            [],
-
-        products:
-            [],
-
-        sales:
-            [],
-
-        end_inventory:
-            [],
-
-        end_inventory_completed:
-            false,
-
-        status:
-            "offen",
-
-        created_at:
-            new Date().toISOString(),
-
-        created_by:
-            currentPerson
-                ? currentPerson.id
-                : null
-    };
-
-    events.push(
-        event
-    );
-
-    saveEvents(
-        events
-    );
-
-    currentEventId =
-        event.id;
-
-    if (
-        hasStartInventory
-    ) {
-
-        prepareEventStartSetup(
-            event
-        );
-
-        showScreen(
-            eventStartSetupScreen,
-            eventListScreen
-        );
-
-    } else {
-
-        prepareEventProducts(
-            event
-        );
-
-        showScreen(
-            eventProductsScreen,
-            eventListScreen
-        );
-    }
 }
 
+async function renderStudents() {
 
-// ============================================================
-// EVENT START INVENTORY
-// ============================================================
+    const container =
+        el("studentsList");
 
-function prepareEventStartSetup(
-    event
-) {
+    try {
 
-    if (
-        eventStartSetupTitle
-    ) {
+        const students =
+            await loadStudentList();
 
-        eventStartSetupTitle.textContent =
-            "Anfangsbestand · " +
-            event.name;
-    }
+        container.innerHTML = "";
 
-    eventStartInventoryRows =
-        Array.isArray(
-            event.start_inventory
-        )
-            ? event.start_inventory.map(
-                function (
-                    item
-                ) {
-
-                    return {
-                        ...item
-                    };
-                }
-            )
-            : [];
-
-    eventSetupInvoices =
-        Array.isArray(
-            event.invoices
-        )
-            ? event.invoices.map(
-                function (
-                    item
-                ) {
-
-                    return {
-                        ...item
-                    };
-                }
-            )
-            : [];
-
-    renderEventStartInventory();
-
-    renderEventSetupInvoices();
-
-    setDefaultDates();
-}
-
-
-function renderEventStartInventory() {
-
-    if (
-        !eventStartInventoryList
-    ) {
-
-        return;
-    }
-
-    eventStartInventoryList.innerHTML =
-        "";
-
-    if (
-        eventStartInventoryRows.length ===
-        0
-    ) {
-
-        eventStartInventoryList.innerHTML =
-            `
-                <div class="no-data">
-                    Noch kein Produkt hinzugefügt.
-                </div>
-            `;
-
-        return;
-    }
-
-    eventStartInventoryRows.forEach(
-        function (
-            item,
-            index
-        ) {
+        students.forEach(student => {
 
             const row =
                 document.createElement(
-                    "div"
+                    "article"
                 );
 
             row.className =
-                "event-inventory-editor-row";
-
-            row.innerHTML = `
-
-                <input
-                    type="text"
-                    class="event-stock-name"
-                    value="${escapeAttribute(
-                        item.product_name ||
-                        ""
-                    )}"
-                    placeholder="Produkt"
-                    data-index="${index}"
-                >
-
-                <input
-                    type="number"
-                    class="event-stock-quantity"
-                    value="${Number(
-                        item.quantity ||
-                        0
-                    )}"
-                    min="0"
-                    step="1"
-                    inputmode="numeric"
-                    placeholder="Menge"
-                    data-index="${index}"
-                >
-
-                <button
-                    type="button"
-                    class="icon-action delete event-remove-stock"
-                    data-index="${index}"
-                >
-                    🗑️
-                </button>
-            `;
-
-            eventStartInventoryList.appendChild(
-                row
-            );
-        }
-    );
-
-    eventStartInventoryList
-        .querySelectorAll(
-            ".event-stock-name"
-        )
-        .forEach(
-            function (
-                input
-            ) {
-
-                input.addEventListener(
-                    "input",
-                    function () {
-
-                        const index =
-                            Number(
-                                input.dataset.index
-                            );
-
-                        eventStartInventoryRows[
-                            index
-                        ].product_name =
-                            input.value;
-                    }
-                );
-            }
-        );
-
-    eventStartInventoryList
-        .querySelectorAll(
-            ".event-stock-quantity"
-        )
-        .forEach(
-            function (
-                input
-            ) {
-
-                input.addEventListener(
-                    "input",
-                    function () {
-
-                        const index =
-                            Number(
-                                input.dataset.index
-                            );
-
-                        eventStartInventoryRows[
-                            index
-                        ].quantity =
-                            Number(
-                                input.value ||
-                                0
-                            );
-                    }
-                );
-            }
-        );
-
-    eventStartInventoryList
-        .querySelectorAll(
-            ".event-remove-stock"
-        )
-        .forEach(
-            function (
-                button
-            ) {
-
-                button.addEventListener(
-                    "click",
-                    function () {
-
-                        const index =
-                            Number(
-                                button.dataset.index
-                            );
-
-                        eventStartInventoryRows.splice(
-                            index,
-                            1
-                        );
-
-                        renderEventStartInventory();
-                    }
-                );
-            }
-        );
-}
-
-
-on(
-    "addEventStartStockButton",
-    "click",
-    function () {
-
-        eventStartInventoryRows.push(
-            {
-                product_name:
-                    "",
-
-                quantity:
-                    0
-            }
-        );
-
-        renderEventStartInventory();
-    }
-);
-
-
-function renderEventSetupInvoices() {
-
-    if (
-        !eventInvoiceList
-    ) {
-
-        return;
-    }
-
-    eventInvoiceList.innerHTML =
-        "";
-
-    if (
-        eventSetupInvoices.length ===
-        0
-    ) {
-
-        eventInvoiceList.innerHTML =
-            `
-                <div class="no-data">
-                    Noch keine Rechnung hinzugefügt.
-                </div>
-            `;
-
-        return;
-    }
-
-    eventSetupInvoices.forEach(
-        function (
-            invoice,
-            index
-        ) {
-
-            const row =
-                document.createElement(
-                    "div"
-                );
-
-            row.className =
-                "record-row";
+                "student-row";
 
             row.innerHTML = `
                 <div>
-
                     <strong>
-                        🧾 ${escapeHtml(
-                            invoice.product
+                        ${escapeHtml(
+                            personName(student)
                         )}
                     </strong>
-
-                    <small>
-                        ${escapeHtml(
-                            invoice.date
-                        )}
-                        ·
-                        ${invoice.quantity}
-                        Stück
-                        ·
-                        ${formatPrice(
-                            invoice.amount
-                        )}
-                    </small>
-
-                    <small>
-                        ${escapeHtml(
-                            invoice.supplier ||
-                            ""
-                        )}
-                    </small>
-
                 </div>
 
-                <button
-                    type="button"
-                    class="icon-action delete event-remove-invoice"
-                    data-index="${index}"
-                >
-                    🗑️
-                </button>
+                <div class="button-row">
+                    <button
+                        type="button"
+                        class="secondary-action"
+                        data-edit
+                    >
+                        Bearbeiten
+                    </button>
+
+                    <button
+                        type="button"
+                        class="danger-action"
+                        data-delete
+                    >
+                        Löschen
+                    </button>
+                </div>
             `;
 
-            eventInvoiceList.appendChild(
-                row
-            );
-        }
-    );
-
-    eventInvoiceList
-        .querySelectorAll(
-            ".event-remove-invoice"
-        )
-        .forEach(
-            function (
-                button
-            ) {
-
-                button.addEventListener(
+            row.querySelector(
+                "[data-edit]"
+            )
+                .addEventListener(
                     "click",
-                    function () {
+                    () =>
+                        openStudentModal(
+                            student
+                        )
+                );
 
-                        eventSetupInvoices.splice(
-                            Number(
-                                button.dataset.index
-                            ),
-                            1
+            row.querySelector(
+                "[data-delete]"
+            )
+                .addEventListener(
+                    "click",
+                    () => {
+
+                        openConfirm(
+                            "Schüler löschen",
+                            `${personName(student)} wirklich deaktivieren?`,
+                            async () => {
+
+                                const {
+                                    error
+                                } =
+                                    await supabaseClient.rpc(
+                                        "teacher_deactivate_student",
+                                        {
+                                            p_student_id:
+                                                student.id
+                                        }
+                                    );
+
+                                if (error) {
+                                    throw error;
+                                }
+
+                                await renderStudents();
+
+                                showToast(
+                                    "Schüler deaktiviert.",
+                                    "success"
+                                );
+                            }
                         );
-
-                        renderEventSetupInvoices();
                     }
                 );
-            }
-        );
+
+            container.appendChild(row);
+        });
+
+    } catch (error) {
+
+        container.innerHTML = `
+            <div class="empty-state">
+                ${escapeHtml(
+                    errorMessage(error)
+                )}
+            </div>
+        `;
+    }
 }
 
-
-on(
-    "addEventInvoiceButton",
-    "click",
-    function () {
-
-        const date =
-            eventInvoiceDateInput.value;
-
-        const supplier =
-            eventInvoiceSupplierInput.value.trim();
-
-        const invoiceNumber =
-            eventInvoiceNumberInput.value.trim();
-
-        const product =
-            eventInvoiceProductInput.value.trim();
-
-        const quantity =
-            Number(
-                eventInvoiceQuantityInput.value ||
-                0
-            );
-
-        const amount =
-            Number(
-                eventInvoiceAmountInput.value
-            );
-
-        if (
-            !date ||
-            !product
-        ) {
-
-            alert(
-                "Bitte Datum und Produkt eingeben."
-            );
-
-            return;
-        }
-
-        if (
-            !Number.isInteger(
-                quantity
-            ) ||
-            quantity <
-            0
-        ) {
-
-            alert(
-                "Bitte eine gültige Menge eingeben."
-            );
-
-            return;
-        }
-
-        if (
-            !Number.isFinite(
-                amount
-            ) ||
-            amount <
-            0
-        ) {
-
-            alert(
-                "Bitte gültige Gesamtkosten eingeben."
-            );
-
-            return;
-        }
-
-        eventSetupInvoices.push(
-            {
-
-                id:
-                    Date.now(),
-
-                date:
-                    date,
-
-                supplier:
-                    supplier,
-
-                invoice_number:
-                    invoiceNumber,
-
-                product:
-                    product,
-
-                quantity:
-                    quantity,
-
-                amount:
-                    roundMoney(
-                        amount
-                    )
-            }
-        );
-
-        eventInvoiceSupplierInput.value =
-            "";
-
-        eventInvoiceNumberInput.value =
-            "";
-
-        eventInvoiceProductInput.value =
-            "";
-
-        eventInvoiceQuantityInput.value =
-            "";
-
-        eventInvoiceAmountInput.value =
-            "";
-
-        renderEventSetupInvoices();
-    }
-);
-
-
-on(
-    "eventStartSetupBackButton",
-    "click",
-    function () {
-
-        showScreen(
-            eventListScreen
-        );
-    }
-);
-
-
-on(
-    "eventStartSetupContinueButton",
-    "click",
-    function () {
-
-        const event =
-            getCurrentEvent();
-
-        if (
-            !event
-        ) {
-
-            return;
-        }
-
-        event.start_inventory =
-            eventStartInventoryRows
-                .filter(
-                    function (
-                        item
-                    ) {
-
-                        return (
-                            String(
-                                item.product_name ||
-                                ""
-                            ).trim() !==
-                            ""
-                        );
-                    }
-                )
-                .map(
-                    function (
-                        item
-                    ) {
-
-                        return {
-
-                            product_name:
-                                String(
-                                    item.product_name
-                                ).trim(),
-
-                            quantity:
-                                Number(
-                                    item.quantity ||
-                                    0
-                                )
-                        };
-                    }
-                );
-
-        event.invoices =
-            eventSetupInvoices.map(
-                function (
-                    item
-                ) {
-
-                    return {
-                        ...item
-                    };
-                }
-            );
-
-        event.start_setup_completed =
-            true;
-
-        updateCurrentEvent(
-            event
-        );
-
-        prepareEventProducts(
-            event
-        );
-
-        showScreen(
-            eventProductsScreen
-        );
-    }
-);
-
-
-// ============================================================
-// EVENT PRODUCTS
-// ============================================================
-
-function prepareEventProducts(
-    event
+function openStudentModal(
+    student = null
 ) {
 
-    if (
-        eventProductsTitle
-    ) {
+    state.editingStudent =
+        student;
 
-        eventProductsTitle.textContent =
-            "Produkte & Preise · " +
-            event.name;
-    }
+    setText(
+        "studentModalTitle",
+        student
+            ? "Schüler bearbeiten"
+            : "Schüler hinzufügen"
+    );
 
-    renderEventProducts();
-}
+    el("studentIdInput").value =
+        student?.id || "";
 
+    el("studentFirstNameInput").value =
+        student?.first_name || "";
 
-function renderEventProducts() {
+    el("studentLastNameInput").value =
+        student?.last_name || "";
 
-    if (
-        !eventProductsList
-    ) {
+    /*
+     * get_login_people() liefert student_number
+     * absichtlich nicht. Bei bestehenden Schülern
+     * wird das Feld deshalb leer gelassen.
+     */
+    el("studentNumberInput").value =
+        student?.student_number || "";
 
-        return;
-    }
-
-    const event =
-        getCurrentEvent();
-
-    eventProductsList.innerHTML =
+    el("studentPinInput").value =
         "";
 
-    if (
-        !event
-    ) {
-
-        return;
-    }
-
-    if (
-        !Array.isArray(
-            event.products
-        )
-    ) {
-
-        event.products =
-            [];
-    }
-
-    if (
-        event.products.length ===
-        0
-    ) {
-
-        eventProductsList.innerHTML =
-            `
-                <div class="no-data">
-                    Noch keine Produkte für diese Veranstaltung.
-                </div>
-            `;
-
-        return;
-    }
-
-    event.products.forEach(
-        function (
-            product
-        ) {
-
-            const row =
-                document.createElement(
-                    "div"
-                );
-
-            row.className =
-                "admin-product-row";
-
-            row.innerHTML = `
-
-                <div class="admin-product-icon">
-                    ${escapeHtml(
-                        product.icon
-                    )}
-                </div>
-
-                <div class="admin-product-info">
-
-                    <strong>
-                        ${escapeHtml(
-                            product.name
-                        )}
-                    </strong>
-
-                    <small>
-                        Veranstaltungsprodukt
-                    </small>
-
-                    <div class="admin-product-price">
-                        ${formatPrice(
-                            product.price
-                        )}
-                    </div>
-
-                </div>
-
-                <div class="admin-product-actions">
-
-                    <button
-                        type="button"
-                        class="icon-action event-edit-product"
-                        data-product-id="${escapeAttribute(
-                            product.id
-                        )}"
-                    >
-                        ✏️
-                    </button>
-
-                    <button
-                        type="button"
-                        class="icon-action delete event-delete-product"
-                        data-product-id="${escapeAttribute(
-                            product.id
-                        )}"
-                    >
-                        🗑️
-                    </button>
-
-                </div>
-            `;
-
-            eventProductsList.appendChild(
-                row
-            );
-        }
+    setText(
+        "studentPinHint",
+        student
+            ? "Leer lassen = PIN behalten"
+            : "4 Ziffern"
     );
 
-    eventProductsList
-        .querySelectorAll(
-            ".event-edit-product"
-        )
-        .forEach(
-            function (
-                button
-            ) {
+    setText(
+        "studentFormMessage",
+        ""
+    );
 
-                button.addEventListener(
-                    "click",
-                    function () {
-
-                        openEventProductModal(
-                            button.dataset.productId
-                        );
-                    }
-                );
-            }
-        );
-
-    eventProductsList
-        .querySelectorAll(
-            ".event-delete-product"
-        )
-        .forEach(
-            function (
-                button
-            ) {
-
-                button.addEventListener(
-                    "click",
-                    function () {
-
-                        const event =
-                            getCurrentEvent();
-
-                        if (
-                            !event
-                        ) {
-
-                            return;
-                        }
-
-                        const product =
-                            event.products.find(
-                                function (
-                                    item
-                                ) {
-
-                                    return (
-                                        item.id ===
-                                        button.dataset.productId
-                                    );
-                                }
-                            );
-
-                        if (
-                            !product
-                        ) {
-
-                            return;
-                        }
-
-                        if (
-                            confirm(
-                                "Produkt „" +
-                                product.name +
-                                "“ wirklich löschen?"
-                            )
-                        ) {
-
-                            event.products =
-                                event.products.filter(
-                                    function (
-                                        item
-                                    ) {
-
-                                        return (
-                                            item.id !==
-                                            product.id
-                                        );
-                                    }
-                                );
-
-                            updateCurrentEvent(
-                                event
-                            );
-
-                            renderEventProducts();
-                        }
-                    }
-                );
-            }
-        );
-}
-
-
-on(
-    "addEventProductButton",
-    "click",
-    function () {
-
-        openEventProductModal();
-    }
-);
-
-
-function openEventProductModal(
-    productId = null
-) {
-
-    const event =
-        getCurrentEvent();
-
-    if (
-        !eventProductModal ||
-        !event
-    ) {
-
-        return;
-    }
-
-    eventProductEditingId =
-        productId;
-
-    if (
-        productId
-    ) {
-
-        const product =
-            event.products.find(
-                function (
-                    item
-                ) {
-
-                    return (
-                        item.id ===
-                        productId
-                    );
-                }
-            );
-
-        if (
-            !product
-        ) {
-
-            return;
-        }
-
-        eventProductModalTitle.textContent =
-            "Produkt bearbeiten";
-
-        eventProductNameInput.value =
-            product.name;
-
-        eventProductPriceInput.value =
-            Number(
-                product.price
-            ).toFixed(
-                2
-            );
-
-        eventProductIconInput.value =
-            product.icon;
-
-    } else {
-
-        eventProductModalTitle.textContent =
-            "Produkt hinzufügen";
-
-        eventProductNameInput.value =
-            "";
-
-        eventProductPriceInput.value =
-            "";
-
-        eventProductIconInput.value =
-            "🎪";
-    }
-
-    eventProductModal.style.display =
-        "flex";
-
-    eventProductModal.setAttribute(
-        "aria-hidden",
-        "false"
+    setHidden(
+        "studentModal",
+        false
     );
 }
 
+function closeStudentModal() {
 
-function closeEventProductModal() {
-
-    if (
-        !eventProductModal
-    ) {
-
-        return;
-    }
-
-    eventProductModal.style.display =
-        "none";
-
-    eventProductModal.setAttribute(
-        "aria-hidden",
-        "true"
+    setHidden(
+        "studentModal",
+        true
     );
 
-    eventProductEditingId =
+    state.editingStudent =
         null;
 }
 
+async function saveStudent(
+    event
+) {
 
-on(
-    "closeEventProductModalButton",
-    "click",
-    closeEventProductModal
-);
+    event.preventDefault();
 
+    if (!isTeacher()) {
+        return;
+    }
 
-on(
-    "cancelEventProductButton",
-    "click",
-    closeEventProductModal
-);
+    const firstName =
+        el("studentFirstNameInput")
+            .value
+            .trim();
 
+    const lastName =
+        el("studentLastNameInput")
+            .value
+            .trim();
 
-on(
-    "saveEventProductButton",
-    "click",
-    function () {
+    const studentNumber =
+        el("studentNumberInput")
+            .value
+            .trim();
 
-        const event =
-            getCurrentEvent();
+    const pin =
+        el("studentPinInput")
+            .value
+            .trim();
 
-        if (
-            !event
-        ) {
+    if (!firstName) {
 
-            return;
-        }
+        setText(
+            "studentFormMessage",
+            "Bitte einen Vornamen eingeben."
+        );
 
-        const name =
-            eventProductNameInput.value.trim();
+        return;
+    }
 
-        const price =
-            Number(
-                eventProductPriceInput.value
-            );
+    if (
+        (
+            !state.editingStudent &&
+            !/^[0-9]{4}$/.test(pin)
+        ) ||
+        (
+            state.editingStudent &&
+            pin &&
+            !/^[0-9]{4}$/.test(pin)
+        )
+    ) {
 
-        const icon =
-            eventProductIconInput.value.trim() ||
-            "🎪";
+        setText(
+            "studentFormMessage",
+            "Der PIN muss aus genau 4 Ziffern bestehen."
+        );
 
-        if (
-            !name
-        ) {
+        return;
+    }
 
-            alert(
-                "Bitte einen Produktnamen eingeben."
-            );
+    try {
 
-            return;
-        }
+        if (state.editingStudent) {
 
-        if (
-            !Number.isFinite(
-                price
-            ) ||
-            price <
-            0
-        ) {
+            const {
+                error
+            } =
+                await supabaseClient.rpc(
+                    "teacher_update_student",
+                    {
+                        p_student_id:
+                            state.editingStudent.id,
 
-            alert(
-                "Bitte einen gültigen Preis eingeben."
-            );
+                        p_first_name:
+                            firstName,
 
-            return;
-        }
+                        p_last_name:
+                            lastName,
 
-        if (
-            eventProductEditingId
-        ) {
+                        p_pin:
+                            pin || null,
 
-            const product =
-                event.products.find(
-                    function (
-                        item
-                    ) {
-
-                        return (
-                            item.id ===
-                            eventProductEditingId
-                        );
+                        p_student_number:
+                            studentNumber
                     }
                 );
 
-            if (
-                !product
-            ) {
-
-                return;
+            if (error) {
+                throw error;
             }
-
-            product.name =
-                name;
-
-            product.price =
-                roundMoney(
-                    price
-                );
-
-            product.icon =
-                icon;
 
         } else {
 
-            event.products.push(
-                {
+            const {
+                error
+            } =
+                await supabaseClient.rpc(
+                    "teacher_create_student",
+                    {
+                        p_first_name:
+                            firstName,
 
-                    id:
-                        createId(
-                            "event-product"
-                        ),
+                        p_last_name:
+                            lastName,
 
-                    name:
-                        name,
+                        p_pin:
+                            pin,
 
-                    price:
-                        roundMoney(
-                            price
-                        ),
+                        p_student_number:
+                            studentNumber
+                    }
+                );
 
-                    icon:
-                        icon
-                }
-            );
+            if (error) {
+                throw error;
+            }
         }
 
-        updateCurrentEvent(
-            event
+        closeStudentModal();
+
+        await renderStudents();
+
+        showToast(
+            "Schüler gespeichert.",
+            "success"
         );
 
-        closeEventProductModal();
+    } catch (error) {
 
-        renderEventProducts();
-    }
-);
-
-
-on(
-    "eventProductsBackButton",
-    "click",
-    function () {
-
-        showScreen(
-            eventListScreen
+        setText(
+            "studentFormMessage",
+            errorMessage(error)
         );
     }
-);
-
-
-on(
-    "eventProductsContinueButton",
-    "click",
-    function () {
-
-        const event =
-            getCurrentEvent();
-
-        if (
-            !event
-        ) {
-
-            return;
-        }
-
-        if (
-            !event.products ||
-            event.products.length ===
-            0
-        ) {
-
-            alert(
-                "Bitte mindestens ein Produkt anlegen."
-            );
-
-            return;
-        }
-
-        renderEventWorkspace();
-
-        showScreen(
-            eventWorkspaceScreen
-        );
-    }
-);
-
-
-// ============================================================
-// EVENT WORKSPACE
-// ============================================================
-
-function renderEventWorkspace() {
-
-    const event =
-        getCurrentEvent();
-
-    if (
-        !event
-    ) {
-
-        return;
-    }
-
-    setText(
-        "eventWorkspaceName",
-        event.name
-    );
-
-    setText(
-        "eventWorkspaceDate",
-        formatEventDate(
-            event.event_date
-        )
-    );
-
-    setHidden(
-        "eventWorkspaceStudentOptions",
-        isCurrentTeacher()
-    );
-
-    setHidden(
-        "eventWorkspaceTeacherOptions",
-        !isCurrentTeacher()
-    );
 }
 
 
-on(
-    "studentEventCashButton",
-    "click",
-    function () {
-
-        openEventCash(
-            false
-        );
-    }
-);
-
-
-on(
-    "studentEventOutputButton",
-    "click",
-    function () {
-
-        openEventOutput(
-            false
-        );
-    }
-);
-
-
-on(
-    "teacherEventCashButton",
-    "click",
-    function () {
-
-        openEventCash(
-            true
-        );
-    }
-);
-
-
-on(
-    "teacherEventOutputButton",
-    "click",
-    function () {
-
-        openEventOutput(
-            true
-        );
-    }
-);
-
-
-on(
-    "teacherEventEndInventoryButton",
-    "click",
-    function () {
-
-        openEventEndInventory();
-    }
-);
-
-
-on(
-    "eventWorkspaceBackButton",
-    "click",
-    function () {
-
-        showScreen(
-            eventListScreen
-        );
-    }
-);
-
-
 // ============================================================
-// EVENT CASH
+// EVENTS LIST
 // ============================================================
 
-function openEventCash(
-    testMode
-) {
+function renderEvents() {
 
-    const event =
-        getCurrentEvent();
+    const upcoming =
+        el("upcomingEventsList");
+
+    const past =
+        el("pastEventsList");
 
     if (
-        !event
+        !upcoming ||
+        !past
     ) {
-
         return;
     }
 
-    currentEventSaleTestMode =
-        Boolean(
-            testMode
-        );
+    const today =
+        localDateKey();
 
-    eventSaleCart =
-        [];
+    const current =
+        state.events
+            .filter(
+                event =>
+                    event.status !==
+                    "abgeschlossen"
+            )
+            .sort(
+                (a, b) =>
+                    String(a.event_date)
+                        .localeCompare(
+                            String(b.event_date)
+                        )
+            );
 
-    setText(
-        "eventCashTitle",
-        testMode
-            ? "Kasse · Testumgebung"
-            : "Kasse"
-    );
+    const completed =
+        state.events
+            .filter(
+                event =>
+                    event.status ===
+                    "abgeschlossen" ||
+                    (
+                        event.event_date <
+                        today &&
+                        event.event_type ===
+                        "other"
+                    )
+            )
+            .sort(
+                (a, b) =>
+                    String(b.event_date)
+                        .localeCompare(
+                            String(a.event_date)
+                        )
+            )
+            .slice(0, 5);
 
-    setText(
-        "eventCashProductHeading",
-        event.name
-    );
+    upcoming.innerHTML = "";
+    past.innerHTML = "";
 
-    renderEventCashProducts();
-
-    updateEventCart();
-
-    showScreen(
-        eventCashScreen,
-        eventWorkspaceScreen
-    );
-}
-
-
-function renderEventCashProducts() {
-
-    if (
-        !eventCashProductsGrid
-    ) {
-
-        return;
-    }
-
-    const event =
-        getCurrentEvent();
-
-    eventCashProductsGrid.innerHTML =
-        "";
-
-    if (
-        !event ||
-        !Array.isArray(
-            event.products
-        )
-    ) {
-
-        return;
-    }
-
-    event.products.forEach(
-        function (
-            product
-        ) {
+    const createCard =
+        event => {
 
             const button =
                 document.createElement(
                     "button"
                 );
 
-            button.type =
-                "button";
-
+            button.type = "button";
             button.className =
-                "product-card";
+                "event-list-card";
 
             button.innerHTML = `
-                <span class="product-icon">
-                    ${escapeHtml(
-                        product.icon
-                    )}
+                <span class="event-list-icon">
+                    ${
+                        event.event_type ===
+                        "food"
+                            ? "🍔"
+                            : "🎟️"
+                    }
                 </span>
 
-                <span class="product-name">
-                    ${escapeHtml(
-                        product.name
-                    )}
+                <span class="event-list-main">
+                    <strong>
+                        ${escapeHtml(event.name)}
+                    </strong>
+
+                    <small>
+                        ${formatDate(
+                            event.event_date
+                        )}
+                        ·
+                        ${
+                            event.event_type ===
+                            "food"
+                                ? "Food"
+                                : "Anderes"
+                        }
+                    </small>
                 </span>
 
-                <span class="product-price">
-                    ${formatPrice(
-                        product.price
-                    )}
-                </span>
+                <span>›</span>
             `;
 
             button.addEventListener(
                 "click",
-                function () {
-
-                    addEventProductToCart(
-                        product
-                    );
-                }
+                () =>
+                    openEventWorkspace(
+                        event.id
+                    )
             );
 
-            eventCashProductsGrid.appendChild(
-                button
-            );
-        }
+            return button;
+        };
+
+    current.forEach(
+        event =>
+            upcoming.appendChild(
+                createCard(event)
+            )
+    );
+
+    completed.forEach(
+        event =>
+            past.appendChild(
+                createCard(event)
+            )
+    );
+
+    if (!current.length) {
+
+        upcoming.innerHTML = `
+            <div class="empty-state">
+                Keine aktuellen Veranstaltungen.
+            </div>
+        `;
+    }
+
+    if (!completed.length) {
+
+        past.innerHTML = `
+            <div class="empty-state">
+                Noch keine abgeschlossenen Veranstaltungen.
+            </div>
+        `;
+    }
+}
+
+async function openEvents() {
+
+    await loadEvents();
+
+    renderEvents();
+
+    showScreen(
+        "eventsScreen"
     );
 }
 
 
-function addEventProductToCart(
-    product
+// ============================================================
+// EVENT CREATION
+// ============================================================
+
+function openEventCreate(
+    type
 ) {
 
-    const existing =
-        eventSaleCart.find(
-            function (
-                item
-            ) {
+    if (!isTeacher()) {
+        return;
+    }
 
-                return (
-                    item.id ===
-                    product.id
-                );
-            }
-        );
+    el("eventCreateTypeInput").value =
+        type;
+
+    el("eventNameInput").value =
+        "";
+
+    el("eventDateInput").value =
+        localDateKey();
+
+    el("eventDescriptionInput").value =
+        "";
+
+    el("eventDirectRevenueInput").value =
+        "";
+
+    el("eventStartInventoryInput").checked =
+        false;
+
+    setText(
+        "eventCreateTitle",
+        type === "food"
+            ? "🍔 Food-Veranstaltung"
+            : "🎟️ Andere Veranstaltung"
+    );
+
+    setHidden(
+        "eventDirectRevenueField",
+        type !== "other"
+    );
+
+    setHidden(
+        "eventStartInventoryField",
+        type !== "food"
+    );
+
+    setText(
+        "eventCreateMessage",
+        ""
+    );
+
+    showScreen(
+        "eventCreateScreen"
+    );
+}
+
+async function saveEvent(
+    event
+) {
+
+    event.preventDefault();
+
+    if (!isTeacher()) {
+        return;
+    }
+
+    const type =
+        el("eventCreateTypeInput")
+            .value;
+
+    const name =
+        el("eventNameInput")
+            .value
+            .trim();
+
+    const date =
+        el("eventDateInput")
+            .value;
+
+    const description =
+        el("eventDescriptionInput")
+            .value
+            .trim();
+
+    const directRevenue =
+        type === "other"
+            ? parseMoney(
+                el("eventDirectRevenueInput")
+                    .value
+            )
+            : null;
+
+    const wantsStartInventory =
+        type === "food" &&
+        el("eventStartInventoryInput")
+            .checked;
 
     if (
-        existing
+        !name ||
+        !date
     ) {
 
-        existing.quantity +=
-            1;
+        setText(
+            "eventCreateMessage",
+            "Bitte Name und Datum eingeben."
+        );
+
+        return;
+    }
+
+    if (
+        type === "other" &&
+        (
+            !Number.isFinite(
+                directRevenue
+            ) ||
+            directRevenue < 0
+        )
+    ) {
+
+        setText(
+            "eventCreateMessage",
+            "Bitte einen gültigen Umsatz eingeben."
+        );
+
+        return;
+    }
+
+    try {
+
+        const {
+            data,
+            error
+        } =
+            await supabaseClient.rpc(
+                "create_special_event",
+                {
+                    p_name:
+                        name,
+
+                    p_event_date:
+                        date,
+
+                    p_event_type:
+                        type,
+
+                    p_description:
+                        description || null,
+
+                    p_direct_revenue:
+                        directRevenue
+                }
+            );
+
+        if (error) {
+            throw error;
+        }
+
+        await loadEvents();
+
+        state.currentEvent =
+            data;
+
+        if (wantsStartInventory) {
+
+            /*
+             * LM_V1_01 enthält noch keine RPC,
+             * mit der eine Startinventur geschrieben
+             * werden kann. Deshalb wird hier bewusst
+             * KEIN unsicherer Direkt-Write erfunden.
+             */
+            showToast(
+                "Veranstaltung erstellt. Die Startinventur wird mit LM_V1_02 ergänzt.",
+                "info"
+            );
+
+        } else {
+
+            showToast(
+                "Veranstaltung erstellt.",
+                "success"
+            );
+        }
+
+        await openEventWorkspace(
+            data.id
+        );
+
+    } catch (error) {
+
+        setText(
+            "eventCreateMessage",
+            errorMessage(error)
+        );
+    }
+}
+
+
+// ============================================================
+// EVENT WORKSPACE
+// ============================================================
+
+async function openEventWorkspace(
+    eventId
+) {
+
+    const event =
+        state.events.find(
+            row =>
+                row.id === eventId
+        );
+
+    if (!event) {
+
+        await loadEvents();
+
+        state.currentEvent =
+            state.events.find(
+                row =>
+                    row.id === eventId
+            ) || null;
 
     } else {
 
-        eventSaleCart.push(
-            {
-
-                id:
-                    product.id,
-
-                name:
-                    product.name,
-
-                price:
-                    Number(
-                        product.price
-                    ),
-
-                quantity:
-                    1
-            }
-        );
+        state.currentEvent =
+            event;
     }
 
-    updateEventCart();
-}
+    if (!state.currentEvent) {
 
-
-function updateEventCart() {
-
-    if (
-        !eventCartItems ||
-        !eventCartTotal ||
-        !eventPayButton
-    ) {
+        showToast(
+            "Veranstaltung wurde nicht gefunden.",
+            "error"
+        );
 
         return;
     }
 
-    eventCartItems.innerHTML =
-        "";
+    const current =
+        state.currentEvent;
 
-    if (
-        eventSaleCart.length ===
-        0
-    ) {
-
-        eventCartItems.innerHTML =
-            `
-                <div class="empty-cart">
-                    Noch keine Produkte ausgewählt.
-                </div>
-            `;
-
-        eventCartTotal.textContent =
-            "0,00 €";
-
-        eventPayButton.disabled =
-            true;
-
-        return;
-    }
-
-    eventSaleCart.forEach(
-        function (
-            item,
-            index
-        ) {
-
-            const row =
-                document.createElement(
-                    "div"
-                );
-
-            row.className =
-                "cart-item";
-
-            row.innerHTML = `
-
-                <div class="cart-product-info">
-
-                    <span class="cart-product-name">
-                        ${escapeHtml(
-                            item.name
-                        )}
-                    </span>
-
-                    <span class="cart-product-price">
-                        ${formatPrice(
-                            item.price *
-                            item.quantity
-                        )}
-                    </span>
-
-                </div>
-
-                <div class="cart-controls">
-
-                    <button
-                        type="button"
-                        class="cart-control event-minus"
-                        data-index="${index}"
-                    >
-                        −
-                    </button>
-
-                    <span class="cart-quantity">
-                        ${item.quantity}
-                    </span>
-
-                    <button
-                        type="button"
-                        class="cart-control event-plus"
-                        data-index="${index}"
-                    >
-                        +
-                    </button>
-
-                </div>
-            `;
-
-            eventCartItems.appendChild(
-                row
-            );
-        }
+    setText(
+        "eventWorkspaceName",
+        current.name
     );
 
-    eventCartTotal.textContent =
-        formatPrice(
-            calculateEventCartTotal()
-        );
-
-    eventPayButton.disabled =
-        false;
-
-    eventCartItems
-        .querySelectorAll(
-            ".event-minus"
+    setText(
+        "eventWorkspaceDate",
+        formatDate(
+            current.event_date
         )
-        .forEach(
-            function (
-                button
-            ) {
-
-                button.addEventListener(
-                    "click",
-                    function () {
-
-                        const index =
-                            Number(
-                                button.dataset.index
-                            );
-
-                        if (
-                            !eventSaleCart[
-                                index
-                            ]
-                        ) {
-
-                            return;
-                        }
-
-                        eventSaleCart[
-                            index
-                        ].quantity -=
-                            1;
-
-                        if (
-                            eventSaleCart[
-                                index
-                            ].quantity <=
-                            0
-                        ) {
-
-                            eventSaleCart.splice(
-                                index,
-                                1
-                            );
-                        }
-
-                        updateEventCart();
-                    }
-                );
-            }
-        );
-
-    eventCartItems
-        .querySelectorAll(
-            ".event-plus"
-        )
-        .forEach(
-            function (
-                button
-            ) {
-
-                button.addEventListener(
-                    "click",
-                    function () {
-
-                        const index =
-                            Number(
-                                button.dataset.index
-                            );
-
-                        if (
-                            !eventSaleCart[
-                                index
-                            ]
-                        ) {
-
-                            return;
-                        }
-
-                        eventSaleCart[
-                            index
-                        ].quantity +=
-                            1;
-
-                        updateEventCart();
-                    }
-                );
-            }
-        );
-}
-
-
-function calculateEventCartTotal() {
-
-    return eventSaleCart.reduce(
-        function (
-            sum,
-            item
-        ) {
-
-            return (
-                sum +
-                Number(
-                    item.price
-                ) *
-                Number(
-                    item.quantity
-                )
-            );
-
-        },
-        0
     );
-}
 
-
-on(
-    "eventCashBackButton",
-    "click",
-    function () {
-
-        eventSaleCart =
-            [];
-
-        showScreen(
-            eventWorkspaceScreen
-        );
-    }
-);
-
-
-on(
-    "eventPayButton",
-    "click",
-    function () {
-
-        if (
-            eventSaleCart.length ===
-            0
-        ) {
-
-            return;
-        }
-
-        const event =
-            getCurrentEvent();
-
-        if (
-            !event
-        ) {
-
-            return;
-        }
-
-        const total =
-            calculateEventCartTotal();
-
-        const amountInput =
-            window.prompt(
-                "Kunde gibt (Euro, z. B. 10,00):"
-            );
-
-        if (
-            amountInput ===
-            null
-        ) {
-
-            return;
-        }
-
-        const received =
-            parseGermanNumber(
-                amountInput
-            );
-
-        if (
-            !Number.isFinite(
-                received
-            ) ||
-            received <
-            total
-        ) {
-
-            alert(
-                "Der eingegebene Betrag reicht nicht aus."
-            );
-
-            return;
-        }
-
-        const change =
-            received -
-            total;
-
-        if (
-            !currentEventSaleTestMode
-        ) {
-
-            if (
-                !Array.isArray(
-                    event.sales
-                )
-            ) {
-
-                event.sales =
-                    [];
-            }
-
-            event.sales.push(
-                {
-
-                    id:
-                        Date.now(),
-
-                    date:
-                        new Date().toISOString(),
-
-                    total:
-                        roundMoney(
-                            total
-                        ),
-
-                    received:
-                        roundMoney(
-                            received
-                        ),
-
-                    change:
-                        roundMoney(
-                            change
-                        ),
-
-                    items:
-                        eventSaleCart.map(
-                            function (
-                                item
-                            ) {
-
-                                return {
-
-                                    id:
-                                        item.id,
-
-                                    name:
-                                        item.name,
-
-                                    price:
-                                        Number(
-                                            item.price
-                                        ),
-
-                                    quantity:
-                                        Number(
-                                            item.quantity
-                                        )
-                                };
-                            }
-                        )
+    setHTML(
+        "eventWorkspaceInfo",
+        `
+            <strong>
+                ${
+                    current.event_type ===
+                    "food"
+                        ? "🍔 Food"
+                        : "🎟️ Anderes"
                 }
-            );
+            </strong>
 
-            updateCurrentEvent(
-                event
-            );
-        }
+            ${
+                current.description
+                    ? `<p>${escapeHtml(
+                        current.description
+                    )}</p>`
+                    : ""
+            }
 
-        setText(
-            "successTitle",
-            "Zahlung erfolgreich!"
+            <small>
+                Status:
+                ${escapeHtml(
+                    current.status || "offen"
+                )}
+            </small>
+        `
+    );
+
+    const food =
+        current.event_type ===
+        "food";
+
+    setHidden(
+        "foodEventWorkspace",
+        !food
+    );
+
+    setHidden(
+        "otherEventWorkspace",
+        food
+    );
+
+    if (food) {
+
+        state.eventTestMode =
+            isTeacher();
+
+        setHidden(
+            "eventCashierTestBadge",
+            !state.eventTestMode
+        );
+
+        setHidden(
+            "eventOutputTestBadge",
+            !state.eventTestMode
         );
 
         setText(
-            "successDescription",
-            currentEventSaleTestMode
-                ? "Veranstaltung · Testumgebung"
-                : "Veranstaltung · Verkauf gespeichert."
+            "eventCashierDescription",
+            state.eventTestMode
+                ? "Testumgebung – keine Speicherung"
+                : "Bestellungen aufnehmen"
         );
 
         setText(
-            "successChange",
-            formatPrice(
-                change
+            "eventOutputDescription",
+            state.eventTestMode
+                ? "Testumgebung – keine Speicherung"
+                : "Bestellungen ausgeben"
+        );
+
+        await loadCurrentEventProducts();
+
+    } else {
+
+        setText(
+            "otherEventRevenueDisplay",
+            euro(
+                current.direct_revenue ||
+                0
             )
         );
 
-        currentSuccessContext =
-            "event";
-
-        showScreen(
-            successScreen
+        setHidden(
+            "editOtherEventRevenueButton",
+            !isTeacher()
         );
     }
-);
+
+    showScreen(
+        "eventWorkspaceScreen"
+    );
+}
 
 
-on(
-    "eventCashShiftEndButton",
-    "click",
-    function () {
+// ============================================================
+// EVENT PRODUCTS
+// ============================================================
 
-        endEventShift();
+async function loadCurrentEventProducts() {
+
+    if (!state.currentEvent) {
+        return;
     }
-);
+
+    const {
+        data,
+        error
+    } =
+        await supabaseClient
+            .from("event_products")
+            .select("*")
+            .eq(
+                "event_id",
+                state.currentEvent.id
+            )
+            .order("name");
+
+    if (error) {
+        throw error;
+    }
+
+    state.currentEventProducts =
+        data || [];
+
+    renderEventProducts();
+}
+
+async function openEventProducts() {
+
+    if (!state.currentEvent) {
+        return;
+    }
+
+    await loadCurrentEventProducts();
+
+    const select =
+        el(
+            "globalProductForEventSelect"
+        );
+
+    select.innerHTML = "";
+
+    activeProducts()
+        .forEach(product => {
+
+            const option =
+                document.createElement(
+                    "option"
+                );
+
+            option.value =
+                product.id;
+
+            option.textContent =
+                `${product.icon || "📦"} ${product.name} – ${euro(product.price)}`;
+
+            select.appendChild(option);
+        });
+
+    showScreen(
+        "eventProductsScreen"
+    );
+}
+
+function renderEventProducts() {
+
+    const container =
+        el("eventProductsList");
+
+    if (!container) {
+        return;
+    }
+
+    container.innerHTML =
+        state.currentEventProducts.length
+            ? ""
+            : `
+                <div class="empty-state">
+                    Noch keine Produkte hinzugefügt.
+                </div>
+            `;
+
+    state.currentEventProducts
+        .forEach(product => {
+
+            const row =
+                document.createElement(
+                    "article"
+                );
+
+            row.className =
+                "product-admin-row";
+
+            row.innerHTML = `
+                <div class="product-admin-main">
+                    <span class="product-admin-icon">
+                        ${escapeHtml(
+                            product.icon || "🎪"
+                        )}
+                    </span>
+
+                    <div>
+                        <strong>
+                            ${escapeHtml(product.name)}
+                        </strong>
+
+                        <small>
+                            ${euro(product.price)}
+                        </small>
+                    </div>
+                </div>
+
+                <button
+                    type="button"
+                    class="secondary-action"
+                >
+                    Bearbeiten
+                </button>
+            `;
+
+            row.querySelector("button")
+                .addEventListener(
+                    "click",
+                    () =>
+                        openEventProductModal(
+                            product
+                        )
+                );
+
+            container.appendChild(row);
+        });
+}
+
+async function addGlobalProductToEvent() {
+
+    if (!state.currentEvent) {
+        return;
+    }
+
+    const productId =
+        el(
+            "globalProductForEventSelect"
+        ).value;
+
+    if (!productId) {
+        return;
+    }
+
+    const product =
+        state.products.find(
+            row =>
+                row.id === productId
+        );
+
+    try {
+
+        const {
+            error
+        } =
+            await supabaseClient.rpc(
+                "upsert_event_product",
+                {
+                    p_event_id:
+                        state.currentEvent.id,
+
+                    p_event_product_id:
+                        null,
+
+                    p_product_id:
+                        productId,
+
+                    p_name:
+                        null,
+
+                    p_price:
+                        null,
+
+                    p_icon:
+                        product?.icon ||
+                        "🎪"
+                }
+            );
+
+        if (error) {
+            throw error;
+        }
+
+        await loadCurrentEventProducts();
+
+        showToast(
+            "Produkt hinzugefügt.",
+            "success"
+        );
+
+    } catch (error) {
+
+        showToast(
+            errorMessage(error),
+            "error"
+        );
+    }
+}
+
+function openEventProductModal(
+    product = null
+) {
+
+    state.editingEventProduct =
+        product;
+
+    setText(
+        "eventProductModalTitle",
+        product
+            ? "Veranstaltungsprodukt bearbeiten"
+            : "Eigenes Produkt"
+    );
+
+    el("eventProductIdInput").value =
+        product?.id || "";
+
+    el("eventProductNameInput").value =
+        product?.name || "";
+
+    el("eventProductPriceInput").value =
+        product
+            ? Number(product.price)
+                .toFixed(2)
+                .replace(".", ",")
+            : "";
+
+    el("eventProductIconInput").value =
+        product?.icon || "🎪";
+
+    setText(
+        "eventProductFormMessage",
+        ""
+    );
+
+    setHidden(
+        "eventProductModal",
+        false
+    );
+}
+
+function closeEventProductModal() {
+
+    setHidden(
+        "eventProductModal",
+        true
+    );
+
+    state.editingEventProduct =
+        null;
+}
+
+async function saveEventProduct(
+    event
+) {
+
+    event.preventDefault();
+
+    if (!state.currentEvent) {
+        return;
+    }
+
+    const name =
+        el("eventProductNameInput")
+            .value
+            .trim();
+
+    const price =
+        parseMoney(
+            el("eventProductPriceInput")
+                .value
+        );
+
+    const icon =
+        el("eventProductIconInput")
+            .value
+            .trim() ||
+        "🎪";
+
+    if (
+        !name ||
+        !Number.isFinite(price) ||
+        price < 0
+    ) {
+
+        setText(
+            "eventProductFormMessage",
+            "Bitte Name und gültigen Preis eingeben."
+        );
+
+        return;
+    }
+
+    try {
+
+        const existing =
+            state.editingEventProduct;
+
+        const {
+            error
+        } =
+            await supabaseClient.rpc(
+                "upsert_event_product",
+                {
+                    p_event_id:
+                        state.currentEvent.id,
+
+                    p_event_product_id:
+                        existing?.id ||
+                        null,
+
+                    p_product_id:
+                        existing?.product_id ||
+                        null,
+
+                    p_name:
+                        name,
+
+                    p_price:
+                        price,
+
+                    p_icon:
+                        icon
+                }
+            );
+
+        if (error) {
+            throw error;
+        }
+
+        closeEventProductModal();
+
+        await loadCurrentEventProducts();
+
+        showToast(
+            "Veranstaltungsprodukt gespeichert.",
+            "success"
+        );
+
+    } catch (error) {
+
+        setText(
+            "eventProductFormMessage",
+            errorMessage(error)
+        );
+    }
+}
+
+
+// ============================================================
+// EVENT SALE
+// ============================================================
+
+function renderEventSale() {
+
+    renderProductGrid(
+        "eventSaleProductGrid",
+        state.currentEventProducts,
+        state.eventCart,
+        renderEventSale
+    );
+
+    renderCart(
+        "eventCartItems",
+        "eventCartTotal",
+        "eventPayButton",
+        state.eventCart,
+        state.currentEventProducts,
+        renderEventSale
+    );
+
+    setHidden(
+        "eventSaleTestBanner",
+        !state.eventTestMode
+    );
+
+    setText(
+        "eventSaleTitle",
+        `🎪 ${state.currentEvent?.name || ""} – Kasse`
+    );
+}
+
+async function openEventSale() {
+
+    if (!state.currentEvent) {
+        return;
+    }
+
+    await loadCurrentEventProducts();
+
+    state.eventCart.clear();
+    state.eventPaymentCents = "";
+    state.eventTestMode =
+        isTeacher();
+
+    renderEventSale();
+
+    showScreen(
+        "eventSaleScreen"
+    );
+}
+
+async function completeEventSale() {
+
+    if (!state.currentEvent) {
+        return;
+    }
+
+    const total =
+        productCartTotal(
+            state.eventCart,
+            state.currentEventProducts
+        );
+
+    const payment =
+        paymentAmount(
+            state.eventPaymentCents
+        );
+
+    const change =
+        payment - total;
+
+    const button =
+        el("eventPaidButton");
+
+    button.disabled = true;
+
+    try {
+
+        let orderNumber;
+
+        if (!state.eventTestMode) {
+
+            const {
+                data,
+                error
+            } =
+                await supabaseClient.rpc(
+                    "create_event_sale_order",
+                    {
+                        p_event_id:
+                            state.currentEvent.id,
+
+                        p_items:
+                            cartPayload(
+                                state.eventCart,
+                                "event_product_id"
+                            ),
+
+                        p_payment_amount:
+                            payment
+                    }
+                );
+
+            if (error) {
+                throw error;
+            }
+
+            orderNumber =
+                data.order_number;
+
+        } else {
+
+            orderNumber =
+                randomTestOrderNumber(
+                    state.eventTestOrders
+                );
+
+            state.eventTestOrders.push({
+                id:
+                    crypto.randomUUID(),
+
+                event_id:
+                    state.currentEvent.id,
+
+                order_number:
+                    orderNumber,
+
+                status:
+                    "offen",
+
+                created_at:
+                    new Date().toISOString(),
+
+                items:
+                    cartPayload(
+                        state.eventCart,
+                        "event_product_id"
+                    ).map(item => {
+
+                        const product =
+                            state.currentEventProducts
+                                .find(
+                                    p =>
+                                        p.id ===
+                                        item.event_product_id
+                                );
+
+                        return {
+                            product_name:
+                                product?.name ||
+                                "",
+                            quantity:
+                                item.quantity
+                        };
+                    })
+            });
+        }
+
+        setText(
+            "eventSuccessOrderNumber",
+            String(orderNumber)
+                .padStart(3, "0")
+        );
+
+        setText(
+            "eventSuccessChange",
+            euro(change)
+        );
+
+        state.eventCart.clear();
+        state.eventPaymentCents = "";
+
+        showScreen(
+            "eventSuccessScreen"
+        );
+
+    } catch (error) {
+
+        showToast(
+            errorMessage(error),
+            "error"
+        );
+
+    } finally {
+
+        button.disabled = false;
+    }
+}
 
 
 // ============================================================
 // EVENT OUTPUT
 // ============================================================
 
-function openEventOutput(
-    testMode
-) {
+async function renderEventOutput() {
+
+    if (!state.currentEvent) {
+        return;
+    }
+
+    setHidden(
+        "eventOutputTestBanner",
+        !state.eventTestMode
+    );
+
+    let orders = [];
+
+    if (state.eventTestMode) {
+
+        orders =
+            state.eventTestOrders
+                .filter(
+                    order =>
+                        order.event_id ===
+                            state.currentEvent.id &&
+                        order.status ===
+                            "offen"
+                );
+
+    } else {
+
+        const {
+            data,
+            error
+        } =
+            await supabaseClient
+                .from("event_orders")
+                .select(`
+                    id,
+                    event_id,
+                    order_number,
+                    status,
+                    created_at,
+                    event_order_items (
+                        id,
+                        product_name,
+                        quantity
+                    )
+                `)
+                .eq(
+                    "event_id",
+                    state.currentEvent.id
+                )
+                .eq(
+                    "is_test",
+                    false
+                )
+                .eq(
+                    "status",
+                    "offen"
+                )
+                .order(
+                    "created_at",
+                    {
+                        ascending: true
+                    }
+                );
+
+        if (error) {
+            throw error;
+        }
+
+        orders =
+            (data || [])
+                .map(order => ({
+                    ...order,
+                    items:
+                        order.event_order_items ||
+                        []
+                }));
+    }
 
     setText(
-        "eventOutputTitle",
-        testMode
-            ? "Ausgabe · Testumgebung"
-            : "Ausgabe"
+        "eventOpenOrderCount",
+        orders.length
     );
 
-    renderEventOutput();
+    setHidden(
+        "eventOutputEmpty",
+        orders.length > 0
+    );
+
+    const container =
+        el("eventOutputOrders");
+
+    container.innerHTML = "";
+
+    orders.forEach(order => {
+
+        const card =
+            document.createElement(
+                "article"
+            );
+
+        card.className =
+            "output-order-card";
+
+        card.innerHTML = `
+            <div class="output-order-number">
+                ${String(
+                    order.order_number
+                ).padStart(3, "0")}
+            </div>
+
+            <div class="output-order-items">
+                ${(order.items || [])
+                    .map(
+                        item => `
+                            <div>
+                                <strong>
+                                    ${item.quantity}×
+                                </strong>
+
+                                ${escapeHtml(
+                                    item.product_name
+                                )}
+                            </div>
+                        `
+                    )
+                    .join("")}
+            </div>
+
+            <button
+                class="primary-action full-width-button"
+                type="button"
+            >
+                ✓ Ausgegeben
+            </button>
+        `;
+
+        card.querySelector("button")
+            .addEventListener(
+                "click",
+                async () => {
+
+                    try {
+
+                        if (
+                            state.eventTestMode
+                        ) {
+
+                            const test =
+                                state.eventTestOrders
+                                    .find(
+                                        row =>
+                                            row.id ===
+                                            order.id
+                                    );
+
+                            if (test) {
+                                test.status =
+                                    "ausgegeben";
+                            }
+
+                        } else {
+
+                            const {
+                                error
+                            } =
+                                await supabaseClient.rpc(
+                                    "serve_event_order",
+                                    {
+                                        p_order_id:
+                                            order.id
+                                    }
+                                );
+
+                            if (error) {
+                                throw error;
+                            }
+                        }
+
+                        await renderEventOutput();
+
+                    } catch (error) {
+
+                        showToast(
+                            errorMessage(error),
+                            "error"
+                        );
+                    }
+                }
+            );
+
+        container.appendChild(card);
+    });
+}
+
+async function openEventOutput() {
+
+    state.eventTestMode =
+        isTeacher();
+
+    await renderEventOutput();
 
     showScreen(
-        eventOutputScreen,
-        eventWorkspaceScreen
-    );
-}
-
-
-function renderEventOutput() {
-
-    if (
-        !eventOutputOrders
-    ) {
-
-        return;
-    }
-
-    const event =
-        getCurrentEvent();
-
-    eventOutputOrders.innerHTML =
-        "";
-
-    if (
-        !event ||
-        !Array.isArray(
-            event.sales
-        ) ||
-        event.sales.length ===
-        0
-    ) {
-
-        eventOutputOrders.innerHTML =
-            `
-                <div class="no-data">
-                    Noch keine bezahlten Bestellungen vorhanden.
-                </div>
-            `;
-
-        return;
-    }
-
-    event.sales
-        .slice()
-        .reverse()
-        .forEach(
-            function (
-                sale,
-                index
-            ) {
-
-                const row =
-                    document.createElement(
-                        "div"
-                    );
-
-                row.className =
-                    "event-order-card";
-
-                row.innerHTML = `
-                    <div>
-
-                        <strong>
-                            Bestellung ${
-                                event.sales.length -
-                                index
-                            }
-                        </strong>
-
-                        <small>
-                            ${formatPrice(
-                                sale.total
-                            )}
-                        </small>
-
-                        <small>
-                            ${
-                                (
-                                    sale.items ||
-                                    []
-                                )
-                                    .map(
-                                        function (
-                                            item
-                                        ) {
-
-                                            return (
-                                                escapeHtml(
-                                                    item.name
-                                                ) +
-                                                " × " +
-                                                item.quantity
-                                            );
-                                        }
-                                    )
-                                    .join(
-                                        " · "
-                                    )
-                            }
-                        </small>
-
-                    </div>
-
-                    <span class="event-order-status">
-                        Bezahlt
-                    </span>
-                `;
-
-                eventOutputOrders.appendChild(
-                    row
-                );
-            }
-        );
-}
-
-
-on(
-    "eventOutputBackButton",
-    "click",
-    function () {
-
-        showScreen(
-            eventWorkspaceScreen
-        );
-    }
-);
-
-
-on(
-    "eventOutputShiftEndButton",
-    "click",
-    function () {
-
-        endEventShift();
-    }
-);
-
-
-function endEventShift() {
-
-    const event =
-        getCurrentEvent();
-
-    if (
-        !event
-    ) {
-
-        return;
-    }
-
-    const eventSales =
-        Array.isArray(
-            event.sales
-        )
-            ? event.sales
-            : [];
-
-    const count =
-        eventSales.length;
-
-    const revenue =
-        eventSales.reduce(
-            function (
-                sum,
-                sale
-            ) {
-
-                return (
-                    sum +
-                    Number(
-                        sale.total ||
-                        0
-                    )
-                );
-            },
-            0
-        );
-
-    const text =
-        isCurrentTeacher()
-            ? "Testumgebung: Ihr habt " +
-                count +
-                " Verkäufe gemacht und " +
-                formatPrice(
-                    revenue
-                ) +
-                " Umsatz erzielt."
-            : "Ihr habt " +
-                count +
-                " Verkäufe gemacht und " +
-                formatPrice(
-                    revenue
-                ) +
-                " Umsatz erzielt.";
-
-    showSiteMessage(
-        "🎉",
-        "Well done heute, Team! 🎉",
-        text,
-        isCurrentTeacher()
-            ? "Zur Veranstaltung"
-            : "Weiter zur Endinventur",
-        function () {
-
-            if (
-                isCurrentTeacher()
-            ) {
-
-                showScreen(
-                    eventWorkspaceScreen
-                );
-
-            } else {
-
-                openEventEndInventory();
-            }
-        }
+        "eventOutputScreen"
     );
 }
 
@@ -9015,813 +5542,2469 @@ function endEventShift() {
 // EVENT END INVENTORY
 // ============================================================
 
-function openEventEndInventory() {
+async function openEventEndInventory() {
 
-    const event =
-        getCurrentEvent();
-
-    if (
-        !event
-    ) {
-
+    if (!state.currentEvent) {
         return;
     }
 
-    setText(
-        "eventEndInventoryTitle",
-        "Endinventur · " +
-        event.name
-    );
+    await loadCurrentEventProducts();
 
-    renderEventEndInventory();
+    const container =
+        el("eventEndInventoryList");
 
-    showScreen(
-        eventEndInventoryScreen,
-        eventWorkspaceScreen
-    );
-}
+    container.innerHTML = "";
 
+    state.currentEventProducts
+        .forEach(product => {
 
-function renderEventEndInventory() {
-
-    if (
-        !eventEndInventoryList
-    ) {
-
-        return;
-    }
-
-    const event =
-        getCurrentEvent();
-
-    eventEndInventoryList.innerHTML =
-        "";
-
-    if (
-        !event
-    ) {
-
-        return;
-    }
-
-    const rows =
-        [];
-
-    (
-        event.products ||
-        []
-    ).forEach(
-        function (
-            product
-        ) {
-
-            rows.push(
-                {
-
-                    name:
-                        product.name,
-
-                    icon:
-                        product.icon ||
-                        "🎪"
-                }
-            );
-        }
-    );
-
-    (
-        event.start_inventory ||
-        []
-    ).forEach(
-        function (
-            item
-        ) {
-
-            const exists =
-                rows.some(
-                    function (
-                        row
-                    ) {
-
-                        return (
-                            row.name.toLowerCase() ===
-                            String(
-                                item.product_name ||
-                                ""
-                            ).toLowerCase()
-                        );
-                    }
-                );
-
-            if (
-                !exists
-            ) {
-
-                rows.push(
-                    {
-
-                        name:
-                            item.product_name,
-
-                        icon:
-                            "📦"
-                    }
-                );
-            }
-        }
-    );
-
-    if (
-        rows.length ===
-        0
-    ) {
-
-        eventEndInventoryList.innerHTML =
-            `
-                <div class="no-data">
-                    Keine Produkte vorhanden.
-                </div>
-            `;
-
-        return;
-    }
-
-    rows.forEach(
-        function (
-            row
-        ) {
-
-            const previous =
-                (
-                    event.end_inventory ||
-                    []
-                ).find(
-                    function (
-                        item
-                    ) {
-
-                        return (
-                            String(
-                                item.product_name ||
-                                ""
-                            ).toLowerCase() ===
-                            String(
-                                row.name ||
-                                ""
-                            ).toLowerCase()
-                        );
-                    }
-                );
-
-            const card =
+            const row =
                 document.createElement(
-                    "div"
+                    "label"
                 );
 
-            card.className =
+            row.className =
                 "inventory-count-row";
 
-            card.innerHTML = `
-
-                <div class="inventory-count-product">
-
+            row.innerHTML = `
+                <div>
                     <span>
                         ${escapeHtml(
-                            row.icon
+                            product.icon || "🎪"
                         )}
                     </span>
 
-                    <div>
-
-                        <strong>
-                            ${escapeHtml(
-                                row.name
-                            )}
-                        </strong>
-
-                        <small>
-                            gezählter Endbestand
-                        </small>
-
-                    </div>
-
+                    <strong>
+                        ${escapeHtml(product.name)}
+                    </strong>
                 </div>
 
                 <input
-                    class="inventory-count-input event-end-inventory-input"
                     type="number"
                     min="0"
                     step="1"
                     inputmode="numeric"
-                    value="${
-                        previous
-                            ? Number(
-                                previous.quantity ||
-                                0
-                            )
-                            : ""
-                    }"
-                    placeholder="0"
-                    data-product-name="${escapeAttribute(
-                        row.name
+                    data-event-product-id="${escapeHtml(
+                        product.id
                     )}"
+                    placeholder="0"
                 >
             `;
 
-            eventEndInventoryList.appendChild(
-                card
-            );
-        }
+            container.appendChild(row);
+        });
+
+    setText(
+        "eventEndInventoryMessage",
+        ""
+    );
+
+    showScreen(
+        "eventEndInventoryScreen"
     );
 }
 
+async function saveEventEndInventory() {
 
-on(
-    "eventEndInventoryBackButton",
-    "click",
-    function () {
-
-        showScreen(
-            eventWorkspaceScreen
-        );
+    if (!state.currentEvent) {
+        return;
     }
-);
 
+    if (state.eventTestMode) {
 
-on(
-    "saveEventEndInventoryButton",
-    "click",
-    function () {
-
-        const event =
-            getCurrentEvent();
-
-        if (
-            !event ||
-            !eventEndInventoryList
-        ) {
-
-            return;
-        }
-
-        const inputs =
-            eventEndInventoryList.querySelectorAll(
-                ".event-end-inventory-input"
-            );
-
-        const rows =
-            [];
-
-        let invalid =
-            false;
-
-        inputs.forEach(
-            function (
-                input
-            ) {
-
-                if (
-                    input.value.trim() ===
-                    ""
-                ) {
-
-                    return;
-                }
-
-                const quantity =
-                    Number(
-                        input.value
-                    );
-
-                if (
-                    !Number.isInteger(
-                        quantity
-                    ) ||
-                    quantity <
-                    0
-                ) {
-
-                    invalid =
-                        true;
-
-                    return;
-                }
-
-                rows.push(
-                    {
-
-                        product_name:
-                            input.dataset.productName,
-
-                        quantity:
-                            quantity,
-
-                        person_id:
-                            currentPerson
-                                ? currentPerson.id
-                                : null,
-
-                        person_name:
-                            currentPerson
-                                ? getFullName(
-                                    currentPerson
-                                )
-                                : ""
-                    }
-                );
-            }
+        showToast(
+            "In der Testumgebung wird keine Endinventur gespeichert.",
+            "info"
         );
 
-        if (
-            invalid
-        ) {
-
-            alert(
-                "Bitte nur ganze Mengen ab 0 eingeben."
-            );
-
-            return;
-        }
-
-        if (
-            rows.length ===
-            0
-        ) {
-
-            alert(
-                "Bitte mindestens eine Menge eingeben."
-            );
-
-            return;
-        }
-
-        event.end_inventory =
-            rows;
-
-        event.end_inventory_completed =
-            true;
-
-        event.status =
-            "abgeschlossen";
-
-        updateCurrentEvent(
-            event
+        await openEventWorkspace(
+            state.currentEvent.id
         );
-
-        showSiteMessage(
-            "✅",
-            "Endinventur gespeichert",
-            "Die Endinventur wurde gespeichert.",
-            "Weiter",
-            function () {
-
-                currentEventId =
-                    null;
-
-                eventSaleCart =
-                    [];
-
-                showScreen(
-                    homeScreen
-                );
-            }
-        );
-    }
-);
-
-
-// ============================================================
-// SITE POPUP
-// ============================================================
-
-function showSiteMessage(
-    icon,
-    title,
-    text,
-    buttonText,
-    callback
-) {
-
-    if (
-        !siteMessageModal
-    ) {
-
-        if (
-            callback
-        ) {
-
-            callback();
-        }
 
         return;
     }
 
+    const items =
+        all(
+            "#eventEndInventoryList [data-event-product-id]"
+        )
+            .map(input => ({
+                event_product_id:
+                    input.dataset
+                        .eventProductId,
+
+                quantity:
+                    Math.max(
+                        0,
+                        Number(
+                            input.value ||
+                            0
+                        )
+                    )
+            }));
+
+    try {
+
+        const {
+            error
+        } =
+            await supabaseClient.rpc(
+                "submit_event_end_inventory",
+                {
+                    p_event_id:
+                        state.currentEvent.id,
+
+                    p_items:
+                        items
+                }
+            );
+
+        if (error) {
+            throw error;
+        }
+
+        setText(
+            "eventEndInventoryMessage",
+            "Endinventur gespeichert."
+        );
+
+        showToast(
+            "Veranstaltung abgeschlossen.",
+            "success"
+        );
+
+        await loadEvents();
+
+        await openEvents();
+
+    } catch (error) {
+
+        setText(
+            "eventEndInventoryMessage",
+            errorMessage(error)
+        );
+    }
+}
+
+
+// ============================================================
+// OTHER EVENT REVENUE
+// ============================================================
+
+function openOtherEventRevenueModal() {
+
     if (
-        siteMessageIcon
+        !isTeacher() ||
+        !state.currentEvent
+    ) {
+        return;
+    }
+
+    el("otherEventRevenueInput").value =
+        Number(
+            state.currentEvent
+                .direct_revenue ||
+            0
+        )
+            .toFixed(2)
+            .replace(".", ",");
+
+    setText(
+        "otherEventRevenueMessage",
+        ""
+    );
+
+    setHidden(
+        "otherEventRevenueModal",
+        false
+    );
+}
+
+function closeOtherEventRevenueModal() {
+
+    setHidden(
+        "otherEventRevenueModal",
+        true
+    );
+}
+
+async function saveOtherEventRevenue(
+    event
+) {
+
+    event.preventDefault();
+
+    if (
+        !isTeacher() ||
+        !state.currentEvent
+    ) {
+        return;
+    }
+
+    const amount =
+        parseMoney(
+            el(
+                "otherEventRevenueInput"
+            ).value
+        );
+
+    if (
+        !Number.isFinite(amount) ||
+        amount < 0
     ) {
 
-        siteMessageIcon.textContent =
-            icon;
+        setText(
+            "otherEventRevenueMessage",
+            "Bitte einen gültigen Umsatz eingeben."
+        );
+
+        return;
+    }
+
+    try {
+
+        const {
+            error
+        } =
+            await supabaseClient.rpc(
+                "update_other_event_revenue",
+                {
+                    p_event_id:
+                        state.currentEvent.id,
+
+                    p_direct_revenue:
+                        amount
+                }
+            );
+
+        if (error) {
+            throw error;
+        }
+
+        closeOtherEventRevenueModal();
+
+        await loadEvents();
+
+        await openEventWorkspace(
+            state.currentEvent.id
+        );
+
+        showToast(
+            "Umsatz gespeichert.",
+            "success"
+        );
+
+    } catch (error) {
+
+        setText(
+            "otherEventRevenueMessage",
+            errorMessage(error)
+        );
+    }
+}
+
+
+// ============================================================
+// REPORTS
+// ============================================================
+
+function reportRange(
+    period
+) {
+
+    const now =
+        new Date();
+
+    let start =
+        new Date(now);
+
+    let end =
+        new Date(now);
+
+    end.setHours(
+        23,
+        59,
+        59,
+        999
+    );
+
+    if (period === "today") {
+
+        start.setHours(
+            0,
+            0,
+            0,
+            0
+        );
+    }
+
+    if (period === "week") {
+
+        const day =
+            start.getDay() || 7;
+
+        start.setDate(
+            start.getDate() -
+            day +
+            1
+        );
+
+        start.setHours(
+            0,
+            0,
+            0,
+            0
+        );
+    }
+
+    if (period === "month") {
+
+        start =
+            new Date(
+                now.getFullYear(),
+                now.getMonth(),
+                1
+            );
     }
 
     if (
-        siteMessageTitle
+        period ===
+        "schoolyear"
     ) {
 
-        siteMessageTitle.textContent =
-            title;
+        const startYear =
+            now.getMonth() >= 8
+                ? now.getFullYear()
+                : now.getFullYear() - 1;
+
+        start =
+            new Date(
+                startYear,
+                8,
+                1
+            );
+
+        end =
+            new Date(
+                startYear + 1,
+                6,
+                31,
+                23,
+                59,
+                59,
+                999
+            );
     }
 
-    if (
-        siteMessageText
+    return {
+        start,
+        end
+    };
+}
+
+async function loadReportLines(
+    period
+) {
+
+    const {
+        start,
+        end
+    } =
+        reportRange(period);
+
+    const {
+        data,
+        error
+    } =
+        await supabaseClient
+            .from(
+                "report_sales_lines_v1"
+            )
+            .select("*")
+            .gte(
+                "sold_at",
+                start.toISOString()
+            )
+            .lte(
+                "sold_at",
+                end.toISOString()
+            );
+
+    if (error) {
+        throw error;
+    }
+
+    return data || [];
+}
+
+async function loadReportEvents(
+    period
+) {
+
+    const {
+        start,
+        end
+    } =
+        reportRange(period);
+
+    const startKey =
+        localDateKey(start);
+
+    const endKey =
+        localDateKey(end);
+
+    const {
+        data,
+        error
+    } =
+        await supabaseClient
+            .from("events")
+            .select("*")
+            .gte(
+                "event_date",
+                startKey
+            )
+            .lte(
+                "event_date",
+                endKey
+            )
+            .order(
+                "event_date",
+                {
+                    ascending: false
+                }
+            );
+
+    if (error) {
+        throw error;
+    }
+
+    return data || [];
+}
+
+function aggregateReportProducts(
+    lines
+) {
+
+    const map =
+        new Map();
+
+    lines.forEach(line => {
+
+        const key =
+            line.product_id ||
+            `name:${line.product_name}`;
+
+        if (!map.has(key)) {
+
+            map.set(
+                key,
+                {
+                    key,
+                    product_id:
+                        line.product_id,
+
+                    name:
+                        line.product_name,
+
+                    quantity:
+                        0,
+
+                    revenue:
+                        0,
+
+                    profit:
+                        0
+                }
+            );
+        }
+
+        const item =
+            map.get(key);
+
+        item.quantity +=
+            Number(
+                line.quantity || 0
+            );
+
+        item.revenue +=
+            Number(
+                line.revenue || 0
+            );
+
+        item.profit +=
+            Number(
+                line.estimated_profit ||
+                0
+            );
+    });
+
+    return Array.from(
+        map.values()
+    );
+}
+
+async function renderReports() {
+
+    if (!isTeacher()) {
+        return;
+    }
+
+    try {
+
+        setText(
+            "reportCurrentDate",
+            new Intl.DateTimeFormat(
+                "de-DE",
+                {
+                    dateStyle: "full"
+                }
+            ).format(new Date())
+        );
+
+        const [
+            lines,
+            events
+        ] =
+            await Promise.all([
+                loadReportLines(
+                    state.reportPeriod
+                ),
+                loadReportEvents(
+                    state.reportPeriod
+                )
+            ]);
+
+        const otherRevenue =
+            events
+                .filter(
+                    event =>
+                        event.event_type ===
+                        "other"
+                )
+                .reduce(
+                    (sum, event) =>
+                        sum +
+                        Number(
+                            event.direct_revenue ||
+                            0
+                        ),
+                    0
+                );
+
+        const salesRevenue =
+            lines.reduce(
+                (sum, line) =>
+                    sum +
+                    Number(
+                        line.revenue ||
+                        0
+                    ),
+                0
+            );
+
+        const drinksRevenue =
+            lines
+                .filter(
+                    line =>
+                        line.area ===
+                        "getränke"
+                )
+                .reduce(
+                    (sum, line) =>
+                        sum +
+                        Number(
+                            line.revenue ||
+                            0
+                        ),
+                    0
+                );
+
+        const bakeryRevenue =
+            lines
+                .filter(
+                    line =>
+                        line.area ===
+                        "bäckerei"
+                )
+                .reduce(
+                    (sum, line) =>
+                        sum +
+                        Number(
+                            line.revenue ||
+                            0
+                        ),
+                    0
+                );
+
+        /*
+         * Gewinn der Schule:
+         * Bäckerei gehört wirtschaftlich nicht
+         * LauterMacher.
+         */
+        const schoolProfit =
+            lines
+                .filter(
+                    line =>
+                        line.area !==
+                        "bäckerei"
+                )
+                .reduce(
+                    (sum, line) =>
+                        sum +
+                        Number(
+                            line.estimated_profit ||
+                            0
+                        ),
+                    0
+                ) +
+            otherRevenue;
+
+        const orderIds =
+            new Set(
+                lines.map(
+                    line =>
+                        `${line.area}:${line.order_id}`
+                )
+            );
+
+        setText(
+            "reportRevenue",
+            euro(
+                salesRevenue +
+                otherRevenue
+            )
+        );
+
+        setText(
+            "reportProfit",
+            euro(schoolProfit)
+        );
+
+        setText(
+            "reportDrinksRevenue",
+            euro(drinksRevenue)
+        );
+
+        setText(
+            "reportBakeryRevenue",
+            euro(bakeryRevenue)
+        );
+
+        setText(
+            "reportSalesCount",
+            orderIds.size +
+            events.filter(
+                event =>
+                    event.event_type ===
+                    "other" &&
+                    Number(
+                        event.direct_revenue ||
+                        0
+                    ) > 0
+            ).length
+        );
+
+        const products =
+            aggregateReportProducts(
+                lines
+            );
+
+        const top =
+            products
+                .slice()
+                .sort(
+                    (a, b) =>
+                        b.quantity -
+                        a.quantity
+                )[0];
+
+        const labels = {
+            today:
+                "Produkt des Tages",
+            week:
+                "Produkt der Woche",
+            month:
+                "Produkt des Monats",
+            schoolyear:
+                "Produkt des Schuljahres"
+        };
+
+        setText(
+            "reportTopProductLabel",
+            labels[
+                state.reportPeriod
+            ]
+        );
+
+        setText(
+            "reportTopProductName",
+            top?.name || "—"
+        );
+
+        const topProduct =
+            top?.product_id
+                ? state.products.find(
+                    product =>
+                        product.id ===
+                        top.product_id
+                )
+                : null;
+
+        setText(
+            "reportTopProductIcon",
+            topProduct?.icon ||
+            "🏆"
+        );
+
+        renderReportProductTable(
+            products
+        );
+
+        renderReportEvents(
+            events,
+            lines
+        );
+
+        await renderSchoolYearChart();
+
+    } catch (error) {
+
+        showToast(
+            errorMessage(error),
+            "error"
+        );
+    }
+}
+
+function renderReportProductTable(
+    products
+) {
+
+    const sorted =
+        products
+            .slice()
+            .sort(
+                (a, b) =>
+                    Number(
+                        b[
+                            state.reportSort
+                        ] || 0
+                    ) -
+                    Number(
+                        a[
+                            state.reportSort
+                        ] || 0
+                    )
+            );
+
+    setHTML(
+        "reportProductTableBody",
+        sorted
+            .map(item => {
+
+                const stock =
+                    item.product_id
+                        ? state.inventory[
+                            item.product_id
+                        ]
+                        : null;
+
+                return `
+                    <tr>
+                        <td>
+                            ${escapeHtml(
+                                item.name
+                            )}
+                        </td>
+
+                        <td>
+                            ${item.quantity}
+                        </td>
+
+                        <td>
+                            ${
+                                stock ===
+                                undefined ||
+                                stock === null
+                                    ? "—"
+                                    : Number(stock)
+                            }
+                        </td>
+
+                        <td>
+                            ${euro(
+                                item.revenue
+                            )}
+                        </td>
+
+                        <td>
+                            ${euro(
+                                item.profit
+                            )}
+                        </td>
+                    </tr>
+                `;
+            })
+            .join("")
+    );
+}
+
+function renderReportEvents(
+    events,
+    lines
+) {
+
+    const container =
+        el("reportEventsList");
+
+    container.innerHTML =
+        events.length
+            ? events
+                .map(event => {
+
+                    const eventLines =
+                        lines.filter(
+                            line =>
+                                line.event_id ===
+                                event.id
+                        );
+
+                    const revenue =
+                        event.event_type ===
+                        "other"
+                            ? Number(
+                                event.direct_revenue ||
+                                0
+                            )
+                            : eventLines.reduce(
+                                (sum, line) =>
+                                    sum +
+                                    Number(
+                                        line.revenue ||
+                                        0
+                                    ),
+                                0
+                            );
+
+                    const profit =
+                        event.event_type ===
+                        "other"
+                            ? revenue
+                            : eventLines.reduce(
+                                (sum, line) =>
+                                    sum +
+                                    Number(
+                                        line.estimated_profit ||
+                                        0
+                                    ),
+                                0
+                            );
+
+                    return `
+                        <article class="report-event-row">
+                            <div>
+                                <strong>
+                                    ${escapeHtml(
+                                        event.name
+                                    )}
+                                </strong>
+
+                                <small>
+                                    ${formatDate(
+                                        event.event_date
+                                    )}
+                                </small>
+                            </div>
+
+                            <div>
+                                <span>
+                                    Umsatz:
+                                    <strong>
+                                        ${euro(revenue)}
+                                    </strong>
+                                </span>
+
+                                <span>
+                                    Ergebnis:
+                                    <strong>
+                                        ${euro(profit)}
+                                    </strong>
+                                </span>
+                            </div>
+                        </article>
+                    `;
+                })
+                .join("")
+            : `
+                <div class="empty-state">
+                    Keine Veranstaltungen im Zeitraum.
+                </div>
+            `;
+}
+
+async function renderSchoolYearChart() {
+
+    const lines =
+        await loadReportLines(
+            "schoolyear"
+        );
+
+    const {
+        start
+    } =
+        reportRange(
+            "schoolyear"
+        );
+
+    const months = [];
+
+    for (
+        let offset = 0;
+        offset < 11;
+        offset += 1
     ) {
 
-        siteMessageText.textContent =
-            text;
+        const date =
+            new Date(
+                start.getFullYear(),
+                start.getMonth() +
+                    offset,
+                1
+            );
+
+        months.push({
+            year:
+                date.getFullYear(),
+
+            month:
+                date.getMonth(),
+
+            label:
+                new Intl.DateTimeFormat(
+                    "de-DE",
+                    {
+                        month: "short"
+                    }
+                ).format(date),
+
+            profit:
+                0
+        });
     }
 
-    if (
-        siteMessagePrimaryButton
-    ) {
+    lines
+        .filter(
+            line =>
+                line.area !==
+                "bäckerei"
+        )
+        .forEach(line => {
 
-        siteMessagePrimaryButton.textContent =
-            buttonText;
-    }
+            const date =
+                new Date(
+                    line.sold_at
+                );
 
-    siteMessageCallback =
-        callback || null;
+            const month =
+                months.find(
+                    item =>
+                        item.year ===
+                            date.getFullYear() &&
+                        item.month ===
+                            date.getMonth()
+                );
 
-    siteMessageModal.style.display =
-        "flex";
+            if (month) {
 
-    siteMessageModal.setAttribute(
-        "aria-hidden",
-        "false"
+                month.profit +=
+                    Number(
+                        line.estimated_profit ||
+                        0
+                    );
+            }
+        });
+
+    const max =
+        Math.max(
+            1,
+            ...months.map(
+                item =>
+                    Math.abs(
+                        item.profit
+                    )
+            )
+        );
+
+    setHTML(
+        "schoolYearProfitChart",
+        months
+            .map(item => {
+
+                const height =
+                    Math.max(
+                        4,
+                        Math.round(
+                            Math.abs(
+                                item.profit
+                            ) /
+                            max *
+                            100
+                        )
+                    );
+
+                return `
+                    <div class="profit-chart-column">
+                        <strong>
+                            ${euro(
+                                item.profit
+                            )}
+                        </strong>
+
+                        <div class="profit-chart-bar-wrap">
+                            <div
+                                class="profit-chart-bar"
+                                style="height:${height}%"
+                            ></div>
+                        </div>
+
+                        <small>
+                            ${escapeHtml(
+                                item.label
+                            )}
+                        </small>
+                    </div>
+                `;
+            })
+            .join("")
     );
 }
 
 
-on(
-    "siteMessagePrimaryButton",
-    "click",
-    function () {
+// ============================================================
+// EXCEL EXPORT
+// ============================================================
 
-        if (
-            siteMessageModal
-        ) {
+async function ensureXLSX() {
 
-            siteMessageModal.style.display =
-                "none";
+    if (window.XLSX) {
+        return;
+    }
 
-            siteMessageModal.setAttribute(
-                "aria-hidden",
-                "true"
+    await new Promise(
+        (resolve, reject) => {
+
+            const script =
+                document.createElement(
+                    "script"
+                );
+
+            script.src =
+                "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
+
+            script.onload =
+                resolve;
+
+            script.onerror =
+                () =>
+                    reject(
+                        new Error(
+                            "Excel-Bibliothek konnte nicht geladen werden."
+                        )
+                    );
+
+            document.head
+                .appendChild(script);
+        }
+    );
+}
+
+async function exportReportsExcel() {
+
+    if (!isTeacher()) {
+        return;
+    }
+
+    try {
+
+        await ensureXLSX();
+
+        const [
+            lines,
+            events
+        ] =
+            await Promise.all([
+                loadReportLines(
+                    "schoolyear"
+                ),
+                loadReportEvents(
+                    "schoolyear"
+                )
+            ]);
+
+        const products =
+            aggregateReportProducts(
+                lines
+            );
+
+        const workbook =
+            XLSX.utils.book_new();
+
+        const salesSheet =
+            XLSX.utils.json_to_sheet(
+                lines.map(line => ({
+                    Datum:
+                        formatDateTime(
+                            line.sold_at
+                        ),
+
+                    Bereich:
+                        line.area,
+
+                    Veranstaltung:
+                        line.event_id ||
+                        "",
+
+                    Produkt:
+                        line.product_name,
+
+                    Menge:
+                        Number(
+                            line.quantity ||
+                            0
+                        ),
+
+                    Einzelpreis:
+                        Number(
+                            line.unit_price ||
+                            0
+                        ),
+
+                    Umsatz:
+                        Number(
+                            line.revenue ||
+                            0
+                        ),
+
+                    Kosten:
+                        Number(
+                            line.estimated_cost ||
+                            0
+                        ),
+
+                    Gewinn:
+                        Number(
+                            line.estimated_profit ||
+                            0
+                        )
+                }))
+            );
+
+        const productSheet =
+            XLSX.utils.json_to_sheet(
+                products.map(item => ({
+                    Produkt:
+                        item.name,
+
+                    Menge:
+                        item.quantity,
+
+                    Bestand:
+                        item.product_id
+                            ? Number(
+                                state.inventory[
+                                    item.product_id
+                                ] || 0
+                            )
+                            : "",
+
+                    Umsatz:
+                        item.revenue,
+
+                    Gewinn:
+                        item.profit
+                }))
+            );
+
+        const eventSheet =
+            XLSX.utils.json_to_sheet(
+                events.map(event => ({
+                    Name:
+                        event.name,
+
+                    Datum:
+                        event.event_date,
+
+                    Typ:
+                        event.event_type,
+
+                    Status:
+                        event.status,
+
+                    Direkter_Umsatz:
+                        event.direct_revenue ??
+                        "",
+
+                    Notiz:
+                        event.description ||
+                        ""
+                }))
+            );
+
+        const inventorySheet =
+            XLSX.utils.json_to_sheet(
+                activeProducts("getränke")
+                    .map(product => ({
+                        Produkt:
+                            product.name,
+
+                        Bestand:
+                            Number(
+                                state.inventory[
+                                    product.id
+                                ] || 0
+                            ),
+
+                        Verkaufspreis:
+                            Number(
+                                product.price ||
+                                0
+                            ),
+
+                        Letzter_Einkaufspreis:
+                            product.purchase_price ??
+                            ""
+                    }))
+            );
+
+        XLSX.utils.book_append_sheet(
+            workbook,
+            salesSheet,
+            "Verkäufe"
+        );
+
+        XLSX.utils.book_append_sheet(
+            workbook,
+            productSheet,
+            "Produkte"
+        );
+
+        XLSX.utils.book_append_sheet(
+            workbook,
+            inventorySheet,
+            "Inventar"
+        );
+
+        XLSX.utils.book_append_sheet(
+            workbook,
+            eventSheet,
+            "Veranstaltungen"
+        );
+
+        XLSX.writeFile(
+            workbook,
+            `LauterMacher_Bericht_${localDateKey()}.xlsx`
+        );
+
+    } catch (error) {
+
+        showToast(
+            errorMessage(error),
+            "error"
+        );
+    }
+}
+
+
+// ============================================================
+// CONFIRM MODAL
+// ============================================================
+
+function openConfirm(
+    title,
+    message,
+    action
+) {
+
+    setText(
+        "confirmModalTitle",
+        title
+    );
+
+    setText(
+        "confirmModalMessage",
+        message
+    );
+
+    state.confirmAction =
+        action;
+
+    setHidden(
+        "confirmModal",
+        false
+    );
+}
+
+function closeConfirm() {
+
+    setHidden(
+        "confirmModal",
+        true
+    );
+
+    state.confirmAction =
+        null;
+}
+
+
+// ============================================================
+// EVENT LIST / TEST ENVIRONMENT HELPERS
+// ============================================================
+
+function openEventType() {
+
+    if (!isTeacher()) {
+        return;
+    }
+
+    showScreen(
+        "eventTypeScreen"
+    );
+}
+
+
+// ============================================================
+// EVENT / PRODUCT EMOJI PICKERS
+// ============================================================
+
+function setupEmojiPicker(
+    gridId,
+    inputId
+) {
+
+    const grid =
+        el(gridId);
+
+    if (!grid) {
+        return;
+    }
+
+    grid.addEventListener(
+        "click",
+        event => {
+
+            const button =
+                event.target.closest(
+                    "[data-emoji]"
+                );
+
+            if (!button) {
+                return;
+            }
+
+            el(inputId).value =
+                button.dataset.emoji;
+        }
+    );
+}
+
+
+// ============================================================
+// GLOBAL EVENT LISTENERS
+// ============================================================
+
+function bindEvents() {
+
+    // --------------------------------------------------------
+    // LOGIN / HEADER
+    // --------------------------------------------------------
+
+    on(
+        "loginBackButton",
+        "click",
+        () => {
+
+            state.selectedLoginPerson =
+                null;
+
+            showScreen(
+                "identityScreen"
             );
         }
+    );
 
-        const callback =
-            siteMessageCallback;
+    on(
+        "loginConfirmButton",
+        "click",
+        loginWithPin
+    );
 
-        siteMessageCallback =
-            null;
+    on(
+        "loginPinInput",
+        "keydown",
+        event => {
+
+            if (
+                event.key ===
+                "Enter"
+            ) {
+                loginWithPin();
+            }
+        }
+    );
+
+    on(
+        "logoutButton",
+        "click",
+        logout
+    );
+
+    on(
+        "homeLogoButton",
+        "click",
+        goHome
+    );
+
+    on(
+        "notificationButton",
+        "click",
+        async () => {
+
+            const popover =
+                el(
+                    "notificationPopover"
+                );
+
+            const opening =
+                popover.hidden;
+
+            popover.hidden =
+                !opening;
+
+            el("notificationButton")
+                .setAttribute(
+                    "aria-expanded",
+                    opening
+                        ? "true"
+                        : "false"
+                );
+
+            if (opening) {
+                await loadNotifications();
+            }
+        }
+    );
+
+    on(
+        "closeNotificationPopoverButton",
+        "click",
+        closeNotificationPopover
+    );
+
+    on(
+        "showAllNotificationsButton",
+        "click",
+        async () => {
+
+            closeNotificationPopover();
+
+            await loadNotifications();
+
+            showScreen(
+                "notificationsScreen"
+            );
+
+            await markVisibleNotificationsRead();
+        }
+    );
+
+    on(
+        "notificationsBackButton",
+        "click",
+        goHome
+    );
+
+
+    // --------------------------------------------------------
+    // HOME
+    // --------------------------------------------------------
+
+    on(
+        "homeDrinksButton",
+        "click",
+        openDrinks
+    );
+
+    on(
+        "homeBakeryButton",
+        "click",
+        openBakery
+    );
+
+    on(
+        "homeEditButton",
+        "click",
+        openEditMenu
+    );
+
+    on(
+        "homeReportsButton",
+        "click",
+        async () => {
+
+            if (!isTeacher()) {
+                return;
+            }
+
+            showScreen(
+                "reportsScreen"
+            );
+
+            await renderReports();
+        }
+    );
+
+    on(
+        "homeEventsButton",
+        "click",
+        openEvents
+    );
+
+
+    // --------------------------------------------------------
+    // GETRÄNKE
+    // --------------------------------------------------------
+
+    on(
+        "drinksSaleBackButton",
+        "click",
+        goHome
+    );
+
+    on(
+        "drinksPayButton",
+        "click",
+        () =>
+            openPayment(
+                "drinks"
+            )
+    );
+
+    on(
+        "drinksPaymentBackButton",
+        "click",
+        () => {
+
+            renderDrinksSale();
+
+            showScreen(
+                "drinksSaleScreen"
+            );
+        }
+    );
+
+    on(
+        "drinksPaidButton",
+        "click",
+        completeDrinksSale
+    );
+
+    on(
+        "drinksNewOrderButton",
+        "click",
+        () => {
+
+            renderDrinksSale();
+
+            showScreen(
+                "drinksSaleScreen"
+            );
+        }
+    );
+
+    on(
+        "drinksShiftEndButton",
+        "click",
+        () =>
+            openFreeDrinks(
+                "getränke",
+                null
+            )
+    );
+
+    on(
+        "drinksSuccessShiftEndButton",
+        "click",
+        () =>
+            openFreeDrinks(
+                "getränke",
+                null
+            )
+    );
+
+    on(
+        "freeDrinksBackButton",
+        "click",
+        () => {
+
+            if (
+                state.freeDrinksContext ===
+                "sonderveranstaltung"
+            ) {
+
+                showScreen(
+                    "eventSaleScreen"
+                );
+
+            } else {
+
+                showScreen(
+                    "drinksSaleScreen"
+                );
+            }
+        }
+    );
+
+    on(
+        "freeDrinksNoneButton",
+        "click",
+        () => {
+
+            state.freeDrinkQuantities =
+                {};
+
+            saveFreeDrinks();
+        }
+    );
+
+    on(
+        "freeDrinksSaveButton",
+        "click",
+        saveFreeDrinks
+    );
+
+
+    // --------------------------------------------------------
+    // BÄCKEREI
+    // --------------------------------------------------------
+
+    on(
+        "bakeryMenuBackButton",
+        "click",
+        goHome
+    );
+
+    on(
+        "bakeryCashierButton",
+        "click",
+        openBakerySale
+    );
+
+    on(
+        "bakeryOutputButton",
+        "click",
+        async () => {
+
+            await renderBakeryOutput();
+
+            showScreen(
+                "bakeryOutputScreen"
+            );
+        }
+    );
+
+    on(
+        "bakerySaleBackButton",
+        "click",
+        () =>
+            showScreen(
+                "bakeryMenuScreen"
+            )
+    );
+
+    on(
+        "bakeryPayButton",
+        "click",
+        () =>
+            openPayment(
+                "bakery"
+            )
+    );
+
+    on(
+        "bakeryPaymentBackButton",
+        "click",
+        () => {
+
+            renderBakerySale();
+
+            showScreen(
+                "bakerySaleScreen"
+            );
+        }
+    );
+
+    on(
+        "bakeryPaidButton",
+        "click",
+        completeBakerySale
+    );
+
+    on(
+        "bakeryNewOrderButton",
+        "click",
+        openBakerySale
+    );
+
+    on(
+        "bakeryOutputBackButton",
+        "click",
+        () =>
+            showScreen(
+                "bakeryMenuScreen"
+            )
+    );
+
+
+    // --------------------------------------------------------
+    // EDIT MENU
+    // --------------------------------------------------------
+
+    on(
+        "editMenuBackButton",
+        "click",
+        goHome
+    );
+
+    on(
+        "productsButton",
+        "click",
+        () => {
+
+            renderProductAdmin();
+
+            showScreen(
+                "productsScreen"
+            );
+        }
+    );
+
+    on(
+        "invoicesButton",
+        "click",
+        openInvoices
+    );
+
+    on(
+        "inventoryButton",
+        "click",
+        async () => {
+
+            if (isTeacher()) {
+
+                await openTeacherInventory();
+
+            } else {
+
+                renderStudentInventory();
+
+                setText(
+                    "studentInventoryMessage",
+                    ""
+                );
+
+                showScreen(
+                    "studentInventoryScreen"
+                );
+            }
+        }
+    );
+
+    on(
+        "studentsButton",
+        "click",
+        openStudents
+    );
+
+
+    // --------------------------------------------------------
+    // PRODUCTS
+    // --------------------------------------------------------
+
+    on(
+        "productsBackButton",
+        "click",
+        openEditMenu
+    );
+
+    on(
+        "addProductButton",
+        "click",
+        () =>
+            openProductModal()
+    );
+
+    all(
+        "[data-product-filter]"
+    )
+        .forEach(button => {
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    state.productFilter =
+                        button.dataset
+                            .productFilter;
+
+                    all(
+                        "[data-product-filter]"
+                    )
+                        .forEach(tab =>
+                            tab.classList
+                                .toggle(
+                                    "active",
+                                    tab ===
+                                    button
+                                )
+                        );
+
+                    renderProductAdmin();
+                }
+            );
+        });
+
+    on(
+        "closeProductModalButton",
+        "click",
+        closeProductModal
+    );
+
+    on(
+        "cancelProductButton",
+        "click",
+        closeProductModal
+    );
+
+    on(
+        "productForm",
+        "submit",
+        saveProduct
+    );
+
+
+    // --------------------------------------------------------
+    // INVENTORY
+    // --------------------------------------------------------
+
+    on(
+        "studentInventoryBackButton",
+        "click",
+        openEditMenu
+    );
+
+    on(
+        "submitStudentInventoryButton",
+        "click",
+        submitStudentInventory
+    );
+
+    on(
+        "teacherInventoryBackButton",
+        "click",
+        () => {
+
+            state.invoiceForInventory =
+                null;
+
+            openEditMenu();
+        }
+    );
+
+
+    // --------------------------------------------------------
+    // INVOICES
+    // --------------------------------------------------------
+
+    on(
+        "invoicesBackButton",
+        "click",
+        openEditMenu
+    );
+
+    on(
+        "invoiceDateInput",
+        "change",
+        updateInvoiceNumberPreview
+    );
+
+    on(
+        "invoiceContextSelect",
+        "change",
+        updateInvoiceContextUI
+    );
+
+    on(
+        "invoiceEventSelect",
+        "change",
+        () => {
+
+            if (
+                el(
+                    "invoiceEventSelect"
+                ).value ===
+                "__create__"
+            ) {
+
+                showToast(
+                    "Neue Veranstaltung zuerst anlegen.",
+                    "info"
+                );
+            }
+        }
+    );
+
+    on(
+        "invoiceForm",
+        "submit",
+        saveInvoice
+    );
+
+
+    // --------------------------------------------------------
+    // STUDENTS
+    // --------------------------------------------------------
+
+    on(
+        "studentsBackButton",
+        "click",
+        openEditMenu
+    );
+
+    on(
+        "addStudentButton",
+        "click",
+        () =>
+            openStudentModal()
+    );
+
+    on(
+        "closeStudentModalButton",
+        "click",
+        closeStudentModal
+    );
+
+    on(
+        "cancelStudentButton",
+        "click",
+        closeStudentModal
+    );
+
+    on(
+        "studentForm",
+        "submit",
+        saveStudent
+    );
+
+
+    // --------------------------------------------------------
+    // REPORTS
+    // --------------------------------------------------------
+
+    on(
+        "reportsBackButton",
+        "click",
+        goHome
+    );
+
+    all(
+        "[data-report-period]"
+    )
+        .forEach(button => {
+
+            button.addEventListener(
+                "click",
+                async () => {
+
+                    state.reportPeriod =
+                        button.dataset
+                            .reportPeriod;
+
+                    all(
+                        "[data-report-period]"
+                    )
+                        .forEach(tab =>
+                            tab.classList
+                                .toggle(
+                                    "active",
+                                    tab ===
+                                    button
+                                )
+                        );
+
+                    await renderReports();
+                }
+            );
+        });
+
+    all(
+        "[data-report-sort]"
+    )
+        .forEach(button => {
+
+            button.addEventListener(
+                "click",
+                async () => {
+
+                    state.reportSort =
+                        button.dataset
+                            .reportSort;
+
+                    all(
+                        "[data-report-sort]"
+                    )
+                        .forEach(tab =>
+                            tab.classList
+                                .toggle(
+                                    "active",
+                                    tab ===
+                                    button
+                                )
+                        );
+
+                    await renderReports();
+                }
+            );
+        });
+
+    on(
+        "exportReportsButton",
+        "click",
+        exportReportsExcel
+    );
+
+
+    // --------------------------------------------------------
+    // EVENTS
+    // --------------------------------------------------------
+
+    on(
+        "eventsBackButton",
+        "click",
+        goHome
+    );
+
+    on(
+        "createEventButton",
+        "click",
+        openEventType
+    );
+
+    on(
+        "eventTypeBackButton",
+        "click",
+        openEvents
+    );
+
+    on(
+        "createFoodEventButton",
+        "click",
+        () =>
+            openEventCreate(
+                "food"
+            )
+    );
+
+    on(
+        "createOtherEventButton",
+        "click",
+        () =>
+            openEventCreate(
+                "other"
+            )
+    );
+
+    on(
+        "eventCreateBackButton",
+        "click",
+        openEventType
+    );
+
+    on(
+        "eventCreateForm",
+        "submit",
+        saveEvent
+    );
+
+    on(
+        "eventWorkspaceBackButton",
+        "click",
+        openEvents
+    );
+
+    on(
+        "eventProductsButton",
+        "click",
+        openEventProducts
+    );
+
+    on(
+        "eventCashierButton",
+        "click",
+        openEventSale
+    );
+
+    on(
+        "eventOutputButton",
+        "click",
+        openEventOutput
+    );
+
+    on(
+        "eventEndInventoryButton",
+        "click",
+        openEventEndInventory
+    );
+
+    on(
+        "editOtherEventRevenueButton",
+        "click",
+        openOtherEventRevenueModal
+    );
+
+
+    // --------------------------------------------------------
+    // EVENT PRODUCTS
+    // --------------------------------------------------------
+
+    on(
+        "eventProductsBackButton",
+        "click",
+        () =>
+            openEventWorkspace(
+                state.currentEvent.id
+            )
+    );
+
+    on(
+        "addCustomEventProductButton",
+        "click",
+        () =>
+            openEventProductModal()
+    );
+
+    on(
+        "addGlobalProductToEventButton",
+        "click",
+        addGlobalProductToEvent
+    );
+
+    on(
+        "closeEventProductModalButton",
+        "click",
+        closeEventProductModal
+    );
+
+    on(
+        "cancelEventProductButton",
+        "click",
+        closeEventProductModal
+    );
+
+    on(
+        "eventProductForm",
+        "submit",
+        saveEventProduct
+    );
+
+
+    // --------------------------------------------------------
+    // EVENT SALE
+    // --------------------------------------------------------
+
+    on(
+        "eventSaleBackButton",
+        "click",
+        () =>
+            openEventWorkspace(
+                state.currentEvent.id
+            )
+    );
+
+    on(
+        "eventPayButton",
+        "click",
+        () =>
+            openPayment(
+                "event"
+            )
+    );
+
+    on(
+        "eventShiftEndButton",
+        "click",
+        () =>
+            openFreeDrinks(
+                "sonderveranstaltung",
+                state.currentEvent.id
+            )
+    );
+
+    on(
+        "eventPaymentBackButton",
+        "click",
+        () => {
+
+            renderEventSale();
+
+            showScreen(
+                "eventSaleScreen"
+            );
+        }
+    );
+
+    on(
+        "eventPaidButton",
+        "click",
+        completeEventSale
+    );
+
+    on(
+        "eventNewOrderButton",
+        "click",
+        openEventSale
+    );
+
+    on(
+        "eventOutputBackButton",
+        "click",
+        () =>
+            openEventWorkspace(
+                state.currentEvent.id
+            )
+    );
+
+
+    // --------------------------------------------------------
+    // EVENT END INVENTORY
+    // --------------------------------------------------------
+
+    on(
+        "eventEndInventoryBackButton",
+        "click",
+        () =>
+            openEventWorkspace(
+                state.currentEvent.id
+            )
+    );
+
+    on(
+        "saveEventEndInventoryButton",
+        "click",
+        saveEventEndInventory
+    );
+
+
+    // --------------------------------------------------------
+    // OTHER EVENT REVENUE
+    // --------------------------------------------------------
+
+    on(
+        "closeOtherEventRevenueModalButton",
+        "click",
+        closeOtherEventRevenueModal
+    );
+
+    on(
+        "cancelOtherEventRevenueButton",
+        "click",
+        closeOtherEventRevenueModal
+    );
+
+    on(
+        "otherEventRevenueForm",
+        "submit",
+        saveOtherEventRevenue
+    );
+
+
+    // --------------------------------------------------------
+    // CONFIRM MODAL
+    // --------------------------------------------------------
+
+    on(
+        "confirmModalCancelButton",
+        "click",
+        closeConfirm
+    );
+
+    on(
+        "confirmModalConfirmButton",
+        "click",
+        async () => {
+
+            const action =
+                state.confirmAction;
+
+            closeConfirm();
+
+            if (!action) {
+                return;
+            }
+
+            try {
+
+                await action();
+
+            } catch (error) {
+
+                showToast(
+                    errorMessage(error),
+                    "error"
+                );
+            }
+        }
+    );
+
+
+    // --------------------------------------------------------
+    // EMOJI
+    // --------------------------------------------------------
+
+    setupEmojiPicker(
+        "productEmojiGrid",
+        "productIconInput"
+    );
+
+    setupEmojiPicker(
+        "eventProductEmojiGrid",
+        "eventProductIconInput"
+    );
+
+
+    // --------------------------------------------------------
+    // MODAL BACKDROP
+    // --------------------------------------------------------
+
+    [
+        [
+            "productModal",
+            closeProductModal
+        ],
+        [
+            "studentModal",
+            closeStudentModal
+        ],
+        [
+            "eventProductModal",
+            closeEventProductModal
+        ],
+        [
+            "otherEventRevenueModal",
+            closeOtherEventRevenueModal
+        ]
+    ]
+        .forEach(
+            ([id, close]) => {
+
+                const modal =
+                    el(id);
+
+                modal?.addEventListener(
+                    "click",
+                    event => {
+
+                        if (
+                            event.target ===
+                            modal
+                        ) {
+                            close();
+                        }
+                    }
+                );
+            }
+        );
+}
+
+
+// ============================================================
+// PAYMENT SETUP
+// ============================================================
+
+function setupPayments() {
+
+    setupPaymentKeypad(
+        "drinks"
+    );
+
+    setupPaymentKeypad(
+        "bakery"
+    );
+
+    setupPaymentKeypad(
+        "event"
+    );
+}
+
+
+// ============================================================
+// AUTH STATE CHANGE
+// ============================================================
+
+supabaseClient.auth.onAuthStateChange(
+    (_event, session) => {
 
         if (
-            callback
+            !session &&
+            state.currentPerson
         ) {
 
-            callback();
+            stopRealtime();
+
+            state.currentPerson =
+                null;
+
+            el("appHeader").hidden =
+                true;
+
+            showScreen(
+                "identityScreen"
+            );
         }
     }
 );
 
 
 // ============================================================
-// HELPERS
+// BOOT
 // ============================================================
 
-function parseGermanNumber(
-    value
-) {
+async function boot() {
 
-    if (
-        !value
-    ) {
+    try {
 
-        return 0;
-    }
+        bindEvents();
+        setupPayments();
 
-    return Number(
-        String(
-            value
-        )
-            .replace(
-                /€/g,
-                ""
-            )
-            .replace(
-                /\s/g,
-                ""
-            )
-            .replace(
-                /\./g,
-                ""
-            )
-            .replace(
-                ",",
-                "."
-            )
-    );
-}
+        updateInvoiceContextUI();
 
+        await initialiseAuthentication();
 
-function formatPrice(
-    value
-) {
+    } catch (error) {
 
-    const number =
-        Number(
-            value ||
-            0
+        console.error(
+            "LauterMacher konnte nicht gestartet werden:",
+            error
         );
 
-    return (
-        number
-            .toFixed(
-                2
-            )
-            .replace(
-                ".",
-                ","
-            ) +
-        " €"
-    );
-}
-
-
-function roundMoney(
-    value
-) {
-
-    return (
-        Math.round(
-            (
-                Number(
-                    value
-                ) +
-                Number.EPSILON
-            ) *
-            100
-        ) /
-        100
-    );
-}
-
-
-function getFullName(
-    person
-) {
-
-    if (
-        !person
-    ) {
-
-        return "";
-    }
-
-    return [
-        person.first_name,
-        person.last_name
-    ]
-        .filter(
-            Boolean
-        )
-        .join(
-            " "
+        showToast(
+            "Die App konnte nicht vollständig gestartet werden.",
+            "error"
         );
-}
-
-
-function getLocalDateKey(
-    date
-) {
-
-    return (
-        date.getFullYear() +
-        "-" +
-        String(
-            date.getMonth() +
-            1
-        ).padStart(
-            2,
-            "0"
-        ) +
-        "-" +
-        String(
-            date.getDate()
-        ).padStart(
-            2,
-            "0"
-        )
-    );
-}
-
-
-function getDateForFileName() {
-
-    return getLocalDateKey(
-        new Date()
-    );
-}
-
-
-function formatEventDate(
-    value
-) {
-
-    if (
-        !value
-    ) {
-
-        return "";
-    }
-
-    const date =
-        new Date(
-            value +
-            "T12:00:00"
-        );
-
-    return date.toLocaleDateString(
-        "de-DE",
-        {
-            day:
-                "2-digit",
-
-            month:
-                "2-digit",
-
-            year:
-                "numeric"
-        }
-    );
-}
-
-
-function setDefaultDates() {
-
-    const today =
-        getLocalDateKey(
-            new Date()
-        );
-
-    if (
-        invoiceDateInput &&
-        !invoiceDateInput.value
-    ) {
-
-        invoiceDateInput.value =
-            today;
-    }
-
-    if (
-        eventInvoiceDateInput &&
-        !eventInvoiceDateInput.value
-    ) {
-
-        eventInvoiceDateInput.value =
-            today;
-    }
-
-    if (
-        eventDateInput &&
-        !eventDateInput.value
-    ) {
-
-        eventDateInput.value =
-            today;
     }
 }
 
-
-function createId(
-    prefix
-) {
-
-    return (
-        prefix +
-        "-" +
-        Date.now() +
-        "-" +
-        Math.random()
-            .toString(
-                36
-            )
-            .slice(
-                2,
-                8
-            )
-    );
-}
-
-
-function createProductId(
-    name
-) {
-
-    const base =
-        name
-            .toLowerCase()
-            .normalize(
-                "NFD"
-            )
-            .replace(
-                /[\u0300-\u036f]/g,
-                ""
-            )
-            .replace(
-                /[^a-z0-9]+/g,
-                "-"
-            )
-            .replace(
-                /^-+|-+$/g,
-                ""
-            ) ||
-        "produkt";
-
-    let id =
-        base;
-
-    let number =
-        2;
-
-    while (
-        products.some(
-            function (
-                product
-            ) {
-
-                return (
-                    product.id ===
-                    id
-                );
-            }
-        )
-    ) {
-
-        id =
-            base +
-            "-" +
-            number;
-
-        number +=
-            1;
-    }
-
-    return id;
-}
-
-
-function escapeHtml(
-    value
-) {
-
-    return String(
-        value ??
-        ""
-    )
-        .replaceAll(
-            "&",
-            "&amp;"
-        )
-        .replaceAll(
-            "<",
-            "&lt;"
-        )
-        .replaceAll(
-            ">",
-            "&gt;"
-        )
-        .replaceAll(
-            '"',
-            "&quot;"
-        )
-        .replaceAll(
-            "'",
-            "&#039;"
-        );
-}
-
-
-function escapeAttribute(
-    value
-) {
-
-    return escapeHtml(
-        value
-    );
-}
-
-
-// ============================================================
-// END
-// ============================================================
+document.addEventListener(
+    "DOMContentLoaded",
+    boot
+);
