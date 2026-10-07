@@ -3296,3 +3296,321 @@ button.event-list-card:hover {
         animation-iteration-count: 1 !important;
     }
 }
+
+/* =========================================================
+   LAUTERMACHER V3.1 — KORREKTUREN
+   ========================================================= */
+
+
+/* ---------------------------------------------------------
+   HEADER — immer sichtbar nach Login
+   --------------------------------------------------------- */
+
+body.authenticated .app-header {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+.app-header.visible {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+.app-header[hidden] {
+    display: none !important;
+}
+
+body.authenticated .app-header[hidden] {
+    display: block !important;
+}
+
+
+/* ---------------------------------------------------------
+   BÄCKEREI AUSGABE
+   80 % offene Bestellungen / 20 % fertige Bestellungen
+   --------------------------------------------------------- */
+
+.bakery-output-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 4fr) minmax(220px, 1fr);
+    gap: 22px;
+    align-items: start;
+}
+
+.bakery-open-orders-panel,
+.bakery-completed-orders-panel {
+    min-width: 0;
+}
+
+.bakery-open-orders-panel {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 20px;
+}
+
+.bakery-completed-orders-panel {
+    background: #f5f9fc;
+    border-radius: 20px;
+    padding: 18px;
+}
+
+.bakery-output-orders {
+    display: grid;
+    grid-template-columns: repeat(
+        auto-fill,
+        minmax(220px, 1fr)
+    );
+    gap: 16px;
+}
+
+.bakery-completed-orders {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.completed-order-card {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+
+    padding: 10px 12px;
+
+    background: #ffffff;
+
+    border: 1px solid #dbe7ef;
+    border-radius: 12px;
+}
+
+.completed-order-card strong {
+    color: #09436a;
+    font-size: 0.95rem;
+}
+
+.completed-order-card small {
+    color: #667785;
+    line-height: 1.35;
+}
+
+.bakery-output-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+
+    margin-bottom: 16px;
+}
+
+.bakery-order-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-width: 30px;
+    height: 30px;
+    padding: 0 9px;
+
+    background: #e4f2fa;
+    color: #09436a;
+
+    border-radius: 999px;
+
+    font-weight: 800;
+    font-size: 0.85rem;
+}
+
+
+/* ---------------------------------------------------------
+   PRODUKTVERWALTUNG — Aktionen sichtbar
+   --------------------------------------------------------- */
+
+.product-admin-actions {
+    display: flex !important;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.product-edit-button,
+.product-delete-button {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 38px;
+    padding: 8px 13px;
+
+    border-radius: 10px;
+
+    font: inherit;
+    font-size: 0.88rem;
+    font-weight: 700;
+
+    cursor: pointer;
+}
+
+.product-edit-button {
+    background: #e4f2fa;
+    color: #09436a;
+    border: 1px solid #b8d7e8;
+}
+
+.product-edit-button:hover {
+    background: #d5ebf7;
+}
+
+.product-delete-button {
+    background: #fff2f2;
+    color: #a72d2d;
+    border: 1px solid #f0caca;
+}
+
+.product-delete-button:hover {
+    background: #ffe5e5;
+}
+
+
+/* ---------------------------------------------------------
+   SCHÜLER-INVENTUR — blaue Eingabefelder
+   --------------------------------------------------------- */
+
+.inventory-count-input,
+[data-student-inventory] {
+    background: #eef8fd !important;
+
+    color: #09436a !important;
+
+    border: 2px solid #b8dceb !important;
+
+    border-radius: 12px;
+
+    min-height: 46px;
+
+    font: inherit;
+    font-weight: 700;
+
+    text-align: center;
+
+    outline: none;
+}
+
+.inventory-count-input:focus,
+[data-student-inventory]:focus {
+    background: #ffffff !important;
+
+    border-color: #1677a7 !important;
+
+    box-shadow:
+        0 0 0 3px rgba(22, 119, 167, 0.12);
+}
+
+
+/* ---------------------------------------------------------
+   SCHICHTENDE BÄCKEREI
+   --------------------------------------------------------- */
+
+.bakery-shift-end-area {
+    display: flex;
+    justify-content: flex-end;
+
+    margin-top: 22px;
+}
+
+.bakery-shift-end-area .secondary-action,
+.bakery-shift-end-area .primary-action {
+    min-width: 180px;
+}
+
+
+/* ---------------------------------------------------------
+   TEAM POPUP
+   --------------------------------------------------------- */
+
+.team-finished-overlay {
+    position: fixed;
+    inset: 0;
+
+    z-index: 10000;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 24px;
+
+    background: rgba(4, 30, 48, 0.48);
+    backdrop-filter: blur(4px);
+}
+
+.team-finished-card {
+    width: min(440px, 100%);
+
+    padding: 30px;
+
+    background: #ffffff;
+
+    border-radius: 24px;
+
+    box-shadow:
+        0 24px 70px rgba(0, 0, 0, 0.22);
+
+    text-align: center;
+}
+
+.team-finished-icon {
+    display: block;
+
+    margin-bottom: 10px;
+
+    font-size: 3rem;
+}
+
+.team-finished-card h2 {
+    margin:
+        0
+        0
+        10px;
+
+    color: #09436a;
+}
+
+.team-finished-card p {
+    margin:
+        0
+        0
+        22px;
+
+    color: #667785;
+
+    line-height: 1.55;
+}
+
+
+/* ---------------------------------------------------------
+   TABLET / MOBILE
+   --------------------------------------------------------- */
+
+@media (max-width: 900px) {
+
+    .bakery-output-layout {
+        grid-template-columns: minmax(0, 3fr) minmax(190px, 1fr);
+        gap: 14px;
+    }
+
+}
+
+
+@media (max-width: 700px) {
+
+    .bakery-output-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .bakery-completed-orders-panel {
+        order: 2;
+    }
+
+}
