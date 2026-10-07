@@ -3915,20 +3915,23 @@ on(
 on(
     "inventoryInvoicesButton",
     "click",
-    function () {
+    async function () {
 
         if (
             !isCurrentTeacher()
         ) {
-
             return;
         }
 
         renderInvoiceContextOptions();
 
-        renderInvoiceList();
-
         setDefaultDates();
+
+        await updateInvoiceNumberPreview();
+
+        await renderInvoiceList();
+
+        subscribeToInvoicesRealtime();
 
         showScreen(
             inventoryInvoicesScreen,
@@ -5165,92 +5168,77 @@ on(
 // INVENTUR & RECHNUNGEN
 // ============================================================
 
+let invoicesRealtimeChannel = null;
+
+
+// ------------------------------------------------------------
+// RECHNUNGSBEREICHE
+// ------------------------------------------------------------
+
 function renderInvoiceContextOptions() {
 
-    if (
-        !invoiceContextInput
-    ) {
-
+    if (!invoiceContextInput) {
         return;
     }
 
-    const events =
-        loadEvents();
+    const currentValue =
+        invoiceContextInput.value ||
+        "getränke";
 
-    [
-        invoiceContextInput
-    ].forEach(
-        function (
-            select
-        ) {
+    invoiceContextInput.innerHTML = "";
 
-            const currentValue =
-                select.value ||
-                "getränke";
+    const options = [
+        {
+            value: "getränke",
+            label: "Getränke"
+        },
+        {
+            value: "bäckerei",
+            label: "Bäckerei"
+        },
+        {
+            value: "sonderveranstaltung",
+            label: "Sonderveranstaltung"
+        }
+    ];
 
-            select.innerHTML =
-                "";
+    options.forEach(
+        function (item) {
 
-            const baseOption =
+            const option =
                 document.createElement(
                     "option"
                 );
 
-            baseOption.value =
-                "getränke";
+            option.value =
+                item.value;
 
-            baseOption.textContent =
-                "Getränke";
+            option.textContent =
+                item.label;
 
-            select.appendChild(
-                baseOption
+            invoiceContextInput.appendChild(
+                option
             );
-
-            events.forEach(
-                function (
-                    event
-                ) {
-
-                    const option =
-                        document.createElement(
-                            "option"
-                        );
-
-                    option.value =
-                        "event:" +
-                        event.id;
-
-                    option.textContent =
-                        "Sonderveranstaltung: " +
-                        event.name;
-
-                    select.appendChild(
-                        option
-                    );
-                }
-            );
-
-            const exists =
-                Array.from(
-                    select.options
-                ).some(
-                    function (
-                        option
-                    ) {
-
-                        return (
-                            option.value ===
-                            currentValue
-                        );
-                    }
-                );
-
-            select.value =
-                exists
-                    ? currentValue
-                    : "getränke";
         }
     );
+
+    const exists =
+        Array.from(
+            invoiceContextInput.options
+        ).some(
+            function (option) {
+
+                return (
+                    option.value ===
+                    currentValue
+                );
+            }
+        );
+
+    invoiceContextInput.value =
+        exists
+            ? currentValue
+            : "getränke";
 }
 
 
@@ -5262,113 +5250,147 @@ function getContextLabel(
         context ===
         "getränke"
     ) {
-
         return "Getränke";
     }
 
     if (
-        String(
-            context
-        ).startsWith(
-            "event:"
-        )
+        context ===
+        "bäckerei"
     ) {
-
-        const event =
-            getEventById(
-                String(
-                    context
-                ).slice(
-                    6
-                )
-            );
-
-        if (
-            event
-        ) {
-
-            return (
-                "Sonderveranstaltung: " +
-                event.name
-            );
-        }
+        return "Bäckerei";
     }
 
-    return context;
+    if (
+        context ===
+        "sonderveranstaltung"
+    ) {
+        return "Sonderveranstaltung";
+    }
+
+    return context || "";
 }
 
+
+// ------------------------------------------------------------
+// APERÇU DU PROCHAIN NUMÉRO
+// ------------------------------------------------------------
+
+async function updateInvoiceNumberPreview() {
+
+    if (
+        !invoiceNumberInput ||
+        !invoiceDateInput
+    ) {
+        return;
+    }
+
+    const date =
+        invoiceDateInput.value;
+
+    if (!date) {
+
+        invoiceNumberInput.value =
+            "";
+
+        return;
+    }
+
+    invoiceNumberInput.value =
+        "…";
+
+    const {
+        data,
+        error
+    } =
+        await supabaseClient.rpc(
+            "preview_next_invoice_number",
+            {
+                p_invoice_date:
+                    date
+            }
+        );
+
+    if (error) {
+
+        console.error(
+            "Fehler bei Rechnungsnummer:",
+            error
+        );
+
+        invoiceNumberInput.value =
+            "";
+
+        return;
+    }
+
+    invoiceNumberInput.value =
+        data || "";
+}
+
+
+// ------------------------------------------------------------
+// RECHNUNG SPEICHERN
+// ------------------------------------------------------------
 
 on(
     "saveInvoiceButton",
     "click",
-    function () {
+    async function () {
 
         if (
             !isCurrentTeacher()
         ) {
-
             return;
         }
 
         const context =
-            invoiceContextInput.value;
+            invoiceContextInput
+                ? invoiceContextInput.value
+                : "";
 
         const date =
-            invoiceDateInput.value;
+            invoiceDateInput
+                ? invoiceDateInput.value
+                : "";
 
         const supplier =
-            invoiceSupplierInput.value.trim();
-
-        const invoiceNumber =
-            invoiceNumberInput.value.trim();
-
-        const product =
-            invoiceProductInput.value.trim();
-
-        const quantity =
-            Number(
-                invoiceQuantityInput.value ||
-                0
-            );
+            invoiceSupplierInput
+                ? invoiceSupplierInput.value.trim()
+                : "";
 
         const amount =
-            Number(
-                invoiceAmountInput.value
-            );
+            invoiceAmountInput
+                ? Number(
+                    String(
+                        invoiceAmountInput.value
+                    ).replace(
+                        ",",
+                        "."
+                    )
+                )
+                : NaN;
 
-        if (
-            !date ||
-            !product
-        ) {
+        if (!date) {
 
             alert(
-                "Bitte Datum und Produkt eingeben."
+                "Bitte ein Rechnungsdatum auswählen."
+            );
+
+            return;
+        }
+
+        if (!supplier) {
+
+            alert(
+                "Bitte einen Laden eingeben."
             );
 
             return;
         }
 
         if (
-            !Number.isInteger(
-                quantity
-            ) ||
-            quantity <
-            0
-        ) {
-
-            alert(
-                "Bitte eine gültige Menge eingeben."
-            );
-
-            return;
-        }
-
-        if (
-            !Number.isFinite(
-                amount
-            ) ||
-            amount <
-            0
+            !Number.isFinite(amount) ||
+            amount < 0
         ) {
 
             alert(
@@ -5378,359 +5400,315 @@ on(
             return;
         }
 
-        const invoices =
-            loadInvoices();
+        if (saveInvoiceButton) {
 
-        invoices.push(
-            {
+            saveInvoiceButton.disabled =
+                true;
 
-                id:
-                    Date.now(),
+            saveInvoiceButton.textContent =
+                "Wird gespeichert…";
+        }
 
-                context:
-                    context,
+        const {
+            data,
+            error
+        } =
+            await supabaseClient.rpc(
+                "create_invoice_with_number",
+                {
+                    p_context:
+                        context,
 
-                context_label:
-                    getContextLabel(
-                        context
-                    ),
+                    p_invoice_date:
+                        date,
 
-                date:
-                    date,
+                    p_supplier:
+                        supplier,
 
-                supplier:
-                    supplier,
+                    p_total_amount:
+                        roundMoney(
+                            amount
+                        ),
 
-                invoice_number:
-                    invoiceNumber,
+                    p_created_by:
+                        null,
 
-                product:
-                    product,
+                    p_event_id:
+                        null
+                }
+            );
 
-                quantity:
-                    quantity,
+        if (saveInvoiceButton) {
 
-                amount:
-                    roundMoney(
-                        amount
-                    ),
+            saveInvoiceButton.disabled =
+                false;
 
-                created_at:
-                    new Date().toISOString(),
+            saveInvoiceButton.textContent =
+                "Hinzufügen";
+        }
 
-                person_id:
-                    currentPerson.id
-            }
-        );
+        if (error) {
 
-        saveInvoices(
-            invoices
-        );
+            console.error(
+                "Fehler beim Speichern der Rechnung:",
+                error
+            );
 
-        invoiceSupplierInput.value =
-            "";
+            alert(
+                "Die Rechnung konnte nicht gespeichert werden."
+            );
 
-        invoiceNumberInput.value =
-            "";
+            await updateInvoiceNumberPreview();
 
-        invoiceProductInput.value =
-            "";
+            return;
+        }
 
-        invoiceQuantityInput.value =
-            "";
+        const savedInvoice =
+            Array.isArray(data)
+                ? data[0]
+                : data;
 
-        invoiceAmountInput.value =
-            "";
+        if (
+            savedInvoice &&
+            savedInvoice.invoice_number
+        ) {
 
-        renderInvoiceList();
+            invoiceNumberInput.value =
+                savedInvoice.invoice_number;
+        }
+
+        if (invoiceSupplierInput) {
+
+            invoiceSupplierInput.value =
+                "";
+        }
+
+        if (invoiceAmountInput) {
+
+            invoiceAmountInput.value =
+                "";
+        }
+
+        await renderInvoiceList();
+
+        await updateInvoiceNumberPreview();
     }
 );
 
 
-on(
-    "savePurchaseButton",
-    "click",
-    function () {
+// ------------------------------------------------------------
+// LETZTE 10 RECHNUNGEN
+// ------------------------------------------------------------
 
-        if (
-            !isCurrentTeacher()
-        ) {
+async function renderInvoiceList() {
 
-            return;
-        }
-
-        const context =
-            purchaseContextInput.value;
-
-        const productName =
-            purchaseProductInput.value.trim();
-
-        const quantity =
-            Number(
-                purchaseQuantityInput.value
-            );
-
-        if (
-            !productName
-        ) {
-
-            alert(
-                "Bitte ein Produkt eingeben."
-            );
-
-            return;
-        }
-
-        if (
-            !Number.isInteger(
-                quantity
-            ) ||
-            quantity <=
-            0
-        ) {
-
-            alert(
-                "Bitte eine positive ganze Menge eingeben."
-            );
-
-            return;
-        }
-
-        const purchases =
-            loadPurchases();
-
-        purchases.push(
-            {
-
-                id:
-                    Date.now(),
-
-                context:
-                    context,
-
-                context_label:
-                    getContextLabel(
-                        context
-                    ),
-
-                product:
-                    productName,
-
-                quantity:
-                    quantity,
-
-                created_at:
-                    new Date().toISOString(),
-
-                person_id:
-                    currentPerson.id
-            }
-        );
-
-        savePurchases(
-            purchases
-        );
-
-        if (
-            context ===
-            "getränke"
-        ) {
-
-            const product =
-                products.find(
-                    function (
-                        item
-                    ) {
-
-                        return (
-                            item.name.toLowerCase() ===
-                            productName.toLowerCase() &&
-                            item.category ===
-                            "drink"
-                        );
-                    }
-                );
-
-            if (
-                product
-            ) {
-
-                inventory[
-                    product.id
-                ] =
-                    Number(
-                        inventory[
-                            product.id
-                        ] ||
-                        0
-                    ) +
-                    quantity;
-
-                saveInventory();
-            }
-        }
-
-        purchaseProductInput.value =
-            "";
-
-        purchaseQuantityInput.value =
-            "";
-
-        renderInvoiceList();
-    }
-);
-
-
-function renderInvoiceList() {
-
-    if (
-        !invoiceList
-    ) {
-
+    if (!invoiceList) {
         return;
     }
 
     invoiceList.innerHTML =
-        "";
+        `
+            <div class="no-data">
+                Rechnungen werden geladen…
+            </div>
+        `;
 
-    const invoices =
-        loadInvoices()
-            .slice()
-            .reverse();
+    const {
+        data,
+        error
+    } =
+        await supabaseClient
+            .from(
+                "invoices"
+            )
+            .select(
+                "id, context, invoice_date, supplier, invoice_number, total_amount, created_at"
+            )
+            .order(
+                "created_at",
+                {
+                    ascending:
+                        false
+                }
+            )
+            .limit(
+                10
+            );
 
-    const purchases =
-        loadPurchases()
-            .slice()
-            .reverse();
+    if (error) {
 
-    if (
-        invoices.length ===
-        0 &&
-        purchases.length ===
-        0
-    ) {
+        console.error(
+            "Fehler beim Laden der Rechnungen:",
+            error
+        );
 
         invoiceList.innerHTML =
             `
                 <div class="no-data">
-                    Noch keine Rechnungen oder Wareneingänge vorhanden.
+                    Rechnungen konnten nicht geladen werden.
                 </div>
             `;
 
         return;
     }
 
-    invoices
-        .slice(
-            0,
-            15
-        )
-        .forEach(
-            function (
-                invoice
-            ) {
+    const invoices =
+        Array.isArray(data)
+            ? data
+            : [];
 
-                const row =
-                    document.createElement(
-                        "div"
-                    );
+    invoiceList.innerHTML =
+        "";
 
-                row.className =
-                    "record-row";
+    if (
+        invoices.length ===
+        0
+    ) {
 
-                row.innerHTML = `
-                    <div>
+        invoiceList.innerHTML =
+            `
+                <div class="no-data">
+                    Noch keine Rechnungen vorhanden.
+                </div>
+            `;
 
-                        <strong>
-                            🧾 ${escapeHtml(
-                                invoice.product
-                            )}
-                        </strong>
+        return;
+    }
 
-                        <small>
-                            ${escapeHtml(
-                                invoice.context_label
-                            )}
-                            ·
-                            ${escapeHtml(
-                                invoice.date
-                            )}
-                        </small>
+    invoices.forEach(
+        function (invoice) {
 
-                        <small>
-                            ${invoice.quantity}
-                            Stück
-                            ·
-                            ${formatPrice(
-                                invoice.amount
-                            )}
-                        </small>
-
-                    </div>
-
-                    <span class="record-type">
-                        Rechnung
-                    </span>
-                `;
-
-                invoiceList.appendChild(
-                    row
+            const row =
+                document.createElement(
+                    "div"
                 );
-            }
-        );
 
-    purchases
-        .slice(
-            0,
-            15
-        )
-        .forEach(
-            function (
-                purchase
-            ) {
+            row.className =
+                "record-row";
 
-                const row =
-                    document.createElement(
-                        "div"
-                    );
+            row.innerHTML = `
+                <div>
 
-                row.className =
-                    "record-row";
+                    <strong>
+                        🧾 ${escapeHtml(
+                            invoice.invoice_number ||
+                            "Ohne Nummer"
+                        )}
+                    </strong>
 
-                row.innerHTML = `
-                    <div>
+                    <small>
+                        ${escapeHtml(
+                            getContextLabel(
+                                invoice.context
+                            )
+                        )}
+                        ·
+                        ${escapeHtml(
+                            formatEventDate(
+                                invoice.invoice_date
+                            )
+                        )}
+                    </small>
 
-                        <strong>
-                            📦 ${escapeHtml(
-                                purchase.product
-                            )}
-                        </strong>
+                    <small>
+                        ${escapeHtml(
+                            invoice.supplier ||
+                            "Kein Laden"
+                        )}
+                        ·
+                        ${formatPrice(
+                            Number(
+                                invoice.total_amount ||
+                                0
+                            )
+                        )}
+                    </small>
 
-                        <small>
-                            ${escapeHtml(
-                                purchase.context_label
-                            )}
-                        </small>
+                </div>
 
-                        <small>
-                            ${purchase.quantity}
-                            Stück
-                        </small>
+                <span class="record-type">
+                    Rechnung
+                </span>
+            `;
 
-                    </div>
-
-                    <span class="record-type">
-                        Wareneingang
-                    </span>
-                `;
-
-                invoiceList.appendChild(
-                    row
-                );
-            }
-        );
+            invoiceList.appendChild(
+                row
+            );
+        }
+    );
 }
 
+
+// ------------------------------------------------------------
+// REALTIME
+// ------------------------------------------------------------
+
+function subscribeToInvoicesRealtime() {
+
+    if (
+        invoicesRealtimeChannel
+    ) {
+
+        supabaseClient.removeChannel(
+            invoicesRealtimeChannel
+        );
+
+        invoicesRealtimeChannel =
+            null;
+    }
+
+    invoicesRealtimeChannel =
+        supabaseClient
+            .channel(
+                "invoices-realtime"
+            )
+            .on(
+                "postgres_changes",
+                {
+                    event:
+                        "*",
+
+                    schema:
+                        "public",
+
+                    table:
+                        "invoices"
+                },
+                async function () {
+
+                    if (
+                        isCurrentTeacher()
+                    ) {
+
+                        await renderInvoiceList();
+
+                        await updateInvoiceNumberPreview();
+                    }
+                }
+            )
+            .subscribe();
+}
+
+
+// ------------------------------------------------------------
+// DATE
+// ------------------------------------------------------------
+
+if (invoiceDateInput) {
+
+    invoiceDateInput.addEventListener(
+        "change",
+        function () {
+
+            updateInvoiceNumberPreview();
+        }
+    );
+}
+
+
+// ------------------------------------------------------------
+// ZURÜCK
+// ------------------------------------------------------------
 
 on(
     "inventoryInvoicesBackButton",
@@ -5742,7 +5720,6 @@ on(
         );
     }
 );
-
 
 // ============================================================
 // REPORTS
