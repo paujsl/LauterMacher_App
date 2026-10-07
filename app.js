@@ -1137,6 +1137,8 @@ async function initialiseAuthentication() {
 
                 await syncProductsFromSupabase();
 
+                startProductsRealtime();
+
                 return;
             }
 
@@ -2136,6 +2138,62 @@ async function syncProductsFromSupabase() {
         );
 
     }
+}
+
+// ========================================
+// SUPABASE REALTIME — PRODUITS
+// ========================================
+
+let productsRealtimeChannel =
+    null;
+
+
+function startProductsRealtime() {
+
+    if (
+        productsRealtimeChannel
+    ) {
+
+        return;
+    }
+
+    productsRealtimeChannel =
+        supabaseClient
+            .channel(
+                "products-realtime"
+            )
+            .on(
+                "postgres_changes",
+                {
+                    event:
+                        "*",
+
+                    schema:
+                        "public",
+
+                    table:
+                        "products"
+                },
+                async function () {
+
+                    console.log(
+                        "Produktänderung empfangen."
+                    );
+
+                    await syncProductsFromSupabase();
+                }
+            )
+            .subscribe(
+                function (
+                    status
+                ) {
+
+                    console.log(
+                        "Produkte Realtime:",
+                        status
+                    );
+                }
+            );
 }
 
 function loadSales() {
@@ -4394,7 +4452,7 @@ on(
 );
 
 
-function deleteProduct(
+async function deleteProduct(
     productId
 ) {
 
@@ -4422,7 +4480,7 @@ function deleteProduct(
         confirm(
             "Produkt „" +
             product.name +
-            "“ wirklich löschen?"
+            "“ wirklich entfernen?"
         );
 
     if (
@@ -4432,45 +4490,61 @@ function deleteProduct(
         return;
     }
 
-    products =
-        products.filter(
-            function (
-                item
-            ) {
+    try {
 
-                return (
-                    item.id !==
+        const {
+            error
+        } =
+            await supabaseClient
+                .from(
+                    "products"
+                )
+                .update({
+                    active:
+                        false
+                })
+                .eq(
+                    "id",
                     productId
                 );
-            }
+
+        if (
+            error
+        ) {
+
+            throw error;
+        }
+
+        cart =
+            cart.filter(
+                function (
+                    item
+                ) {
+
+                    return (
+                        item.id !==
+                        productId
+                    );
+                }
+            );
+
+        updateCart();
+
+        await syncProductsFromSupabase();
+
+    } catch (
+        error
+    ) {
+
+        console.error(
+            "Produkt konnte nicht entfernt werden:",
+            error
         );
 
-    delete inventory[
-        productId
-    ];
-
-    cart =
-        cart.filter(
-            function (
-                item
-            ) {
-
-                return (
-                    item.id !==
-                    productId
-                );
-            }
+        alert(
+            "Das Produkt konnte nicht entfernt werden."
         );
-
-    saveProducts();
-
-    saveInventory();
-
-    updateCart();
-
-    renderProducts();
-
-    renderAdminProducts();
+    }
 }
 
 
