@@ -444,105 +444,115 @@
         </section>
     </main>
 
-    <main id="inventoryInvoicesScreen" class="screen admin-page">
-        <header class="screen-header">
-            <button id="inventoryInvoicesBackButton" class="back-button" type="button">← Bearbeiten</button>
-            <h1>🧾 Inventur &amp; Rechnungen</h1>
-        </header>
+    <main
+    id="inventoryInvoicesScreen"
+    class="screen"
+    hidden
+>
+    <section class="admin-page">
 
-        <section class="admin-content dual-form-page">
+        <div class="screen-heading">
 
-            <div class="page-intro-card">
-                <strong>Rechnungen &amp; Wareneingänge</strong>
-                <p>Erfasse Kosten und die gekauften Mengen. Für eine Sonderveranstaltung kann der passende Event ausgewählt werden.</p>
+            <button
+                id="inventoryInvoicesBackButton"
+                type="button"
+                class="back-button"
+                aria-label="Zurück"
+            >
+                ←
+            </button>
+
+            <div>
+                <h2>Rechnungen</h2>
+                <p>
+                    Rechnungen erfassen und anschließend
+                    den Warenbestand bearbeiten.
+                </p>
             </div>
 
-            <div class="form-panel">
-                <div class="panel-heading">
-                    <h2>🧾 Rechnung erfassen</h2>
-                </div>
+        </div>
 
-                <div class="form-grid">
-                    <label>
-                        Bereich
-                        <select id="invoiceContextInput">
-                            <option value="getränke">Getränke</option>
-                        </select>
-                    </label>
 
-                    <label>
-                        Rechnungsdatum
-                        <input id="invoiceDateInput" type="date">
-                    </label>
+        <section class="admin-section">
 
-                    <label>
-                        Lieferant
-                        <input id="invoiceSupplierInput" type="text" placeholder="z. B. Getränkehändler">
-                    </label>
+            <h3>Rechnungen eintragen</h3>
 
-                    <label>
-                        Rechnungsnummer
-                        <input id="invoiceNumberInput" type="text" placeholder="z. B. RG-2026-001">
-                    </label>
+            <div class="form-grid">
 
-                    <label>
-                        Produkt
-                        <input id="invoiceProductInput" type="text" placeholder="z. B. Wasser">
-                    </label>
+                <label>
+                    <span>Bereich</span>
 
-                    <label>
-                        Menge gekauft
-                        <input id="invoiceQuantityInput" type="number" min="0" step="1" inputmode="numeric" placeholder="0">
-                    </label>
+                    <select id="invoiceContextInput">
+                        <option value="getränke">
+                            Getränke
+                        </option>
 
-                    <label>
-                        Gesamtkosten (€)
-                        <input id="invoiceAmountInput" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00">
-                    </label>
-                </div>
+                        <option value="bäckerei">
+                            Bäckerei
+                        </option>
 
-                <button id="saveInvoiceButton" class="primary-action" type="button">
-                    🧾 Rechnung speichern
-                </button>
+                        <option value="sonderveranstaltung">
+                            Sonderveranstaltung
+                        </option>
+                    </select>
+                </label>
+
+
+                <label>
+                    <span>Rechnungsdatum</span>
+
+                    <input
+                        id="invoiceDateInput"
+                        type="date"
+                    >
+                </label>
+
+
+                <label>
+                    <span>Betrag</span>
+
+                    <input
+                        id="invoiceAmountInput"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        inputmode="decimal"
+                        placeholder="0,00"
+                    >
+                </label>
+
             </div>
 
-            <div class="form-panel">
-                <div class="panel-heading">
-                    <h2>📦 Wareneingang</h2>
-                </div>
 
-                <div class="form-grid">
-                    <label>
-                        Bereich
-                        <select id="purchaseContextInput">
-                            <option value="getränke">Getränke</option>
-                        </select>
-                    </label>
+            <button
+                id="saveInvoiceButton"
+                type="button"
+                class="primary-button"
+            >
+                Hinzufügen
+            </button>
 
-                    <label>
-                        Produkt
-                        <input id="purchaseProductInput" type="text" placeholder="Produktname">
-                    </label>
-
-                    <label>
-                        Menge gekauft
-                        <input id="purchaseQuantityInput" type="number" min="1" step="1" inputmode="numeric" placeholder="0">
-                    </label>
-                </div>
-
-                <button id="savePurchaseButton" class="primary-action" type="button">
-                    📦 Wareneingang speichern
-                </button>
-            </div>
-
-            <div class="form-panel">
-                <div class="panel-heading">
-                    <h2>Letzte Einträge</h2>
-                </div>
-                <div id="invoiceList" class="record-list"></div>
-            </div>
         </section>
-    </main>
+
+
+        <section class="admin-section">
+
+            <h3>Letzte Einträge</h3>
+
+            <div
+                id="invoiceList"
+                class="records-list"
+                aria-live="polite"
+            >
+                <div class="no-data">
+                    Noch keine Rechnungen vorhanden.
+                </div>
+            </div>
+
+        </section>
+
+    </section>
+</main>
 
     <main id="productsScreen" class="screen admin-page">
         <header class="screen-header">
