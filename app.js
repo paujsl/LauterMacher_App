@@ -5168,8 +5168,7 @@ on(
 function renderInvoiceContextOptions() {
 
     if (
-        !invoiceContextInput ||
-        !purchaseContextInput
+        !invoiceContextInput
     ) {
 
         return;
@@ -5179,8 +5178,7 @@ function renderInvoiceContextOptions() {
         loadEvents();
 
     [
-        invoiceContextInput,
-        purchaseContextInput
+        invoiceContextInput
     ].forEach(
         function (
             select
