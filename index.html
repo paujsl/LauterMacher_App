@@ -443,123 +443,96 @@
         </section>
     </main>
 
-<main
-    id="inventoryInvoicesScreen"
-    class="screen"
->
-    <section class="admin-page">
+<main id="inventoryInvoicesScreen" class="screen admin-page">
+    <header class="screen-header">
+        <button id="inventoryInvoicesBackButton" class="back-button" type="button">
+            ← Bearbeiten
+        </button>
 
-        <div class="screen-heading">
+        <h1>🧾 Rechnungen</h1>
+    </header>
 
-            <button
-                id="inventoryInvoicesBackButton"
-                type="button"
-                class="back-button"
-                aria-label="Zurück"
-            >
-                ←
-            </button>
+    <section class="admin-content">
 
-            <div>
-                <h2>Rechnungen</h2>
-                <p>
-                    Rechnungen erfassen und anschließend
-                    den Warenbestand bearbeiten.
-                </p>
-            </div>
-
+        <div class="page-intro-card">
+            <strong>Rechnungen eintragen</strong>
+            <p>Rechnungen erfassen und anschließend den Warenbestand bearbeiten.</p>
         </div>
 
+        <div class="form-panel">
 
-        <section class="admin-section">
+            <div class="form-grid">
 
-            <h3>Rechnungen eintragen</h3>
+                <label>
+                    Rechnungsnummer
+                    <input
+                        id="invoiceNumberInput"
+                        type="text"
+                        readonly
+                        placeholder="TT/MM/JJ_01"
+                    >
+                </label>
 
-            <label>
-    <span>Rechnungsnummer</span>
+                <label>
+                    Bereich
+                    <select id="invoiceContextInput">
+                        <option value="getränke">Getränke</option>
+                        <option value="bäckerei">Bäckerei</option>
+                        <option value="sonderveranstaltung">Sonderveranstaltung</option>
+                    </select>
+                </label>
 
-    <input
-        id="invoiceNumberInput"
-        type="text"
-        readonly
-        placeholder="TT/MM/JJ_01"
-    >
-</label>
+                <label>
+                    Rechnungsdatum
+                    <input
+                        id="invoiceDateInput"
+                        type="date"
+                    >
+                </label>
 
+                <label>
+                    Laden
+                    <input
+                        id="invoiceSupplierInput"
+                        type="text"
+                        placeholder="z. B. Kaufland"
+                        autocomplete="off"
+                    >
+                </label>
 
-<label>
-    <span>Bereich</span>
+                <label>
+                    Gesamtkosten
+                    <input
+                        id="invoiceAmountInput"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        inputmode="decimal"
+                        placeholder="0,00"
+                    >
+                </label>
 
-    <select id="invoiceContextInput">
-        <option value="getränke">
-            Getränke
-        </option>
-
-        <option value="bäckerei">
-            Bäckerei
-        </option>
-
-        <option value="sonderveranstaltung">
-            Sonderveranstaltung
-        </option>
-    </select>
-</label>
-
-
-<label>
-    <span>Rechnungsdatum</span>
-
-    <input
-        id="invoiceDateInput"
-        type="date"
-    >
-</label>
-
-
-<label>
-    <span>Laden</span>
-
-    <input
-        id="invoiceSupplierInput"
-        type="text"
-        placeholder="z. B. Kaufland"
-        autocomplete="off"
-    >
-</label>
-
-
-<label>
-    <span>Gesamtkosten</span>
-
-    <input
-        id="invoiceAmountInput"
-        type="number"
-        min="0"
-        step="0.01"
-        inputmode="decimal"
-        placeholder="0,00"
-    >
-</label>
-
+            </div>
 
             <button
                 id="saveInvoiceButton"
+                class="primary-action"
                 type="button"
-                class="primary-button"
             >
                 Hinzufügen
             </button>
 
-        </section>
+        </div>
 
+        <div class="form-panel">
 
-        <section class="admin-section">
-
-            <h3>Letzte Einträge</h3>
+            <div class="panel-heading">
+                <h2>Letzte Einträge</h2>
+            </div>
 
             <div
                 id="invoiceList"
-                class="records-list"
+                class="record-list"
                 aria-live="polite"
             >
                 <div class="no-data">
@@ -567,7 +540,7 @@
                 </div>
             </div>
 
-        </section>
+        </div>
 
     </section>
 </main>
