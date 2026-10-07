@@ -8453,3 +8453,1089 @@ document.addEventListener(
         }
     }
 );
+
+/* =====================================================================
+   LAUTERMACHER V3.2
+   Patch ciblé — aucune régression volontaire des fonctions existantes
+   ===================================================================== */
+
+
+/* =====================================================================
+   V3.2 — MODE PROFESSEUR VISUEL
+   ===================================================================== */
+
+function applyV32RoleAppearance() {
+
+    document.body.classList.toggle(
+        "teacher-mode",
+        Boolean(
+            state.currentPerson &&
+            isTeacher()
+        )
+    );
+
+
+    const roleElement =
+        $("currentPersonRole") ||
+        document.querySelector(
+            ".current-person-role"
+        );
+
+
+    if (roleElement) {
+
+        roleElement.classList.toggle(
+            "teacher-role",
+            Boolean(
+                state.currentPerson &&
+                isTeacher()
+            )
+        );
+    }
+
+
+    document
+        .querySelectorAll(
+            ".role-badge"
+        )
+        .forEach(
+            element => {
+
+                element.classList.toggle(
+                    "teacher-role",
+                    Boolean(
+                        state.currentPerson &&
+                        isTeacher()
+                    )
+                );
+            }
+        );
+}
+
+
+/* =====================================================================
+   V3.2 — FIL D'ARIANE SOUS LE HEADER
+   ===================================================================== */
+
+function moveBreadcrumbBelowHeaderV32() {
+
+    const header =
+        $("appHeader");
+
+    const breadcrumb =
+        document.querySelector(
+            ".breadcrumb"
+        );
+
+    if (
+        !header ||
+        !breadcrumb
+    ) {
+        return;
+    }
+
+
+    /*
+       On sort physiquement le fil d'Ariane du header s'il s'y trouve.
+       Il devient son frère direct, juste après.
+    */
+
+    if (
+        header.contains(
+            breadcrumb
+        )
+    ) {
+
+        header.insertAdjacentElement(
+            "afterend",
+            breadcrumb
+        );
+    }
+}
+
+
+/* =====================================================================
+   V3.2 — CALCULATRICES
+   Getränke + Bäckerei
+   Étudiant ET professeur
+   ===================================================================== */
+
+
+/*
+   Important :
+   le pavé numérique travaille uniquement sur la valeur reçue.
+   Il ne crée aucune vente et ne touche pas à Supabase.
+*/
+
+
+function v32AppendPaymentDigit(
+    currentCents,
+    value
+) {
+
+    const current =
+        String(
+            Math.max(
+                0,
+                integer(
+                    currentCents
+                )
+            )
+        );
+
+
+    const addition =
+        String(
+            value || ""
+        ).replace(
+            /\D/g,
+            ""
+        );
+
+
+    if (!addition) {
+        return integer(
+            currentCents
+        );
+    }
+
+
+    const combined =
+        (
+            current === "0"
+                ? addition
+                : current + addition
+        )
+        .replace(
+            /^0+(?=\d)/,
+            ""
+        )
+        .slice(
+            0,
+            7
+        );
+
+
+    return integer(
+        combined || "0"
+    );
+}
+
+
+function v32DeletePaymentDigit(
+    currentCents
+) {
+
+    const text =
+        String(
+            Math.max(
+                0,
+                integer(
+                    currentCents
+                )
+            )
+        );
+
+
+    if (
+        text.length <= 1
+    ) {
+        return 0;
+    }
+
+
+    return integer(
+        text.slice(
+            0,
+            -1
+        )
+    );
+}
+
+
+function v32FormatCents(
+    cents
+) {
+
+    return money(
+        Number(
+            cents || 0
+        ) / 100
+    );
+}
+
+
+/* ---------------------------------------------------------------------
+   GETRÄNKE
+   --------------------------------------------------------------------- */
+
+let v32DrinksReceivedCents =
+    0;
+
+
+function v32DrinksTotal() {
+
+    return Object.values(
+        state.drinksCart || {}
+    ).reduce(
+        (
+            sum,
+            item
+        ) =>
+            sum +
+            (
+                Number(
+                    item.price || 0
+                ) *
+                integer(
+                    item.quantity || 0
+                )
+            ),
+        0
+    );
+}
+
+
+function renderV32DrinksPayment() {
+
+    const total =
+        v32DrinksTotal();
+
+    const received =
+        v32DrinksReceivedCents /
+        100;
+
+    const change =
+        Math.max(
+            0,
+            received - total
+        );
+
+
+    setText(
+        "drinksPaymentTotal",
+        money(
+            total
+        )
+    );
+
+    setText(
+        "drinksAmountReceived",
+        v32FormatCents(
+            v32DrinksReceivedCents
+        )
+    );
+
+    setText(
+        "drinksChangeAmount",
+        money(
+            change
+        )
+    );
+
+
+    const paidButton =
+        $("drinksPaidButton");
+
+
+    if (paidButton) {
+
+        paidButton.disabled =
+            total <= 0 ||
+            received + 0.0001 <
+                total;
+    }
+}
+
+
+/* ---------------------------------------------------------------------
+   BÄCKEREI
+   --------------------------------------------------------------------- */
+
+let v32BakeryReceivedCents =
+    0;
+
+
+function v32BakeryTotal() {
+
+    return Object.values(
+        state.bakeryCart || {}
+    ).reduce(
+        (
+            sum,
+            item
+        ) =>
+            sum +
+            (
+                Number(
+                    item.price || 0
+                ) *
+                integer(
+                    item.quantity || 0
+                )
+            ),
+        0
+    );
+}
+
+
+function renderV32BakeryPayment() {
+
+    const total =
+        v32BakeryTotal();
+
+    const received =
+        v32BakeryReceivedCents /
+        100;
+
+    const change =
+        Math.max(
+            0,
+            received - total
+        );
+
+
+    setText(
+        "bakeryPaymentTotal",
+        money(
+            total
+        )
+    );
+
+    setText(
+        "bakeryAmountReceived",
+        v32FormatCents(
+            v32BakeryReceivedCents
+        )
+    );
+
+    setText(
+        "bakeryChangeAmount",
+        money(
+            change
+        )
+    );
+
+
+    const paidButton =
+        $("bakeryPaidButton");
+
+
+    if (paidButton) {
+
+        paidButton.disabled =
+            total <= 0 ||
+            received + 0.0001 <
+                total;
+    }
+}
+
+
+/* =====================================================================
+   V3.2 — KEYPAD EVENTS
+   ===================================================================== */
+
+document.addEventListener(
+    "click",
+    event => {
+
+        const key =
+            event.target.closest(
+                ".payment-key"
+            );
+
+        if (!key) {
+            return;
+        }
+
+
+        /*
+           GETRÄNKE
+        */
+
+        const drinksKeypad =
+            key.closest(
+                "#drinksPaymentKeypad"
+            );
+
+
+        if (drinksKeypad) {
+
+            event.preventDefault();
+            event.stopPropagation();
+            event.stopImmediatePropagation();
+
+
+            if (
+                key.id ===
+                "drinksDeletePaymentButton"
+            ) {
+
+                v32DrinksReceivedCents =
+                    v32DeletePaymentDigit(
+                        v32DrinksReceivedCents
+                    );
+
+            } else {
+
+                v32DrinksReceivedCents =
+                    v32AppendPaymentDigit(
+                        v32DrinksReceivedCents,
+                        key.dataset.value
+                    );
+            }
+
+
+            renderV32DrinksPayment();
+
+            return;
+        }
+
+
+        /*
+           BÄCKEREI
+        */
+
+        const bakeryKeypad =
+            key.closest(
+                "#bakeryPaymentKeypad"
+            );
+
+
+        if (bakeryKeypad) {
+
+            event.preventDefault();
+            event.stopPropagation();
+            event.stopImmediatePropagation();
+
+
+            if (
+                key.id ===
+                "bakeryDeletePaymentButton"
+            ) {
+
+                v32BakeryReceivedCents =
+                    v32DeletePaymentDigit(
+                        v32BakeryReceivedCents
+                    );
+
+            } else {
+
+                v32BakeryReceivedCents =
+                    v32AppendPaymentDigit(
+                        v32BakeryReceivedCents,
+                        key.dataset.value
+                    );
+            }
+
+
+            renderV32BakeryPayment();
+        }
+
+    },
+    true
+);
+
+
+/* =====================================================================
+   V3.2 — RESET DES CALCULATRICES
+   ===================================================================== */
+
+document.addEventListener(
+    "click",
+    event => {
+
+        const button =
+            event.target.closest(
+                "button"
+            );
+
+        if (!button) {
+            return;
+        }
+
+
+        if (
+            button.id ===
+            "drinksPayButton"
+        ) {
+
+            v32DrinksReceivedCents =
+                0;
+
+            window.setTimeout(
+                renderV32DrinksPayment,
+                0
+            );
+        }
+
+
+        if (
+            button.id ===
+            "bakeryPayButton"
+        ) {
+
+            v32BakeryReceivedCents =
+                0;
+
+            window.setTimeout(
+                renderV32BakeryPayment,
+                0
+            );
+        }
+
+    },
+    true
+);
+
+
+/* =====================================================================
+   V3.2 — BEARBEITEN PROFESSEUR
+   ===================================================================== */
+
+
+/*
+   Certains anciens listeners utilisaient les anciens IDs.
+   Ici on branche uniquement les IDs présents dans le HTML actuel.
+*/
+
+
+document.addEventListener(
+    "click",
+    event => {
+
+        const button =
+            event.target.closest(
+                "button"
+            );
+
+        if (!button) {
+            return;
+        }
+
+
+        /* PRODUKTE */
+
+        if (
+            button.id ===
+            "productsButton"
+        ) {
+
+            event.preventDefault();
+
+            renderProductAdmin();
+
+            showScreen(
+                "productsScreen"
+            );
+
+            return;
+        }
+
+
+        /* RECHNUNGEN */
+
+        if (
+            button.id ===
+            "invoicesButton"
+        ) {
+
+            if (!isTeacher()) {
+                return;
+            }
+
+
+            event.preventDefault();
+
+            showScreen(
+                "invoicesScreen"
+            );
+
+            return;
+        }
+
+
+        /* INVENTUR */
+
+        if (
+            button.id ===
+            "inventoryButton" &&
+            isTeacher()
+        ) {
+
+            event.preventDefault();
+
+            showScreen(
+                "teacherInventoryScreen"
+            );
+
+            return;
+        }
+
+
+        /* SCHÜLER */
+
+        if (
+            button.id ===
+            "studentsButton"
+        ) {
+
+            if (!isTeacher()) {
+                return;
+            }
+
+
+            event.preventDefault();
+
+            showScreen(
+                "studentsScreen"
+            );
+
+            return;
+        }
+
+
+        /* BENACHRICHTIGUNGEN */
+
+        if (
+            button.id ===
+            "notificationsAdminButton"
+        ) {
+
+            if (!isTeacher()) {
+                return;
+            }
+
+
+            event.preventDefault();
+
+            openV32TeacherNotifications();
+
+            return;
+        }
+
+    },
+    true
+);
+
+
+/* =====================================================================
+   V3.2 — BENACHRICHTIGUNGEN ALS 5. FUNKTION
+   ===================================================================== */
+
+function ensureV32NotificationAdminButton() {
+
+    if (!isTeacher()) {
+        return;
+    }
+
+
+    const grid =
+        document.querySelector(
+            "#editMenuScreen .edit-menu-grid"
+        );
+
+
+    if (!grid) {
+        return;
+    }
+
+
+    if (
+        $("notificationsAdminButton")
+    ) {
+        return;
+    }
+
+
+    const button =
+        document.createElement(
+            "button"
+        );
+
+
+    button.id =
+        "notificationsAdminButton";
+
+    button.type =
+        "button";
+
+    button.className =
+        "admin-menu-card teacher-only";
+
+
+    button.innerHTML = `
+        <span class="admin-menu-icon">
+            🔔
+        </span>
+
+        <strong>
+            Benachrichtigungen
+        </strong>
+
+        <small>
+            Nachricht an Schüler senden
+        </small>
+    `;
+
+
+    grid.appendChild(
+        button
+    );
+}
+
+
+/*
+   On utilise l'écran Notifications existant.
+   Pas de nouvelle table, pas de stockage parallèle.
+*/
+
+function openV32TeacherNotifications() {
+
+    showScreen(
+        "notificationsScreen"
+    );
+
+
+    const screen =
+        $("notificationsScreen");
+
+
+    if (!screen) {
+        return;
+    }
+
+
+    let composer =
+        $("teacherNotificationComposer");
+
+
+    if (composer) {
+        return;
+    }
+
+
+    composer =
+        document.createElement(
+            "section"
+        );
+
+
+    composer.id =
+        "teacherNotificationComposer";
+
+    composer.className =
+        "content-card teacher-notification-composer";
+
+
+    composer.innerHTML = `
+        <div class="section-heading">
+
+            <div>
+                <h2>
+                    🔔 Benachrichtigung senden
+                </h2>
+
+                <p>
+                    Nachricht an die Schüler.
+                </p>
+            </div>
+
+        </div>
+
+        <div class="form-grid">
+
+            <label>
+                Empfänger
+
+                <select
+                    id="teacherNotificationRecipient"
+                >
+                    <option value="student">
+                        Alle Schüler
+                    </option>
+
+                    <option value="all">
+                        Alle
+                    </option>
+                </select>
+            </label>
+
+            <label>
+                Titel
+
+                <input
+                    id="teacherNotificationTitle"
+                    type="text"
+                    maxlength="80"
+                    placeholder="Titel"
+                >
+            </label>
+
+            <label class="full-width-field">
+                Nachricht
+
+                <textarea
+                    id="teacherNotificationMessage"
+                    rows="4"
+                    maxlength="500"
+                    placeholder="Nachricht schreiben..."
+                ></textarea>
+            </label>
+
+        </div>
+
+        <div class="button-row">
+
+            <button
+                id="teacherSendNotificationButton"
+                class="primary-action"
+                type="button"
+            >
+                Senden
+            </button>
+
+        </div>
+    `;
+
+
+    const firstContent =
+        screen.querySelector(
+            ".notifications-content"
+        ) ||
+        screen.querySelector(
+            "section"
+        );
+
+
+    if (firstContent) {
+
+        firstContent.insertAdjacentElement(
+            "beforebegin",
+            composer
+        );
+
+    } else {
+
+        screen.appendChild(
+            composer
+        );
+    }
+}
+
+
+/* =====================================================================
+   V3.2 — BERICHTE EXPORT
+   ===================================================================== */
+
+function moveV32ReportExportButton() {
+
+    const reportScreen =
+        $("reportsScreen");
+
+    if (!reportScreen) {
+        return;
+    }
+
+
+    const button =
+        $("exportReportButton") ||
+        $("reportExportButton") ||
+        $("exportExcelButton");
+
+
+    if (!button) {
+        return;
+    }
+
+
+    let actions =
+        reportScreen.querySelector(
+            ".reports-top-actions"
+        );
+
+
+    if (!actions) {
+
+        actions =
+            document.createElement(
+                "div"
+            );
+
+        actions.className =
+            "reports-top-actions";
+
+
+        const screenHeader =
+            reportScreen.querySelector(
+                ".screen-header"
+            );
+
+
+        if (screenHeader) {
+
+            screenHeader.insertAdjacentElement(
+                "afterend",
+                actions
+            );
+
+        } else {
+
+            reportScreen.prepend(
+                actions
+            );
+        }
+    }
+
+
+    actions.appendChild(
+        button
+    );
+}
+
+
+/* =====================================================================
+   V3.2 — MODE DÉVELOPPEMENT
+   Désactivation TEMPORAIRE du blocage horaire élève.
+   ===================================================================== */
+
+
+/*
+   IMPORTANT :
+   ceci est volontairement temporaire pendant le développement.
+
+   On ne supprime pas l'écran ni la logique existante.
+   On force seulement le contrôle à autoriser l'accès.
+*/
+
+
+window.LAUTERMACHER_DEVELOPMENT_MODE =
+    true;
+
+
+function v32DevelopmentAccessAllowed() {
+
+    return (
+        window.LAUTERMACHER_DEVELOPMENT_MODE ===
+        true
+    );
+}
+
+
+/*
+   Si le blocage horaire tente d'afficher son écran pendant
+   le développement, on retourne à l'accueil.
+*/
+
+const v32SchoolHoursObserver =
+    new MutationObserver(
+        () => {
+
+            if (
+                !v32DevelopmentAccessAllowed()
+            ) {
+                return;
+            }
+
+
+            const closedScreen =
+                $("schoolClosedScreen");
+
+
+            if (
+                closedScreen &&
+                (
+                    closedScreen.classList.contains(
+                        "screen-visible"
+                    ) ||
+                    closedScreen.style.display ===
+                        "block"
+                )
+            ) {
+
+                closedScreen.classList.remove(
+                    "screen-visible"
+                );
+
+                closedScreen.style.display =
+                    "none";
+
+
+                if (
+                    state.currentPerson
+                ) {
+
+                    goHome();
+                }
+            }
+        }
+    );
+
+
+v32SchoolHoursObserver.observe(
+    document.body,
+    {
+        subtree: true,
+        attributes: true,
+        attributeFilter: [
+            "class",
+            "style"
+        ]
+    }
+);
+
+
+/* =====================================================================
+   V3.2 — REFRESH UI
+   ===================================================================== */
+
+function applyV32Interface() {
+
+    if (!state.currentPerson) {
+        return;
+    }
+
+
+    applyV32RoleAppearance();
+
+    moveBreadcrumbBelowHeaderV32();
+
+    moveV32ReportExportButton();
+
+
+    if (isTeacher()) {
+
+        ensureV32NotificationAdminButton();
+    }
+}
+
+
+/*
+   Petit observateur uniquement pour les éléments d'interface
+   injectés lors des changements d'écran.
+*/
+
+const v32InterfaceObserver =
+    new MutationObserver(
+        () => {
+
+            window.requestAnimationFrame(
+                applyV32Interface
+            );
+        }
+    );
+
+
+v32InterfaceObserver.observe(
+    document.body,
+    {
+        childList: true,
+        subtree: true
+    }
+);
+
+
+window.setTimeout(
+    applyV32Interface,
+    0
+);
