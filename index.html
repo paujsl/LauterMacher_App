@@ -1368,15 +1368,15 @@
 
 
             <button
-                class="admin-menu-card teacher-only"
-                hidden
-                id="invoicesButton"
-                type="button"
-            >
-                <span class="admin-menu-icon">🧾</span>
-                <strong>Rechnungen</strong>
-                <small>Rechnungen erfassen</small>
-            </button>
+    class="admin-menu-card teacher-only"
+    hidden
+    id="invoicesButton"
+    type="button"
+>
+    <span class="admin-menu-icon">🧾</span>
+    <strong>Buchhaltung</strong>
+    <small>Rechnungen und Einnahmen erfassen</small>
+</button>
 
 
             <button
@@ -1673,9 +1673,7 @@
     hidden
     id="invoicesScreen"
 >
-
     <header class="screen-header">
-
         <button
             class="back-button"
             id="invoicesBackButton"
@@ -1684,133 +1682,102 @@
             ← Bearbeiten
         </button>
 
-        <h1>
-            🧾 Rechnungen
-        </h1>
-
+        <h1>🧾 Buchhaltung</h1>
     </header>
 
     <section class="admin-content">
 
-        <form
-            class="form-card"
-            id="invoiceForm"
-        >
+        <h2>Rechnungen</h2>
 
+        <form class="form-card" id="invoiceForm">
             <div class="form-grid">
 
                 <label class="form-field">
-
-                    <span>
-                        Rechnungsnummer
-                    </span>
-
+                    <span>Rechnungsnummer</span>
                     <input
                         id="invoiceNumberInput"
                         placeholder="Wird automatisch erstellt"
                         readonly
                         type="text"
-                    />
-
+                    >
                 </label>
 
-
                 <label class="form-field">
-
-                    <span>
-                        Bereich
-                    </span>
-
+                    <span>Bereich</span>
                     <select id="invoiceContextSelect">
-
-                        <option value="getränke">
-                            Getränke
-                        </option>
-
-                        <option value="bäckerei">
-                            Bäckerei
-                        </option>
-
+                        <option value="getränke">Getränke</option>
+                        <option value="bäckerei">Bäckerei</option>
                         <option value="sonderveranstaltung">
                             Sonderveranstaltung
                         </option>
-
                     </select>
-
                 </label>
-
 
                 <label
                     class="form-field"
                     hidden
                     id="invoiceEventField"
                 >
-
-                    <span>
-                        Veranstaltung
-                    </span>
-
+                    <span>Veranstaltung</span>
                     <select id="invoiceEventSelect"></select>
-
                 </label>
 
-
                 <label class="form-field">
-
-                    <span>
-                        Rechnungsdatum
-                    </span>
-
+                    <span>Rechnungsdatum</span>
                     <input
                         id="invoiceDateInput"
                         required
                         type="date"
-                    />
-
+                    >
                 </label>
 
-
                 <label class="form-field">
-
-                    <span>
-                        Laden
-                    </span>
-
+                    <span>Laden</span>
                     <input
                         id="invoiceSupplierInput"
                         placeholder="z. B. Kaufland"
                         type="text"
-                    />
-
+                    >
                 </label>
-
 
                 <label class="form-field">
-
-                    <span>
-                        Gesamtkosten
-                    </span>
-
-                    <div class="money-input-wrap">
-
-                        <input
-                            id="invoiceTotalInput"
-                            inputmode="decimal"
-                            placeholder="0,00"
-                            required
-                            type="text"
-                        />
-
-                        <span>€</span>
-
-                    </div>
-
+                    <span>Gesamtkosten inkl. Pfand (€)</span>
+                    <input
+                        id="invoiceTotalInput"
+                        inputmode="decimal"
+                        placeholder="0,00"
+                        required
+                        type="text"
+                    >
                 </label>
+
+                <label class="form-field">
+                    <span>Pfandanzahl</span>
+                    <input
+                        id="invoicePfandInput"
+                        inputmode="numeric"
+                        min="0"
+                        required
+                        step="1"
+                        type="number"
+                        value="0"
+                    >
+                </label>
+
+                <div class="form-field">
+                    <span>Pfandbetrag · 0,25 € je Stück</span>
+                    <output
+                        for="invoicePfandInput"
+                        id="invoicePfandAmount"
+                    >
+                        0,00 €
+                    </output>
+                </div>
 
             </div>
 
             <button
-                class="primary-action full-width-button"
+                class="primary-action"
                 id="saveInvoiceButton"
                 type="submit"
             >
@@ -1820,31 +1787,98 @@
             <p
                 class="form-message"
                 id="invoiceFormMessage"
+                role="status"
             ></p>
-
         </form>
 
+        <details
+            class="accounting-history"
+            id="invoiceHistory"
+        >
+            <summary id="invoiceHistoryTitle">
+                Alle Rechnungen
+            </summary>
 
-        <section class="recent-section">
+            <div class="invoice-list" id="invoiceList"></div>
+        </details>
 
-            <div class="section-heading">
 
-                <div>
-                    <h2>Letzte Einträge</h2>
-                    <p>Die letzten 10 Rechnungen</p>
-                </div>
+        <h2>Sonstige Einnahmen</h2>
+
+        <form class="form-card" id="receiptForm">
+            <div class="form-grid">
+
+                <label class="form-field">
+                    <span>Datum</span>
+                    <input
+                        id="receiptDateInput"
+                        required
+                        type="date"
+                    >
+                </label>
+
+                <label class="form-field">
+                    <span>Art</span>
+                    <select id="receiptKindInput">
+                        <option value="pfand_return">
+                            Pfandrückgabe
+                        </option>
+                        <option value="other">
+                            Sonstige Einnahme
+                        </option>
+                    </select>
+                </label>
+
+                <label class="form-field">
+                    <span>Grund</span>
+                    <input
+                        id="receiptReasonInput"
+                        placeholder="z. B. Pfandrückgabe bei Aldi"
+                        required
+                        type="text"
+                    >
+                </label>
+
+                <label class="form-field">
+                    <span>Betrag (€)</span>
+                    <input
+                        id="receiptAmountInput"
+                        inputmode="decimal"
+                        placeholder="0,00"
+                        required
+                        type="text"
+                    >
+                </label>
 
             </div>
 
-            <div
-                class="invoice-list"
-                id="invoiceList"
-            ></div>
+            <button
+                class="primary-action"
+                id="saveReceiptButton"
+                type="submit"
+            >
+                + Hinzufügen
+            </button>
 
-        </section>
+            <p
+                class="form-message"
+                id="receiptFormMessage"
+                role="status"
+            ></p>
+        </form>
+
+        <details
+            class="accounting-history"
+            id="receiptHistory"
+        >
+            <summary id="receiptHistoryTitle">
+                Alle sonstigen Einnahmen
+            </summary>
+
+            <div class="invoice-list" id="receiptList"></div>
+        </details>
 
     </section>
-
 </main>
 
 
