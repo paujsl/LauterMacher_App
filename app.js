@@ -1399,60 +1399,123 @@ $("teacherInventoryBackButton")?.addEventListener(
 async function renderTeacherInventory() {
     const box = $("teacherInventoryList");
 
-    if (!box || !isTeacher()) return;
+    if (
+        !box ||
+        !isTeacher() ||
+        renderTeacherInventory.busy
+    ) {
+        return;
+    }
 
     const generation =
         (renderTeacherInventory.generation || 0) + 1;
 
     renderTeacherInventory.generation = generation;
 
-    try {
-        const [stockResult, submissionResult] =
-            await Promise.all([
-                db
-                    .from("inventory")
-                    .select("*"),
+    const dateText = value => {
+        return new Intl.DateTimeFormat("de-DE", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            timeZone: "Europe/Berlin"
+        }).format(new Date(value));
+    };
 
-                db
-                    .from("inventory_submissions")
-                    .select(
-                        "id, submitted_at, inventory_submission_items(*)"
-                    )
-                    .eq("context", "getränke")
-                    .eq("inventory_type", "daily")
-                    .is("event_id", null)
-                    .eq("status", "eingereicht")
-                    .order("submitted_at", {
-                        ascending: false
-                    })
-                    .order("id", {
-                        ascending: false
-                    })
-                    .limit(1)
-            ]);
+
+    async function commitReview(rpc, args, successText) {
+        if (renderTeacherInventory.busy) {
+            return;
+        }
+
+        renderTeacherInventory.busy = true;
+
+        box.querySelectorAll("button").forEach(button => {
+            button.disabled = true;
+        });
+
+        try {
+            const { data, error } = await db.rpc(
+                rpc,
+                args
+            );
+
+            if (error) {
+                throw error;
+            }
+
+            if (data === false) {
+                throw new Error("operation_failed");
+            }
+
+            toast(
+                data === "superseded"
+                    ? "Ältere Zählung archiviert. Bestand unverändert."
+                    : successText,
+                "success"
+            );
+
+        } catch (error) {
+            console.error("Inventur:", error);
+
+            const changed =
+                /inventory_changed_refresh|newer_inventory_pending|inventory_submission_already_reviewed/
+                    .test(String(error.message || ""));
+
+            toast(
+                changed
+                    ? "Bestand oder Inventur wurde geändert. Bitte die aktualisierte Ansicht erneut prüfen."
+                    : "Änderung konnte nicht gespeichert werden. Bitte erneut versuchen.",
+                "error"
+            );
+
+        } finally {
+            renderTeacherInventory.busy = false;
+
+            await renderTeacherInventory();
+        }
+    }
+
+
+    try {
+        const [stocks, dashboard] = await Promise.all([
+            db.from("inventory").select("*"),
+
+            db.rpc("teacher_inventory_dashboard")
+        ]);
 
         if (
-            generation !==
-            renderTeacherInventory.generation
+            generation !== renderTeacherInventory.generation ||
+            renderTeacherInventory.busy
         ) {
             return;
         }
 
-        if (stockResult.error) {
-            throw stockResult.error;
+        if (stocks.error) {
+            throw stocks.error;
         }
 
-        if (submissionResult.error) {
-            throw submissionResult.error;
+        if (dashboard.error) {
+            throw dashboard.error;
         }
 
-        state.inventory = stockResult.data || [];
+        state.inventory = stocks.data || [];
 
         const submission =
-            submissionResult.data?.[0] || null;
+            dashboard.data?.latest || null;
+
+        const history =
+            dashboard.data?.history || [];
 
         const items =
             submission?.inventory_submission_items || [];
+
+        const stockFor = id => {
+            return state.inventory.find(stock =>
+                String(stock.product_id) === String(id)
+            );
+        };
 
         const itemsByProduct = new Map();
 
@@ -1471,40 +1534,87 @@ async function renderTeacherInventory() {
             }
         }
 
+
+        // Historique au-dessus du tableau.
+
         let notice = $("teacherInventoryNotice");
 
         if (!notice) {
-            notice = document.createElement("div");
+            notice = document.createElement("section");
             notice.id = "teacherInventoryNotice";
-            notice.className = "info-card";
 
             box.before(notice);
         }
 
-        notice.hidden = !submission;
+        notice.className = "teacher-inventory-history";
+        notice.hidden = false;
 
-        notice.textContent = submission
-            ? `Schüler-Inventur vom ${
-                new Intl.DateTimeFormat("de-DE", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "2-digit",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    timeZone: "Europe/Berlin"
-                }).format(
-                    new Date(submission.submitted_at)
-                )
-            } – Prüfung ausstehend`
-            : "";
+        notice.innerHTML = `
+            <h2>Letzte Inventuren</h2>
 
-        const history =
+            <div class="teacher-inventory-history-list">
+                ${history.length ? `
+                    <div class="teacher-inventory-history-heading">
+                        <span>Datum</span>
+                        <span>Schüler/in</span>
+                        <span>Status</span>
+                    </div>
+                ` : `
+                    <p>Noch keine eingereichte Inventur.</p>
+                `}
+
+                ${history.map(entry => {
+                    const replaced =
+                        entry.reviewed_note ===
+                        "Durch neuere Inventur ersetzt.";
+
+                    const current =
+                        entry.id === submission?.id;
+
+                    const status = replaced
+                        ? "Durch neuere Inventur ersetzt"
+                        : entry.status === "angenommen"
+                            ? "Geprüft"
+                            : entry.status === "eingereicht"
+                                ? "Prüfung ausstehend"
+                                : "Abgelehnt";
+
+                    return `
+                        <div class="
+                            teacher-inventory-history-row
+                            ${current
+                                ? "is-current"
+                                : replaced
+                                    ? "is-replaced"
+                                    : ""}
+                        ">
+                            <span>
+                                ${esc(dateText(entry.submitted_at))}
+                            </span>
+
+                            <span title="${esc(entry.student_name)}">
+                                ${esc(entry.student_name)}
+                            </span>
+
+                            <span>
+                                ${esc(status)}
+                            </span>
+                        </div>
+                    `;
+                }).join("")}
+            </div>
+        `;
+
+        const oldHistory =
             $("inventorySubmissionsList")
                 ?.closest(".submissions-section");
 
-        if (history) {
-            history.hidden = true;
+        if (oldHistory) {
+            oldHistory.hidden = true;
         }
+
+
+        // Tableau des produits.
 
         box.innerHTML = "";
 
@@ -1514,49 +1624,77 @@ async function renderTeacherInventory() {
         );
 
         if (submission) {
-            const heading =
-                document.createElement("div");
+            const heading = document.createElement("div");
 
-            heading.className =
-                "teacher-inventory-heading";
+            heading.className = "teacher-inventory-heading";
 
             heading.innerHTML = `
                 <span>Produkt</span>
                 <span>Schüler-Inventur</span>
                 <span>Unterschied</span>
-                <span>Aktion</span>
+
+                <div class="teacher-inventory-heading-action">
+                    <button
+                        type="button"
+                        class="primary-action"
+                        data-review-all
+                    >
+                        Alle bestätigen
+                    </button>
+                </div>
             `;
 
             box.appendChild(heading);
+
+            heading.querySelector(
+                "[data-review-all]"
+            ).addEventListener("click", async () => {
+                const expected = items
+                    .filter(item => !item.reviewed_at)
+                    .map(item => {
+                        const stock =
+                            stockFor(item.product_id);
+
+                        return {
+                            item_id: item.id,
+                            quantity:
+                                Number(stock?.quantity ?? 0),
+                            updated_at:
+                                stock?.updated_at || null
+                        };
+                    });
+
+                await commitReview(
+                    "teacher_review_inventory_submission",
+                    {
+                        p_submission_id: submission.id,
+                        p_expected_items: expected
+                    },
+                    "Inventur vollständig bestätigt."
+                );
+            });
         }
 
-        // Un produit désactivé après le comptage
-        // doit encore pouvoir être traité.
         const products = drinksProducts()
             .filter(activeProduct)
             .slice();
 
+        // Garder accessibles les produits comptés
+        // qui auraient été désactivés ensuite.
         for (const item of items) {
-            const alreadyIncluded = products.some(
-                product =>
+            if (
+                !products.some(product =>
                     String(product.id) ===
                     String(item.product_id)
-            );
-
-            if (!alreadyIncluded) {
-                const existingProduct =
-                    state.products.find(
-                        product =>
-                            String(product.id) ===
-                            String(item.product_id)
-                    );
-
+                )
+            ) {
                 products.push(
-                    existingProduct || {
+                    state.products.find(product =>
+                        String(product.id) ===
+                        String(item.product_id)
+                    ) || {
                         id: item.product_id,
-                        name:
-                            item.product_name ||
-                            "Produkt",
+                        name: item.product_name || "Produkt",
                         active: false
                     }
                 );
@@ -1564,11 +1702,7 @@ async function renderTeacherInventory() {
         }
 
         products.forEach(product => {
-            const stock = state.inventory.find(
-                item =>
-                    String(item.product_id) ===
-                    String(product.id)
-            );
+            const stock = stockFor(product.id);
 
             const digital =
                 Number(stock?.quantity ?? 0);
@@ -1577,16 +1711,13 @@ async function renderTeacherInventory() {
                 String(product.id)
             );
 
-            const hasCount =
-                Boolean(item) &&
-                item.quantity != null &&
-                Number.isFinite(
-                    Number(item.quantity)
-                );
+            const counted = item?.quantity == null
+                ? null
+                : Number(item.quantity);
 
-            const counted = hasCount
-                ? Number(item.quantity)
-                : null;
+            const hasCount =
+                counted !== null &&
+                Number.isFinite(counted);
 
             const pending =
                 hasCount && !item.reviewed_at;
@@ -1611,15 +1742,13 @@ async function renderTeacherInventory() {
 
             const label = action === "add"
                 ? "+ Bestand"
-                : action === "override"
-                    ? "Override"
-                    : "Confirm";
+                : action === "confirm"
+                    ? "Bestätigen"
+                    : "Bestand übernehmen";
 
-            const row =
-                document.createElement("div");
+            const row = document.createElement("div");
 
-            row.className =
-                "teacher-inventory-row";
+            row.className = "teacher-inventory-row";
 
             row.innerHTML = `
                 <div class="inventory-product-info">
@@ -1649,15 +1778,15 @@ async function renderTeacherInventory() {
 
                     <div class="
                         teacher-student-difference
-                        ${difference === 0
-                            ? "is-equal"
-                            : "is-different"}
+                        ${hasCount
+                            ? difference === 0
+                                ? "is-equal"
+                                : "is-different"
+                            : ""}
                     ">
                         ${hasCount
                             ? (
-                                difference > 0
-                                    ? "+"
-                                    : ""
+                                difference > 0 ? "+" : ""
                             ) + difference
                             : "—"}
 
@@ -1671,9 +1800,9 @@ async function renderTeacherInventory() {
                     <input
                         data-stock-quantity
                         type="number"
-                        inputmode="numeric"
                         min="1"
                         step="1"
+                        inputmode="numeric"
                         placeholder="Menge"
                         aria-label="Menge"
                         ${pending ? "disabled" : ""}
@@ -1711,152 +1840,78 @@ async function renderTeacherInventory() {
                     "Der Bestand bleibt unverändert.";
             }
 
-            button.addEventListener(
-                "click",
-                async () => {
-                    if (renderTeacherInventory.busy) {
-                        return;
-                    }
-
-                    let args;
-
-                    if (action === "add") {
-                        const rawQuantity =
-                            row.querySelector(
-                                "[data-stock-quantity]"
-                            ).value.trim();
-
-                        const quantity =
-                            Number(rawQuantity);
-
-                        const rawCost =
-                            row.querySelector(
-                                "[data-stock-cost]"
-                            ).value.trim();
-
-                        const normalizedCost =
-                            rawCost.replace(
-                                /\s|€/g,
-                                ""
-                            );
-
-                        if (
-                            !Number.isSafeInteger(quantity) ||
-                            quantity <= 0
-                        ) {
-                            toast(
-                                "Bitte eine ganze Menge größer als 0 eingeben.",
-                                "error"
-                            );
-
-                            return;
-                        }
-
-                        if (
-                            rawCost &&
-                            !/^(?:\d+|\d{1,3}(?:\.\d{3})+)(?:,\d{1,2})?$/
-                                .test(normalizedCost)
-                        ) {
-                            toast(
-                                "Bitte einen gültigen Einkaufspreis eingeben, z. B. 0,50.",
-                                "error"
-                            );
-
-                            return;
-                        }
-
-                        args = {
-                            p_product_id:
-                                product.id,
-
-                            p_quantity:
-                                quantity,
-
-                            p_invoice_id:
-                                state.currentInventoryInvoice
-                                    ?.id || null,
-
-                            p_unit_purchase_price:
-                                rawCost
-                                    ? parseMoney(rawCost)
-                                    : null
-                        };
-
-                    } else {
-                        args = {
-                            p_submission_id:
-                                submission.id,
-
-                            p_item_id:
-                                item.id,
-
-                            p_action:
-                                action,
-
-                            p_expected_quantity:
-                                digital,
-
+            button.addEventListener("click", async () => {
+                if (action !== "add") {
+                    await commitReview(
+                        "teacher_review_inventory_item",
+                        {
+                            p_submission_id: submission.id,
+                            p_item_id: item.id,
+                            p_action: action,
+                            p_expected_quantity: digital,
                             p_expected_updated_at:
                                 stock?.updated_at || null
-                        };
-                    }
+                        },
+                        "Zählung bestätigt."
+                    );
 
-                    renderTeacherInventory.busy = true;
-                    button.disabled = true;
-
-                    try {
-                        const { data, error } =
-                            await db.rpc(
-                                action === "add"
-                                    ? "teacher_add_stock"
-                                    : "teacher_review_inventory_item",
-                                args
-                            );
-
-                        if (error) {
-                            throw error;
-                        }
-
-                        if (data === false) {
-                            throw new Error(
-                                "operation_failed"
-                            );
-                        }
-
-                        toast(
-                            data === "superseded"
-                                ? "Ältere Zählung archiviert. Bestand unverändert."
-                                : action === "add"
-                                    ? "Bestand aktualisiert."
-                                    : "Zählung geprüft.",
-                            "success"
-                        );
-
-                    } catch (error) {
-                        console.error(error);
-
-                        const message = String(
-                            error.message || ""
-                        );
-
-                        toast(
-                            /inventory_changed_refresh|newer_inventory_pending/
-                                .test(message)
-                                ? "Bestand oder Inventur geändert. Bitte die aktualisierte Zeile erneut prüfen."
-                                : "Änderung konnte nicht gespeichert werden.",
-                            "error"
-                        );
-
-                    } finally {
-                        renderTeacherInventory.busy =
-                            false;
-
-                        button.disabled = false;
-
-                        await renderTeacherInventory();
-                    }
+                    return;
                 }
-            );
+
+                const quantity = Number(
+                    row.querySelector(
+                        "[data-stock-quantity]"
+                    ).value.trim()
+                );
+
+                const rawCost =
+                    row.querySelector(
+                        "[data-stock-cost]"
+                    ).value.trim();
+
+                if (
+                    !Number.isSafeInteger(quantity) ||
+                    quantity <= 0
+                ) {
+                    toast(
+                        "Bitte eine ganze Menge größer als 0 eingeben.",
+                        "error"
+                    );
+
+                    return;
+                }
+
+                if (
+                    rawCost &&
+                    !/^(?:\d+|\d{1,3}(?:\.\d{3})+)(?:,\d{1,2})?$/
+                        .test(
+                            rawCost.replace(/\s|€/g, "")
+                        )
+                ) {
+                    toast(
+                        "Bitte einen gültigen Einkaufspreis eingeben, z. B. 0,50.",
+                        "error"
+                    );
+
+                    return;
+                }
+
+                await commitReview(
+                    "teacher_add_stock",
+                    {
+                        p_product_id: product.id,
+                        p_quantity: quantity,
+                        p_invoice_id:
+                            state.currentInventoryInvoice
+                                ?.id || null,
+                        p_unit_purchase_price:
+                            rawCost
+                                ? parseMoney(rawCost)
+                                : null
+                    },
+                    "Bestand aktualisiert."
+                );
+            });
 
             box.appendChild(row);
         });
@@ -1869,10 +1924,8 @@ async function renderTeacherInventory() {
             return;
         }
 
-        console.error(error);
+        console.error("Inventur:", error);
 
-        // Empêcher l'utilisation d'anciennes lignes
-        // après un échec de lecture.
         box.innerHTML = `
             <div class="empty-state">
                 Inventur konnte nicht geladen werden.
