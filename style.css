@@ -5898,3 +5898,8 @@ html body #breadcrumb.breadcrumb {
     border-radius: 0 0 6px 6px;
     background: #d77878;
 }
+/* Espacement du troisième bloc : Letzte Einträge. */
+
+#invoicesScreen #receiptForm + h2 {
+    margin-top: 34px;
+}
