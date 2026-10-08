@@ -753,58 +753,74 @@ $("teacherInventoryBackButton")?.addEventListener(
 
 
 async function renderTeacherInventory() {
+    const box = $("teacherInventoryList");
+    if (!box) return;
 
-    await Promise.all([
+    const [, submissions] = await Promise.all([
         loadInventory(),
         loadInventorySubmissions()
     ]);
 
+    const latestSubmission = (submissions || []).find(
+        submission =>
+            submission.status === "eingereicht" &&
+            submission.context === "getränke" &&
+            submission.inventory_type === "daily"
+    );
 
-    const box =
-        $("teacherInventoryList");
-
-    if (!box) {
-        return;
-    }
-
+    const countedItems = new Map(
+        (latestSubmission?.inventory_submission_items || [])
+            .map(item => [
+                item.product_id,
+                Number(item.quantity)
+            ])
+    );
 
     box.innerHTML = "";
 
+    let notice = $("teacherInventoryNotice");
+
+    if (!notice) {
+        notice = document.createElement("div");
+        notice.id = "teacherInventoryNotice";
+        notice.className = "info-card";
+        box.before(notice);
+    }
+
+    notice.hidden = !latestSubmission;
+
+    if (latestSubmission) {
+        const date = latestSubmission.submitted_at
+            ? new Intl.DateTimeFormat("de-DE", {
+                dateStyle: "short",
+                timeStyle: "short"
+            }).format(new Date(latestSubmission.submitted_at))
+            : "Datum unbekannt";
+
+        notice.textContent = `Schüler-Inventur vom ${date}`;
+    }
 
     drinksProducts()
         .filter(activeProduct)
         .forEach(product => {
+            const row = document.createElement("div");
+            row.className = "teacher-inventory-row";
 
-            const row =
-                document.createElement("div");
-
-            row.className =
-                "teacher-inventory-row";
+            const digital = Number(inventoryForProduct(product.id));
 
             row.innerHTML = `
                 <div class="inventory-product-info">
-
                     <span class="inventory-product-icon">
                         ${esc(productIcon(product))}
                     </span>
 
                     <div>
-
-                        <strong>
-                            ${esc(product.name)}
-                        </strong>
-
-                        <small>
-                            Bestand:
-                            ${inventoryForProduct(product.id)}
-                        </small>
-
+                        <strong>${esc(product.name)}</strong>
+                        <small>Bestand: ${digital}</small>
                     </div>
-
                 </div>
 
                 <div class="teacher-stock-form">
-
                     <input
                         data-stock-quantity
                         inputmode="numeric"
@@ -827,97 +843,100 @@ async function renderTeacherInventory() {
                     >
                         + Bestand
                     </button>
-
                 </div>
             `;
 
+            if (latestSubmission && countedItems.has(product.id)) {
+                const counted = countedItems.get(product.id);
+                const difference = counted - digital;
 
-            row.querySelector(
-                "[data-add-stock]"
-            ).addEventListener(
-                "click",
-                async () => {
+                const comparison = document.createElement("div");
+                comparison.className = "inventory-student-comparison";
 
-                    const quantity =
-                        integer(
-                            row.querySelector(
-                                "[data-stock-quantity]"
-                            )?.value
-                        );
+                comparison.style.display = "flex";
+                comparison.style.alignItems = "center";
+                comparison.style.gap = "16px";
+                comparison.style.flexWrap = "wrap";
+                comparison.style.margin = "8px 12px";
 
-                    const costRaw =
-                        String(
-                            row.querySelector(
-                                "[data-stock-cost]"
-                            )?.value ?? ""
-                        ).trim();
+                const differenceText =
+                    difference > 0 ? `+${difference}` : String(difference);
 
-                    const purchasePrice =
-                        costRaw === ""
-                            ? null
-                            : parseMoney(
-                                costRaw
-                            );
+                comparison.innerHTML = `
+                    <div>
+                        <small>Schüler-Inventur</small>
+                        <strong style="display:block">
+                            ${counted}
+                        </strong>
+                    </div>
 
+                    <div>
+                        <small>Unterschied</small>
+                        <strong style="display:block">
+                            ${differenceText}
+                        </strong>
+                    </div>
+
+                    <div>
+                        <small>Prüfung</small>
+                        <strong style="display:block">
+                            ${difference === 0
+                                ? "Confirm"
+                                : "Override"}
+                        </strong>
+                    </div>
+                `;
+
+                row.querySelector(".teacher-stock-form")
+                    .before(comparison);
+            }
+
+            row.querySelector("[data-add-stock]")
+                .addEventListener("click", async () => {
+                    const quantity = integer(
+                        row.querySelector("[data-stock-quantity]")?.value
+                    );
+
+                    const costRaw = String(
+                        row.querySelector("[data-stock-cost]")?.value ?? ""
+                    ).trim();
+
+                    const purchasePrice = costRaw === ""
+                        ? null
+                        : parseMoney(costRaw);
 
                     if (quantity <= 0) {
-
                         toast(
                             "Bitte eine Menge größer als 0 eingeben.",
                             "error"
                         );
-
                         return;
                     }
 
-
                     try {
-
-                        const {
-                            error
-                        } = await db.rpc(
+                        const { error } = await db.rpc(
                             "teacher_add_stock",
                             {
-                                p_context:
-                                    "getränke",
-
-                                p_quantity:
-                                    quantity,
-
-                                p_product_id:
-                                    product.id,
-
-                                p_purchase_price:
-                                    purchasePrice
+                                p_context: "getränke",
+                                p_quantity: quantity,
+                                p_product_id: product.id,
+                                p_purchase_price: purchasePrice
                             }
                         );
 
+                        if (error) throw error;
 
-                        if (error) {
-                            throw error;
-                        }
-
-
-                        toast(
-                            "Bestand aktualisiert.",
-                            "success"
-                        );
-
-
+                        toast("Bestand aktualisiert.", "success");
                         await renderTeacherInventory();
 
                     } catch (error) {
-
                         console.error(error);
-
                         toast(
                             "Bestand konnte nicht aktualisiert werden.",
                             "error"
                         );
                     }
-                }
-            );
-
+                });
 
             box.appendChild(row);
         });
@@ -925,144 +944,98 @@ async function renderTeacherInventory() {
 
 
 async function loadInventorySubmissions() {
+    const box = $("inventorySubmissionsList");
 
-    const box =
-        $("inventorySubmissionsList");
-
-    if (!box) {
-        return;
-    }
-
-
-    const {
-        data,
-        error
-    } = await db
+    const { data, error } = await db
         .from("inventory_submissions")
         .select(`
             *,
             inventory_submission_items(*)
         `)
-        .order("submitted_at", { ascending:  false } )
-        .limit(20);
-
+        .order("submitted_at", { ascending: false })
+        .limit(100);
 
     if (error) {
+        console.error("Inventuren konnten nicht geladen werden:", error);
 
-        console.error(error);
+        if (box) {
+            box.innerHTML = `
+                <div class="empty-state">
+                    Inventuren konnten nicht geladen werden.
+                </div>
+            `;
+        }
 
-        box.innerHTML = `
+        return [];
+    }
+
+    const submissions = data || [];
+
+    // L'affichage du tableau professeur ne doit pas dépendre
+    // de la présence du conteneur de l'historique.
+    if (!box) {
+        return submissions;
+    }
+
+    box.innerHTML = submissions.length
+        ? ""
+        : `
             <div class="empty-state">
-                Inventuren konnten nicht geladen werden.
+                Noch keine eingereichte Inventur.
             </div>
         `;
 
-        return;
-    }
+    submissions.forEach(submission => {
+        const card = document.createElement("article");
+        card.className = "submission-card";
 
+        const lines = (
+            submission.inventory_submission_items || []
+        ).map(item => {
+            const product = state.products.find(
+                product => product.id === item.product_id
+            );
 
-    const submissions =
-        data || [];
+            const name =
+                item.product_name ||
+                product?.name ||
+                "Produkt";
 
+            const quantity =
+                item.quantity ??
+                item.counted_quantity ??
+                "—";
 
-    box.innerHTML =
-        submissions.length
-            ? ""
-            : `
-                <div class="empty-state">
-                    Noch keine eingereichte Inventur.
+            return `
+                <div class="submission-item">
+                    <span>${esc(name)}</span>
+                    <strong>${esc(String(quantity))}</strong>
                 </div>
             `;
+        }).join("");
 
+        const date = submission.submitted_at
+            ? new Intl.DateTimeFormat("de-DE", {
+                dateStyle: "short",
+                timeStyle: "short"
+            }).format(new Date(submission.submitted_at))
+            : "";
 
-    submissions.forEach(
-        submission => {
+        card.innerHTML = `
+            <div class="submission-card-header">
+                <strong>Inventur</strong>
+                <small>${date}</small>
+            </div>
 
-            const card =
-                document.createElement("article");
+            <div class="submission-items">
+                ${lines}
+            </div>
+        `;
 
-            card.className =
-                "submission-card";
+        box.appendChild(card);
+    });
 
-
-            const lines =
-                (
-                    submission
-                        .inventory_submission_items ||
-                    []
-                )
-                .map(
-                    item => {
-
-                        const product =
-                            state.products.find(
-                                product =>
-                                    product.id ===
-                                    item.product_id
-                            );
-
-                        return `
-                            <div class="submission-item">
-                                <span>
-                                    ${esc(
-                                        product?.name ||
-                                        "Produkt"
-                                    )}
-                                </span>
-
-                                <strong>
-                                    ${
-                                        item.counted_quantity ??
-                                        item.quantity ??
-                                        "—"
-                                    }
-                                </strong>
-                            </div>
-                        `;
-                    }
-                )
-                .join("");
-
-
-            card.innerHTML = `
-                <div class="submission-card-header">
-
-                    <strong>
-                        Inventur
-                    </strong>
-
-                    <small>
-                        ${
-                            submission.submitted_at
-                                ? new Intl.DateTimeFormat(
-                                    "de-DE",
-                                    {
-                                        dateStyle:
-                                            "short",
-
-                                        timeStyle:
-                                            "short"
-                                    }
-                                ).format(
-                                    new Date(
-                                        submission.submitted_at
-                                    )
-                                )
-                                : ""
-                        }
-                    </small>
-
-                </div>
-
-                <div class="submission-items">
-                    ${lines}
-                </div>
-            `;
-
-
-            box.appendChild(card);
-        }
-    );
+    return submissions;
 }
 
 
