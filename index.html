@@ -1465,8 +1465,7 @@
             </div>
 
             <button
-                class="primary-action teacher-only"
-                hidden
+                class="primary-action"
                 id="addProductButton"
                 type="button"
             >
@@ -3674,43 +3673,36 @@
      ========================================================= -->
 
 <div
-    class="modal-overlay"
+    id="productModal"
+    class="product-inline-editor"
     hidden
-    id="eventProductModal"
 >
 
-    <div
-        aria-labelledby="eventProductModalTitle"
-        aria-modal="true"
-        class="modal-card"
-        role="dialog"
-    >
+    <div class="product-editor-header">
 
-        <div class="modal-header">
+        <h2 id="productModalTitle">
+            Produkt
+        </h2>
 
-            <h2 id="eventProductModalTitle">
-                Veranstaltungsprodukt
-            </h2>
+        <button
+            id="closeProductModalButton"
+            class="icon-button"
+            type="button"
+            aria-label="Schließen"
+        >
+            ✕
+        </button>
 
-            <button
-                aria-label="Schließen"
-                class="icon-button"
-                id="closeEventProductModalButton"
-                type="button"
-            >
-                ✕
-            </button>
+    </div>
 
-        </div>
+    <form id="productForm">
 
+        <input
+            id="productIdInput"
+            type="hidden"
+        >
 
-        <form id="eventProductForm">
-
-            <input
-                id="eventProductIdInput"
-                type="hidden"
-            />
-
+        <div class="product-editor-grid">
 
             <label class="form-field">
 
@@ -3719,103 +3711,118 @@
                 </span>
 
                 <input
-                    id="eventProductNameInput"
-                    required
+                    id="productNameInput"
                     type="text"
-                />
+                    required
+                    maxlength="150"
+                >
 
             </label>
-
 
             <label class="form-field">
 
                 <span>
-                    Preis
+                    Preis (€)
                 </span>
 
-                <div class="money-input-wrap">
-
-                    <input
-                        id="eventProductPriceInput"
-                        inputmode="decimal"
-                        placeholder="0,00"
-                        required
-                        type="text"
-                    />
-
-                    <span>
-                        €
-                    </span>
-
-                </div>
+                <input
+                    id="productPriceInput"
+                    type="text"
+                    inputmode="decimal"
+                    placeholder="0,00"
+                    required
+                >
 
             </label>
 
+            <label class="form-field">
 
-            <div class="form-field">
+                <span>
+                    Bereich
+                </span>
+
+                <select
+                    id="productCategoryInput"
+                    required
+                >
+
+                    <option value="getränke">
+                        Getränke
+                    </option>
+
+                    <option value="bäckerei">
+                        Bäckerei
+                    </option>
+
+                </select>
+
+            </label>
+
+            <label class="form-field">
 
                 <span>
                     Symbol
                 </span>
 
                 <input
-                    id="eventProductIconInput"
-                    maxlength="8"
-                    placeholder="🎪"
+                    id="productIconInput"
                     type="text"
-                />
-
-                <div
-                    class="emoji-grid"
-                    id="eventProductEmojiGrid"
+                    maxlength="32"
+                    placeholder="🥤"
+                    autocomplete="off"
+                    aria-describedby="productIconHelp"
                 >
 
-                    <button data-emoji="🥞" type="button">🥞</button>
-                    <button data-emoji="🍟" type="button">🍟</button>
-                    <button data-emoji="🌭" type="button">🌭</button>
-                    <button data-emoji="🍔" type="button">🍔</button>
-                    <button data-emoji="🍕" type="button">🍕</button>
-                    <button data-emoji="🧇" type="button">🧇</button>
-                    <button data-emoji="🍰" type="button">🍰</button>
-                    <button data-emoji="🍪" type="button">🍪</button>
-                    <button data-emoji="🥤" type="button">🥤</button>
-                    <button data-emoji="🧃" type="button">🧃</button>
-                    <button data-emoji="🎪" type="button">🎪</button>
-                    <button data-emoji="⭐" type="button">⭐</button>
+                <small id="productIconHelp">
+                    Emoji über die Tablet-Tastatur eingeben.
+                </small>
 
-                </div>
+            </label>
 
-            </div>
+        </div>
 
+        <label class="toggle-field">
 
-            <div class="modal-actions">
+            <input
+                id="productActiveInput"
+                type="checkbox"
+                checked
+            >
 
-                <button
-                    class="secondary-action"
-                    id="cancelEventProductButton"
-                    type="button"
-                >
-                    Abbrechen
-                </button>
+            <span>
+                Produkt aktiv
+            </span>
 
-                <button
-                    class="primary-action"
-                    id="saveEventProductButton"
-                    type="submit"
-                >
-                    Speichern
-                </button>
+        </label>
 
-            </div>
+        <div class="product-editor-actions">
 
-            <p
-                class="form-message"
-                id="eventProductFormMessage"
-            ></p>
+            <button
+                id="cancelProductButton"
+                class="secondary-action"
+                type="button"
+            >
+                Abbrechen
+            </button>
 
-        </form>
+            <button
+                id="saveProductButton"
+                class="primary-action"
+                type="submit"
+            >
+                Speichern
+            </button>
 
-    </div>
+        </div>
+
+        <p
+            id="productFormMessage"
+            class="form-message"
+            role="status"
+            aria-live="polite"
+        ></p>
+
+    </form>
 
 </div>
 
