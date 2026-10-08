@@ -248,16 +248,105 @@ async function loadCurrentPerson(){
     return data;
 }
 
-async function initialiseAuthenticatedApp(){
-    try{
-        const person=await loadCurrentPerson();
-        if(!person){await db.auth.signOut();return;}
-        if(!isTeacher()&&!schoolOpenNow()){await db.auth.signOut();showSchoolClosed();return;}
+async function checkStudentTestAccess() {
+    const person = state.currentPerson;
+
+    if (!person || person.person_type === "lehrer") {
+        return true;
+    }
+
+    const { data, error } = await db.rpc(
+        "current_student_access_test_status"
+    );
+
+    if (error) throw error;
+
+    if (data?.allowed === true) {
+        return true;
+    }
+
+    if (data?.allowed !== false) {
+        throw new Error("Ungültige Zugangsauskunft.");
+    }
+
+    /*
+     * Ne pas fermer une autre session si l'utilisateur
+     * a changé pendant la requête.
+     */
+    if (state.currentPerson?.id !== person.id) {
+        return false;
+    }
+
+    state.currentPerson = null;
+    state.selectedLoginPerson = null;
+
+    showSchoolClosed();
+
+    const screen = $("schoolClosedScreen");
+    const message = screen?.querySelector("p");
+
+    if (message) {
+        message.textContent =
+            "Dein Zugang ist vorübergehend gesperrt. " +
+            "Eine Lehrkraft kann ihn freischalten. " +
+            "Bitte lade die Seite danach erneut.";
+    }
+
+    if (state.realtimeChannel) {
+        const channel = state.realtimeChannel;
+        state.realtimeChannel = null;
+
+        await db.removeChannel(channel);
+    }
+
+    await db.auth.signOut();
+
+    return false;
+}
+
+async function initialiseAuthenticatedApp() {
+    try {
+        const person = await loadCurrentPerson();
+
+        if (!person) {
+            await db.auth.signOut();
+            return;
+        }
+
+        if (!await checkStudentTestAccess()) {
+            return;
+        }
+
+        if (!isTeacher() && !schoolOpenNow()) {
+            state.currentPerson = null;
+
+            showSchoolClosed();
+
+            await db.auth.signOut();
+            return;
+        }
+
         applyRoleUI();
-        await Promise.all([loadProducts(),loadInventory(),loadNotifications(),loadEvents()]);
+        enforceTeacherOnlyUI();
+
+        await Promise.all([
+            loadProducts(),
+            loadInventory(),
+            loadNotifications(),
+            loadEvents()
+        ]);
+
         startRealtime();
         goHome();
-    }catch(error){console.error(error);toast("Die App konnte nicht geladen werden.","error");}
+
+    } catch (error) {
+        console.error(error);
+
+        toast(
+            "Die App konnte nicht geladen werden.",
+            "error"
+        );
+    }
 }
 
 $("logoutButton")?.addEventListener("click",async()=>{
@@ -9364,31 +9453,41 @@ function enforceTeacherOnlyUI() {
  * - aucun bouton "Zur Anmeldung".
  */
 
-function enforceSchoolHoursForCurrentSession() {
-
+async function enforceSchoolHoursForCurrentSession() {
     if (
-        DEVELOPMENT_MODE ||
         !state.currentPerson ||
-        isTeacher()
+        isTeacher() ||
+        enforceSchoolHoursForCurrentSession.busy
     ) {
         return;
     }
 
+    enforceSchoolHoursForCurrentSession.busy = true;
 
-    if (
-        !schoolOpenNow()
-    ) {
+    try {
+        if (!await checkStudentTestAccess()) {
+            return;
+        }
 
-        db.auth.signOut()
-            .finally(
-                () => {
+        if (
+            !DEVELOPMENT_MODE &&
+            !schoolOpenNow()
+        ) {
+            state.currentPerson = null;
 
-                    state.currentPerson =
-                        null;
+            showSchoolClosed();
 
-                    showSchoolClosed();
-                }
-            );
+            await db.auth.signOut();
+        }
+
+    } catch (error) {
+        console.error(
+            "Zugangsprüfung fehlgeschlagen:",
+            error
+        );
+
+    } finally {
+        enforceSchoolHoursForCurrentSession.busy = false;
     }
 }
 
@@ -9400,7 +9499,7 @@ function enforceSchoolHoursForCurrentSession() {
 
 setInterval(
     enforceSchoolHoursForCurrentSession,
-    60 * 1000
+    15 * 1000
 );
 
 
@@ -9516,115 +9615,37 @@ db.auth.onAuthStateChange(
    ===================================================================== */
 
 async function initialiseAuthentication() {
-
-    /*
-     * Au chargement :
-     * 1. session Supabase existante ?
-     * 2. personne correspondante ?
-     * 3. sinon écran de sélection.
-     */
-
     try {
-
         const {
-            data:
-                {
-                    session
-                }
+            data: { session }
         } = await db.auth.getSession();
 
-
         if (session) {
-
-            const person =
-                await loadCurrentPerson();
-
-
-            if (person) {
-
-                /*
-                 * En version finale, une session élève
-                 * encore ouverte après 15h est fermée.
-                 */
-
-                if (
-                    !DEVELOPMENT_MODE &&
-                    !isTeacher() &&
-                    !schoolOpenNow()
-                ) {
-
-                    await db.auth.signOut();
-
-                    state.currentPerson =
-                        null;
-
-                    showSchoolClosed();
-
-                    return;
-                }
-
-
-                applyRoleUI();
-
-                enforceTeacherOnlyUI();
-
-
-                await Promise.all([
-                    loadProducts(),
-                    loadInventory(),
-                    loadNotifications(),
-                    loadEvents()
-                ]);
-
-
-                startRealtime();
-
-
-                goHome();
-
-                return;
-            }
-
-
-            await db.auth.signOut();
+            await initialiseAuthenticatedApp();
+            return;
         }
 
-
-        state.currentPerson =
-            null;
-
+        state.currentPerson = null;
 
         showScreen(
             "identityScreen",
-            {
-                login:
-                    true
-            }
+            { login: true }
         );
-
 
         await loadLoginPeople();
 
     } catch (error) {
-
         console.error(
             "Initialisierung fehlgeschlagen:",
             error
         );
 
-
-        state.currentPerson =
-            null;
-
+        state.currentPerson = null;
 
         showScreen(
             "identityScreen",
-            {
-                login:
-                    true
-            }
+            { login: true }
         );
-
 
         await loadLoginPeople();
     }
