@@ -5907,3 +5907,15 @@ html body #breadcrumb.breadcrumb {
         gap: 4px;
     }
 }
+/* =========================================================
+   V6 — AJUSTEMENT FINAL DU LOGO
+   ========================================================= */
+
+#appHeader .app-header-logo {
+    height: calc(var(--header-height) - 4px) !important;
+    max-height: none !important;
+    width: auto !important;
+    max-width: min(58vw, 540px) !important;
+    object-fit: contain;
+    object-position: left center;
+}
