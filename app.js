@@ -1425,58 +1425,102 @@ async function renderTeacherInventory() {
 
 
     async function commitReview(rpc, args, successText) {
-        if (renderTeacherInventory.busy) {
-            return;
-        }
-
-        renderTeacherInventory.busy = true;
-
-        box.querySelectorAll("button").forEach(button => {
-            button.disabled = true;
-        });
-
-        try {
-            const { data, error } = await db.rpc(
-                rpc,
-                args
-            );
-
-            if (error) {
-                throw error;
-            }
-
-            if (data === false) {
-                throw new Error("operation_failed");
-            }
-
-            toast(
-                data === "superseded"
-                    ? "Ältere Zählung archiviert. Bestand unverändert."
-                    : successText,
-                "success"
-            );
-
-        } catch (error) {
-            console.error("Inventur:", error);
-
-            const changed =
-                /inventory_changed_refresh|newer_inventory_pending|inventory_submission_already_reviewed/
-                    .test(String(error.message || ""));
-
-            toast(
-                changed
-                    ? "Bestand oder Inventur wurde geändert. Bitte die aktualisierte Ansicht erneut prüfen."
-                    : "Änderung konnte nicht gespeichert werden. Bitte erneut versuchen.",
-                "error"
-            );
-
-        } finally {
-            renderTeacherInventory.busy = false;
-
-            await renderTeacherInventory();
-        }
+    if (renderTeacherInventory.busy) {
+        return;
     }
 
+    renderTeacherInventory.busy = true;
+
+    box.querySelectorAll("button").forEach(button => {
+        button.disabled = true;
+    });
+
+    let failure = null;
+
+    try {
+        const { data, error } = await db.rpc(
+            rpc,
+            args
+        );
+
+        if (error) {
+            throw error;
+        }
+
+        if (data === false) {
+            throw new Error(
+                "Die Änderung wurde nicht gespeichert."
+            );
+        }
+
+        toast(
+            data === "superseded"
+                ? "Ältere Zählung archiviert. Bestand unverändert."
+                : successText,
+            "success"
+        );
+
+    } catch (error) {
+        console.error(
+            "Inventur — fehlgeschlagene Funktion:",
+            rpc,
+            error
+        );
+
+        failure = {
+            code: error.code || "—",
+            message:
+                error.message ||
+                "Unbekannter Fehler",
+            details: error.details || "",
+            hint: error.hint || ""
+        };
+
+    } finally {
+        renderTeacherInventory.busy = false;
+
+        await renderTeacherInventory();
+    }
+
+    if (failure) {
+        let errorBox = $("teacherInventoryError");
+
+        if (!errorBox) {
+            errorBox = document.createElement("div");
+            errorBox.id = "teacherInventoryError";
+            errorBox.setAttribute("role", "alert");
+
+            box.before(errorBox);
+        }
+
+        errorBox.style.cssText = `
+            margin: 12px 0;
+            padding: 14px;
+            background: #fff0f0;
+            color: #962828;
+            border: 1px solid #e8aaaa;
+            border-radius: 12px;
+            overflow-wrap: anywhere;
+            white-space: pre-wrap;
+        `;
+
+        errorBox.textContent = [
+            "Bestätigung konnte nicht gespeichert werden.",
+            `Funktion: ${rpc}`,
+            `Fehlercode: ${failure.code}`,
+            `Meldung: ${failure.message}`,
+            failure.details
+                ? `Details: ${failure.details}`
+                : "",
+            failure.hint
+                ? `Hinweis: ${failure.hint}`
+                : ""
+        ].filter(Boolean).join("\n");
+
+    } else {
+        $("teacherInventoryError")?.remove();
+    }
+}
 
     try {
         const [stocks, dashboard] = await Promise.all([
@@ -1539,12 +1583,14 @@ async function renderTeacherInventory() {
 
         let notice = $("teacherInventoryNotice");
 
-        if (!notice) {
-            notice = document.createElement("section");
-            notice.id = "teacherInventoryNotice";
+if (!notice) {
+    notice = document.createElement("section");
+    notice.id = "teacherInventoryNotice";
+}
 
-            box.before(notice);
-        }
+// Placer l'historique après la liste des produits,
+// même si le bloc existe déjà.
+box.after(notice);
 
         notice.className = "teacher-inventory-history";
         notice.hidden = false;
