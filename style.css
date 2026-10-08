@@ -5411,3 +5411,41 @@ html body #breadcrumb.breadcrumb {
 #productModal .emoji-grid {
     display: none !important;
 }
+/* =========================================================
+   RECHNUNGEN — DERNIÈRES FACTURES EN LIGNES COMPACTES
+   ========================================================= */
+
+#invoicesScreen .invoice-row {
+    display: grid;
+
+    grid-template-columns:
+        minmax(0, 1fr)
+        auto;
+
+    align-items: center;
+    gap: 12px;
+
+    padding: 12px 14px;
+}
+
+#invoicesScreen .invoice-row > div:first-child {
+    min-width: 0;
+    text-align: left;
+}
+
+#invoicesScreen .invoice-row > div:first-child strong,
+#invoicesScreen .invoice-row > div:first-child small {
+    display: block;
+    overflow-wrap: anywhere;
+}
+
+#invoicesScreen .invoice-row > div:last-child {
+    width: auto;
+    text-align: right;
+}
+
+#invoicesScreen .invoice-row > div:last-child strong,
+#invoicesScreen .invoice-row > div:last-child small {
+    display: block;
+    white-space: nowrap;
+}
