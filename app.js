@@ -2778,8 +2778,9 @@ async function loadStudents() {
     if (!isTeacher()) {
         return;
     }
-
-
+   
+    await loadStudentAccessPanel();
+    
     const box =
         $("studentsList");
 
@@ -9668,3 +9669,464 @@ document.addEventListener(
         initialiseAuthentication();
     }
 );
+/* =====================================================================
+   SCHÜLER — ZUGANG FREISCHALTEN
+   Gestion des autorisations uniquement.
+   Le blocage horaire reste désactivé pendant le développement.
+   ===================================================================== */
+
+const studentAccessState = {
+    students: [],
+    grants: [],
+    selected: new Set(),
+    offset: 0
+};
+
+
+function accessBerlinDate(value) {
+    return new Intl.DateTimeFormat("de-DE", {
+        timeZone: "Europe/Berlin",
+        dateStyle: "short",
+        timeStyle: "short"
+    }).format(new Date(value));
+}
+
+
+function accessGrantStatus(grant) {
+    const now = Date.now() + studentAccessState.offset;
+
+    if (grant.revoked_at) return "Widerrufen";
+
+    if (now >= Date.parse(grant.ends_at)) {
+        return "Abgelaufen";
+    }
+
+    return now < Date.parse(grant.starts_at)
+        ? "Geplant"
+        : "Aktiv";
+}
+
+
+function updateAccessStart() {
+    const planned =
+        $("accessStartMode").value === "planned";
+
+    $("accessStartField").hidden = !planned;
+    $("accessStartField").style.display = planned ? "" : "none";
+    $("accessStartInput").required = planned;
+
+    setText("accessUntil", "");
+}
+
+
+async function previewAccessEnd() {
+    const duration = Number($("accessDuration").value);
+
+    const planned =
+        $("accessStartMode").value === "planned";
+
+    if (
+        !Number.isSafeInteger(duration) ||
+        duration <= 0 ||
+        (planned && !$("accessStartInput").value)
+    ) {
+        setText("accessUntil", "");
+        return;
+    }
+
+    const generation =
+        (previewAccessEnd.generation || 0) + 1;
+
+    previewAccessEnd.generation = generation;
+
+    try {
+        const { data, error } = await db.rpc(
+            "teacher_preview_student_access",
+            {
+                p_start_local: planned
+                    ? $("accessStartInput").value
+                    : null,
+
+                p_duration: duration,
+                p_unit: $("accessDurationUnit").value
+            }
+        );
+
+        if (generation !== previewAccessEnd.generation) return;
+
+        if (error) throw error;
+
+        setText(
+            "accessUntil",
+            `Zugang bis ${accessBerlinDate(data.ends_at)} · Europe/Berlin`
+        );
+
+    } catch (error) {
+        console.error(error);
+
+        setText(
+            "accessUntil",
+            "Bitte Beginn und Dauer prüfen."
+        );
+    }
+}
+
+
+function renderAccessSelection() {
+    const selected = studentAccessState.selected;
+    const students = studentAccessState.students;
+
+    const search = $("accessSearch").value
+        .trim()
+        .toLocaleLowerCase("de-DE");
+
+    const list = $("accessStudentChoices");
+    list.innerHTML = "";
+
+    students
+        .filter(student =>
+            personName(student)
+                .toLocaleLowerCase("de-DE")
+                .includes(search)
+        )
+        .forEach(student => {
+            const label = document.createElement("label");
+            label.className = "access-choice";
+
+            const input = document.createElement("input");
+            input.type = "checkbox";
+            input.checked = selected.has(student.id);
+
+            input.addEventListener("change", () => {
+                if (input.checked) {
+                    selected.add(student.id);
+                } else {
+                    selected.delete(student.id);
+                }
+
+                renderAccessSelection();
+            });
+
+            const text = document.createElement("span");
+            text.textContent = personName(student);
+
+            label.append(input, text);
+            list.appendChild(label);
+        });
+
+    const all = $("accessSelectAll");
+
+    all.checked =
+        students.length > 0 &&
+        selected.size === students.length;
+
+    all.indeterminate =
+        selected.size > 0 &&
+        selected.size < students.length;
+
+    all.disabled = !students.length;
+
+    const chips = $("accessSelectedStudents");
+    chips.innerHTML = "";
+
+    students
+        .filter(student => selected.has(student.id))
+        .forEach(student => {
+            const chip = document.createElement("button");
+
+            chip.type = "button";
+            chip.className = "access-chip";
+
+            chip.setAttribute(
+                "aria-label",
+                `${personName(student)} abwählen`
+            );
+
+            chip.innerHTML = `
+                <span
+                    class="access-chip-tick"
+                    aria-hidden="true"
+                >✓</span>
+
+                <span>${esc(personName(student))}</span>
+            `;
+
+            chip.addEventListener("click", () => {
+                selected.delete(student.id);
+                renderAccessSelection();
+            });
+
+            chips.appendChild(chip);
+        });
+
+    setText(
+        "accessSelectionCount",
+        `${selected.size} ausgewählt`
+    );
+}
+
+
+function renderAccessHistory() {
+    const body = $("accessHistoryList");
+    if (!body) return;
+
+    body.innerHTML = "";
+
+    setText(
+        "accessHistoryCount",
+        `${studentAccessState.grants.length} Einträge`
+    );
+
+    if (!studentAccessState.grants.length) {
+        body.innerHTML = `
+            <tr>
+                <td colspan="5">Noch keine Freischaltungen.</td>
+            </tr>
+        `;
+
+        return;
+    }
+
+    studentAccessState.grants.forEach(grant => {
+        const status = accessGrantStatus(grant);
+        const row = document.createElement("tr");
+
+        row.className =
+            status === "Aktiv"
+                ? "access-active"
+                : status === "Geplant"
+                    ? "access-planned"
+                    : "access-finished";
+
+        row.innerHTML = `
+            <td>${esc(personName(grant))}</td>
+
+            <td>
+                ${esc(accessBerlinDate(grant.starts_at))}
+            </td>
+
+            <td>
+                ${esc(accessBerlinDate(grant.ends_at))}
+            </td>
+
+            <td>${status}</td>
+
+            <td></td>
+        `;
+
+        if (status === "Aktiv" || status === "Geplant") {
+            const button = document.createElement("button");
+
+            button.type = "button";
+            button.className = "secondary-action";
+            button.textContent = "Widerrufen";
+
+            button.addEventListener("click", async () => {
+                button.disabled = true;
+
+                try {
+                    const { error } = await db.rpc(
+                        "teacher_revoke_student_access",
+                        {
+                            p_grant_id: grant.id
+                        }
+                    );
+
+                    if (error) throw error;
+
+                    await loadStudentAccessPanel();
+
+                } catch (error) {
+                    console.error(error);
+
+                    setText(
+                        "accessFormMessage",
+                        "Freischaltung konnte nicht widerrufen werden."
+                    );
+
+                } finally {
+                    button.disabled = false;
+                }
+            });
+
+            row.lastElementChild.appendChild(button);
+        }
+
+        body.appendChild(row);
+    });
+}
+
+
+async function loadStudentAccessPanel() {
+    if (!isTeacher() || !$("studentAccessPanel")) return;
+
+    try {
+        const { data, error } = await db.rpc(
+            "teacher_get_student_access"
+        );
+
+        if (error) throw error;
+
+        studentAccessState.students = data.students || [];
+        studentAccessState.grants = data.grants || [];
+
+        studentAccessState.offset =
+            Date.parse(data.server_now) - Date.now();
+
+        const validIds = new Set(
+            studentAccessState.students.map(student => student.id)
+        );
+
+        studentAccessState.selected = new Set(
+            [...studentAccessState.selected].filter(
+                id => validIds.has(id)
+            )
+        );
+
+        renderAccessSelection();
+        renderAccessHistory();
+
+        setText("accessHistoryMessage", "");
+
+        await previewAccessEnd();
+
+    } catch (error) {
+        console.error(error);
+
+        setText(
+            "accessHistoryMessage",
+            "Freischaltungen konnten nicht geladen werden."
+        );
+    }
+}
+
+
+async function saveStudentAccess(event) {
+    event.preventDefault();
+
+    if (!isTeacher() || saveStudentAccess.busy) return;
+
+    setText("accessFormMessage", "");
+
+    const duration = Number($("accessDuration").value);
+
+    const planned =
+        $("accessStartMode").value === "planned";
+
+    if (
+        !studentAccessState.selected.size ||
+        !Number.isSafeInteger(duration) ||
+        duration <= 0 ||
+        (planned && !$("accessStartInput").value)
+    ) {
+        setText(
+            "accessFormMessage",
+            "Bitte Schüler, Beginn und Dauer auswählen."
+        );
+
+        return;
+    }
+
+    saveStudentAccess.busy = true;
+    $("saveStudentAccessButton").disabled = true;
+
+    try {
+        const { error } = await db.rpc(
+            "teacher_create_student_access",
+            {
+                p_student_ids: [
+                    ...studentAccessState.selected
+                ],
+
+                p_start_local: planned
+                    ? $("accessStartInput").value
+                    : null,
+
+                p_duration: duration,
+                p_unit: $("accessDurationUnit").value
+            }
+        );
+
+        if (error) throw error;
+
+        studentAccessState.selected.clear();
+        renderAccessSelection();
+
+        toast("Freischaltung gespeichert.", "success");
+
+        $("accessHistory").open = true;
+
+        await loadStudentAccessPanel();
+
+    } catch (error) {
+        console.error(error);
+
+        setText(
+            "accessFormMessage",
+            "Freischaltung konnte nicht gespeichert werden. " +
+            (error.message || "")
+        );
+
+    } finally {
+        saveStudentAccess.busy = false;
+        $("saveStudentAccessButton").disabled = false;
+    }
+}
+
+
+$("accessSearch")?.addEventListener(
+    "input",
+    renderAccessSelection
+);
+
+
+$("accessSelectAll")?.addEventListener(
+    "change",
+    event => {
+        studentAccessState.selected = event.target.checked
+            ? new Set(
+                studentAccessState.students.map(
+                    student => student.id
+                )
+            )
+            : new Set();
+
+        renderAccessSelection();
+    }
+);
+
+
+$("accessStartMode")?.addEventListener(
+    "change",
+    () => {
+        updateAccessStart();
+        previewAccessEnd();
+    }
+);
+
+
+[
+    "accessStartInput",
+    "accessDuration",
+    "accessDurationUnit"
+].forEach(id => {
+    $(id)?.addEventListener("change", previewAccessEnd);
+});
+
+
+$("studentAccessForm")?.addEventListener(
+    "submit",
+    saveStudentAccess
+);
+
+
+/* Mise à jour des statuts pendant la consultation de l'écran. */
+
+setInterval(() => {
+    if (
+        isTeacher() &&
+        state.currentScreenId === "studentsScreen"
+    ) {
+        renderAccessHistory();
+    }
+}, 60000);
