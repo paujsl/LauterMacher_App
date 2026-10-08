@@ -2165,255 +2165,311 @@ $("invoiceDateInput")?.addEventListener(
 
 $("invoiceForm")?.addEventListener(
     "submit",
-    async event => {
-
-        event.preventDefault();
-
-
-        if (!isTeacher()) {
-            return;
-        }
-
-
-        const context =
-            $("invoiceContextSelect")
-                ?.value;
-
-        const invoiceDate =
-            $("invoiceDateInput")
-                ?.value;
-
-        const supplier =
-            $("invoiceSupplierInput")
-                ?.value
-                .trim() ||
-            null;
-
-        const total =
-            parseMoney(
-                $("invoiceTotalInput")
-                    ?.value
-            );
-
-        const eventId =
-            context ===
-            "sonderveranstaltung"
-                ? (
-                    $("invoiceEventSelect")
-                        ?.value ||
-                    null
-                )
-                : null;
-
-
-        if (!invoiceDate) {
-
-            setText(
-                "invoiceFormMessage",
-                "Bitte ein Rechnungsdatum auswählen."
-            );
-
-            return;
-        }
-
-
-        if (total <= 0) {
-
-            setText(
-                "invoiceFormMessage",
-                "Bitte gültige Gesamtkosten eingeben."
-            );
-
-            return;
-        }
-
-
-        if (
-            context ===
-                "sonderveranstaltung" &&
-            !eventId
-        ) {
-
-            setText(
-                "invoiceFormMessage",
-                "Bitte eine Veranstaltung auswählen."
-            );
-
-            return;
-        }
-
-
-        const button =
-            $("saveInvoiceButton");
-
-        if (button) {
-            button.disabled = true;
-        }
-
-
-        try {
-
-            const {
-                data,
-                error
-            } = await db.rpc(
-                "create_invoice_with_number",
-                {
-                    p_context:
-                        context,
-
-                    p_invoice_date:
-                        invoiceDate,
-
-                    p_supplier:
-                        supplier,
-
-                    p_total_amount:
-                        total,
-
-                    p_event_id:
-                        eventId,
-
-                    p_related_invoice_id:
-                        null
-                }
-            );
-
-
-            if (error) {
-                throw error;
-            }
-
-
-            toast(
-                "Rechnung gespeichert.",
-                "success"
-            );
-
-
-            $("invoiceSupplierInput").value =
-                "";
-
-            $("invoiceTotalInput").value =
-                "";
-
-
-            await Promise.all([
-                refreshInvoiceNumber(),
-                loadInvoices()
-            ]);
-
-
-            /*
-             * Getränke-Rechnung:
-             * anschließend kann direkt der Wareneingang
-             * erfasst werden.
-             */
-
-            if (
-                context ===
-                "getränke" &&
-                data
-            ) {
-
-                const invoice =
-                    Array.isArray(data)
-                        ? data[0]
-                        : data;
-
-
-                if (
-                    invoice?.id
-                ) {
-
-                    state.currentInventoryInvoice =
-                        invoice;
-
-
-                    setText(
-                        "inventoryInvoiceNumber",
-                        invoice.invoice_number ||
-                        $("invoiceNumberInput")
-                            ?.value ||
-                        "Rechnung"
-                    );
-
-
-                    setText(
-                        "inventoryInvoiceSupplier",
-                        supplier || "—"
-                    );
-
-
-                    const card =
-                        $("inventoryInvoiceContextCard");
-
-                    if (card) {
-
-                        card.hidden =
-                            false;
-
-                        card.style.display =
-                            "";
-                    }
-
-
-                    await renderTeacherInventory();
-
-                    showScreen(
-                        "teacherInventoryScreen"
-                    );
-                }
-            }
-
-        } catch (error) {
-
-            console.error(error);
-
-            setText(
-                "invoiceFormMessage",
-                "Rechnung konnte nicht gespeichert werden."
-            );
-
-        } finally {
-
-            if (button) {
-                button.disabled = false;
-            }
-        }
-    }
+    saveInvoice
 );
 
 
-async function loadInvoices() {
+async function askInvoiceStockUpdate() {
+    return new Promise(resolve => {
+        const dialog = document.createElement("dialog");
 
-    const box =
-        $("invoiceList");
+        dialog.className = "invoice-stock-dialog";
 
-    if (!box) {
+        dialog.setAttribute(
+            "aria-labelledby",
+            "invoiceStockQuestion"
+        );
+
+        dialog.innerHTML = `
+            <h2 id="invoiceStockQuestion">
+                Rechnung gespeichert
+            </h2>
+
+            <p>
+                Möchtest du jetzt deinen Bestand aktualisieren?
+            </p>
+
+            <form
+                method="dialog"
+                class="invoice-stock-dialog-actions"
+            >
+                <button
+                    class="secondary-action"
+                    value="no"
+                    autofocus
+                >
+                    Nein
+                </button>
+
+                <button
+                    class="primary-action"
+                    value="yes"
+                >
+                    Ja
+                </button>
+            </form>
+        `;
+
+        document.body.appendChild(dialog);
+
+        dialog.addEventListener(
+            "close",
+            () => {
+                const yes =
+                    dialog.returnValue === "yes";
+
+                dialog.remove();
+
+                resolve(yes);
+            },
+            { once: true }
+        );
+
+        dialog.showModal();
+    });
+}
+
+
+async function saveInvoice(event) {
+    event.preventDefault();
+
+    if (!isTeacher() || saveInvoice.busy) {
         return;
     }
 
+    setText("invoiceFormMessage", "");
 
-    const {
-        data,
-        error
-    } = await db
+    const context =
+        $("invoiceContextSelect")?.value;
+
+    const invoiceDate =
+        $("invoiceDateInput")?.value;
+
+    const supplier =
+        $("invoiceSupplierInput")?.value.trim() || null;
+
+    const rawTotal = String(
+        $("invoiceTotalInput")?.value || ""
+    )
+        .trim()
+        .replace(/\s|€/g, "");
+
+    const eventId =
+        context === "sonderveranstaltung"
+            ? $("invoiceEventSelect")?.value || null
+            : null;
+
+    if (!invoiceDate) {
+        setText(
+            "invoiceFormMessage",
+            "Bitte ein Rechnungsdatum auswählen."
+        );
+
+        return;
+    }
+
+    if (
+        ![
+            "getränke",
+            "bäckerei",
+            "sonderveranstaltung"
+        ].includes(context)
+    ) {
+        setText(
+            "invoiceFormMessage",
+            "Bitte einen gültigen Bereich auswählen."
+        );
+
+        return;
+    }
+
+    if (
+        !/^(?:\d+|\d{1,3}(?:\.\d{3})+)(?:,\d{1,2})?$/
+            .test(rawTotal)
+    ) {
+        setText(
+            "invoiceFormMessage",
+            "Bitte gültige Gesamtkosten eingeben, z. B. 200,00."
+        );
+
+        return;
+    }
+
+    const total = parseMoney(rawTotal);
+
+    if (!Number.isFinite(total) || total <= 0) {
+        setText(
+            "invoiceFormMessage",
+            "Bitte Gesamtkosten größer als 0 eingeben."
+        );
+
+        return;
+    }
+
+    if (
+        context === "sonderveranstaltung" &&
+        !eventId
+    ) {
+        setText(
+            "invoiceFormMessage",
+            "Bitte eine Veranstaltung auswählen."
+        );
+
+        return;
+    }
+
+    saveInvoice.busy = true;
+
+    const button = $("saveInvoiceButton");
+
+    if (button) {
+        button.disabled = true;
+    }
+
+    let saved = false;
+
+    try {
+        const { data, error } = await db.rpc(
+            "create_invoice_with_number",
+            {
+                p_context: context,
+                p_invoice_date: invoiceDate,
+                p_supplier: supplier,
+                p_total_amount: total,
+                p_event_id: eventId
+            }
+        );
+
+        if (error) {
+            throw error;
+        }
+
+        const invoice = Array.isArray(data)
+            ? data[0]
+            : data;
+
+        saved = true;
+
+        $("invoiceSupplierInput").value = "";
+        $("invoiceTotalInput").value = "";
+
+        // Retirer l'ancien contexte de facture.
+        state.currentInventoryInvoice = null;
+
+        const card =
+            $("inventoryInvoiceContextCard");
+
+        if (card) {
+            card.hidden = true;
+            card.style.display = "none";
+        }
+
+        toast(
+            "Rechnung gespeichert.",
+            "success"
+        );
+
+        // Actualiser la liste avant de proposer Inventur.
+        const [invoices] = await Promise.all([
+            loadInvoices(),
+            refreshInvoiceNumber()
+        ]);
+
+        if (!Array.isArray(invoices)) {
+            setText(
+                "invoiceFormMessage",
+                "Rechnung gespeichert. Die Liste konnte nicht aktualisiert werden. Bitte Rechnungen erneut öffnen; nicht nochmals hinzufügen."
+            );
+
+            return;
+        }
+
+        // La page Inventur actuelle concerne les boissons.
+        if (context !== "getränke") {
+            return;
+        }
+
+        if (!invoice?.id) {
+            setText(
+                "invoiceFormMessage",
+                "Rechnung gespeichert. Die Verknüpfung zum Wareneingang konnte nicht geladen werden."
+            );
+
+            return;
+        }
+
+        const updateStock =
+            await askInvoiceStockUpdate();
+
+        if (!updateStock) {
+            return;
+        }
+
+        state.currentInventoryInvoice = invoice;
+
+        setText(
+            "inventoryInvoiceNumber",
+            invoice.invoice_number || "Rechnung"
+        );
+
+        setText(
+            "inventoryInvoiceSupplier",
+            invoice.supplier || supplier || "—"
+        );
+
+        if (card) {
+            card.hidden = false;
+            card.style.display = "";
+        }
+
+        showScreen("teacherInventoryScreen");
+
+        await renderTeacherInventory();
+
+    } catch (error) {
+        console.error("Rechnung:", error);
+
+        setText(
+            "invoiceFormMessage",
+            saved
+                ? "Rechnung gespeichert. Der nächste Schritt konnte nicht geöffnet werden. Bitte nicht nochmals hinzufügen."
+                : `Rechnung konnte nicht gespeichert werden. ${
+                    error.message || "Bitte erneut versuchen."
+                }`
+        );
+
+    } finally {
+        saveInvoice.busy = false;
+
+        if (button) {
+            button.disabled = false;
+        }
+    }
+}
+async function loadInvoices() {
+    if (!isTeacher()) {
+        return null;
+    }
+
+    const box = $("invoiceList");
+
+    if (!box) {
+        return null;
+    }
+
+    const { data, error } = await db
         .from("invoices")
         .select("*")
-        .order(
-            "created_at",
-            {
-                ascending:
-                    false
-            }
-        )
+        .order("created_at", {
+            ascending: false
+        })
+        .order("id", {
+            ascending: false
+        })
         .limit(10);
 
-
     if (error) {
-
-        console.error(error);
+        console.error("Rechnungen:", error);
 
         box.innerHTML = `
             <div class="empty-state">
@@ -2421,82 +2477,57 @@ async function loadInvoices() {
             </div>
         `;
 
-        return;
+        return null;
     }
 
+    const invoices = data || [];
 
-    const invoices =
-        data || [];
+    box.innerHTML = invoices.length
+        ? ""
+        : `
+            <div class="empty-state">
+                Noch keine Rechnung.
+            </div>
+        `;
 
+    invoices.forEach(invoice => {
+        const row =
+            document.createElement("article");
 
-    box.innerHTML =
-        invoices.length
-            ? ""
-            : `
-                <div class="empty-state">
-                    Noch keine Rechnung.
-                </div>
-            `;
+        row.className = "invoice-row";
 
+        row.innerHTML = `
+            <div>
+                <strong>
+                    ${esc(
+                        invoice.invoice_number || "Rechnung"
+                    )}
+                </strong>
 
-    invoices.forEach(
-        invoice => {
+                <small>
+                    ${dateDE(invoice.invoice_date)}
+                    ·
+                    ${esc(
+                        invoice.supplier || "Ohne Laden"
+                    )}
+                </small>
+            </div>
 
-            const row =
-                document.createElement("article");
+            <div>
+                <small>
+                    ${esc(invoice.context || "")}
+                </small>
 
-            row.className =
-                "invoice-row";
+                <strong>
+                    ${money(invoice.total_amount)}
+                </strong>
+            </div>
+        `;
 
+        box.appendChild(row);
+    });
 
-            row.innerHTML = `
-                <div>
-
-                    <strong>
-                        ${esc(
-                            invoice.invoice_number ||
-                            "Rechnung"
-                        )}
-                    </strong>
-
-                    <small>
-                        ${dateDE(
-                            invoice.invoice_date
-                        )}
-                        ·
-                        ${esc(
-                            invoice.supplier ||
-                            "Ohne Laden"
-                        )}
-                    </small>
-
-                </div>
-
-                <div>
-
-                    <small>
-                        ${esc(
-                            invoice.context ||
-                            invoice.area ||
-                            ""
-                        )}
-                    </small>
-
-                    <strong>
-                        ${money(
-                            invoice.total_amount ??
-                            invoice.total ??
-                            0
-                        )}
-                    </strong>
-
-                </div>
-            `;
-
-
-            box.appendChild(row);
-        }
-    );
+    return invoices;
 }
 
 
