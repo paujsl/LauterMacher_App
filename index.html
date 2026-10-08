@@ -1961,6 +1961,163 @@
             id="studentsList"
         ></div>
 
+         <section class="student-access-panel" id="studentAccessPanel">
+
+    <h2>Zugang freischalten</h2>
+
+    <p class="access-development-note">
+        Die zeitliche Zugangsbeschränkung ist derzeit deaktiviert.
+        Freischaltungen können bereits vorbereitet werden.
+    </p>
+
+    <form class="form-card" id="studentAccessForm">
+
+        <div class="form-field">
+            <span>Schüler auswählen</span>
+
+            <input
+                id="accessSearch"
+                placeholder="Schüler suchen"
+                type="search"
+            >
+        </div>
+
+        <div class="access-selection-heading">
+            <label class="access-choice">
+                <input id="accessSelectAll" type="checkbox">
+                <span>Alle auswählen</span>
+            </label>
+
+            <span id="accessSelectionCount">0 ausgewählt</span>
+        </div>
+
+        <div
+            class="access-student-choices"
+            id="accessStudentChoices"
+        ></div>
+
+        <div
+            class="access-selected-students"
+            id="accessSelectedStudents"
+            aria-label="Ausgewählte Schüler"
+        ></div>
+
+        <div class="form-grid">
+
+            <label class="form-field">
+                <span>Beginn</span>
+
+                <select id="accessStartMode">
+                    <option value="now">Ab sofort</option>
+                    <option value="planned">Start planen</option>
+                </select>
+            </label>
+
+            <label
+                class="form-field"
+                hidden
+                id="accessStartField"
+            >
+                <span>Startdatum und Uhrzeit · Berlin</span>
+
+                <input
+                    id="accessStartInput"
+                    type="datetime-local"
+                >
+            </label>
+
+            <label class="form-field">
+                <span>Dauer</span>
+
+                <input
+                    id="accessDuration"
+                    inputmode="numeric"
+                    min="1"
+                    required
+                    step="1"
+                    type="number"
+                    value="2"
+                >
+            </label>
+
+            <label class="form-field">
+                <span>Einheit</span>
+
+                <select id="accessDurationUnit">
+                    <option value="hours">Stunden</option>
+                    <option value="days">Tage</option>
+                </select>
+            </label>
+
+        </div>
+
+        <p class="access-until" id="accessUntil"></p>
+
+        <button
+            class="primary-action"
+            id="saveStudentAccessButton"
+            type="submit"
+        >
+            Zugang freischalten
+        </button>
+
+        <p
+            class="form-message"
+            id="accessFormMessage"
+            role="status"
+        ></p>
+
+    </form>
+
+    <section class="access-history-card">
+
+        <details id="accessHistory" open>
+
+            <summary class="access-history-summary">
+                <span>Freischaltungen</span>
+                <span id="accessHistoryCount">0 Einträge</span>
+            </summary>
+
+            <div
+                class="access-table-scroll"
+                tabindex="0"
+                aria-label="Freischaltungen"
+            >
+                <table class="access-history-table">
+
+                    <thead>
+                        <tr>
+                            <th scope="col">Schüler/in</th>
+                            <th scope="col">Von</th>
+                            <th scope="col">Bis</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Aktion</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="accessHistoryList">
+                        <tr>
+                            <td colspan="5">
+                                Noch keine Freischaltungen.
+                            </td>
+                        </tr>
+                    </tbody>
+
+                </table>
+            </div>
+
+            <p
+                class="form-message"
+                id="accessHistoryMessage"
+                role="status"
+            ></p>
+
+        </details>
+
+    </section>
+
+</section>
+         
     </section>
 
 </main>
