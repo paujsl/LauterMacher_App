@@ -271,13 +271,42 @@ $("logoutButton")?.addEventListener("click",async()=>{
    PRODUCTS / INVENTORY
    ===================================================================== */
 
-async function loadProducts(){
-    const {data,error}=await db.from("products").select("*").order("sort_order",{ascending:true}).order("name",{ascending:true});
-    if(error){console.error(error);return;}
-    state.products=data||[];
-    if(state.currentScreenId==="drinksSaleScreen")renderDrinksSale();
-    if(state.currentScreenId==="bakerySaleScreen")renderBakerySale();
-    if(state.currentScreenId==="productsScreen")renderProductsAdmin();
+async function loadProducts() {
+    let { data, error } = await db
+        .from("products")
+        .select("*")
+        .order("sort_order", { ascending: true })
+        .order("name", { ascending: true });
+
+    // Si la colonne de tri n'existe pas, réessayer sans elle.
+    if (error && (
+        error.code === "42703" ||
+        /sort_order|column.*does not exist/i.test(error.message || "")
+    )) {
+        console.warn("Tri sort_order indisponible, nouvel essai :", error.message);
+
+        const retry = await db
+            .from("products")
+            .select("*")
+            .order("name", { ascending: true });
+
+        data = retry.data;
+        error = retry.error;
+    }
+
+    if (error) {
+        console.error("Erreur de chargement des produits :", error);
+        toast("Produkte konnten nicht geladen werden.", "error");
+        return;
+    }
+
+    state.products = data || [];
+
+    console.info("Produits chargés :", state.products.length);
+
+    if (state.currentScreenId === "drinksSaleScreen") renderDrinksSale();
+    if (state.currentScreenId === "bakerySaleScreen") renderBakerySale();
+    if (state.currentScreenId === "productsScreen") renderProductsAdmin();
 }
 async function loadInventory(){
     const {data,error}=await db.from("inventory").select("*");
