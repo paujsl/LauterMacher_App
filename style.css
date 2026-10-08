@@ -3,22 +3,22 @@
    ===================================================================== */
 
 :root {
-    --blue: #09436a;
-    --blue-dark: #062f4b;
+    --blue: #094369;
+    --blue-dark: #094369;
     --blue-light: #e8f3f9;
     --blue-soft: #dcecf5;
 
-    --purple: #bdb3e6;
-    --purple-dark: #7868b5;
-    --purple-soft: #eeeafd;
+    --purple: #bab0f4;
+    --purple-dark: #8b7ed4;
+    --purple-soft: #f0edff;
 
     --header-purple: rgba(189, 179, 230, 0.5);
 
-    --green: #b8d92f;
+    --green: #bfbd43;
     --green-dark: #78910e;
     --green-soft: #f1f7d7;
 
-    --yellow: #ffd95a;
+    --yellow: #fdbe3f;
     --yellow-soft: #fff7d5;
 
     --red: #d84b4b;
@@ -56,7 +56,7 @@
     --radius: 16px;
     --radius-large: 24px;
 
-    --header-height: 76px;
+    --header-height: 64px;
 
     --content-width: 1280px;
 
@@ -5238,7 +5238,7 @@ html body #appHeader.app-header,
 body #appHeader,
 #appHeader,
 .app-header {
-    background-color: rgba(189, 179, 230, 0.72) !important;
+    background-color: rgba(186, 176, 244, 0.72) !important;
     background-image: none !important;
 
     border-bottom:
@@ -5296,12 +5296,12 @@ body #breadcrumb,
 .app-header-logo {
     width: auto !important;
 
-    height: 112px !important;
+    height: 128px !important;
     max-height: none !important;
 
     max-width: min(
-        52vw,
-        470px
+        58vw,
+        540px
     ) !important;
 
     object-fit: contain !important;
