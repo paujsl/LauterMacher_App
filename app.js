@@ -704,7 +704,7 @@ $("submitStudentInventoryButton")?.addEventListener(
     p_items: items,
     p_context: "getränke",
     p_event_id: null,
-    p_inventory_type: "getränke"
+    p_inventory_type: "daily"
 });
 
 
