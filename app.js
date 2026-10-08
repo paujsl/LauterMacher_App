@@ -669,7 +669,7 @@ $("submitStudentInventoryButton")?.addEventListener(
                     product_id:
                         row.dataset.productId,
 
-                    counted_quantity:
+                    quantity:
                         Math.max(
                             0,
                             integer(raw)
