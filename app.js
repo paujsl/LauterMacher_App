@@ -755,112 +755,228 @@ $("teacherInventoryBackButton")?.addEventListener(
 
 async function renderTeacherInventory() {
     const box = $("teacherInventoryList");
-    if (!box) return;
 
-    await loadInventory();
+    if (!box || !isTeacher()) return;
 
-    const { data: submissions, error: submissionsError } = await db
-        .from("inventory_submissions")
-        .select("id, submitted_at, status, context, inventory_type, inventory_submission_items(*)")
-        .eq("context", "getränke")
-        .eq("inventory_type", "daily")
-        .order("submitted_at", { ascending: false })
-        .limit(20);
+    const generation =
+        (renderTeacherInventory.generation || 0) + 1;
 
-    if (submissionsError) {
-        console.error("Inventuren konnten nicht geladen werden:", submissionsError);
-        toast("Schüler-Inventuren konnten nicht geladen werden.", "error");
-    }
+    renderTeacherInventory.generation = generation;
 
-    const latestSubmission = (submissions || []).find(
-        submission => submission.status === "eingereicht"
-    ) || null;
+    try {
+        const [stockResult, submissionResult] =
+            await Promise.all([
+                db
+                    .from("inventory")
+                    .select("*"),
 
-    const countedItems = new Map(
-        (latestSubmission?.inventory_submission_items || []).map(
-            item => [String(item.product_id), Number(item.quantity)]
-        )
-    );
+                db
+                    .from("inventory_submissions")
+                    .select(
+                        "id, submitted_at, inventory_submission_items(*)"
+                    )
+                    .eq("context", "getränke")
+                    .eq("inventory_type", "daily")
+                    .is("event_id", null)
+                    .eq("status", "eingereicht")
+                    .order("submitted_at", {
+                        ascending: false
+                    })
+                    .order("id", {
+                        ascending: false
+                    })
+                    .limit(1)
+            ]);
 
-    box.innerHTML = "";
-
-    let notice = $("teacherInventoryNotice");
-
-    if (!notice) {
-        notice = document.createElement("div");
-        notice.id = "teacherInventoryNotice";
-        notice.className = "info-card";
-        box.before(notice);
-    }
-
-    notice.hidden = !latestSubmission;
-
-    if (latestSubmission) {
-        const date = latestSubmission.submitted_at
-            ? new Intl.DateTimeFormat("de-DE", {
-                dateStyle: "short",
-                timeStyle: "short"
-            }).format(new Date(latestSubmission.submitted_at))
-            : "Datum unbekannt";
-
-        notice.textContent = `Schüler-Inventur vom ${date} – Prüfung ausstehend`;
-    } else {
-        notice.textContent = "";
-    }
-
-    // L'historique reste dans Supabase.
-    // On masque uniquement son ancien affichage en bas de page.
-    const historyList = $("inventorySubmissionsList");
-
-    if (historyList) {
-        const historySection = historyList.closest(".submissions-section");
-        if (historySection) {
-            historySection.hidden = true;
+        if (
+            generation !==
+            renderTeacherInventory.generation
+        ) {
+            return;
         }
-    }
 
-    drinksProducts()
-        .filter(activeProduct)
-        .forEach(product => {
-            const row = document.createElement("div");
-            row.className = "teacher-inventory-row";
+        if (stockResult.error) {
+            throw stockResult.error;
+        }
 
-            const digital = Number(inventoryForProduct(product.id));
-            const counted = countedItems.get(String(product.id));
-            const hasCount = Number.isFinite(counted);
-            const difference = hasCount ? counted - digital : null;
+        if (submissionResult.error) {
+            throw submissionResult.error;
+        }
 
-            const studentColumns = latestSubmission ? `
-                <div class="teacher-student-count"
-                     style="min-width:95px;text-align:center;">
-                    <small>Schüler-Inventur</small>
-                    <strong style="display:block;">
-                        ${hasCount ? counted : "—"}
-                    </strong>
-                </div>
+        state.inventory = stockResult.data || [];
 
-                <div class="teacher-student-difference"
-                     style="min-width:95px;text-align:center;">
-                    <small>Unterschied</small>
-                    <strong style="display:block;">
-                        ${hasCount
-                            ? (difference > 0 ? "+" : "") + difference
-                            : "—"}
-                    </strong>
-                </div>
+        const submission =
+            submissionResult.data?.[0] || null;
 
-                <div class="teacher-student-action"
-                     style="min-width:110px;text-align:center;">
-                    ${hasCount
-                        ? `<small>Prüfung</small>
-                           <strong style="display:block;">
-                               ${difference === 0
-                                   ? "Confirm – ausstehend"
-                                   : "Override – ausstehend"}
-                           </strong>`
-                        : ""}
-                </div>
-            ` : "";
+        const items =
+            submission?.inventory_submission_items || [];
+
+        const itemsByProduct = new Map();
+
+        for (const item of items) {
+            const key = String(item.product_id);
+            const previous = itemsByProduct.get(key);
+
+            if (
+                !previous ||
+                (
+                    previous.reviewed_at &&
+                    !item.reviewed_at
+                )
+            ) {
+                itemsByProduct.set(key, item);
+            }
+        }
+
+        let notice = $("teacherInventoryNotice");
+
+        if (!notice) {
+            notice = document.createElement("div");
+            notice.id = "teacherInventoryNotice";
+            notice.className = "info-card";
+
+            box.before(notice);
+        }
+
+        notice.hidden = !submission;
+
+        notice.textContent = submission
+            ? `Schüler-Inventur vom ${
+                new Intl.DateTimeFormat("de-DE", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "2-digit",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    timeZone: "Europe/Berlin"
+                }).format(
+                    new Date(submission.submitted_at)
+                )
+            } – Prüfung ausstehend`
+            : "";
+
+        const history =
+            $("inventorySubmissionsList")
+                ?.closest(".submissions-section");
+
+        if (history) {
+            history.hidden = true;
+        }
+
+        box.innerHTML = "";
+
+        box.classList.toggle(
+            "has-student-inventory",
+            Boolean(submission)
+        );
+
+        if (submission) {
+            const heading =
+                document.createElement("div");
+
+            heading.className =
+                "teacher-inventory-heading";
+
+            heading.innerHTML = `
+                <span>Produkt</span>
+                <span>Schüler-Inventur</span>
+                <span>Unterschied</span>
+                <span>Aktion</span>
+            `;
+
+            box.appendChild(heading);
+        }
+
+        // Un produit désactivé après le comptage
+        // doit encore pouvoir être traité.
+        const products = drinksProducts()
+            .filter(activeProduct)
+            .slice();
+
+        for (const item of items) {
+            const alreadyIncluded = products.some(
+                product =>
+                    String(product.id) ===
+                    String(item.product_id)
+            );
+
+            if (!alreadyIncluded) {
+                const existingProduct =
+                    state.products.find(
+                        product =>
+                            String(product.id) ===
+                            String(item.product_id)
+                    );
+
+                products.push(
+                    existingProduct || {
+                        id: item.product_id,
+                        name:
+                            item.product_name ||
+                            "Produkt",
+                        active: false
+                    }
+                );
+            }
+        }
+
+        products.forEach(product => {
+            const stock = state.inventory.find(
+                item =>
+                    String(item.product_id) ===
+                    String(product.id)
+            );
+
+            const digital =
+                Number(stock?.quantity ?? 0);
+
+            const item = itemsByProduct.get(
+                String(product.id)
+            );
+
+            const hasCount =
+                Boolean(item) &&
+                item.quantity != null &&
+                Number.isFinite(
+                    Number(item.quantity)
+                );
+
+            const counted = hasCount
+                ? Number(item.quantity)
+                : null;
+
+            const pending =
+                hasCount && !item.reviewed_at;
+
+            const stale =
+                pending &&
+                stock?.last_counted_at &&
+                Date.parse(submission.submitted_at) <=
+                    Date.parse(stock.last_counted_at);
+
+            const difference = hasCount
+                ? counted - digital
+                : null;
+
+            const action = pending
+                ? (
+                    stale || difference === 0
+                        ? "confirm"
+                        : "override"
+                )
+                : "add";
+
+            const label = action === "add"
+                ? "+ Bestand"
+                : action === "override"
+                    ? "Override"
+                    : "Confirm";
+
+            const row =
+                document.createElement("div");
+
+            row.className =
+                "teacher-inventory-row";
 
             row.innerHTML = `
                 <div class="inventory-product-info">
@@ -869,93 +985,275 @@ async function renderTeacherInventory() {
                     </span>
 
                     <div>
-                        <strong>${esc(product.name)}</strong>
-                        <small>Bestand: ${digital}</small>
+                        <strong>
+                            ${esc(product.name)}
+                        </strong>
+
+                        <small>
+                            Bestand: ${digital}
+                        </small>
                     </div>
                 </div>
 
-                ${studentColumns}
+                ${submission ? `
+                    <div class="teacher-student-count">
+                        ${hasCount ? counted : "—"}
+
+                        ${item?.reviewed_at
+                            ? "<small>Geprüft</small>"
+                            : ""}
+                    </div>
+
+                    <div class="
+                        teacher-student-difference
+                        ${difference === 0
+                            ? "is-equal"
+                            : "is-different"}
+                    ">
+                        ${hasCount
+                            ? (
+                                difference > 0
+                                    ? "+"
+                                    : ""
+                            ) + difference
+                            : "—"}
+
+                        ${stale
+                            ? "<small>Ältere Zählung</small>"
+                            : ""}
+                    </div>
+                ` : ""}
 
                 <div class="teacher-stock-form">
                     <input
                         data-stock-quantity
+                        type="number"
                         inputmode="numeric"
                         min="1"
+                        step="1"
                         placeholder="Menge"
-                        type="number"
-                    />
+                        aria-label="Menge"
+                        ${pending ? "disabled" : ""}
+                    >
 
                     <input
                         data-stock-cost
+                        type="text"
                         inputmode="decimal"
                         placeholder="EK optional"
-                        type="text"
-                    />
+                        aria-label="Einkaufspreis optional"
+                        ${pending ? "disabled" : ""}
+                    >
 
                     <button
-                        class="primary-action"
-                        data-add-stock
                         type="button"
+                        class="
+                            primary-action
+                            teacher-action-${action}
+                        "
+                        data-inventory-action
                     >
-                        + Bestand
+                        ${label}
                     </button>
                 </div>
             `;
 
-            row.querySelector("[data-add-stock]")
-                .addEventListener("click", async () => {
-                    const quantity = integer(
-                        row.querySelector("[data-stock-quantity]")?.value
-                    );
+            const button = row.querySelector(
+                "[data-inventory-action]"
+            );
 
-                    const costRaw = String(
-                        row.querySelector("[data-stock-cost]")?.value ?? ""
-                    ).trim();
+            if (stale) {
+                button.title =
+                    "Ältere Zählung archivieren. " +
+                    "Der Bestand bleibt unverändert.";
+            }
 
-                    const purchasePrice = costRaw === ""
-                        ? null
-                        : parseMoney(costRaw);
-
-                    if (quantity <= 0) {
-                        toast(
-                            "Bitte eine Menge größer als 0 eingeben.",
-                            "error"
-                        );
+            button.addEventListener(
+                "click",
+                async () => {
+                    if (renderTeacherInventory.busy) {
                         return;
                     }
 
+                    let args;
+
+                    if (action === "add") {
+                        const rawQuantity =
+                            row.querySelector(
+                                "[data-stock-quantity]"
+                            ).value.trim();
+
+                        const quantity =
+                            Number(rawQuantity);
+
+                        const rawCost =
+                            row.querySelector(
+                                "[data-stock-cost]"
+                            ).value.trim();
+
+                        const normalizedCost =
+                            rawCost.replace(
+                                /\s|€/g,
+                                ""
+                            );
+
+                        if (
+                            !Number.isSafeInteger(quantity) ||
+                            quantity <= 0
+                        ) {
+                            toast(
+                                "Bitte eine ganze Menge größer als 0 eingeben.",
+                                "error"
+                            );
+
+                            return;
+                        }
+
+                        if (
+                            rawCost &&
+                            !/^(?:\d+|\d{1,3}(?:\.\d{3})+)(?:,\d{1,2})?$/
+                                .test(normalizedCost)
+                        ) {
+                            toast(
+                                "Bitte einen gültigen Einkaufspreis eingeben, z. B. 0,50.",
+                                "error"
+                            );
+
+                            return;
+                        }
+
+                        args = {
+                            p_product_id:
+                                product.id,
+
+                            p_quantity:
+                                quantity,
+
+                            p_invoice_id:
+                                state.currentInventoryInvoice
+                                    ?.id || null,
+
+                            p_unit_purchase_price:
+                                rawCost
+                                    ? parseMoney(rawCost)
+                                    : null
+                        };
+
+                    } else {
+                        args = {
+                            p_submission_id:
+                                submission.id,
+
+                            p_item_id:
+                                item.id,
+
+                            p_action:
+                                action,
+
+                            p_expected_quantity:
+                                digital,
+
+                            p_expected_updated_at:
+                                stock?.updated_at || null
+                        };
+                    }
+
+                    renderTeacherInventory.busy = true;
+                    button.disabled = true;
+
                     try {
-                        const { error } = await db.rpc(
-                            "teacher_add_stock",
-                            {
-                                p_context: "getränke",
-                                p_quantity: quantity,
-                                p_product_id: product.id,
-                                p_purchase_price: purchasePrice
-                            }
+                        const { data, error } =
+                            await db.rpc(
+                                action === "add"
+                                    ? "teacher_add_stock"
+                                    : "teacher_review_inventory_item",
+                                args
+                            );
+
+                        if (error) {
+                            throw error;
+                        }
+
+                        if (data === false) {
+                            throw new Error(
+                                "operation_failed"
+                            );
+                        }
+
+                        toast(
+                            data === "superseded"
+                                ? "Ältere Zählung archiviert. Bestand unverändert."
+                                : action === "add"
+                                    ? "Bestand aktualisiert."
+                                    : "Zählung geprüft.",
+                            "success"
                         );
-
-                        if (error) throw error;
-
-                        toast("Bestand aktualisiert.", "success");
-                        await renderTeacherInventory();
 
                     } catch (error) {
                         console.error(error);
+
+                        const message = String(
+                            error.message || ""
+                        );
+
                         toast(
-                            "Bestand konnte nicht aktualisiert werden.",
+                            /inventory_changed_refresh|newer_inventory_pending/
+                                .test(message)
+                                ? "Bestand oder Inventur geändert. Bitte die aktualisierte Zeile erneut prüfen."
+                                : "Änderung konnte nicht gespeichert werden.",
                             "error"
                         );
+
+                    } finally {
+                        renderTeacherInventory.busy =
+                            false;
+
+                        button.disabled = false;
+
+                        await renderTeacherInventory();
                     }
-                });
+                }
+            );
 
             box.appendChild(row);
         });
+
+    } catch (error) {
+        if (
+            generation !==
+            renderTeacherInventory.generation
+        ) {
+            return;
+        }
+
+        console.error(error);
+
+        // Empêcher l'utilisation d'anciennes lignes
+        // après un échec de lecture.
+        box.innerHTML = `
+            <div class="empty-state">
+                Inventur konnte nicht geladen werden.
+                Bitte erneut öffnen.
+            </div>
+        `;
+
+        toast(
+            "Inventur konnte nicht geladen werden.",
+            "error"
+        );
+    }
 }
 
-
-
 async function loadInventorySubmissions() {
+    if (
+        isTeacher() &&
+        state.currentScreenId === "teacherInventoryScreen"
+    ) {
+        await renderTeacherInventory();
+
+        return [];
+    }
+
     const box = $("inventorySubmissionsList");
 
     const { data, error } = await db
@@ -964,11 +1262,16 @@ async function loadInventorySubmissions() {
             *,
             inventory_submission_items(*)
         `)
-        .order("submitted_at", { ascending: false })
+        .order("submitted_at", {
+            ascending: false
+        })
         .limit(100);
 
     if (error) {
-        console.error("Inventuren konnten nicht geladen werden:", error);
+        console.error(
+            "Inventuren konnten nicht geladen werden:",
+            error
+        );
 
         if (box) {
             box.innerHTML = `
@@ -983,8 +1286,6 @@ async function loadInventorySubmissions() {
 
     const submissions = data || [];
 
-    // L'affichage du tableau professeur ne doit pas dépendre
-    // de la présence du conteneur de l'historique.
     if (!box) {
         return submissions;
     }
@@ -999,13 +1300,15 @@ async function loadInventorySubmissions() {
 
     submissions.forEach(submission => {
         const card = document.createElement("article");
+
         card.className = "submission-card";
 
         const lines = (
             submission.inventory_submission_items || []
         ).map(item => {
             const product = state.products.find(
-                product => product.id === item.product_id
+                product =>
+                    product.id === item.product_id
             );
 
             const name =
@@ -1021,7 +1324,9 @@ async function loadInventorySubmissions() {
             return `
                 <div class="submission-item">
                     <span>${esc(name)}</span>
-                    <strong>${esc(String(quantity))}</strong>
+                    <strong>
+                        ${esc(String(quantity))}
+                    </strong>
                 </div>
             `;
         }).join("");
@@ -1030,7 +1335,9 @@ async function loadInventorySubmissions() {
             ? new Intl.DateTimeFormat("de-DE", {
                 dateStyle: "short",
                 timeStyle: "short"
-            }).format(new Date(submission.submitted_at))
+            }).format(
+                new Date(submission.submitted_at)
+            )
             : "";
 
         card.innerHTML = `
@@ -1049,7 +1356,6 @@ async function loadInventorySubmissions() {
 
     return submissions;
 }
-
 
 /* =====================================================================
    RECHNUNGEN
