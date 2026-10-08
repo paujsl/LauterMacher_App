@@ -752,28 +752,34 @@ $("teacherInventoryBackButton")?.addEventListener(
 );
 
 
+
 async function renderTeacherInventory() {
     const box = $("teacherInventoryList");
     if (!box) return;
 
-    const [, submissions] = await Promise.all([
-        loadInventory(),
-        loadInventorySubmissions()
-    ]);
+    await loadInventory();
+
+    const { data: submissions, error: submissionsError } = await db
+        .from("inventory_submissions")
+        .select("id, submitted_at, status, context, inventory_type, inventory_submission_items(*)")
+        .eq("context", "getränke")
+        .eq("inventory_type", "daily")
+        .order("submitted_at", { ascending: false })
+        .limit(20);
+
+    if (submissionsError) {
+        console.error("Inventuren konnten nicht geladen werden:", submissionsError);
+        toast("Schüler-Inventuren konnten nicht geladen werden.", "error");
+    }
 
     const latestSubmission = (submissions || []).find(
-        submission =>
-            submission.status === "eingereicht" &&
-            submission.context === "getränke" &&
-            submission.inventory_type === "daily"
-    );
+        submission => submission.status === "eingereicht"
+    ) || null;
 
     const countedItems = new Map(
-        (latestSubmission?.inventory_submission_items || [])
-            .map(item => [
-                item.product_id,
-                Number(item.quantity)
-            ])
+        (latestSubmission?.inventory_submission_items || []).map(
+            item => [String(item.product_id), Number(item.quantity)]
+        )
     );
 
     box.innerHTML = "";
@@ -797,7 +803,20 @@ async function renderTeacherInventory() {
             }).format(new Date(latestSubmission.submitted_at))
             : "Datum unbekannt";
 
-        notice.textContent = `Schüler-Inventur vom ${date}`;
+        notice.textContent = `Schüler-Inventur vom ${date} – Prüfung ausstehend`;
+    } else {
+        notice.textContent = "";
+    }
+
+    // L'historique reste dans Supabase.
+    // On masque uniquement son ancien affichage en bas de page.
+    const historyList = $("inventorySubmissionsList");
+
+    if (historyList) {
+        const historySection = historyList.closest(".submissions-section");
+        if (historySection) {
+            historySection.hidden = true;
+        }
     }
 
     drinksProducts()
@@ -807,6 +826,41 @@ async function renderTeacherInventory() {
             row.className = "teacher-inventory-row";
 
             const digital = Number(inventoryForProduct(product.id));
+            const counted = countedItems.get(String(product.id));
+            const hasCount = Number.isFinite(counted);
+            const difference = hasCount ? counted - digital : null;
+
+            const studentColumns = latestSubmission ? `
+                <div class="teacher-student-count"
+                     style="min-width:95px;text-align:center;">
+                    <small>Schüler-Inventur</small>
+                    <strong style="display:block;">
+                        ${hasCount ? counted : "—"}
+                    </strong>
+                </div>
+
+                <div class="teacher-student-difference"
+                     style="min-width:95px;text-align:center;">
+                    <small>Unterschied</small>
+                    <strong style="display:block;">
+                        ${hasCount
+                            ? (difference > 0 ? "+" : "") + difference
+                            : "—"}
+                    </strong>
+                </div>
+
+                <div class="teacher-student-action"
+                     style="min-width:110px;text-align:center;">
+                    ${hasCount
+                        ? `<small>Prüfung</small>
+                           <strong style="display:block;">
+                               ${difference === 0
+                                   ? "Confirm – ausstehend"
+                                   : "Override – ausstehend"}
+                           </strong>`
+                        : ""}
+                </div>
+            ` : "";
 
             row.innerHTML = `
                 <div class="inventory-product-info">
@@ -819,6 +873,8 @@ async function renderTeacherInventory() {
                         <small>Bestand: ${digital}</small>
                     </div>
                 </div>
+
+                ${studentColumns}
 
                 <div class="teacher-stock-form">
                     <input
@@ -845,51 +901,6 @@ async function renderTeacherInventory() {
                     </button>
                 </div>
             `;
-
-            if (latestSubmission && countedItems.has(product.id)) {
-                const counted = countedItems.get(product.id);
-                const difference = counted - digital;
-
-                const comparison = document.createElement("div");
-                comparison.className = "inventory-student-comparison";
-
-                comparison.style.display = "flex";
-                comparison.style.alignItems = "center";
-                comparison.style.gap = "16px";
-                comparison.style.flexWrap = "wrap";
-                comparison.style.margin = "8px 12px";
-
-                const differenceText =
-                    difference > 0 ? `+${difference}` : String(difference);
-
-                comparison.innerHTML = `
-                    <div>
-                        <small>Schüler-Inventur</small>
-                        <strong style="display:block">
-                            ${counted}
-                        </strong>
-                    </div>
-
-                    <div>
-                        <small>Unterschied</small>
-                        <strong style="display:block">
-                            ${differenceText}
-                        </strong>
-                    </div>
-
-                    <div>
-                        <small>Prüfung</small>
-                        <strong style="display:block">
-                            ${difference === 0
-                                ? "Confirm"
-                                : "Override"}
-                        </strong>
-                    </div>
-                `;
-
-                row.querySelector(".teacher-stock-form")
-                    .before(comparison);
-            }
 
             row.querySelector("[data-add-stock]")
                 .addEventListener("click", async () => {
@@ -941,6 +952,7 @@ async function renderTeacherInventory() {
             box.appendChild(row);
         });
 }
+
 
 
 async function loadInventorySubmissions() {
