@@ -5449,3 +5449,46 @@ html body #breadcrumb.breadcrumb {
     display: block;
     white-space: nowrap;
 }
+/* =========================================================
+   RECHNUNGEN — QUESTION DE MISE À JOUR DES STOCKS
+   ========================================================= */
+
+.invoice-stock-dialog {
+    width: min(460px, calc(100vw - 40px));
+    box-sizing: border-box;
+
+    padding: 24px;
+
+    background: var(--white, #fff);
+    color: var(--blue-dark, #09436a);
+
+    border: 1px solid #b9dcef;
+    border-radius: 20px;
+
+    box-shadow:
+        0 16px 48px
+        rgba(9, 67, 106, 0.2);
+}
+
+.invoice-stock-dialog::backdrop {
+    background: rgba(9, 67, 106, 0.35);
+}
+
+.invoice-stock-dialog h2 {
+    margin: 0 0 12px;
+}
+
+.invoice-stock-dialog p {
+    margin: 0 0 24px;
+}
+
+.invoice-stock-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.invoice-stock-dialog-actions button {
+    min-width: 90px;
+    min-height: 44px;
+}
