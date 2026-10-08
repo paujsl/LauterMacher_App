@@ -546,39 +546,740 @@ $("notificationsAdminButton")?.addEventListener("click",async()=>{if(!isTeacher(
    PRODUKTE
    ===================================================================== */
 
-let productFilter="all";
-$("productsBackButton")?.addEventListener("click",()=>showScreen("editMenuScreen"));
-$$("[data-product-filter]").forEach(btn=>btn.addEventListener("click",()=>{
-    productFilter=btn.dataset.productFilter;$$("[data-product-filter]").forEach(x=>x.classList.toggle("active",x===btn));renderProductsAdmin();
-}));
-function renderProductsAdmin(){
-    const box=$("productAdminList");if(!box)return;box.innerHTML="";
-    state.products.filter(p=>productFilter==="all"||productArea(p).includes(productFilter.replace("ä",""))||productArea(p).includes(productFilter)).forEach(p=>{
-        const row=document.createElement("div");row.className="product-admin-row";
-        row.innerHTML=`<div class="product-admin-main"><span>${esc(productIcon(p))}</span><div><strong>${esc(p.name)}</strong><small>${money(productPrice(p))} · ${esc(p.area||p.category||"")}</small></div></div><div class="product-admin-actions"><button type="button" class="secondary-action" data-edit>Bearbeiten</button><button type="button" class="danger-action" data-delete>Löschen</button></div>`;
-        row.querySelector("[data-edit]").onclick=()=>openProductModal(p);
-        row.querySelector("[data-delete]").onclick=()=>deleteProduct(p);
-        box.appendChild(row);
+let productFilter = "all";
+let productEditorProduct = null;
+let productEditorOpen = false;
+let productEditorDirty = false;
+let productSaving = false;
+let productsRenderGeneration = 0;
+
+
+$("productsBackButton")?.addEventListener("click", () => {
+    if (closeProductEditor()) {
+        showScreen("editMenuScreen");
+    }
+});
+
+
+$$("[data-product-filter]").forEach(button => {
+    button.addEventListener("click", () => {
+        productFilter = button.dataset.productFilter;
+
+        $$("[data-product-filter]").forEach(item => {
+            item.classList.toggle(
+                "active",
+                item === button
+            );
+        });
+
+        renderProductsAdmin();
+    });
+});
+
+
+$("addProductButton")?.addEventListener(
+    "click",
+    () => openProductModal(null)
+);
+
+$("closeProductModalButton")?.addEventListener(
+    "click",
+    () => closeProductEditor()
+);
+
+$("cancelProductButton")?.addEventListener(
+    "click",
+    () => closeProductEditor()
+);
+
+$("productForm")?.addEventListener("input", () => {
+    productEditorDirty = true;
+});
+
+$("productForm")?.addEventListener("change", () => {
+    productEditorDirty = true;
+});
+
+$("productForm")?.addEventListener(
+    "submit",
+    saveProduct
+);
+
+
+function closeProductEditor(force = false) {
+    if (productSaving && !force) {
+        return false;
+    }
+
+    if (
+        !force &&
+        productEditorDirty &&
+        !confirm("Nicht gespeicherte Änderungen verwerfen?")
+    ) {
+        return false;
+    }
+
+    productEditorOpen = false;
+    productEditorDirty = false;
+    productEditorProduct = null;
+
+    const editor = $("productModal");
+
+    if (editor) {
+        editor.hidden = true;
+
+        $("productsScreen")
+            .querySelector(".admin-content")
+            .appendChild(editor);
+    }
+
+    return true;
+}
+
+
+function openProductModal(product) {
+    if (!state.currentPerson || productSaving) {
+        return;
+    }
+
+    if (!closeProductEditor()) {
+        return;
+    }
+
+    productEditorProduct = product
+        ? { ...product }
+        : null;
+
+    $("productForm").reset();
+
+    $("productIdInput").value =
+        product?.id || "";
+
+    $("productNameInput").value =
+        product?.name || "";
+
+    $("productPriceInput").value = product
+        ? Number(
+            product.price ?? productPrice(product)
+        ).toFixed(2).replace(".", ",")
+        : "";
+
+    $("productCategoryInput").value =
+        productArea(product).includes("bäck")
+            ? "bäckerei"
+            : "getränke";
+
+    $("productIconInput").value =
+        product?.icon || "";
+
+    $("productActiveInput").checked =
+        product?.active !== false;
+
+    setText(
+        "productModalTitle",
+        product
+            ? "Produkt bearbeiten"
+            : "Produkt hinzufügen"
+    );
+
+    setText("productFormMessage", "");
+
+    productEditorOpen = true;
+
+    const editor = $("productModal");
+
+    const container = Array.from(
+        $("productAdminList").children
+    ).find(item => {
+        return item.dataset.productId ===
+            String(product?.id);
+    });
+
+    if (container && product) {
+        container.appendChild(editor);
+    } else {
+        $("productAdminList").before(editor);
+    }
+
+    editor.hidden = false;
+
+    editor.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest"
+    });
+
+    $("productNameInput").focus({
+        preventScroll: true
     });
 }
-$("addProductButton")?.addEventListener("click",()=>openProductModal(null));
-function openProductModal(p){
-    if(!isTeacher()&&!p)return;
-    $("productIdInput").value=p?.id||"";$("productNameInput").value=p?.name||"";$("productPriceInput").value=p?String(productPrice(p)).replace(".",","):"";$("productCategoryInput").value=productArea(p).includes("bäck")?"bäckerei":"getränke";$("productIconInput").value=productIcon(p)==="•"?"":productIcon(p);$("productActiveInput").checked=p?.active!==false;
-    setText("productModalTitle",p?"Produkt bearbeiten":"Produkt hinzufügen");show($("productModal"),"flex");
+
+
+function productChangeValue(field, value) {
+    if (field === "price") {
+        return money(value);
+    }
+
+    if (field === "active") {
+        return value ? "Aktiv" : "Inaktiv";
+    }
+
+    return String(value ?? "—");
 }
-$("closeProductModalButton")?.addEventListener("click",()=>hide($("productModal")));
-$("cancelProductButton")?.addEventListener("click",()=>hide($("productModal")));
-$("productForm")?.addEventListener("submit",async e=>{
-    e.preventDefault();const id=$("productIdInput").value.trim();
-    const payload={name:$("productNameInput").value.trim(),sale_price:parseMoney($("productPriceInput").value),area:$("productCategoryInput").value,icon:$("productIconInput").value.trim()||null,active:$("productActiveInput").checked};
-    try{
-        const q=id?db.from("products").update(payload).eq("id",id):db.from("products").insert(payload);const {error}=await q;if(error)throw error;hide($("productModal"));await loadProducts();renderProductsAdmin();toast("Produkt gespeichert.","success");
-    }catch(error){console.error(error);setText("productFormMessage","Produkt konnte nicht gespeichert werden.");}
-});
-async function deleteProduct(p){
-    if(!confirm(`"${p.name}" wirklich löschen?`))return;
-    try{const {error}=await db.from("products").update({active:false}).eq("id",p.id);if(error)throw error;await loadProducts();renderProductsAdmin();}catch(error){console.error(error);toast("Produkt konnte nicht gelöscht werden.","error");}
+
+
+async function renderProductsAdmin() {
+    const box = $("productAdminList");
+
+    if (!box || !state.currentPerson) {
+        return;
+    }
+
+    const generation =
+        ++productsRenderGeneration;
+
+    let changes = [];
+
+    if (isTeacher()) {
+        const { data, error } = await db.rpc(
+            "get_product_change_highlights"
+        );
+
+        if (
+            generation !==
+            productsRenderGeneration
+        ) {
+            return;
+        }
+
+        if (error) {
+            console.error(error);
+
+            toast(
+                "Änderungshinweise konnten nicht geladen werden.",
+                "error"
+            );
+        } else {
+            changes = data || [];
+        }
+    }
+
+    if (
+        generation !==
+        productsRenderGeneration
+    ) {
+        return;
+    }
+
+    const editor = $("productModal");
+
+    // Conserver le formulaire et le brouillon
+    // lors d'une actualisation temps réel.
+    if (editor) {
+        box.before(editor);
+    }
+
+    box.innerHTML = "";
+
+    const products = state.products.filter(product => {
+        return productFilter === "all" ||
+            productArea(product) === productFilter;
+    });
+
+    products.forEach(product => {
+        const events = changes.filter(change => {
+            return change.product_id ===
+                String(product.id);
+        });
+
+        const fields = new Set(
+            events.flatMap(change => {
+                return change.active_fields || [];
+            })
+        );
+
+        const marked = field => {
+            return fields.has(field)
+                ? "product-field-changed"
+                : "";
+        };
+
+        const item = document.createElement("div");
+
+        item.className = "product-admin-item";
+
+        item.dataset.productId =
+            String(product.id);
+
+        item.innerHTML = `
+            <div class="
+                product-admin-row
+                ${fields.has("_created")
+                    ? "product-added"
+                    : ""}
+            ">
+                <div class="product-admin-main">
+                    <span
+                        data-product-field="icon"
+                        class="${marked("icon")}"
+                    >
+                        ${esc(productIcon(product))}
+                    </span>
+
+                    <div>
+                        <strong
+                            data-product-field="name"
+                            class="${marked("name")}"
+                        >
+                            ${esc(product.name)}
+                        </strong>
+
+                        <small>
+                            <span
+                                data-product-field="price"
+                                class="${marked("price")}"
+                            >
+                                ${money(
+                                    product.price ??
+                                    productPrice(product)
+                                )}
+                            </span>
+
+                            ·
+
+                            <span
+                                data-product-field="category"
+                                class="${marked("category")}"
+                            >
+                                ${esc(
+                                    product.category ||
+                                    productArea(product)
+                                )}
+                            </span>
+
+                            <span
+                                data-product-field="active"
+                                class="${marked("active")}"
+                            >
+                                ${product.active === false
+                                    ? " · Inaktiv"
+                                    : fields.has("active")
+                                        ? " · Aktiv"
+                                        : ""}
+                            </span>
+                        </small>
+                    </div>
+                </div>
+
+                <div class="product-admin-actions">
+                    <button
+                        type="button"
+                        class="secondary-action"
+                        data-edit
+                    >
+                        Bearbeiten
+                    </button>
+
+                    <button
+                        type="button"
+                        class="danger-action"
+                        data-delete
+                        ${product.active === false
+                            ? "disabled"
+                            : ""}
+                    >
+                        Löschen
+                    </button>
+                </div>
+            </div>
+        `;
+
+        item.querySelector("[data-edit]").onclick =
+            () => openProductModal(product);
+
+        item.querySelector("[data-delete]").onclick =
+            () => deleteProduct(product);
+
+        if (events.length) {
+            const details =
+                document.createElement("details");
+
+            details.className =
+                "product-change-popover";
+
+            const labels = {
+                name: "Name",
+                price: "Preis",
+                category: "Bereich",
+                icon: "Symbol",
+                active: "Status"
+            };
+
+            details.innerHTML = `
+                <summary>
+                    Änderung durch Schüler ansehen
+                </summary>
+
+                <div class="product-change-panel">
+                    ${events.map(change => {
+                        const date =
+                            new Intl.DateTimeFormat(
+                                "de-DE",
+                                {
+                                    day: "2-digit",
+                                    month: "2-digit",
+                                    year: "2-digit",
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                    timeZone: "Europe/Berlin"
+                                }
+                            ).format(
+                                new Date(change.changed_at)
+                            );
+
+                        const text =
+                            change.action === "created"
+                                ? `${change.actor_name} hat dieses Produkt am ${date} hinzugefügt.`
+                                : `${change.actor_name} hat dieses Produkt am ${date} geändert.`;
+
+                        const lines =
+                            (change.active_fields || [])
+                                .filter(field => {
+                                    return field !== "_created";
+                                })
+                                .map(field => {
+                                    const before =
+                                        productChangeValue(
+                                            field,
+                                            change.before_values
+                                                ?.[field]
+                                        );
+
+                                    const after =
+                                        productChangeValue(
+                                            field,
+                                            change.after_values
+                                                ?.[field]
+                                        );
+
+                                    return `
+                                        <p>
+                                            ${esc(
+                                                labels[field] ||
+                                                field
+                                            )}:
+
+                                            ${change.action === "created"
+                                                ? ""
+                                                : esc(before) + " → "}
+
+                                            ${esc(after)}
+                                        </p>
+                                    `;
+                                })
+                                .join("");
+
+                        return `
+                            <p>
+                                <strong>
+                                    ${esc(text)}
+                                </strong>
+                            </p>
+
+                            ${lines}
+                        `;
+                    }).join("")}
+
+                    <button
+                        type="button"
+                        class="secondary-action"
+                        data-seen
+                    >
+                        Gesehen
+                    </button>
+                </div>
+            `;
+
+            item.appendChild(details);
+
+            item.querySelectorAll(
+                ".product-field-changed"
+            ).forEach(field => {
+                field.tabIndex = 0;
+
+                field.setAttribute(
+                    "role",
+                    "button"
+                );
+
+                field.setAttribute(
+                    "aria-label",
+                    "Änderung ansehen"
+                );
+
+                field.onclick = () => {
+                    details.open = true;
+                };
+
+                field.onkeydown = event => {
+                    if (
+                        event.key === "Enter" ||
+                        event.key === " "
+                    ) {
+                        event.preventDefault();
+                        details.open = true;
+                    }
+                };
+            });
+
+            details.querySelector(
+                "[data-seen]"
+            ).onclick = async event => {
+                const button =
+                    event.currentTarget;
+
+                button.disabled = true;
+
+                try {
+                    const { error } = await db.rpc(
+                        "acknowledge_product_changes",
+                        {
+                            p_event_ids: events.map(change => {
+                                return change.id;
+                            })
+                        }
+                    );
+
+                    if (error) {
+                        throw error;
+                    }
+
+                    await loadNotifications();
+                    await renderProductsAdmin();
+
+                } catch (error) {
+                    console.error(error);
+
+                    button.disabled = false;
+
+                    toast(
+                        "Hinweis konnte nicht bestätigt werden.",
+                        "error"
+                    );
+                }
+            };
+        }
+
+        box.appendChild(item);
+
+        if (
+            productEditorOpen &&
+            productEditorProduct?.id === product.id
+        ) {
+            item.appendChild(editor);
+        }
+    });
+
+    if (!products.length) {
+        const empty = document.createElement("p");
+
+        empty.textContent =
+            "Keine Produkte in diesem Bereich.";
+
+        box.appendChild(empty);
+    }
+}
+
+
+async function saveProduct(event) {
+    event.preventDefault();
+
+    if (productSaving || !state.currentPerson) {
+        return;
+    }
+
+    const name =
+        $("productNameInput").value.trim();
+
+    const rawPrice =
+        $("productPriceInput")
+            .value
+            .trim()
+            .replace(/\s|€/g, "");
+
+    if (
+        !name ||
+        !/^(?:\d+|\d{1,3}(?:\.\d{3})+)(?:,\d{1,2})?$/
+            .test(rawPrice)
+    ) {
+        setText(
+            "productFormMessage",
+            "Bitte Name und einen gültigen Preis eingeben, z. B. 1,50."
+        );
+
+        return;
+    }
+
+    const payload = {
+        name,
+
+        price: parseMoney(rawPrice),
+
+        category:
+            $("productCategoryInput").value,
+
+        icon:
+            $("productIconInput").value.trim() || null,
+
+        active:
+            $("productActiveInput").checked
+    };
+
+    if (
+        !Number.isFinite(payload.price) ||
+        payload.price < 0
+    ) {
+        return;
+    }
+
+    productSaving = true;
+
+    $("saveProductButton").disabled = true;
+
+    setText("productFormMessage", "");
+
+    try {
+        let query;
+
+        if (productEditorProduct) {
+            query = db
+                .from("products")
+                .update(payload)
+                .eq(
+                    "id",
+                    productEditorProduct.id
+                )
+                .eq(
+                    "edit_version",
+                    productEditorProduct.edit_version ?? 0
+                );
+        } else {
+            query = db
+                .from("products")
+                .insert({
+                    id: crypto.randomUUID(),
+                    ...payload
+                });
+        }
+
+        const { data, error } = await query
+            .select("id")
+            .maybeSingle();
+
+        if (error) {
+            throw error;
+        }
+
+        if (!data) {
+            throw new Error(
+                "product_changed_elsewhere"
+            );
+        }
+
+        closeProductEditor(true);
+
+        await loadProducts();
+        await renderProductsAdmin();
+
+        toast(
+            "Produkt gespeichert.",
+            "success"
+        );
+
+    } catch (error) {
+        console.error(error);
+
+        setText(
+            "productFormMessage",
+            error.message === "product_changed_elsewhere"
+                ? "Dieses Produkt wurde inzwischen geändert. Dein Entwurf bleibt erhalten. Bitte Änderungen notieren und das Produkt neu öffnen."
+                : "Produkt konnte nicht gespeichert werden. Bitte erneut versuchen."
+        );
+
+    } finally {
+        productSaving = false;
+
+        $("saveProductButton").disabled = false;
+    }
+}
+
+
+async function deleteProduct(product) {
+    if (
+        productSaving ||
+        !state.currentPerson ||
+        product.active === false
+    ) {
+        return;
+    }
+
+    if (
+        !confirm(
+            `„${product.name}“ deaktivieren? Das Produkt bleibt im Verlauf erhalten.`
+        )
+    ) {
+        return;
+    }
+
+    productSaving = true;
+
+    try {
+        const { data, error } = await db
+            .from("products")
+            .update({
+                active: false
+            })
+            .eq(
+                "id",
+                product.id
+            )
+            .eq(
+                "edit_version",
+                product.edit_version ?? 0
+            )
+            .select("id")
+            .maybeSingle();
+
+        if (error) {
+            throw error;
+        }
+
+        if (!data) {
+            throw new Error(
+                "product_changed_elsewhere"
+            );
+        }
+
+        await loadProducts();
+        await renderProductsAdmin();
+
+        toast(
+            "Produkt deaktiviert.",
+            "success"
+        );
+
+    } catch (error) {
+        console.error(error);
+
+        toast(
+            error.message === "product_changed_elsewhere"
+                ? "Produkt inzwischen geändert. Bitte neu laden und erneut prüfen."
+                : "Produkt konnte nicht deaktiviert werden.",
+            "error"
+        );
+
+    } finally {
+        productSaving = false;
+    }
 }
 /* =====================================================================
    INVENTUR — SCHÜLER
