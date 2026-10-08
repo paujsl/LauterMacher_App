@@ -700,24 +700,12 @@ $("submitStudentInventoryButton")?.addEventListener(
 
         try {
 
-            const {
-                error
-            } = await db.rpc(
-                "submit_inventory_count",
-                {
-                    p_items:
-                        items,
-
-                    p_context:
-                        "getränke",
-
-                    p_event_id:
-                        null,
-
-                    p_note:
-                        null
-                }
-            );
+           const { error } = await db.rpc("submit_inventory_count", {
+    p_items: items,
+    p_context: "getränke",
+    p_event_id: null,
+    p_inventory_type: "getränke"
+});
 
 
             if (error) {
