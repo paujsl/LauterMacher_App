@@ -740,17 +740,17 @@ $("submitStudentInventoryButton")?.addEventListener(
 
         } catch (error) {
 
-            console.error("Fehler beim Senden der Inventur:", error);
+    console.error("Fehler beim Senden der Inventur:", error);
 
-            const errorCode = error?.code || "";
-            const errorMessage = error?.message || "Unbekannter Fehler";
+    const errorCode = error?.code || "";
+    const errorMessage = error?.message || "Unbekannter Fehler";
 
-            setText(
-                "studentInventoryMessage",
-                `Inventur konnte nicht gesendet werden. ${errorCode}: ${errorMessage}`
-          );
+    setText(
+        "studentInventoryMessage",
+        `Inventur konnte nicht gesendet werden. ${errorCode}: ${errorMessage}`
+    );
 
-       } finally {
+} finally {
 
             if (button) {
                 button.disabled = false;
