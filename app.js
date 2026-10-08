@@ -2356,118 +2356,149 @@ async function loadAllAccountingRows(table) {
 
 
 async function loadInvoices() {
-    if (!isTeacher() || !$("invoiceList")) return null;
-
-    try {
-        const invoices = await loadAllAccountingRows("invoices");
-
-        $("invoiceList").innerHTML = invoices.length
-            ? ""
-            : "<p>Noch keine Rechnung.</p>";
-
-        setText(
-            "invoiceHistoryTitle",
-            `Alle Rechnungen (${invoices.length})`
-        );
-
-        invoices.forEach(invoice => {
-            const row = document.createElement("article");
-            row.className = "invoice-row";
-
-            row.innerHTML = `
-                <div>
-                    <strong>
-                        ${esc(invoice.invoice_number || "Rechnung")}
-                    </strong>
-
-                    <small>
-                        ${dateDE(invoice.invoice_date)}
-                        · ${esc(invoice.supplier || "Ohne Laden")}
-                    </small>
-                </div>
-
-                <div>
-                    <small>
-                        ${esc(invoice.context)}
-                        · Pfand: ${integer(invoice.pfand_quantity)}
-                        / ${money(invoice.pfand_amount || 0)}
-                    </small>
-
-                    <strong>
-                        ${money(invoice.total_amount)}
-                    </strong>
-                </div>
-            `;
-
-            $("invoiceList").appendChild(row);
-        });
-
-        return invoices;
-
-    } catch (error) {
-        console.error(error);
-
-        $("invoiceList").innerHTML =
-            "<p>Rechnungen konnten nicht geladen werden.</p>";
-
-        return null;
-    }
+    const result = await loadBookkeepingHistory();
+    return result ? result.invoices : null;
 }
 
 
 async function loadBookkeepingReceipts() {
-    if (!isTeacher() || !$("receiptList")) return null;
-
-    try {
-        const receipts = await loadAllAccountingRows(
-            "bookkeeping_receipts"
-        );
-
-        $("receiptList").innerHTML = receipts.length
-            ? ""
-            : "<p>Noch keine sonstige Einnahme.</p>";
-
-        setText(
-            "receiptHistoryTitle",
-            `Alle sonstigen Einnahmen (${receipts.length})`
-        );
-
-        receipts.forEach(receipt => {
-            const row = document.createElement("article");
-            row.className = "invoice-row";
-
-            const kindLabel =
-                receipt.kind === "pfand_return"
-                    ? "Pfandrückgabe"
-                    : "Sonstige Einnahme";
-
-            row.innerHTML = `
-                <div>
-                    <strong>${esc(receipt.reason)}</strong>
-                    <small>${dateDE(receipt.receipt_date)}</small>
-                </div>
-
-                <div>
-                    <small>${kindLabel}</small>
-                    <strong>${money(receipt.amount)}</strong>
-                </div>
-            `;
-
-            $("receiptList").appendChild(row);
-        });
-
-        return receipts;
-
-    } catch (error) {
-        console.error(error);
-
-        $("receiptList").innerHTML =
-            "<p>Einnahmen konnten nicht geladen werden.</p>";
-
-        return null;
-    }
+    const result = await loadBookkeepingHistory();
+    return result ? result.receipts : null;
 }
 
+
+async function loadBookkeepingHistory() {
+    if (!isTeacher() || !$("bookkeepingList")) return null;
+
+    /*
+     * Les deux chargements de l'écran utilisent la même requête
+     * lorsqu'ils sont lancés simultanément.
+     */
+    if (loadBookkeepingHistory.pending) {
+        return loadBookkeepingHistory.pending;
+    }
+
+    const task = (async () => {
+        try {
+            const [invoices, receipts] = await Promise.all([
+                loadAllAccountingRows("invoices"),
+                loadAllAccountingRows("bookkeeping_receipts")
+            ]);
+
+            const entries = [
+                ...invoices.map(invoice => ({
+                    id: `invoice:${invoice.id}`,
+                    date: invoice.invoice_date,
+                    createdAt: invoice.created_at,
+                    type: "invoice",
+                    title: invoice.invoice_number || "Rechnung",
+                    description: [
+                        invoice.supplier || "Ohne Laden",
+                        invoice.context
+                    ].filter(Boolean).join(" · "),
+                    amount: invoice.total_amount,
+                    pfandQuantity: invoice.pfand_quantity,
+                    pfandAmount: invoice.pfand_amount
+                })),
+
+                ...receipts.map(receipt => ({
+                    id: `receipt:${receipt.id}`,
+                    date: receipt.receipt_date,
+                    createdAt: receipt.created_at,
+                    type: receipt.kind,
+                    title: receipt.reason,
+                    description:
+                        receipt.kind === "pfand_return"
+                            ? "Pfandrückgabe"
+                            : "Sonstige Einnahme",
+                    amount: receipt.amount
+                }))
+            ];
+
+            entries.sort((a, b) =>
+                String(b.date).localeCompare(String(a.date)) ||
+                String(b.createdAt).localeCompare(String(a.createdAt)) ||
+                b.id.localeCompare(a.id)
+            );
+
+            const list = $("bookkeepingList");
+
+            list.innerHTML = entries.length
+                ? ""
+                : "<p>Noch keine Einträge.</p>";
+
+            setText(
+                "bookkeepingHistoryTitle",
+                `Alle Einträge (${entries.length})`
+            );
+
+            entries.forEach(entry => {
+                const row = document.createElement("article");
+                row.className = "invoice-row";
+
+                const isInvoice = entry.type === "invoice";
+
+                const typeLabel = isInvoice
+                    ? "Rechnung"
+                    : entry.description;
+
+                const pfandLabel =
+                    isInvoice && integer(entry.pfandQuantity) > 0
+                        ? ` · Pfand: ${integer(entry.pfandQuantity)} / ${
+                            money(entry.pfandAmount || 0)
+                        }`
+                        : "";
+
+                const description = isInvoice
+                    ? ` · ${esc(entry.description)}`
+                    : "";
+
+                row.innerHTML = `
+                    <div>
+                        <strong>${esc(entry.title)}</strong>
+
+                        <small>
+                            ${dateDE(entry.date)}${description}
+                        </small>
+                    </div>
+
+                    <div>
+                        <small>
+                            ${typeLabel}${pfandLabel}
+                        </small>
+
+                        <strong>
+                            ${isInvoice ? "−" : "+"} ${money(entry.amount)}
+                        </strong>
+                    </div>
+                `;
+
+                list.appendChild(row);
+            });
+
+            return { invoices, receipts };
+
+        } catch (error) {
+            console.error(error);
+
+            $("bookkeepingList").innerHTML = `
+                <p>Einträge konnten nicht geladen werden.</p>
+            `;
+
+            return null;
+        }
+    })();
+
+    loadBookkeepingHistory.pending = task;
+
+    try {
+        return await task;
+    } finally {
+        if (loadBookkeepingHistory.pending === task) {
+            loadBookkeepingHistory.pending = null;
+        }
+    }
+}
 
 async function saveInvoice(event) {
     event.preventDefault();
@@ -2562,7 +2593,7 @@ async function saveInvoice(event) {
             refreshInvoiceNumber()
         ]);
 
-        $("invoiceHistory").open = true;
+        $("bookkeepingHistory").open = true;
 
         toast("Rechnung gespeichert.", "success");
 
@@ -2675,7 +2706,7 @@ async function saveBookkeepingReceipt(event) {
 
         const rows = await loadBookkeepingReceipts();
 
-        $("receiptHistory").open = true;
+        $("bookkeepingHistory").open = true;
 
         toast("Einnahme gespeichert.", "success");
 
