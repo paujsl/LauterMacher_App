@@ -5492,3 +5492,236 @@ html body #breadcrumb.breadcrumb {
     min-width: 90px;
     min-height: 44px;
 }
+/* =========================================================
+   INVENTUR PROFESSEUR — VF1.3
+   ========================================================= */
+
+/* Historique */
+
+#teacherInventoryScreen .teacher-inventory-history {
+    margin: 18px 0 24px;
+}
+
+#teacherInventoryScreen .teacher-inventory-history h2 {
+    margin: 0 0 12px;
+}
+
+#teacherInventoryScreen .teacher-inventory-history-list {
+    display: grid;
+    gap: 6px;
+    max-width: 100%;
+    overflow-x: auto;
+    padding-bottom: 8px;
+}
+
+#teacherInventoryScreen .teacher-inventory-history-heading,
+#teacherInventoryScreen .teacher-inventory-history-row {
+    display: grid;
+
+    grid-template-columns:
+        175px
+        minmax(170px, 1fr)
+        260px;
+
+    align-items: center;
+    gap: 12px;
+
+    min-width: 660px;
+    padding: 10px 14px;
+    box-sizing: border-box;
+}
+
+#teacherInventoryScreen .teacher-inventory-history-heading {
+    font-weight: 800;
+}
+
+#teacherInventoryScreen .teacher-inventory-history-row {
+    background: var(--white, #fff);
+    border: 1px solid var(--grey-200, #dde2e6);
+    border-radius: 12px;
+}
+
+#teacherInventoryScreen .teacher-inventory-history-row span {
+    min-width: 0;
+    white-space: nowrap;
+}
+
+#teacherInventoryScreen
+.teacher-inventory-history-row span:nth-child(2) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#teacherInventoryScreen
+.teacher-inventory-history-row.is-current {
+    background: #e4ddfb;
+    border-color: #b8a8ed;
+}
+
+#teacherInventoryScreen
+.teacher-inventory-history-row.is-replaced {
+    background: #f0f2f4;
+    color: #687480;
+}
+
+/* Tableau des produits */
+
+#teacherInventoryScreen #teacherInventoryList {
+    display: grid;
+    gap: 8px;
+    max-width: 100%;
+    overflow-x: auto;
+    padding-bottom: 10px;
+}
+
+#teacherInventoryScreen .teacher-inventory-row,
+#teacherInventoryScreen .teacher-inventory-heading {
+    display: grid !important;
+
+    grid-template-columns:
+        minmax(160px, 1fr)
+        360px !important;
+
+    align-items: center;
+    gap: 12px;
+
+    min-width: 560px;
+    padding: 10px 14px;
+    box-sizing: border-box;
+}
+
+#teacherInventoryScreen
+.has-student-inventory
+.teacher-inventory-row,
+
+#teacherInventoryScreen
+.has-student-inventory
+.teacher-inventory-heading {
+    grid-template-columns:
+        minmax(160px, 1fr)
+        110px
+        100px
+        360px !important;
+
+    min-width: 820px;
+}
+
+#teacherInventoryScreen .teacher-stock-form {
+    display: grid !important;
+
+    grid-template-columns:
+        80px
+        100px
+        164px !important;
+
+    align-items: center;
+    gap: 8px;
+}
+
+#teacherInventoryScreen .teacher-stock-form input,
+#teacherInventoryScreen .teacher-stock-form button {
+    grid-column: auto !important;
+    grid-row: auto !important;
+
+    width: 100%;
+    min-width: 0;
+    min-height: 42px;
+
+    margin: 0;
+    box-sizing: border-box;
+}
+
+#teacherInventoryScreen .teacher-stock-form button {
+    padding: 8px;
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
+
+#teacherInventoryScreen .teacher-inventory-heading {
+    font-weight: 800;
+}
+
+#teacherInventoryScreen .teacher-inventory-heading-action {
+    display: flex;
+    justify-content: flex-end;
+}
+
+#teacherInventoryScreen
+.teacher-inventory-heading-action button {
+    width: 164px;
+    min-height: 42px;
+    padding: 8px;
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
+
+#teacherInventoryScreen .inventory-product-info {
+    min-width: 0;
+}
+
+#teacherInventoryScreen .inventory-product-info strong {
+    overflow-wrap: anywhere;
+}
+
+/* Comptage et différence */
+
+#teacherInventoryScreen .teacher-student-count {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-self: stretch;
+
+    padding: 6px;
+    background: #e4ddfb;
+    border-radius: 12px;
+
+    text-align: center;
+    font-size: 1.3rem;
+    font-weight: 800;
+}
+
+#teacherInventoryScreen .teacher-student-difference {
+    text-align: center;
+    font-size: 1.2rem;
+    font-weight: 800;
+}
+
+#teacherInventoryScreen
+.teacher-student-difference.is-equal {
+    color: #7c8b13;
+}
+
+#teacherInventoryScreen
+.teacher-student-difference.is-different {
+    color: #dd3434;
+}
+
+#teacherInventoryScreen .teacher-student-count small,
+#teacherInventoryScreen .teacher-student-difference small {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 500;
+}
+
+#teacherInventoryScreen
+.teacher-stock-form .teacher-action-confirm {
+    background: #b1c139;
+    border-color: #b1c139;
+    color: var(--blue-dark, #09436a);
+}
+
+#teacherInventoryScreen
+.teacher-stock-form .teacher-action-override {
+    background: #bdb0f5;
+    border-color: #bdb0f5;
+    color: var(--blue-dark, #09436a);
+}
+
+#teacherInventoryScreen .teacher-stock-form input:disabled,
+#teacherInventoryScreen .teacher-stock-form button:disabled {
+    opacity: 0.5;
+}
+
+#teacherInventoryScreen .submissions-section[hidden] {
+    display: none !important;
+}
