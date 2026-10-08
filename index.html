@@ -1983,13 +1983,27 @@
         </div>
 
         <div class="access-selection-heading">
-            <label class="access-choice">
-                <input id="accessSelectAll" type="checkbox">
-                <span>Alle auswählen</span>
-            </label>
 
-            <span id="accessSelectionCount">0 ausgewählt</span>
-        </div>
+    <button
+        aria-pressed="false"
+        class="access-chip"
+        id="accessSelectAll"
+        type="button"
+    >
+        Alle auswählen
+    </button>
+
+    <span id="accessSelectionCount">
+        0 ausgewählt
+    </span>
+
+</div>
+
+<div
+    class="access-student-choices"
+    id="accessStudentChoices"
+    aria-label="Schüler auswählen"
+></div>
 
         <div
             class="access-student-choices"
