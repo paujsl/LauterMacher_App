@@ -666,14 +666,8 @@ $("submitStudentInventoryButton")?.addEventListener(
                 }
 
                 return {
-                    product_id:
-                        row.dataset.productId,
-
-                    quantity:
-                        Math.max(
-                            0,
-                            integer(raw)
-                        )
+                    product_id:row.dataset.prodcutId,
+                    quantity: Math.max(0, integer(raw))
                 };
 
             }).filter(Boolean);
