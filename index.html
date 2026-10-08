@@ -1791,17 +1791,6 @@
             ></p>
         </form>
 
-        <details
-            class="accounting-history"
-            id="invoiceHistory"
-        >
-            <summary id="invoiceHistoryTitle">
-                Alle Rechnungen
-            </summary>
-
-            <div class="invoice-list" id="invoiceList"></div>
-        </details>
-
 
         <h2>Sonstige Einnahmen</h2>
 
@@ -1867,16 +1856,21 @@
             ></p>
         </form>
 
-        <details
-            class="accounting-history"
-            id="receiptHistory"
-        >
-            <summary id="receiptHistoryTitle">
-                Alle sonstigen Einnahmen
-            </summary>
+         <h2>Letzte Einträge</h2>
 
-            <div class="invoice-list" id="receiptList"></div>
-        </details>
+<details
+    class="accounting-history"
+    id="bookkeepingHistory"
+>
+    <summary id="bookkeepingHistoryTitle">
+        Alle Einträge
+    </summary>
+
+    <div
+        class="invoice-list"
+        id="bookkeepingList"
+    ></div>
+</details>
 
     </section>
 </main>
