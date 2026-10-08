@@ -1,6 +1,4 @@
-/* =====================================================================
-   LAUTERMACHER — STYLE.CSS V4.0.0
-   ===================================================================== */
+
 
 :root {
     --blue: #094369;
@@ -12,7 +10,7 @@
     --purple-dark: #8b7ed4;
     --purple-soft: #f0edff;
 
-    --header-purple: rgba(189, 179, 230, 0.5);
+    --header-purple: rgba(186, 176, 244, 0.72);
 
     --green: #bfbd43;
     --green-dark: #78910e;
@@ -64,7 +62,6 @@
         160ms ease;
 }
 
-
 /* =====================================================================
    RESET
    ===================================================================== */
@@ -74,7 +71,6 @@
 *::after {
     box-sizing: border-box;
 }
-
 
 html {
     min-height: 100%;
@@ -91,7 +87,6 @@ html {
     -webkit-text-size-adjust: 100%;
 }
 
-
 body {
     min-height: 100vh;
     margin: 0;
@@ -102,10 +97,9 @@ body {
             #f8fafb 240px,
             #f4f6f8 100%
         );
-    color: var(--grey-900);
+    color: var(--blue-dark);
     line-height: 1.45;
 }
-
 
 button,
 input,
@@ -114,17 +108,14 @@ textarea {
     font: inherit;
 }
 
-
 button {
     -webkit-tap-highlight-color: transparent;
 }
-
 
 button,
 select {
     cursor: pointer;
 }
-
 
 button:disabled,
 input:disabled,
@@ -134,12 +125,10 @@ textarea:disabled {
     opacity: 0.52;
 }
 
-
 img {
     display: block;
     max-width: 100%;
 }
-
 
 h1,
 h2,
@@ -148,14 +137,12 @@ p {
     margin-top: 0;
 }
 
-
 [hidden] {
     display: none !important;
 }
 
-
 /* =====================================================================
-   ACCESSIBILITÉ / FOCUS
+   ACCESSIBILITÃ‰ / FOCUS
    ===================================================================== */
 
 button:focus-visible,
@@ -165,11 +152,6 @@ textarea:focus-visible {
     outline: 3px solid rgba(9, 67, 106, 0.28);
     outline-offset: 2px;
 }
-
-
-/* =====================================================================
-   HEADER V4
-   ===================================================================== */
 
 .app-header {
     position: sticky;
@@ -189,7 +171,6 @@ textarea:focus-visible {
     -webkit-backdrop-filter: blur(14px);
 }
 
-
 .app-header-inner {
     display: flex;
     align-items: center;
@@ -208,7 +189,6 @@ textarea:focus-visible {
         clamp(14px, 3vw, 30px);
 }
 
-
 .header-logo-button {
     display: flex;
     align-items: center;
@@ -223,14 +203,9 @@ textarea:focus-visible {
     border: 0;
 }
 
-
 .app-header-logo {
     width: auto;
 
-    /*
-     * V4 :
-     * le logo occupe exactement la hauteur du header.
-     */
     height: var(--header-height);
 
     max-width: min(
@@ -242,7 +217,6 @@ textarea:focus-visible {
     object-position: left center;
 }
 
-
 .app-header-actions {
     display: flex;
     align-items: center;
@@ -252,7 +226,6 @@ textarea:focus-visible {
 
     gap: 10px;
 }
-
 
 .current-person-name {
     overflow: hidden;
@@ -267,7 +240,6 @@ textarea:focus-visible {
     text-overflow: ellipsis;
     white-space: nowrap;
 }
-
 
 .current-person-role,
 .home-role-label {
@@ -291,9 +263,8 @@ textarea:focus-visible {
     letter-spacing: 0.02em;
 }
 
-
 /*
- * Lehrkraft doit être rouge et non violet.
+ * Lehrkraft doit Ãªtre rouge et non violet.
  */
 
 .current-person-role.teacher-role,
@@ -302,7 +273,6 @@ textarea:focus-visible {
     background: var(--red);
     color: var(--white);
 }
-
 
 .header-icon-button {
     position: relative;
@@ -336,12 +306,10 @@ textarea:focus-visible {
         background var(--transition);
 }
 
-
 .header-icon-button:hover {
     background: var(--white);
     transform: translateY(-1px);
 }
-
 
 .notification-count {
     position: absolute;
@@ -370,14 +338,13 @@ textarea:focus-visible {
     font-weight: 900;
 }
 
-
 /* =====================================================================
    BREADCRUMB
    ===================================================================== */
 
 /*
- * Le fil d'Ariane est volontairement placé SOUS le header.
- * Il est violet à 100 %, contrairement au header à 50 %.
+ * Le fil d'Ariane est volontairement placÃ© SOUS le header.
+ * Il est violet Ã  100 %, contrairement au header Ã  50 %.
  */
 
 .breadcrumb {
@@ -401,9 +368,9 @@ textarea:focus-visible {
             )
         );
 
-    background: var(--purple);
+    background: var(--white);
 
-    color: var(--blue-dark);
+    color: var(--purple-dark);
 
     gap: 8px;
 
@@ -411,7 +378,6 @@ textarea:focus-visible {
         0 2px 5px
         rgba(20, 35, 50, 0.07);
 }
-
 
 .breadcrumb-item {
     padding: 4px 0;
@@ -424,11 +390,9 @@ textarea:focus-visible {
     font-weight: 800;
 }
 
-
 .breadcrumb-item:hover {
     text-decoration: underline;
 }
-
 
 .breadcrumb-current {
     overflow: hidden;
@@ -439,7 +403,6 @@ textarea:focus-visible {
     text-overflow: ellipsis;
     white-space: nowrap;
 }
-
 
 /* =====================================================================
    SCREENS / LAYOUT
@@ -459,14 +422,12 @@ textarea:focus-visible {
         60px;
 }
 
-
 .screen-visible {
     animation:
         screen-enter
         180ms
         ease-out;
 }
-
 
 @keyframes screen-enter {
     from {
@@ -482,7 +443,6 @@ textarea:focus-visible {
     }
 }
 
-
 .screen-header {
     display: flex;
     align-items: flex-start;
@@ -493,11 +453,9 @@ textarea:focus-visible {
     gap: 20px;
 }
 
-
 .screen-header-copy {
     min-width: 0;
 }
-
 
 .screen-title,
 .screen-header h1 {
@@ -515,7 +473,6 @@ textarea:focus-visible {
     line-height: 1.1;
 }
 
-
 .screen-subtitle,
 .screen-header p {
     max-width: 760px;
@@ -532,9 +489,8 @@ textarea:focus-visible {
         );
 }
 
-
 /* =====================================================================
-   LOGIN / IDENTITÉ
+   LOGIN / IDENTITÃ‰
    ===================================================================== */
 
 .login-screen {
@@ -546,7 +502,6 @@ textarea:focus-visible {
 
     padding: 28px;
 }
-
 
 .login-card {
     width: min(
@@ -582,7 +537,6 @@ textarea:focus-visible {
     text-align: center;
 }
 
-
 .login-logo {
     width: min(
         100%,
@@ -598,7 +552,6 @@ textarea:focus-visible {
     object-fit: contain;
 }
 
-
 .login-card h1 {
     margin-bottom: 10px;
 
@@ -612,13 +565,11 @@ textarea:focus-visible {
         );
 }
 
-
 .login-card > p {
     margin-bottom: 26px;
 
     color: var(--grey-600);
 }
-
 
 .people-grid {
     display: grid;
@@ -634,7 +585,6 @@ textarea:focus-visible {
 
     gap: 14px;
 }
-
 
 .person-card {
     display: flex;
@@ -668,9 +618,8 @@ textarea:focus-visible {
         box-shadow var(--transition);
 }
 
-
 .person-card:hover {
-    border-color: var(--purple-dark);
+    border-color: var(--blue);
 
     box-shadow: var(--shadow);
 
@@ -678,16 +627,13 @@ textarea:focus-visible {
         translateY(-2px);
 }
 
-
 .person-card strong {
     font-size: 1rem;
 }
 
-
 .person-card small {
     color: var(--grey-500);
 }
-
 
 .person-avatar {
     display: flex;
@@ -706,7 +652,6 @@ textarea:focus-visible {
     font-size: 1.7rem;
 }
 
-
 /* =====================================================================
    PIN
    ===================================================================== */
@@ -717,7 +662,6 @@ textarea:focus-visible {
         470px
     );
 }
-
 
 .pin-input {
     width: 100%;
@@ -748,11 +692,9 @@ textarea:focus-visible {
     text-align: center;
 }
 
-
 .pin-input:focus {
     border-color: var(--blue);
 }
-
 
 /* =====================================================================
    SCHOOL CLOSED
@@ -767,7 +709,6 @@ textarea:focus-visible {
 
     padding: 28px;
 }
-
 
 .school-closed-card {
     width: min(
@@ -797,7 +738,6 @@ textarea:focus-visible {
     text-align: center;
 }
 
-
 .school-closed-logo {
     width: min(
         100%,
@@ -809,7 +749,6 @@ textarea:focus-visible {
         24px;
 }
 
-
 .large-screen-icon {
     margin-bottom: 12px;
 
@@ -820,7 +759,6 @@ textarea:focus-visible {
             5rem
         );
 }
-
 
 .school-closed-card h1 {
     margin-bottom: 14px;
@@ -835,7 +773,6 @@ textarea:focus-visible {
         );
 }
 
-
 .school-closed-card p {
     margin-bottom: 14px;
 
@@ -843,7 +780,6 @@ textarea:focus-visible {
 
     font-size: 1.05rem;
 }
-
 
 .school-closed-card strong {
     display: inline-block;
@@ -859,7 +795,6 @@ textarea:focus-visible {
     border-radius: 999px;
 }
 
-
 /* =====================================================================
    HOME
    ===================================================================== */
@@ -874,7 +809,6 @@ textarea:focus-visible {
     gap: 18px;
 }
 
-
 .home-welcome h1 {
     margin-bottom: 5px;
 
@@ -888,13 +822,11 @@ textarea:focus-visible {
         );
 }
 
-
 .home-welcome p {
     margin-bottom: 0;
 
     color: var(--grey-600);
 }
-
 
 .home-grid,
 .menu-grid {
@@ -916,7 +848,6 @@ textarea:focus-visible {
             22px
         );
 }
-
 
 .home-tile,
 .menu-tile {
@@ -959,7 +890,6 @@ textarea:focus-visible {
         border-color var(--transition);
 }
 
-
 .home-tile:hover,
 .menu-tile:hover {
     border-color:
@@ -975,7 +905,6 @@ textarea:focus-visible {
     transform:
         translateY(-3px);
 }
-
 
 .home-tile-icon,
 .menu-tile-icon {
@@ -995,7 +924,6 @@ textarea:focus-visible {
     font-size: 2rem;
 }
 
-
 .home-tile strong,
 .menu-tile strong {
     display: block;
@@ -1005,14 +933,12 @@ textarea:focus-visible {
     font-size: 1.18rem;
 }
 
-
 .home-tile small,
 .menu-tile small {
     color: var(--grey-500);
 
     font-size: 0.88rem;
 }
-
 
 .test-badge {
     position: absolute;
@@ -1034,7 +960,6 @@ textarea:focus-visible {
 
     text-transform: uppercase;
 }
-
 
 /* =====================================================================
    ACTIONS / BUTTONS
@@ -1066,7 +991,6 @@ textarea:focus-visible {
         border-color var(--transition);
 }
 
-
 .primary-action {
     background: var(--blue);
     color: var(--white);
@@ -1075,7 +999,6 @@ textarea:focus-visible {
         2px solid
         var(--blue);
 }
-
 
 .primary-action:hover:not(:disabled) {
     background: var(--blue-dark);
@@ -1087,7 +1010,6 @@ textarea:focus-visible {
         translateY(-1px);
 }
 
-
 .secondary-action {
     background: var(--white);
     color: var(--blue);
@@ -1097,11 +1019,9 @@ textarea:focus-visible {
         var(--blue);
 }
 
-
 .secondary-action:hover:not(:disabled) {
     background: var(--blue-light);
 }
-
 
 .danger-action {
     background: var(--white);
@@ -1112,11 +1032,9 @@ textarea:focus-visible {
         var(--red);
 }
 
-
 .danger-action:hover:not(:disabled) {
     background: var(--red-soft);
 }
-
 
 .back-action {
     background: transparent;
@@ -1127,16 +1045,13 @@ textarea:focus-visible {
         var(--grey-300);
 }
 
-
 .back-action:hover {
     background: var(--white);
 }
 
-
 .full-width-action {
     width: 100%;
 }
-
 
 /* =====================================================================
    CARDS / PANELS
@@ -1157,7 +1072,6 @@ textarea:focus-visible {
         var(--shadow-small);
 }
 
-
 .panel {
     padding:
         clamp(
@@ -1166,7 +1080,6 @@ textarea:focus-visible {
             26px
         );
 }
-
 
 .section-card {
     margin-bottom: 20px;
@@ -1191,7 +1104,6 @@ textarea:focus-visible {
         var(--shadow-small);
 }
 
-
 .section-card h2 {
     margin-bottom: 16px;
 
@@ -1199,7 +1111,6 @@ textarea:focus-visible {
 
     font-size: 1.3rem;
 }
-
 
 /* =====================================================================
    TEST BANNERS
@@ -1234,13 +1145,11 @@ textarea:focus-visible {
     gap: 10px;
 }
 
-
 .test-banner::before {
-    content: "⚠️";
+    content: "âš ï¸";
 
     flex: 0 0 auto;
 }
-
 
 .test-banner strong {
     display: block;
@@ -1248,9 +1157,8 @@ textarea:focus-visible {
     margin-bottom: 2px;
 }
 
-
 /* =====================================================================
-   KASSE — LAYOUT
+   KASSE â€” LAYOUT
    ===================================================================== */
 
 .cashier-layout {
@@ -1276,12 +1184,10 @@ textarea:focus-visible {
         );
 }
 
-
 .cashier-products,
 .cashier-cart {
     min-width: 0;
 }
-
 
 .cashier-cart {
     position: sticky;
@@ -1307,16 +1213,14 @@ textarea:focus-visible {
         var(--shadow);
 }
 
-
 .cashier-cart h2 {
     margin-bottom: 16px;
 
     color: var(--blue-dark);
 }
 
-
 /* =====================================================================
-   PRODUCT GRID — KASSE
+   PRODUCT GRID â€” KASSE
    ===================================================================== */
 
 .sale-product-grid {
@@ -1333,7 +1237,6 @@ textarea:focus-visible {
 
     gap: 12px;
 }
-
 
 .sale-product-card {
     position: relative;
@@ -1371,7 +1274,6 @@ textarea:focus-visible {
         box-shadow var(--transition);
 }
 
-
 .sale-product-card:hover {
     border-color: var(--blue);
 
@@ -1381,13 +1283,11 @@ textarea:focus-visible {
         translateY(-2px);
 }
 
-
 .sale-product-card:active {
     transform:
         translateY(0)
         scale(0.98);
 }
-
 
 .sale-product-icon {
     margin-bottom: 3px;
@@ -1395,18 +1295,15 @@ textarea:focus-visible {
     font-size: 2rem;
 }
 
-
 .sale-product-card strong {
     line-height: 1.2;
 }
-
 
 .sale-product-card > span:last-of-type {
     color: var(--grey-600);
 
     font-weight: 700;
 }
-
 
 .product-quantity-badge {
     position: absolute;
@@ -1431,7 +1328,6 @@ textarea:focus-visible {
     font-weight: 900;
 }
 
-
 /* =====================================================================
    CART
    ===================================================================== */
@@ -1443,7 +1339,6 @@ textarea:focus-visible {
     gap: 9px;
 }
 
-
 .empty-cart,
 .empty-state {
     padding:
@@ -1454,7 +1349,6 @@ textarea:focus-visible {
 
     text-align: center;
 }
-
 
 .cart-row {
     display: grid;
@@ -1480,21 +1374,17 @@ textarea:focus-visible {
     gap: 10px;
 }
 
-
 .cart-row:last-child {
     border-bottom: 0;
 }
-
 
 .cart-row > div:first-child {
     min-width: 0;
 }
 
-
 .cart-row strong {
     display: block;
 }
-
 
 .cart-row small {
     display: block;
@@ -1503,7 +1393,6 @@ textarea:focus-visible {
 
     color: var(--grey-500);
 }
-
 
 .quantity-control {
     display: inline-flex;
@@ -1520,7 +1409,6 @@ textarea:focus-visible {
     border-radius:
         999px;
 }
-
 
 .quantity-control button {
     display: flex;
@@ -1541,11 +1429,9 @@ textarea:focus-visible {
     font-weight: 900;
 }
 
-
 .quantity-control button:hover {
     background: var(--blue-light);
 }
-
 
 .quantity-control span {
     min-width: 30px;
@@ -1554,7 +1440,6 @@ textarea:focus-visible {
 
     text-align: center;
 }
-
 
 .cart-total-row {
     display: flex;
@@ -1574,13 +1459,11 @@ textarea:focus-visible {
     font-size: 1.15rem;
 }
 
-
 .cart-total-row strong {
     color: var(--blue-dark);
 
     font-size: 1.35rem;
 }
-
 
 /* =====================================================================
    PAYMENT
@@ -1609,7 +1492,6 @@ textarea:focus-visible {
         );
 }
 
-
 .payment-summary {
     padding:
         clamp(
@@ -1631,7 +1513,6 @@ textarea:focus-visible {
         var(--shadow);
 }
 
-
 .payment-line {
     display: flex;
     align-items: center;
@@ -1648,18 +1529,15 @@ textarea:focus-visible {
     gap: 20px;
 }
 
-
 .payment-line:last-child {
     border-bottom: 0;
 }
-
 
 .payment-line strong {
     color: var(--blue-dark);
 
     font-size: 1.2rem;
 }
-
 
 .payment-change {
     margin-top: 12px;
@@ -1673,7 +1551,6 @@ textarea:focus-visible {
         var(--radius-small);
 }
 
-
 .payment-keypad {
     display: grid;
 
@@ -1685,7 +1562,6 @@ textarea:focus-visible {
 
     gap: 10px;
 }
-
 
 .payment-key {
     min-height: 64px;
@@ -1714,23 +1590,19 @@ textarea:focus-visible {
         transform var(--transition);
 }
 
-
 .payment-key:hover {
     background: var(--blue-light);
     border-color: var(--blue);
 }
-
 
 .payment-key:active {
     transform:
         scale(0.97);
 }
 
-
 .payment-delete {
     color: var(--red);
 }
-
 
 .payment-paid-button {
     grid-column:
@@ -1740,7 +1612,6 @@ textarea:focus-visible {
 
     margin-top: 6px;
 }
-
 
 /* =====================================================================
    SUCCESS
@@ -1777,7 +1648,6 @@ textarea:focus-visible {
     text-align: center;
 }
 
-
 .success-icon {
     display: flex;
     align-items: center;
@@ -1798,11 +1668,9 @@ textarea:focus-visible {
     font-size: 2.7rem;
 }
 
-
 .success-card h1 {
     color: var(--blue-dark);
 }
-
 
 .order-number-large {
     display: inline-flex;
@@ -1837,7 +1705,6 @@ textarea:focus-visible {
     letter-spacing: 0.08em;
 }
 
-
 /* =====================================================================
    FREE DRINKS
    ===================================================================== */
@@ -1848,7 +1715,6 @@ textarea:focus-visible {
 
     gap: 10px;
 }
-
 
 .quantity-product-row {
     display: grid;
@@ -1879,11 +1745,9 @@ textarea:focus-visible {
     gap: 12px;
 }
 
-
 .quantity-product-row > span:first-child {
     font-size: 1.45rem;
 }
-
 
 /* =====================================================================
    FORMULAIRES
@@ -1904,7 +1768,6 @@ textarea:focus-visible {
     gap: 16px;
 }
 
-
 .form-field {
     display: flex;
     flex-direction: column;
@@ -1914,12 +1777,10 @@ textarea:focus-visible {
     gap: 6px;
 }
 
-
 .form-field-full {
     grid-column:
         1 / -1;
 }
-
 
 .form-field label,
 .form-field > span {
@@ -1928,7 +1789,6 @@ textarea:focus-visible {
     font-size: 0.88rem;
     font-weight: 800;
 }
-
 
 .form-field input,
 .form-field select,
@@ -1960,13 +1820,11 @@ textarea:focus-visible {
         box-shadow var(--transition);
 }
 
-
 .form-field textarea {
     min-height: 105px;
 
     resize: vertical;
 }
-
 
 .form-field input:focus,
 .form-field select:focus,
@@ -1980,7 +1838,6 @@ textarea:focus-visible {
         rgba(9, 67, 106, 0.09);
 }
 
-
 .form-actions {
     display: flex;
     align-items: center;
@@ -1993,7 +1850,6 @@ textarea:focus-visible {
 
     gap: 10px;
 }
-
 
 .form-message,
 .error-message {
@@ -2009,11 +1865,9 @@ textarea:focus-visible {
     font-weight: 700;
 }
 
-
 .success-message {
     color: var(--green-dark);
 }
-
 
 /* =====================================================================
    INVENTUR
@@ -2025,7 +1879,6 @@ textarea:focus-visible {
 
     gap: 10px;
 }
-
 
 .inventory-count-row,
 .teacher-inventory-row {
@@ -2058,7 +1911,6 @@ textarea:focus-visible {
     gap: 16px;
 }
 
-
 .inventory-product-info {
     display: flex;
     align-items: center;
@@ -2067,7 +1919,6 @@ textarea:focus-visible {
 
     gap: 12px;
 }
-
 
 .inventory-product-icon {
     display: flex;
@@ -2086,25 +1937,16 @@ textarea:focus-visible {
     font-size: 1.5rem;
 }
 
-
 .inventory-product-info strong,
 .inventory-product-info small {
     display: block;
 }
-
 
 .inventory-product-info small {
     margin-top: 3px;
 
     color: var(--grey-500);
 }
-
-
-/*
- * V3/V4 :
- * les champs d'inventaire élève restent bleus,
- * jamais noirs.
- */
 
 .inventory-count-input {
     width: 100px;
@@ -2131,7 +1973,6 @@ textarea:focus-visible {
     text-align: center;
 }
 
-
 .inventory-count-input:focus {
     border-color: var(--blue);
 
@@ -2141,7 +1982,6 @@ textarea:focus-visible {
         0 0 0 3px
         rgba(9, 67, 106, 0.1);
 }
-
 
 .teacher-stock-form {
     display: grid;
@@ -2155,7 +1995,6 @@ textarea:focus-visible {
 
     gap: 8px;
 }
-
 
 .teacher-stock-form input {
     min-width: 0;
@@ -2173,7 +2012,6 @@ textarea:focus-visible {
     border-radius:
         var(--radius-small);
 }
-
 
 /* =====================================================================
    SUBMISSIONS INVENTUR
@@ -2197,7 +2035,6 @@ textarea:focus-visible {
         var(--shadow-small);
 }
 
-
 .submission-card-header {
     display: flex;
     align-items: center;
@@ -2208,16 +2045,13 @@ textarea:focus-visible {
     gap: 12px;
 }
 
-
 .submission-card-header strong {
     color: var(--blue-dark);
 }
 
-
 .submission-card-header small {
     color: var(--grey-500);
 }
-
 
 .submission-items {
     display: grid;
@@ -2233,7 +2067,6 @@ textarea:focus-visible {
 
     gap: 7px;
 }
-
 
 .submission-item {
     display: flex;
@@ -2251,7 +2084,7 @@ textarea:focus-visible {
     gap: 12px;
 }
 /* =====================================================================
-   PRODUKTE — ADMINISTRATION
+   PRODUKTE â€” ADMINISTRATION
    ===================================================================== */
 
 .product-filter-tabs,
@@ -2265,7 +2098,6 @@ textarea:focus-visible {
 
     gap: 8px;
 }
-
 
 .product-filter-tabs button,
 .report-period-tabs button,
@@ -2294,7 +2126,6 @@ textarea:focus-visible {
         border-color var(--transition);
 }
 
-
 .product-filter-tabs button.active,
 .report-period-tabs button.active,
 .report-sort-tabs button.active,
@@ -2305,14 +2136,12 @@ textarea:focus-visible {
     border-color: var(--blue);
 }
 
-
 .product-admin-list {
     display: flex;
     flex-direction: column;
 
     gap: 10px;
 }
-
 
 .product-admin-row {
     display: flex;
@@ -2338,7 +2167,6 @@ textarea:focus-visible {
     gap: 18px;
 }
 
-
 .product-admin-main {
     display: flex;
     align-items: center;
@@ -2347,7 +2175,6 @@ textarea:focus-visible {
 
     gap: 12px;
 }
-
 
 .product-admin-main > span {
     display: flex;
@@ -2366,19 +2193,16 @@ textarea:focus-visible {
     font-size: 1.55rem;
 }
 
-
 .product-admin-main strong,
 .product-admin-main small {
     display: block;
 }
-
 
 .product-admin-main small {
     margin-top: 3px;
 
     color: var(--grey-500);
 }
-
 
 .product-admin-actions {
     display: flex;
@@ -2388,7 +2212,6 @@ textarea:focus-visible {
 
     gap: 7px;
 }
-
 
 /* =====================================================================
    RECHNUNGEN
@@ -2400,7 +2223,6 @@ textarea:focus-visible {
 
     gap: 10px;
 }
-
 
 .invoice-row {
     display: flex;
@@ -2426,34 +2248,28 @@ textarea:focus-visible {
     gap: 18px;
 }
 
-
 .invoice-row > div {
     min-width: 0;
 }
 
-
 .invoice-row > div:last-child {
     text-align: right;
 }
-
 
 .invoice-row strong,
 .invoice-row small {
     display: block;
 }
 
-
 .invoice-row strong {
     color: var(--blue-dark);
 }
-
 
 .invoice-row small {
     margin-top: 3px;
 
     color: var(--grey-500);
 }
-
 
 .inventory-invoice-context-card {
     margin-bottom: 18px;
@@ -2472,12 +2288,10 @@ textarea:focus-visible {
         var(--radius);
 }
 
-
 .inventory-invoice-context-card strong,
 .inventory-invoice-context-card span {
     display: block;
 }
-
 
 .inventory-invoice-context-card span {
     margin-top: 3px;
@@ -2485,9 +2299,8 @@ textarea:focus-visible {
     color: var(--grey-600);
 }
 
-
 /* =====================================================================
-   SCHÜLER
+   SCHÃœLER
    ===================================================================== */
 
 .students-list {
@@ -2496,7 +2309,6 @@ textarea:focus-visible {
 
     gap: 10px;
 }
-
 
 .student-row {
     display: flex;
@@ -2522,7 +2334,6 @@ textarea:focus-visible {
     gap: 18px;
 }
 
-
 .student-row-main {
     display: flex;
     align-items: center;
@@ -2531,7 +2342,6 @@ textarea:focus-visible {
 
     gap: 12px;
 }
-
 
 .student-avatar {
     display: flex;
@@ -2550,19 +2360,16 @@ textarea:focus-visible {
     font-size: 1.35rem;
 }
 
-
 .student-row-main strong,
 .student-row-main small {
     display: block;
 }
-
 
 .student-row-main small {
     margin-top: 3px;
 
     color: var(--grey-500);
 }
-
 
 .student-row-actions {
     display: flex;
@@ -2573,9 +2380,8 @@ textarea:focus-visible {
     gap: 7px;
 }
 
-
 /* =====================================================================
-   NOTIFICATIONS — HEADER POPOVER
+   NOTIFICATIONS â€” HEADER POPOVER
    ===================================================================== */
 
 .notification-popover {
@@ -2633,7 +2439,6 @@ textarea:focus-visible {
         blur(16px);
 }
 
-
 .notification-popover-header {
     display: flex;
     align-items: center;
@@ -2644,7 +2449,6 @@ textarea:focus-visible {
     gap: 12px;
 }
 
-
 .notification-popover-header h2 {
     margin: 0;
 
@@ -2652,7 +2456,6 @@ textarea:focus-visible {
 
     font-size: 1.08rem;
 }
-
 
 .notification-popover-close {
     display: flex;
@@ -2674,14 +2477,12 @@ textarea:focus-visible {
     font-size: 1.1rem;
 }
 
-
 .notification-preview-list {
     display: flex;
     flex-direction: column;
 
     gap: 7px;
 }
-
 
 .notification-preview-item {
     display: flex;
@@ -2706,13 +2507,11 @@ textarea:focus-visible {
     text-align: left;
 }
 
-
 .notification-preview-item strong {
     color: inherit;
 
     font-size: 0.91rem;
 }
-
 
 .notification-preview-item small {
     display: -webkit-box;
@@ -2729,7 +2528,6 @@ textarea:focus-visible {
     -webkit-line-clamp: 2;
 }
 
-
 .notification-preview-empty {
     padding: 18px 10px;
 
@@ -2738,14 +2536,9 @@ textarea:focus-visible {
     text-align: center;
 }
 
-
-/* =====================================================================
-   NOTIFICATIONS — V4
-   ===================================================================== */
-
 /*
  * Non lue :
- * volontairement colorée pour attirer l'attention.
+ * volontairement colorÃ©e pour attirer l'attention.
  */
 
 .notification-new {
@@ -2762,9 +2555,8 @@ textarea:focus-visible {
         rgba(120, 104, 181, 0.25);
 }
 
-
 /*
- * Déjà lue :
+ * DÃ©jÃ  lue :
  * volontairement grise.
  */
 
@@ -2775,7 +2567,6 @@ textarea:focus-visible {
     border-color: var(--grey-200);
 }
 
-
 .notification-sent {
     background: var(--white);
     color: var(--grey-800);
@@ -2783,14 +2574,12 @@ textarea:focus-visible {
     border-color: var(--grey-200);
 }
 
-
 .notifications-list {
     display: flex;
     flex-direction: column;
 
     gap: 10px;
 }
-
 
 .notification-card {
     padding:
@@ -2812,7 +2601,6 @@ textarea:focus-visible {
         box-shadow var(--transition);
 }
 
-
 .notification-card.notification-new {
     border-color:
         rgba(120, 104, 181, 0.32);
@@ -2822,7 +2610,6 @@ textarea:focus-visible {
         rgba(120, 104, 181, 0.12);
 }
 
-
 .notification-card.notification-new:hover {
     transform:
         translateY(-1px);
@@ -2830,14 +2617,12 @@ textarea:focus-visible {
     box-shadow: var(--shadow);
 }
 
-
 .notification-card-main {
     display: flex;
     align-items: flex-start;
 
     gap: 12px;
 }
-
 
 .notification-card-icon {
     display: flex;
@@ -2857,11 +2642,9 @@ textarea:focus-visible {
     font-size: 1.2rem;
 }
 
-
 .notification-card-main > div:last-child {
     min-width: 0;
 }
-
 
 .notification-card strong {
     display: block;
@@ -2871,7 +2654,6 @@ textarea:focus-visible {
     color: inherit;
 }
 
-
 .notification-card p {
     margin:
         0 0
@@ -2880,16 +2662,14 @@ textarea:focus-visible {
     white-space: pre-wrap;
 }
 
-
 .notification-card small {
     color: inherit;
 
     opacity: 0.7;
 }
 
-
 /* =====================================================================
-   NOTIFICATIONS — ENVOI LEHRKRAFT
+   NOTIFICATIONS â€” ENVOI LEHRKRAFT
    ===================================================================== */
 
 .teacher-notification-composer {
@@ -2915,13 +2695,11 @@ textarea:focus-visible {
         var(--shadow-small);
 }
 
-
 .teacher-notification-composer h2 {
     margin-bottom: 16px;
 
     color: var(--blue-dark);
 }
-
 
 .notification-recipient-list {
     display: grid;
@@ -2943,7 +2721,6 @@ textarea:focus-visible {
 
     gap: 7px;
 }
-
 
 .recipient-option {
     display: flex;
@@ -2969,11 +2746,9 @@ textarea:focus-visible {
     cursor: pointer;
 }
 
-
 .recipient-option:hover {
     background: var(--blue-light);
 }
-
 
 .recipient-option input {
     width: 18px;
@@ -2981,7 +2756,6 @@ textarea:focus-visible {
 
     accent-color: var(--blue);
 }
-
 
 .recipient-option-all {
     background: var(--purple-soft);
@@ -2992,9 +2766,8 @@ textarea:focus-visible {
     font-weight: 850;
 }
 
-
 /* =====================================================================
-   BÄCKEREI / EVENT — AUSGABE
+   BÃ„CKEREI / EVENT â€” AUSGABE
    ===================================================================== */
 
 .output-layout {
@@ -3014,12 +2787,10 @@ textarea:focus-visible {
         );
 }
 
-
 .output-open-column,
 .output-completed-column {
     min-width: 0;
 }
-
 
 .output-open-column h2,
 .output-completed-column h2 {
@@ -3031,7 +2802,6 @@ textarea:focus-visible {
 
     gap: 8px;
 }
-
 
 .output-orders {
     display: grid;
@@ -3047,7 +2817,6 @@ textarea:focus-visible {
 
     gap: 14px;
 }
-
 
 .output-order-card {
     display: flex;
@@ -3071,7 +2840,6 @@ textarea:focus-visible {
     gap: 14px;
 }
 
-
 .output-order-number {
     color: var(--blue-dark);
 
@@ -3088,7 +2856,6 @@ textarea:focus-visible {
     letter-spacing: 0.06em;
 }
 
-
 .output-order-items {
     display: flex;
     flex: 1;
@@ -3099,11 +2866,9 @@ textarea:focus-visible {
     gap: 5px;
 }
 
-
 .output-order-card .primary-action {
     width: 100%;
 }
-
 
 .completed-orders {
     display: flex;
@@ -3111,7 +2876,6 @@ textarea:focus-visible {
 
     gap: 7px;
 }
-
 
 .completed-order-row {
     display: flex;
@@ -3136,14 +2900,12 @@ textarea:focus-visible {
     gap: 8px;
 }
 
-
 .completed-order-row strong {
     color: var(--blue-dark);
 }
 
-
 /* =====================================================================
-   EVENTS — LISTE
+   EVENTS â€” LISTE
    ===================================================================== */
 
 .event-list {
@@ -3152,7 +2914,6 @@ textarea:focus-visible {
 
     gap: 9px;
 }
-
 
 .event-list-row {
     display: flex;
@@ -3190,7 +2951,6 @@ textarea:focus-visible {
         border-color var(--transition);
 }
 
-
 button.event-list-row:hover {
     border-color: var(--purple-dark);
 
@@ -3200,12 +2960,10 @@ button.event-list-row:hover {
         translateY(-1px);
 }
 
-
 .event-list-row strong,
 .event-list-row small {
     display: block;
 }
-
 
 .event-list-row small {
     margin-top: 3px;
@@ -3213,14 +2971,12 @@ button.event-list-row:hover {
     color: var(--grey-500);
 }
 
-
 .event-list-row > span:last-child {
     flex: 0 0 auto;
 
     font-size: 1.3rem;
     font-weight: 900;
 }
-
 
 .event-closed {
     background: var(--grey-100);
@@ -3230,7 +2986,6 @@ button.event-list-row:hover {
 
     cursor: default;
 }
-
 
 .event-closed-badge {
     padding:
@@ -3245,7 +3000,6 @@ button.event-list-row:hover {
     font-size: 0.74rem !important;
     font-weight: 850;
 }
-
 
 /* =====================================================================
    EVENT WORKSPACE
@@ -3276,11 +3030,9 @@ button.event-list-row:hover {
         12px;
 }
 
-
 .event-workspace-info > span {
     font-size: 1.3rem;
 }
-
 
 .event-workspace-info strong {
     color: var(--blue-dark);
@@ -3288,13 +3040,11 @@ button.event-list-row:hover {
     font-size: 1.05rem;
 }
 
-
 .event-workspace-info small {
     flex-basis: 100%;
 
     color: var(--grey-600);
 }
-
 
 .event-workspace-grid {
     display: grid;
@@ -3310,7 +3060,6 @@ button.event-list-row:hover {
 
     gap: 14px;
 }
-
 
 .event-action-card {
     display: flex;
@@ -3340,13 +3089,11 @@ button.event-list-row:hover {
     text-align: left;
 }
 
-
 .event-action-card:hover {
     border-color: var(--purple-dark);
 
     box-shadow: var(--shadow);
 }
-
 
 .event-close-area {
     margin-top: 24px;
@@ -3364,11 +3111,9 @@ button.event-list-row:hover {
         var(--radius);
 }
 
-
 .event-close-area .danger-action {
     min-width: 230px;
 }
-
 
 /* =====================================================================
    OTHER EVENT
@@ -3397,7 +3142,6 @@ button.event-list-row:hover {
     gap: 18px;
 }
 
-
 .other-event-revenue-card strong {
     display: block;
 
@@ -3406,11 +3150,9 @@ button.event-list-row:hover {
     font-size: 1.35rem;
 }
 
-
 .other-event-revenue-card small {
     color: var(--grey-500);
 }
-
 
 /* =====================================================================
    EVENT PRODUCTS
@@ -3429,7 +3171,6 @@ button.event-list-row:hover {
 
     gap: 10px;
 }
-
 
 .event-products-toolbar select {
     width: 100%;
@@ -3450,7 +3191,6 @@ button.event-list-row:hover {
         var(--radius-small);
 }
 
-
 /* =====================================================================
    EVENT END INVENTORY
    ===================================================================== */
@@ -3461,7 +3201,6 @@ button.event-list-row:hover {
 
     gap: 10px;
 }
-
 
 /* =====================================================================
    BERICHTE
@@ -3478,24 +3217,15 @@ button.event-list-row:hover {
     gap: 12px;
 }
 
-
 .report-current-date {
     color: var(--grey-500);
 
     font-weight: 700;
 }
 
-
-/*
- * V3/V4 :
- * bouton Excel à l'extérieur du graphique,
- * en haut à droite.
- */
-
 .report-export-action {
     margin-left: auto;
 }
-
 
 .report-kpi-grid {
     display: grid;
@@ -3514,7 +3244,6 @@ button.event-list-row:hover {
     gap: 12px;
 }
 
-
 .report-kpi-card {
     padding:
         17px;
@@ -3532,7 +3261,6 @@ button.event-list-row:hover {
         var(--shadow-small);
 }
 
-
 .report-kpi-card span {
     display: block;
 
@@ -3543,7 +3271,6 @@ button.event-list-row:hover {
     font-size: 0.82rem;
     font-weight: 750;
 }
-
 
 .report-kpi-card strong {
     display: block;
@@ -3559,7 +3286,6 @@ button.event-list-row:hover {
 
     line-height: 1.1;
 }
-
 
 .report-top-product {
     margin-bottom: 20px;
@@ -3581,7 +3307,6 @@ button.event-list-row:hover {
         var(--radius);
 }
 
-
 .report-top-product strong {
     display: block;
 
@@ -3590,11 +3315,9 @@ button.event-list-row:hover {
     font-size: 1.25rem;
 }
 
-
 .report-top-product span {
     color: var(--grey-600);
 }
-
 
 /* =====================================================================
    REPORT PRODUCT TABLE
@@ -3615,7 +3338,6 @@ button.event-list-row:hover {
     box-shadow:
         var(--shadow-small);
 }
-
 
 .report-product-header,
 .report-product-row {
@@ -3639,7 +3361,6 @@ button.event-list-row:hover {
     gap: 10px;
 }
 
-
 .report-product-header {
     background: var(--blue);
     color: var(--white);
@@ -3647,7 +3368,6 @@ button.event-list-row:hover {
     font-size: 0.78rem;
     font-weight: 850;
 }
-
 
 .report-product-row {
     border-bottom:
@@ -3657,17 +3377,14 @@ button.event-list-row:hover {
     font-size: 0.9rem;
 }
 
-
 .report-product-row:last-child {
     border-bottom: 0;
 }
-
 
 .report-product-row span:not(:first-child),
 .report-product-header span:not(:first-child) {
     text-align: right;
 }
-
 
 /* =====================================================================
    SCHOOL YEAR CHART
@@ -3696,11 +3413,9 @@ button.event-list-row:hover {
         var(--shadow-small);
 }
 
-
 .report-chart-card h2 {
     color: var(--blue-dark);
 }
-
 
 .school-year-profit-chart {
     display: flex;
@@ -3727,7 +3442,6 @@ button.event-list-row:hover {
         );
 }
 
-
 .chart-column {
     display: flex;
     flex:
@@ -3742,7 +3456,6 @@ button.event-list-row:hover {
     gap: 5px;
 }
 
-
 .chart-value {
     min-height: 18px;
 
@@ -3753,7 +3466,6 @@ button.event-list-row:hover {
 
     text-align: center;
 }
-
 
 .chart-bar {
     width:
@@ -3778,7 +3490,6 @@ button.event-list-row:hover {
         0;
 }
 
-
 .chart-column small {
     min-height: 30px;
 
@@ -3788,7 +3499,6 @@ button.event-list-row:hover {
 
     text-align: center;
 }
-
 
 /* =====================================================================
    MODALS
@@ -3821,7 +3531,6 @@ button.event-list-row:hover {
         blur(5px);
 }
 
-
 .modal-card {
     width: min(
         100%,
@@ -3851,7 +3560,6 @@ button.event-list-row:hover {
         var(--shadow-large);
 }
 
-
 .modal-header {
     display: flex;
     align-items: flex-start;
@@ -3862,13 +3570,11 @@ button.event-list-row:hover {
     gap: 15px;
 }
 
-
 .modal-header h2 {
     margin: 0;
 
     color: var(--blue-dark);
 }
-
 
 .modal-close {
     display: flex;
@@ -3892,11 +3598,9 @@ button.event-list-row:hover {
     font-size: 1.2rem;
 }
 
-
 .modal-close:hover {
     background: var(--grey-200);
 }
-
 
 /* =====================================================================
    TEAM FINISHED OVERLAY
@@ -3929,7 +3633,6 @@ button.event-list-row:hover {
         blur(6px);
 }
 
-
 .team-finished-card {
     width: min(
         100%,
@@ -3954,7 +3657,6 @@ button.event-list-row:hover {
     text-align: center;
 }
 
-
 .team-finished-icon {
     display: block;
 
@@ -3963,20 +3665,17 @@ button.event-list-row:hover {
     font-size: 3.5rem;
 }
 
-
 .team-finished-card h2 {
     margin-bottom: 9px;
 
     color: var(--blue-dark);
 }
 
-
 .team-finished-card p {
     margin-bottom: 22px;
 
     color: var(--grey-600);
 }
-
 
 /* =====================================================================
    TOASTS
@@ -4003,7 +3702,6 @@ button.event-list-row:hover {
     pointer-events: none;
 }
 
-
 .toast {
     padding:
         12px
@@ -4027,21 +3725,17 @@ button.event-list-row:hover {
         ease-out;
 }
 
-
 .toast-success {
     background: var(--green-dark);
 }
-
 
 .toast-error {
     background: var(--red-dark);
 }
 
-
 .toast-info {
     background: var(--blue);
 }
-
 
 @keyframes toast-enter {
     from {
@@ -4059,7 +3753,6 @@ button.event-list-row:hover {
     }
 }
 
-
 /* =====================================================================
    UTILITY CLASSES
    ===================================================================== */
@@ -4068,69 +3761,56 @@ button.event-list-row:hover {
     color: var(--grey-500);
 }
 
-
 .text-blue {
     color: var(--blue);
 }
-
 
 .text-red {
     color: var(--red);
 }
 
-
 .text-green {
     color: var(--green-dark);
 }
-
 
 .text-center {
     text-align: center;
 }
 
-
 .mt-0 {
     margin-top: 0;
 }
-
 
 .mt-1 {
     margin-top: 8px;
 }
 
-
 .mt-2 {
     margin-top: 16px;
 }
-
 
 .mt-3 {
     margin-top: 24px;
 }
 
-
 .mb-0 {
     margin-bottom: 0;
 }
-
 
 .mb-1 {
     margin-bottom: 8px;
 }
 
-
 .mb-2 {
     margin-bottom: 16px;
 }
-
 
 .mb-3 {
     margin-bottom: 24px;
 }
 
-
 /* =====================================================================
-   RESPONSIVE — TABLET
+   RESPONSIVE â€” TABLET
    ===================================================================== */
 
 @media (
@@ -4151,7 +3831,6 @@ button.event-list-row:hover {
         gap: 15px;
     }
 
-
     .sale-product-grid {
         grid-template-columns:
             repeat(
@@ -4163,7 +3842,6 @@ button.event-list-row:hover {
             );
     }
 
-
     .teacher-stock-form {
         grid-template-columns:
             80px
@@ -4171,15 +3849,13 @@ button.event-list-row:hover {
             auto;
     }
 
-
     .current-person-name {
         max-width: 150px;
     }
 }
 
-
 /* =====================================================================
-   RESPONSIVE — PETIT TABLET / MOBILE
+   RESPONSIVE â€” PETIT TABLET / MOBILE
    ===================================================================== */
 
 @media (
@@ -4190,13 +3866,11 @@ button.event-list-row:hover {
         --header-height: 66px;
     }
 
-
     .app-header-inner {
         padding:
             0
             10px;
     }
-
 
     .app-header-logo {
         height:
@@ -4205,11 +3879,9 @@ button.event-list-row:hover {
         max-width: 38vw;
     }
 
-
     .current-person-name {
         display: none;
     }
-
 
     .current-person-role {
         min-height: 27px;
@@ -4221,12 +3893,10 @@ button.event-list-row:hover {
         font-size: 0.66rem;
     }
 
-
     .header-icon-button {
         width: 39px;
         height: 39px;
     }
-
 
     .breadcrumb {
         min-height: 38px;
@@ -4235,7 +3905,6 @@ button.event-list-row:hover {
             6px
             14px;
     }
-
 
     .screen {
         width:
@@ -4252,7 +3921,6 @@ button.event-list-row:hover {
             45px;
     }
 
-
     .screen-header {
         flex-direction: column;
 
@@ -4261,12 +3929,10 @@ button.event-list-row:hover {
         gap: 12px;
     }
 
-
     .home-welcome {
         align-items: flex-start;
         flex-direction: column;
     }
-
 
     .home-grid,
     .menu-grid {
@@ -4282,14 +3948,12 @@ button.event-list-row:hover {
         gap: 10px;
     }
 
-
     .home-tile,
     .menu-tile {
         min-height: 155px;
 
         padding: 16px;
     }
-
 
     .home-tile-icon,
     .menu-tile-icon {
@@ -4301,17 +3965,14 @@ button.event-list-row:hover {
         font-size: 1.65rem;
     }
 
-
     .cashier-layout {
         grid-template-columns:
             1fr;
     }
 
-
     .cashier-cart {
         position: static;
     }
-
 
     .sale-product-grid {
         grid-template-columns:
@@ -4324,7 +3985,6 @@ button.event-list-row:hover {
             );
     }
 
-
     .sale-product-card {
         min-height: 125px;
 
@@ -4335,12 +3995,10 @@ button.event-list-row:hover {
         font-size: 0.86rem;
     }
 
-
     .payment-layout {
         grid-template-columns:
             1fr;
     }
-
 
     .output-layout {
         grid-template-columns:
@@ -4349,7 +4007,6 @@ button.event-list-row:hover {
 
         gap: 10px;
     }
-
 
     .output-orders {
         grid-template-columns:
@@ -4364,31 +4021,26 @@ button.event-list-row:hover {
         gap: 10px;
     }
 
-
     .output-order-card {
         min-height: 205px;
 
         padding: 14px;
     }
 
-
     .completed-order-row {
         align-items: flex-start;
         flex-direction: column;
     }
-
 
     .form-grid {
         grid-template-columns:
             1fr;
     }
 
-
     .form-field-full,
     .form-actions {
         grid-column: auto;
     }
-
 
     .inventory-count-row,
     .teacher-inventory-row {
@@ -4396,11 +4048,9 @@ button.event-list-row:hover {
             1fr;
     }
 
-
     .inventory-count-input {
         width: 100%;
     }
-
 
     .teacher-stock-form {
         grid-template-columns:
@@ -4408,12 +4058,10 @@ button.event-list-row:hover {
             1fr;
     }
 
-
     .teacher-stock-form .primary-action {
         grid-column:
             1 / -1;
     }
-
 
     .product-admin-row,
     .student-row,
@@ -4422,18 +4070,15 @@ button.event-list-row:hover {
         flex-direction: column;
     }
 
-
     .product-admin-actions,
     .student-row-actions {
         width: 100%;
     }
 
-
     .product-admin-actions button,
     .student-row-actions button {
         flex: 1;
     }
-
 
     .invoice-row > div:last-child {
         width: 100%;
@@ -4441,18 +4086,15 @@ button.event-list-row:hover {
         text-align: left;
     }
 
-
     .event-products-toolbar {
         grid-template-columns:
             1fr;
     }
 
-
     .other-event-revenue-card {
         align-items: flex-start;
         flex-direction: column;
     }
-
 
     .notification-popover {
         top:
@@ -4469,25 +4111,21 @@ button.event-list-row:hover {
             );
     }
 
-
     .notification-recipient-list {
         grid-template-columns:
             1fr;
     }
-
 
     .report-toolbar {
         align-items: stretch;
         flex-direction: column;
     }
 
-
     .report-export-action {
         width: 100%;
 
         margin-left: 0;
     }
-
 
     .report-kpi-grid {
         grid-template-columns:
@@ -4501,9 +4139,8 @@ button.event-list-row:hover {
     }
 }
 
-
 /* =====================================================================
-   RESPONSIVE — MOBILE ÉTROIT
+   RESPONSIVE â€” MOBILE Ã‰TROIT
    ===================================================================== */
 
 @media (
@@ -4515,14 +4152,12 @@ button.event-list-row:hover {
         padding: 14px;
     }
 
-
     .login-card,
     .school-closed-card {
         padding:
             24px
             18px;
     }
-
 
     .people-grid {
         grid-template-columns:
@@ -4537,7 +4172,6 @@ button.event-list-row:hover {
         gap: 9px;
     }
 
-
     .person-card {
         min-height: 120px;
 
@@ -4546,19 +4180,16 @@ button.event-list-row:hover {
             8px;
     }
 
-
     .home-grid,
     .menu-grid {
         grid-template-columns:
             1fr;
     }
 
-
     .home-tile,
     .menu-tile {
         min-height: 130px;
     }
-
 
     .sale-product-grid {
         grid-template-columns:
@@ -4571,11 +4202,9 @@ button.event-list-row:hover {
             );
     }
 
-
     .sale-product-card {
         min-height: 118px;
     }
-
 
     .cart-row {
         grid-template-columns:
@@ -4586,7 +4215,6 @@ button.event-list-row:hover {
             auto;
     }
 
-
     .cart-row > strong:last-child {
         grid-column:
             1 / -1;
@@ -4594,12 +4222,10 @@ button.event-list-row:hover {
         text-align: right;
     }
 
-
     .output-layout {
         grid-template-columns:
             1fr;
     }
-
 
     .output-completed-column {
         padding-top: 15px;
@@ -4608,7 +4234,6 @@ button.event-list-row:hover {
             2px solid
             var(--grey-200);
     }
-
 
     .completed-orders {
         display: grid;
@@ -4623,57 +4248,47 @@ button.event-list-row:hover {
             );
     }
 
-
     .completed-order-row {
         align-items: center;
     }
-
 
     .teacher-stock-form {
         grid-template-columns:
             1fr;
     }
 
-
     .teacher-stock-form .primary-action {
         grid-column: auto;
     }
-
 
     .form-actions {
         align-items: stretch;
         flex-direction: column-reverse;
     }
 
-
     .form-actions button {
         width: 100%;
     }
-
 
     .report-kpi-grid {
         grid-template-columns:
             1fr;
     }
 
-
     .event-close-area .danger-action {
         width: 100%;
         min-width: 0;
     }
 
-
     .notification-card-main {
         gap: 9px;
     }
-
 
     .notification-card-icon {
         width: 36px;
         height: 36px;
     }
 }
-
 
 /* =====================================================================
    iPAD / TOUCH
@@ -4691,7 +4306,6 @@ button.event-list-row:hover {
         transform: none;
     }
 
-
     .primary-action,
     .secondary-action,
     .danger-action,
@@ -4699,11 +4313,9 @@ button.event-list-row:hover {
         min-height: 46px;
     }
 
-
     .sale-product-card {
         touch-action: manipulation;
     }
-
 
     .payment-key {
         min-height: 68px;
@@ -4711,7 +4323,6 @@ button.event-list-row:hover {
         touch-action: manipulation;
     }
 }
-
 
 /* =====================================================================
    LANDSCAPE iPAD
@@ -4732,7 +4343,6 @@ button.event-list-row:hover {
             );
     }
 
-
     .cashier-layout {
         grid-template-columns:
             minmax(
@@ -4741,7 +4351,6 @@ button.event-list-row:hover {
             )
             330px;
     }
-
 
     .sale-product-grid {
         grid-template-columns:
@@ -4753,7 +4362,6 @@ button.event-list-row:hover {
                 )
             );
     }
-
 
     .output-layout {
         grid-template-columns:
@@ -4767,7 +4375,6 @@ button.event-list-row:hover {
             );
     }
 }
-
 
 /* =====================================================================
    REDUCED MOTION
@@ -4794,7 +4401,6 @@ button.event-list-row:hover {
     }
 }
 
-
 /* =====================================================================
    PRINT
    ===================================================================== */
@@ -4809,18 +4415,15 @@ button.event-list-row:hover {
         display: none !important;
     }
 
-
     body {
         background: var(--white);
     }
-
 
     .screen {
         width: 100%;
 
         padding: 0;
     }
-
 
     .panel,
     .card,
@@ -4831,20 +4434,14 @@ button.event-list-row:hover {
     }
 }
 
-
-/* =====================================================================
-   V4 — COMPATIBILITÉ DES IDS / STRUCTURES EXISTANTES
-   ===================================================================== */
-
 /*
- * Les règles suivantes conservent le rendu lorsque l'index utilise
- * certains noms de classes historiques des versions précédentes.
+ * Les rÃ¨gles suivantes conservent le rendu lorsque l'index utilise
+ * certains noms de classes historiques des versions prÃ©cÃ©dentes.
  */
 
 .appHeader {
     height: var(--header-height);
 }
-
 
 .header-logo,
 #homeLogoButton img {
@@ -4853,7 +4450,6 @@ button.event-list-row:hover {
 
     object-fit: contain;
 }
-
 
 #appHeader {
     height: var(--header-height);
@@ -4867,65 +4463,45 @@ button.event-list-row:hover {
         );
 }
 
-
 #appHeader .app-header-inner,
 #appHeader .header-inner {
     height: 100%;
 }
 
-
 #breadcrumb {
     background: var(--purple);
 }
-
 
 #currentPersonRole.teacher-role {
     background: var(--red);
     color: var(--white);
 }
 
-
 #schoolClosedScreen {
     min-height: 100vh;
 }
-
 
 #bakeryOutputOrders,
 #eventOutputOrders {
     min-width: 0;
 }
 
-
 #bakeryCompletedOrders,
 #eventCompletedOrders {
     min-width: 0;
 }
 
-
 #notificationsList {
     min-width: 0;
 }
-
 
 #notificationRecipientList {
     min-width: 0;
 }
 
-
 #schoolYearProfitChart {
     min-width: 0;
 }
-
-
-/* =====================================================================
-   V4 — BÄCKEREI AUSGABE 80 / 20
-   ===================================================================== */
-
-/*
- * Écran apprécié en V3 :
- * commandes ouvertes à gauche ≈ 80 %,
- * commandes terminées à droite ≈ 20 %.
- */
 
 .bakery-output-layout,
 #bakeryOutputScreen .output-layout {
@@ -4934,26 +4510,15 @@ button.event-list-row:hover {
         minmax(180px, 1fr);
 }
 
-
 #bakeryCompletedOrders .completed-order-row {
     font-size: 0.86rem;
 }
-
-
-/* =====================================================================
-   V4 — EVENT AUSGABE 80 / 20
-   ===================================================================== */
 
 #eventOutputScreen .output-layout {
     grid-template-columns:
         minmax(0, 4fr)
         minmax(180px, 1fr);
 }
-
-
-/* =====================================================================
-   V4 — NOTIFICATIONS REÇUES / ENVOYÉES
-   ===================================================================== */
 
 #receivedNotificationsTab.active,
 #sentNotificationsTab.active {
@@ -4962,7 +4527,6 @@ button.event-list-row:hover {
 
     border-color: var(--blue);
 }
-
 
 #notificationsList .notification-new {
     background:
@@ -4975,7 +4539,6 @@ button.event-list-row:hover {
     color: var(--blue-dark);
 }
 
-
 #notificationsList .notification-read {
     background: #f0f1f2;
     color: #667078;
@@ -4983,22 +4546,15 @@ button.event-list-row:hover {
     border-color: #dfe2e5;
 }
 
-
 #notificationsList .notification-sent {
     background: var(--white);
     color: var(--grey-800);
 }
 
-
-/* =====================================================================
-   V4 — MODALE NOTIFICATION / LISTE DESTINATAIRES
-   ===================================================================== */
-
 #teacherNotificationTitle,
 #teacherNotificationMessage {
     width: 100%;
 }
-
 
 #teacherNotificationMessage {
     min-height: 110px;
@@ -5006,35 +4562,23 @@ button.event-list-row:hover {
     resize: vertical;
 }
 
-
 #teacherNotificationMessageStatus {
     margin-top: 9px;
 }
 
-
-/* =====================================================================
-   V4 — SCHOOL CLOSED FINAL BEHAVIOUR
-   ===================================================================== */
-
 /*
- * L'écran fermé ne contient volontairement aucun bouton
- * permettant à un élève de revenir au PIN.
+ * L'Ã©cran fermÃ© ne contient volontairement aucun bouton
+ * permettant Ã  un Ã©lÃ¨ve de revenir au PIN.
  */
 
 #schoolClosedScreen button {
     display: none;
 }
 
-
-/* =====================================================================
-   V4 — TEST ENVIRONMENT
-   ===================================================================== */
-
 .teacher-mode .teacher-test-banner,
 .teacher-mode .test-banner {
     display: flex;
 }
-
 
 .teacher-test-banner,
 .test-banner {
@@ -5050,26 +4594,18 @@ button.event-list-row:hover {
         );
 }
 
-
-/* =====================================================================
-   V4 — FINAL VISUAL SAFETY
-   ===================================================================== */
-
 body.modal-open {
     overflow: hidden;
 }
-
 
 button {
     user-select: none;
 }
 
-
 input[type="number"] {
     appearance: textfield;
     -moz-appearance: textfield;
 }
-
 
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {
@@ -5077,7 +4613,6 @@ input[type="number"]::-webkit-outer-spin-button {
 
     -webkit-appearance: none;
 }
-
 
 ::selection {
     background:
@@ -5091,13 +4626,8 @@ input[type="number"]::-webkit-outer-spin-button {
     color: var(--blue-dark);
 }
 
-
-/* =====================================================================
-   V4 — HEADER FINAL OVERRIDE
-   ===================================================================== */
-
 /*
- * Cette règle est volontairement en fin de fichier.
+ * Cette rÃ¨gle est volontairement en fin de fichier.
  * Elle garantit que l'ancien CSS ne puisse plus remettre
  * le header en blanc semi-transparent.
  */
@@ -5113,7 +4643,6 @@ input[type="number"]::-webkit-outer-spin-button {
         ) !important;
 }
 
-
 /*
  * Le breadcrumb reste violet opaque et distinct du header.
  */
@@ -5128,10 +4657,9 @@ input[type="number"]::-webkit-outer-spin-button {
         ) !important;
 }
 
-
 /*
  * Logo LauterMacher :
- * hauteur exactement égale au header.
+ * hauteur exactement Ã©gale au header.
  */
 
 #homeLogoButton,
@@ -5139,7 +4667,6 @@ input[type="number"]::-webkit-outer-spin-button {
     height:
         var(--header-height);
 }
-
 
 #homeLogoButton img,
 #appHeader .app-header-logo,
@@ -5156,7 +4683,6 @@ input[type="number"]::-webkit-outer-spin-button {
         contain !important;
 }
 
-
 /*
  * Lehrkraft = rouge.
  */
@@ -5170,11 +4696,6 @@ input[type="number"]::-webkit-outer-spin-button {
     color:
         var(--white) !important;
 }
-
-
-/* =====================================================================
-   V4 — RESPONSIVE FINAL OVERRIDES
-   ===================================================================== */
 
 @media (
     max-width: 760px
@@ -5190,7 +4711,6 @@ input[type="number"]::-webkit-outer-spin-button {
             var(--header-height) !important;
     }
 
-
     #bakeryOutputScreen .output-layout,
     #eventOutputScreen .output-layout {
         grid-template-columns:
@@ -5198,7 +4718,6 @@ input[type="number"]::-webkit-outer-spin-button {
             minmax(145px, 1fr);
     }
 }
-
 
 @media (
     max-width: 520px
@@ -5211,323 +4730,19 @@ input[type="number"]::-webkit-outer-spin-button {
     }
 }
 
-
 /* =====================================================================
-   FIN — LAUTERMACHER STYLE.CSS V4.0.0
-   ===================================================================== */
-/* =====================================================================
-   LAUTERMACHER — STYLE.CSS V5.0.0
-   Ajustements V5 :
-   - Header violet semi-transparent
-   - Logo nettement plus grand
-   - Aucun autre élément de l'interface n'est modifié
+   COMPATIBILITÃ‰ HTML ACTUEL â€” STYLE V4
+   SÃ©lecteurs correspondant aux classes prÃ©sentes dans index.html.
    ===================================================================== */
 
-
-/* =====================================================================
-   HEADER V5
-   ===================================================================== */
-
-/*
- * Le bandeau principal utilise le violet LauterMacher avec transparence.
- * !important est volontaire ici afin que les anciennes règles V4
- * ne puissent plus remettre un fond blanc ou remplacer cette couleur.
- */
-
-html body #appHeader.app-header,
-body #appHeader,
-#appHeader,
-.app-header {
-    background-color: rgba(186, 176, 244, 0.72) !important;
-    background-image: none !important;
-
-    border-bottom:
-        1px solid
-        rgba(120, 104, 181, 0.28) !important;
-
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-}
-
-
-/*
- * Le breadcrumb reste volontairement violet opaque.
- * Il reste distinct du bandeau principal.
- */
-
-html body #breadcrumb.breadcrumb,
-body #breadcrumb,
-#breadcrumb,
-.breadcrumb {
-    background-color: rgb(189, 179, 230) !important;
-    background-image: none !important;
-}
-
-
-/* =====================================================================
-   LOGO V5
-   ===================================================================== */
-
-/*
- * Le fichier Logo_LM.png est très horizontal.
- *
- * En V4, sa hauteur était limitée exactement à celle du header,
- * ce qui donnait visuellement un logo beaucoup trop petit.
- *
- * En V5, le logo peut dépasser visuellement la hauteur du bandeau
- * sans augmenter la hauteur de tout le header.
- */
-
-#homeLogoButton.header-logo-button {
-    position: relative !important;
-
-    flex: 0 0 auto !important;
-
-    height: var(--header-height) !important;
-
-    overflow: visible !important;
-
-    z-index: 2;
-}
-
-
-#homeLogoButton img.app-header-logo,
-#appHeader .app-header-logo,
-.app-header-logo {
-    width: auto !important;
-
-    height: 128px !important;
-    max-height: none !important;
-
-    max-width: min(
-        58vw,
-        540px
-    ) !important;
-
-    object-fit: contain !important;
-    object-position: left center !important;
-
-    transform: none !important;
-}
-
-
-/*
- * Le conteneur du header laisse le logo dépasser proprement.
- */
-
-#appHeader,
-#appHeader .app-header-inner {
-    overflow: visible !important;
-}
-
-
-/* =====================================================================
-   HEADER ACTIONS
-   ===================================================================== */
-
-/*
- * Le nom, la cloche et le bouton Abmelden restent au-dessus
- * du logo si l'espace devient réduit.
- */
-
-#appHeader .app-header-actions {
-    position: relative;
-    z-index: 3;
-
-    flex-shrink: 0;
-}
-
-
-/* =====================================================================
-   TABLETTE / PETITS ÉCRANS
-   ===================================================================== */
-
-@media (
-    max-width: 760px
-) {
-
-    /*
-     * L'ancien V4 imposait de nouveau
-     * height: var(--header-height) !important.
-     * Cette règle V5 prend volontairement le dessus.
-     */
-
-    #homeLogoButton img.app-header-logo,
-    #appHeader .app-header-logo,
-    .app-header-logo {
-        height: 94px !important;
-        max-height: none !important;
-
-        max-width: 47vw !important;
-    }
-}
-
-
-/* =====================================================================
-   TRÈS PETITS ÉCRANS
-   ===================================================================== */
-
-@media (
-    max-width: 520px
-) {
-
-    #homeLogoButton img.app-header-logo,
-    #appHeader .app-header-logo,
-    .app-header-logo {
-        height: 82px !important;
-        max-height: none !important;
-
-        max-width: 45vw !important;
-    }
-}
-/* =====================================================================
-   LAUTERMACHER — V6
-   RESTAURATION DU DESIGN V4
-   Conserver le logo et le bandeau V5
-   ===================================================================== */
-
-
-/* POLICE ET COULEURS PRINCIPALES */
-
-html,
-body,
-button,
-input,
-select,
-textarea {
-    font-family:
-        Inter,
-        ui-sans-serif,
-        system-ui,
-        -apple-system,
-        BlinkMacSystemFont,
-        "Segoe UI",
-        sans-serif;
-}
-
-.screen h1,
-.screen h2,
-.screen h3 {
-    color: var(--blue-dark);
-}
-
-
-/* PROFILS — VIOLET */
-
-.person-card {
-    color: var(--purple-dark);
-    border-color: var(--purple);
-    background: var(--white);
-}
-
-.person-card:hover,
-.person-card:focus-visible {
-    border-color: var(--purple-dark);
-    background: var(--purple-soft);
-}
-
-.person-avatar {
-    background: var(--purple-soft);
-}
-
-
-/* PAGE PIN — VIOLET */
-
-#pinLoginScreen .login-card {
-    max-width: 470px;
-}
-
-#loginPinInput {
-    display: block;
-    width: 100%;
-    max-width: 320px;
-    margin: 12px auto 22px;
-    padding: 16px;
-    background: var(--white);
-    color: var(--purple-dark);
-    border: 2px solid var(--purple);
-    border-radius: var(--radius-small);
-    font-size: 1.6rem;
-    font-weight: 900;
-    letter-spacing: 0.35em;
-    text-align: center;
-}
-
-#loginPinInput:focus {
-    border-color: var(--purple-dark);
-    outline-color: var(--purple);
-}
-
-#pinLoginScreen .primary-action {
-    background: var(--purple-dark);
-    border-color: var(--purple-dark);
-}
-
-#pinLoginScreen .secondary-action {
-    color: var(--purple-dark);
-    border-color: var(--purple-dark);
-}
-
-
-/* CLOCHE ET ABMELDEN — VIOLET */
-
-#notificationButton,
-#logoutButton {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 42px;
-    padding: 9px 14px;
-    background: var(--purple-soft);
-    color: var(--purple-dark);
-    border: 1px solid var(--purple-dark);
-    border-radius: var(--radius-small);
-    font-weight: 800;
-    cursor: pointer;
-}
-
-#notificationButton {
-    position: relative;
-    width: 44px;
-    padding: 0;
-    border-radius: 50%;
-    font-size: 1.25rem;
-}
-
-#notificationButton:hover,
-#logoutButton:hover {
-    background: var(--purple);
-    color: var(--blue-dark);
-}
-
-
-/* FIL D'ARIANE — VIOLET */
-
-#breadcrumb {
-    background: var(--purple) !important;
-    color: var(--purple-dark);
-}
-
-#breadcrumb .breadcrumb-item,
-#breadcrumb .breadcrumb-current {
-    color: var(--purple-dark);
-}
-
-
-/* ACCUEIL — RETROUVER LES CARTES V4 */
-
-.home-menu-grid,
-.admin-menu-grid,
-.choice-grid {
+/* Accueil : cartes et icÃ´nes dans la disposition V4 */
+.home-menu-grid, .admin-menu-grid, .choice-grid {
     display: grid;
-    grid-template-columns:
-        repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
     gap: clamp(14px, 2.5vw, 22px);
 }
-
-.home-menu-card,
-.admin-menu-card,
-.choice-card {
+.home-menu-card, .admin-menu-card, .choice-card {
+    position: relative;
     display: flex;
     align-items: center;
     min-width: 0;
@@ -5540,22 +4755,15 @@ textarea {
     box-shadow: var(--shadow-small);
     text-align: left;
     gap: 16px;
-    transition:
-        transform var(--transition),
-        box-shadow var(--transition),
-        border-color var(--transition);
+    transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+    overflow-wrap: anywhere;
 }
-
-.home-menu-card:hover,
-.admin-menu-card:hover,
-.choice-card:hover {
-    border-color: var(--purple-dark);
+.home-menu-card:hover, .admin-menu-card:hover, .choice-card:hover {
+    border-color: var(--blue);
     box-shadow: var(--shadow);
     transform: translateY(-2px);
 }
-
-.home-menu-icon,
-.admin-menu-icon {
+.home-menu-icon, .admin-menu-icon {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -5566,58 +4774,87 @@ textarea {
     border-radius: var(--radius);
     font-size: 2rem;
 }
-
 .home-menu-text {
     display: flex;
     flex-direction: column;
     min-width: 0;
     gap: 5px;
 }
-
-.home-menu-text strong,
-.admin-menu-card strong,
-.choice-card strong {
+.home-menu-text strong, .admin-menu-card strong, .choice-card strong {
     color: var(--blue-dark);
     font-size: 1.15rem;
     font-weight: 850;
+    overflow-wrap: anywhere;
 }
-
-.home-menu-text small,
-.admin-menu-card small,
-.choice-card small {
+.home-menu-text small, .admin-menu-card small, .choice-card small {
     color: var(--grey-600);
+    overflow-wrap: anywhere;
 }
+.home-menu-arrow { margin-left: auto; color: var(--blue); font-size: 1.8rem; }
 
-.home-menu-arrow {
-    margin-left: auto;
-    color: var(--blue);
-    font-size: 1.8rem;
+/* Badge du rÃ´le : en haut de la page, pas dans le header */
+#homeRoleLabel.role-badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 30px;
+    padding: 5px 10px;
+    background: var(--blue);
+    color: var(--white);
+    border-radius: 999px;
+    font-size: .76rem;
+    font-weight: 850;
 }
+#homeRoleLabel.role-badge.teacher-role,
+.teacher-mode #homeRoleLabel.role-badge { background: var(--red); color: var(--white); }
 
+/* Indicateur TEST : uniquement visible au survol en mode enseignant */
+.teacher-mode .home-menu-card .test-badge:not([hidden]),
+.teacher-mode .admin-menu-card .test-badge:not([hidden]) {
+    opacity: 0;
+    transition: opacity var(--transition);
+}
+.teacher-mode .home-menu-card:hover .test-badge:not([hidden]),
+.teacher-mode .home-menu-card:focus-visible .test-badge:not([hidden]),
+.teacher-mode .admin-menu-card:hover .test-badge:not([hidden]),
+.teacher-mode .admin-menu-card:focus-visible .test-badge:not([hidden]) { opacity: 1; }
 
-/* KASSE — STRUCTURE V4 */
+/* PIN et sÃ©lection de profil : nuances de bleu */
+#loginPinInput {
+    display: block;
+    width: 100%;
+    max-width: 320px;
+    margin: 12px auto 22px;
+    padding: 16px;
+    background: var(--white);
+    color: var(--blue-dark);
+    border: 2px solid var(--blue);
+    border-radius: var(--radius-small);
+    font-size: 1.6rem;
+    font-weight: 900;
+    letter-spacing: .35em;
+    text-align: center;
+}
+#loginPinInput:focus { border-color: var(--blue); outline-color: var(--blue); }
+.person-card:hover, .person-card:focus-visible {
+    color: var(--blue-dark);
+    border-color: var(--blue);
+    background: var(--blue-light);
+}
+.person-avatar { background: var(--blue-light); }
 
+/* Kasse : disposition V4 avec les classes actuelles */
 .sale-layout {
     display: grid;
-    grid-template-columns:
-        minmax(0, 1fr)
-        minmax(290px, 380px);
+    grid-template-columns: minmax(0, 1fr) minmax(290px, 380px);
     align-items: start;
     gap: clamp(16px, 3vw, 28px);
 }
-
-.sale-products-panel,
-.cart-panel {
-    min-width: 0;
-}
-
+.sale-products-panel, .cart-panel { min-width: 0; }
 .product-grid {
     display: grid;
-    grid-template-columns:
-        repeat(auto-fill, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     gap: 12px;
 }
-
 .cart-panel {
     padding: 20px;
     background: var(--white);
@@ -5625,21 +4862,9 @@ textarea {
     border-radius: var(--radius);
     box-shadow: var(--shadow);
 }
-
-.section-heading h2,
-.cart-panel h2 {
-    color: var(--blue-dark);
-}
-
-.section-heading p {
-    color: var(--grey-600);
-}
-
-
-/* BOUTONS DE PAIEMENT — BLEU V4 */
-
-.pay-button,
-.paid-button {
+.section-heading h2, .cart-panel h2 { color: var(--blue-dark); }
+.section-heading p { color: var(--grey-600); }
+.pay-button, .paid-button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -5653,16 +4878,10 @@ textarea {
     font-size: 1.05rem;
     font-weight: 850;
 }
-
-.pay-button:hover:not(:disabled),
-.paid-button:hover:not(:disabled) {
+.pay-button:hover:not(:disabled), .paid-button:hover:not(:disabled) {
     background: var(--blue-dark);
     border-color: var(--blue-dark);
 }
-
-
-/* BOUTONS RETOUR — BLEU V4 */
-
 .back-button {
     display: inline-flex;
     align-items: center;
@@ -5674,21 +4893,10 @@ textarea {
     border-radius: var(--radius-small);
     font-weight: 800;
 }
+.back-button:hover { background: var(--blue-light); }
 
-.back-button:hover {
-    background: var(--blue-light);
-}
-
-
-/* RECHNUNGEN — UNE LIGNE PAR FACTURE */
-
-#invoiceList {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-    gap: 10px;
-}
-
+/* Factures : une ligne par facture, sans dÃ©bordement */
+#invoiceList { display: flex; flex-direction: column; min-width: 0; gap: 10px; }
 #invoiceList .invoice-row {
     display: flex;
     flex-wrap: nowrap;
@@ -5698,220 +4906,63 @@ textarea {
     width: 100%;
     padding: 12px;
     gap: clamp(4px, 1vw, 14px);
-    background: var(--white);
-    border: 1px solid var(--grey-200);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-small);
 }
-
-#invoiceList .invoice-row > * {
-    min-width: 0;
-}
-
-#invoiceList .invoice-row strong,
-#invoiceList .invoice-row small {
+#invoiceList .invoice-row > * { min-width: 0; }
+#invoiceList .invoice-row strong, #invoiceList .invoice-row small {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-size: clamp(0.65rem, 1.4vw, 0.95rem);
+    font-size: clamp(.65rem, 1.4vw, .95rem);
 }
 
-
-/* RESPONSIVE — IPAD ET TÉLÉPHONE */
-
+/* Texte long et grilles adaptatives */
+button, .home-menu-text, .section-card, .panel { overflow-wrap: anywhere; }
 @media (max-width: 760px) {
-    .sale-layout {
-        grid-template-columns: minmax(0, 1fr);
-    }
-
-    .cart-panel {
-        position: static;
-    }
-
-    .product-grid {
-        grid-template-columns:
-            repeat(auto-fill, minmax(125px, 1fr));
-    }
-
-    .home-menu-grid,
-    .admin-menu-grid,
-    .choice-grid {
-        grid-template-columns:
-            repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+    .sale-layout { grid-template-columns: minmax(0, 1fr); }
+    .cart-panel { position: static; }
+    .product-grid { grid-template-columns: repeat(auto-fill, minmax(125px, 1fr)); }
+    .home-menu-grid, .admin-menu-grid, .choice-grid {
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
     }
 }
-
 @media (max-width: 520px) {
-    .home-menu-card,
-    .admin-menu-card,
-    .choice-card {
+    .home-menu-card, .admin-menu-card, .choice-card {
         padding: 14px;
         min-height: 105px;
         gap: 10px;
     }
-
-    .home-menu-icon,
-    .admin-menu-icon {
+    .home-menu-icon, .admin-menu-icon {
         flex-basis: 48px;
         width: 48px;
         height: 48px;
         font-size: 1.5rem;
     }
-
-    .product-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    #invoiceList .invoice-row {
-        padding: 8px 6px;
-        gap: 4px;
-    }
+    .product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    #invoiceList .invoice-row { padding: 8px 6px; gap: 4px; }
 }
 
-/* =========================================================
-   V6 — ÉTAPE 2
-   Fil d'Ariane et commandes du header uniquement
-   ========================================================= */
-
-/* FIL D'ARIANE : BLANC ET VIOLET */
-
-html body #breadcrumb.breadcrumb {
-    background: #ffffff !important;
+/* =====================================================================
+   HEADER ET FIL D'ARIANE VALIDÃ‰S â€” NE PAS MODIFIER
+   ===================================================================== */
+#appHeader.app-header {
+    height: var(--header-height);
+    background: rgba(186, 176, 244, .72) !important;
     background-image: none !important;
-    color: #bab0f4 !important;
-    border-bottom: 1px solid #e2e5e8;
-    box-shadow: none;
+    border-bottom: 1px solid rgba(120, 104, 181, .28);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    overflow: visible;
 }
-
-#breadcrumb .breadcrumb-item,
-#breadcrumb .breadcrumb-current,
-#breadcrumb > span {
-    color: #8b7ed4 !important;
-}
-
-
-/* NOM DU PROFIL : BLEU FONCÉ */
-
-#appHeader .current-person-name {
-    color: #094369 !important;
-    font-weight: 800;
-}
-
-
-/* CLOCHE : VIOLET CLAIR, ICÔNE BLEUE */
-
-#appHeader #notificationButton {
+#appHeader .app-header-inner { overflow: visible; }
+#appHeader #homeLogoButton.header-logo-button {
     position: relative;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-
-    width: 42px;
-    height: 42px;
-    min-height: 42px;
-    padding: 0;
-
-    background: rgba(255, 255, 255, 0.75);
-    color: #094369 !important;
-
-    border: 1px solid rgba(9, 67, 105, 0.15);
-    border-radius: 12px;
-}
-
-
-/* ABMELDEN : BLEU FONCÉ */
-
-#appHeader #logoutButton {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-
-    min-height: 42px;
-    padding: 9px 14px;
-
-    background: rgba(255, 255, 255, 0.75);
-    color: #094369 !important;
-
-    border: 1px solid rgba(9, 67, 105, 0.15);
-    border-radius: 12px;
-
-    font-weight: 800;
-    white-space: nowrap;
-}
-
-
-/* SURVOL DES COMMANDES */
-
-#appHeader #notificationButton:hover,
-#appHeader #logoutButton:hover {
-    background: #ffffff;
-    border-color: #094369;
-}
-
-
-/* ALIGNEMENT À DROITE */
-
-#appHeader .app-header-actions {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 8px;
+    z-index: 2;
+    flex: 0 0 auto;
+    height: var(--header-height);
     min-width: 0;
+    overflow: visible;
 }
-
-#appHeader .current-person-name {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-
-/* ADAPTATION AUX PETITS ÉCRANS */
-
-@media (max-width: 760px) {
-    #appHeader .app-header-inner {
-        gap: 8px;
-    }
-
-    #appHeader .app-header-actions {
-        gap: 5px;
-    }
-
-    #appHeader .current-person-name {
-        max-width: 110px;
-        font-size: 0.78rem;
-    }
-
-    #appHeader #notificationButton {
-        width: 36px;
-        height: 36px;
-        min-height: 36px;
-        flex-shrink: 0;
-    }
-
-    #appHeader #logoutButton {
-        min-height: 36px;
-        padding: 6px 8px;
-        font-size: 0.75rem;
-        flex-shrink: 0;
-    }
-}
-
-@media (max-width: 420px) {
-    #appHeader .current-person-name {
-        max-width: 65px;
-    }
-
-    #appHeader .app-header-actions {
-        gap: 4px;
-    }
-}
-/* =========================================================
-   V6 — AJUSTEMENT FINAL DU LOGO
-   ========================================================= */
-
-#appHeader .app-header-logo {
+#appHeader #homeLogoButton img.app-header-logo {
     display: block;
     height: 100% !important;
     max-height: none !important;
@@ -5919,10 +4970,73 @@ html body #breadcrumb.breadcrumb {
     max-width: none !important;
     object-fit: contain;
     object-position: left center;
+    transform: none;
 }
-
-#appHeader .header-logo-button {
-    height: var(--header-height) !important;
-    min-width: 0;
+#appHeader .app-header-actions {
+    position: relative;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
     flex-shrink: 0;
+    gap: 8px;
+    min-width: 0;
+}
+#appHeader .current-person-name {
+    color: #094369;
+    font-weight: 800;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+#appHeader #notificationButton, #appHeader #logoutButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    background: rgba(255, 255, 255, .75);
+    color: #094369;
+    border: 1px solid rgba(9, 67, 105, .15);
+    border-radius: 12px;
+}
+#appHeader #notificationButton {
+    position: relative;
+    width: 42px;
+    height: 42px;
+    padding: 0;
+}
+#appHeader #logoutButton {
+    padding: 9px 14px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+#appHeader #notificationButton:hover, #appHeader #logoutButton:hover {
+    background: #ffffff;
+    border-color: #094369;
+}
+html body #breadcrumb.breadcrumb {
+    background: #ffffff !important;
+    background-image: none !important;
+    color: #bab0f4 !important;
+    border-bottom: 1px solid #e2e5e8;
+    box-shadow: none;
+}
+#breadcrumb .breadcrumb-item, #breadcrumb .breadcrumb-current, #breadcrumb > span {
+    color: #8b7ed4;
+}
+@media (max-width: 760px) {
+    #appHeader .app-header-inner { gap: 8px; }
+    #appHeader .app-header-actions { gap: 5px; }
+    #appHeader .current-person-name { max-width: 110px; font-size: .78rem; }
+    #appHeader #notificationButton {
+        width: 36px; height: 36px; min-height: 36px; flex-shrink: 0;
+    }
+    #appHeader #logoutButton {
+        min-height: 36px; padding: 6px 8px; font-size: .75rem; flex-shrink: 0;
+    }
+}
+@media (max-width: 420px) {
+    #appHeader .current-person-name { max-width: 65px; }
+    #appHeader .app-header-actions { gap: 4px; }
 }
