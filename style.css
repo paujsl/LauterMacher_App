@@ -5040,3 +5040,149 @@ html body #breadcrumb.breadcrumb {
     #appHeader .current-person-name { max-width: 65px; }
     #appHeader .app-header-actions { gap: 4px; }
 }
+/* =========================================================
+   INVENTUR PROFESSEUR — VF1.2
+   ========================================================= */
+
+#teacherInventoryScreen .submissions-section[hidden],
+#teacherInventoryScreen #teacherInventoryNotice[hidden] {
+    display: none !important;
+}
+
+#teacherInventoryScreen #teacherInventoryList {
+    display: grid;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+}
+
+#teacherInventoryScreen .teacher-inventory-row,
+#teacherInventoryScreen .teacher-inventory-heading {
+    display: grid;
+
+    grid-template-columns:
+        minmax(230px, 1fr)
+        340px;
+
+    align-items: center;
+    gap: 12px;
+    min-width: 620px;
+    padding: 10px 14px;
+}
+
+#teacherInventoryScreen
+.has-student-inventory
+.teacher-inventory-row,
+
+#teacherInventoryScreen
+.has-student-inventory
+.teacher-inventory-heading {
+    grid-template-columns:
+        minmax(230px, 1fr)
+        120px
+        110px
+        340px;
+
+    min-width: 880px;
+}
+
+#teacherInventoryScreen .teacher-inventory-heading {
+    font-weight: 800;
+}
+
+#teacherInventoryScreen
+.teacher-inventory-heading > :nth-child(2),
+
+#teacherInventoryScreen
+.teacher-inventory-heading > :nth-child(3) {
+    text-align: center;
+}
+
+#teacherInventoryScreen
+.teacher-inventory-heading > :last-child {
+    text-align: right;
+}
+
+#teacherInventoryScreen .teacher-student-count {
+    align-self: stretch;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    background: #e2dcfa;
+    border-radius: 12px;
+
+    text-align: center;
+    font-size: 1.35rem;
+    font-weight: 800;
+
+    padding: 6px;
+}
+
+#teacherInventoryScreen .teacher-student-difference {
+    text-align: center;
+    font-size: 1.25rem;
+    font-weight: 800;
+}
+
+#teacherInventoryScreen
+.teacher-student-difference.is-different {
+    color: #dd3434;
+}
+
+#teacherInventoryScreen
+.teacher-student-difference.is-equal {
+    color: #7c8b13;
+}
+
+#teacherInventoryScreen .teacher-student-count small,
+#teacherInventoryScreen .teacher-student-difference small {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 500;
+}
+
+#teacherInventoryScreen .teacher-stock-form {
+    display: grid;
+
+    grid-template-columns:
+        80px
+        110px
+        134px;
+
+    gap: 8px;
+    align-items: center;
+}
+
+#teacherInventoryScreen .teacher-stock-form input,
+#teacherInventoryScreen .teacher-stock-form button {
+    width: 100%;
+    min-width: 0;
+    min-height: 42px;
+    margin: 0;
+}
+
+#teacherInventoryScreen .teacher-stock-form input:disabled {
+    opacity: 0.45;
+}
+
+#teacherInventoryScreen
+.teacher-stock-form
+.teacher-action-override {
+    background: #bdb0f5;
+    color: var(--blue-dark, #09436a);
+    border-color: #bdb0f5;
+}
+
+#teacherInventoryScreen
+.teacher-stock-form
+.teacher-action-confirm {
+    background: #b1c139;
+    color: var(--blue-dark, #09436a);
+    border-color: #b1c139;
+}
+
+#teacherInventoryScreen .teacher-stock-form button:disabled {
+    opacity: 0.55;
+}
