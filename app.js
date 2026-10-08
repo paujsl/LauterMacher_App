@@ -730,12 +730,9 @@ function productChangeValue(field, value) {
 async function renderProductsAdmin() {
     const box = $("productAdminList");
 
-    if (!box || !state.currentPerson) {
-        return;
-    }
+    if (!box || !state.currentPerson) return;
 
-    const generation =
-        ++productsRenderGeneration;
+    const generation = ++productsRenderGeneration;
 
     let changes = [];
 
@@ -744,12 +741,7 @@ async function renderProductsAdmin() {
             "get_product_change_highlights"
         );
 
-        if (
-            generation !==
-            productsRenderGeneration
-        ) {
-            return;
-        }
+        if (generation !== productsRenderGeneration) return;
 
         if (error) {
             console.error(error);
@@ -763,38 +755,32 @@ async function renderProductsAdmin() {
         }
     }
 
-    if (
-        generation !==
-        productsRenderGeneration
-    ) {
-        return;
-    }
+    if (generation !== productsRenderGeneration) return;
 
     const editor = $("productModal");
 
-    // Conserver le formulaire et le brouillon
-    // lors d'une actualisation temps réel.
+    // Préserver le formulaire et le brouillon pendant la synchronisation.
     if (editor) {
         box.before(editor);
     }
 
     box.innerHTML = "";
 
+    // Afficher uniquement les produits actifs.
     const products = state.products.filter(product => {
-        return productFilter === "all" ||
-            productArea(product) === productFilter;
+        return activeProduct(product) && (
+            productFilter === "all" ||
+            productArea(product) === productFilter
+        );
     });
 
     products.forEach(product => {
         const events = changes.filter(change => {
-            return change.product_id ===
-                String(product.id);
+            return change.product_id === String(product.id);
         });
 
         const fields = new Set(
-            events.flatMap(change => {
-                return change.active_fields || [];
-            })
+            events.flatMap(change => change.active_fields || [])
         );
 
         const marked = field => {
@@ -806,17 +792,12 @@ async function renderProductsAdmin() {
         const item = document.createElement("div");
 
         item.className = "product-admin-item";
-
-        item.dataset.productId =
-            String(product.id);
+        item.dataset.productId = String(product.id);
 
         item.innerHTML = `
-            <div class="
-                product-admin-row
-                ${fields.has("_created")
-                    ? "product-added"
-                    : ""}
-            ">
+            <div class="product-admin-row ${
+                fields.has("_created") ? "product-added" : ""
+            }">
                 <div class="product-admin-main">
                     <span
                         data-product-field="icon"
@@ -839,8 +820,7 @@ async function renderProductsAdmin() {
                                 class="${marked("price")}"
                             >
                                 ${money(
-                                    product.price ??
-                                    productPrice(product)
+                                    product.price ?? productPrice(product)
                                 )}
                             </span>
 
@@ -851,8 +831,7 @@ async function renderProductsAdmin() {
                                 class="${marked("category")}"
                             >
                                 ${esc(
-                                    product.category ||
-                                    productArea(product)
+                                    product.category || productArea(product)
                                 )}
                             </span>
 
@@ -860,11 +839,7 @@ async function renderProductsAdmin() {
                                 data-product-field="active"
                                 class="${marked("active")}"
                             >
-                                ${product.active === false
-                                    ? " · Inaktiv"
-                                    : fields.has("active")
-                                        ? " · Aktiv"
-                                        : ""}
+                                ${fields.has("active") ? " · Aktiv" : ""}
                             </span>
                         </small>
                     </div>
@@ -883,9 +858,6 @@ async function renderProductsAdmin() {
                         type="button"
                         class="danger-action"
                         data-delete
-                        ${product.active === false
-                            ? "disabled"
-                            : ""}
                     >
                         Löschen
                     </button>
@@ -900,11 +872,9 @@ async function renderProductsAdmin() {
             () => deleteProduct(product);
 
         if (events.length) {
-            const details =
-                document.createElement("details");
+            const details = document.createElement("details");
 
-            details.className =
-                "product-change-popover";
+            details.className = "product-change-popover";
 
             const labels = {
                 name: "Name",
@@ -921,68 +891,50 @@ async function renderProductsAdmin() {
 
                 <div class="product-change-panel">
                     ${events.map(change => {
-                        const date =
-                            new Intl.DateTimeFormat(
-                                "de-DE",
-                                {
-                                    day: "2-digit",
-                                    month: "2-digit",
-                                    year: "2-digit",
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                    timeZone: "Europe/Berlin"
-                                }
-                            ).format(
-                                new Date(change.changed_at)
-                            );
+                        const date = new Intl.DateTimeFormat(
+                            "de-DE",
+                            {
+                                day: "2-digit",
+                                month: "2-digit",
+                                year: "2-digit",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                timeZone: "Europe/Berlin"
+                            }
+                        ).format(new Date(change.changed_at));
 
-                        const text =
-                            change.action === "created"
-                                ? `${change.actor_name} hat dieses Produkt am ${date} hinzugefügt.`
-                                : `${change.actor_name} hat dieses Produkt am ${date} geändert.`;
+                        const text = change.action === "created"
+                            ? `${change.actor_name} hat dieses Produkt am ${date} hinzugefügt.`
+                            : `${change.actor_name} hat dieses Produkt am ${date} geändert.`;
 
-                        const lines =
-                            (change.active_fields || [])
-                                .filter(field => {
-                                    return field !== "_created";
-                                })
-                                .map(field => {
-                                    const before =
-                                        productChangeValue(
-                                            field,
-                                            change.before_values
-                                                ?.[field]
-                                        );
+                        const lines = (change.active_fields || [])
+                            .filter(field => field !== "_created")
+                            .map(field => {
+                                const before = productChangeValue(
+                                    field,
+                                    change.before_values?.[field]
+                                );
 
-                                    const after =
-                                        productChangeValue(
-                                            field,
-                                            change.after_values
-                                                ?.[field]
-                                        );
+                                const after = productChangeValue(
+                                    field,
+                                    change.after_values?.[field]
+                                );
 
-                                    return `
-                                        <p>
-                                            ${esc(
-                                                labels[field] ||
-                                                field
-                                            )}:
-
-                                            ${change.action === "created"
-                                                ? ""
-                                                : esc(before) + " → "}
-
-                                            ${esc(after)}
-                                        </p>
-                                    `;
-                                })
-                                .join("");
+                                return `
+                                    <p>
+                                        ${esc(labels[field] || field)}:
+                                        ${change.action === "created"
+                                            ? ""
+                                            : esc(before) + " → "}
+                                        ${esc(after)}
+                                    </p>
+                                `;
+                            })
+                            .join("");
 
                         return `
                             <p>
-                                <strong>
-                                    ${esc(text)}
-                                </strong>
+                                <strong>${esc(text)}</strong>
                             </p>
 
                             ${lines}
@@ -1005,12 +957,7 @@ async function renderProductsAdmin() {
                 ".product-field-changed"
             ).forEach(field => {
                 field.tabIndex = 0;
-
-                field.setAttribute(
-                    "role",
-                    "button"
-                );
-
+                field.setAttribute("role", "button");
                 field.setAttribute(
                     "aria-label",
                     "Änderung ansehen"
@@ -1031,42 +978,38 @@ async function renderProductsAdmin() {
                 };
             });
 
-            details.querySelector(
-                "[data-seen]"
-            ).onclick = async event => {
-                const button =
-                    event.currentTarget;
+            details.querySelector("[data-seen]").onclick =
+                async event => {
+                    const button = event.currentTarget;
 
-                button.disabled = true;
+                    button.disabled = true;
 
-                try {
-                    const { error } = await db.rpc(
-                        "acknowledge_product_changes",
-                        {
-                            p_event_ids: events.map(change => {
-                                return change.id;
-                            })
-                        }
-                    );
+                    try {
+                        const { error } = await db.rpc(
+                            "acknowledge_product_changes",
+                            {
+                                p_event_ids: events.map(
+                                    change => change.id
+                                )
+                            }
+                        );
 
-                    if (error) {
-                        throw error;
+                        if (error) throw error;
+
+                        await loadNotifications();
+                        await renderProductsAdmin();
+
+                    } catch (error) {
+                        console.error(error);
+
+                        button.disabled = false;
+
+                        toast(
+                            "Hinweis konnte nicht bestätigt werden.",
+                            "error"
+                        );
                     }
-
-                    await loadNotifications();
-                    await renderProductsAdmin();
-
-                } catch (error) {
-                    console.error(error);
-
-                    button.disabled = false;
-
-                    toast(
-                        "Hinweis konnte nicht bestätigt werden.",
-                        "error"
-                    );
-                }
-            };
+                };
         }
 
         box.appendChild(item);
@@ -1088,7 +1031,6 @@ async function renderProductsAdmin() {
         box.appendChild(empty);
     }
 }
-
 
 async function saveProduct(event) {
     event.preventDefault();
