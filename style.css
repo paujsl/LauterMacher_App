@@ -5912,10 +5912,17 @@ html body #breadcrumb.breadcrumb {
    ========================================================= */
 
 #appHeader .app-header-logo {
-    height: calc(var(--header-height) - 4px) !important;
+    display: block;
+    height: 100% !important;
     max-height: none !important;
     width: auto !important;
-    max-width: min(58vw, 540px) !important;
+    max-width: none !important;
     object-fit: contain;
     object-position: left center;
+}
+
+#appHeader .header-logo-button {
+    height: var(--header-height) !important;
+    min-width: 0;
+    flex-shrink: 0;
 }
