@@ -6306,3 +6306,32 @@ html body #breadcrumb.breadcrumb {
 #studentsScreen #accessHistoryMessage:empty {
     display: none;
 }
+/* Sélection unique : bulles blanches ou colorées. */
+
+#studentsScreen .access-student-choices {
+    gap: 8px;
+    background: #f7f8fa;
+}
+
+#studentsScreen .access-chip {
+    padding: 9px 14px;
+    border: 1px solid #dce1e7;
+    border-radius: 22px;
+    background: #fff;
+    color: #12496c;
+    font-weight: 650;
+    transition:
+        background 0.15s,
+        border-color 0.15s;
+}
+
+#studentsScreen .access-chip.is-selected {
+    border-color: #9283df;
+    background: #ddd6fa;
+    color: #12496c;
+}
+
+#studentsScreen .access-chip:focus-visible {
+    outline: 3px solid #b9b7ff;
+    outline-offset: 2px;
+}
