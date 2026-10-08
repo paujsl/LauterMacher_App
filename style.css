@@ -5186,3 +5186,221 @@ html body #breadcrumb.breadcrumb {
 #teacherInventoryScreen .teacher-stock-form button:disabled {
     opacity: 0.55;
 }
+/* =========================================================
+   PRODUKTE — LISTE COMPACTE ET FORMULAIRE INLINE
+   ========================================================= */
+
+#productsScreen #productAdminList {
+    display: grid;
+    gap: 10px;
+}
+
+#productsScreen .product-admin-item {
+    position: relative;
+    min-width: 0;
+}
+
+#productsScreen .product-admin-row {
+    display: grid;
+
+    grid-template-columns:
+        minmax(0, 1fr)
+        auto;
+
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+}
+
+#productsScreen .product-admin-main {
+    min-width: 0;
+    gap: 10px;
+}
+
+#productsScreen .product-admin-main > div {
+    min-width: 0;
+}
+
+#productsScreen .product-admin-main strong {
+    overflow-wrap: anywhere;
+}
+
+#productsScreen .product-admin-main > span {
+    width: 42px;
+    height: 42px;
+    flex-shrink: 0;
+}
+
+#productsScreen .product-admin-actions {
+    display: flex;
+    width: auto;
+    gap: 8px;
+}
+
+#productsScreen .product-admin-actions button {
+    flex: 0 0 auto;
+    width: auto;
+    min-height: 44px;
+    padding: 8px 12px;
+    white-space: nowrap;
+    font-size: 0.95rem;
+}
+
+#productsScreen .product-admin-actions button:disabled {
+    opacity: 0.45;
+}
+
+
+/* Produit ajouté par un élève */
+
+#productsScreen .product-added {
+    background: #e1f2fc;
+    border-color: #a6d9f3;
+}
+
+
+/* Champ modifié par un élève */
+
+#productsScreen .product-field-changed {
+    background: #d2edfc;
+    border-radius: 8px;
+    padding: 3px 6px;
+    cursor: pointer;
+}
+
+#productsScreen .product-field-changed:focus-visible {
+    outline: 2px solid #147bb2;
+    outline-offset: 2px;
+}
+
+
+/* Bulle d'information professeur */
+
+#productsScreen .product-change-popover {
+    margin: 3px 12px 0;
+}
+
+#productsScreen .product-change-popover summary {
+    color: #145d82;
+    cursor: pointer;
+    font-size: 0.85rem;
+    padding: 5px 0;
+}
+
+#productsScreen .product-change-panel {
+    position: absolute;
+
+    top: 100%;
+    left: 0;
+    right: 0;
+
+    z-index: 20;
+
+    padding: 14px;
+
+    background: #eff9ff;
+    color: var(--blue-dark, #09436a);
+
+    border: 2px solid #9ed5f1;
+    border-radius: 14px;
+
+    box-shadow:
+        0 8px 24px
+        rgba(9, 67, 106, 0.15);
+}
+
+#productsScreen .product-change-panel p {
+    margin: 0 0 8px;
+    overflow-wrap: anywhere;
+}
+
+
+/* Formulaire sous le produit */
+
+#productsScreen .product-inline-editor {
+    position: static;
+
+    width: 100%;
+    box-sizing: border-box;
+
+    margin: 8px 0 12px;
+    padding: 18px;
+
+    background: #f2faff;
+
+    border: 1px solid #a6d9f3;
+    border-radius: 16px;
+
+    scroll-margin-top: 130px;
+}
+
+#productModal[hidden] {
+    display: none !important;
+}
+
+#productsScreen .product-editor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+#productsScreen .product-editor-header h2 {
+    margin: 0 0 12px;
+}
+
+#productsScreen .product-editor-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+    gap: 12px;
+}
+
+#productsScreen .product-editor-grid input,
+#productsScreen .product-editor-grid select {
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+#productsScreen .product-editor-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+
+/* Petites fenêtres : boutons toujours à droite */
+
+@media (max-width: 480px) {
+    #productsScreen .product-admin-row {
+        gap: 6px;
+        padding: 8px;
+    }
+
+    #productsScreen .product-admin-main {
+        gap: 6px;
+    }
+
+    #productsScreen .product-admin-main > span {
+        width: 32px;
+        height: 36px;
+        font-size: 1.2rem;
+    }
+
+    #productsScreen .product-admin-actions {
+        gap: 4px;
+    }
+
+    #productsScreen .product-admin-actions button {
+        padding: 6px;
+        font-size: 0.78rem;
+    }
+
+    #productsScreen .product-editor-grid {
+        grid-template-columns: 1fr;
+    }
+}
