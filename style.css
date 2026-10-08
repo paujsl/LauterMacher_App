@@ -5404,3 +5404,10 @@ html body #breadcrumb.breadcrumb {
         grid-template-columns: 1fr;
     }
 }
+/* PRODUKTE — supprimer l'ancienne sélection d'emojis.
+   Le champ de saisie au clavier reste disponible. */
+
+#productEmojiGrid,
+#productModal .emoji-grid {
+    display: none !important;
+}
