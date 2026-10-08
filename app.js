@@ -2103,169 +2103,156 @@ async function loadInventorySubmissions() {
    RECHNUNGEN
    ===================================================================== */
 
+/* =====================================================================
+   BUCHHALTUNG — RECHNUNGEN UND SONSTIGE EINNAHMEN
+   ===================================================================== */
+
+screenTitles.invoicesScreen = "Bearbeiten · Buchhaltung";
+
 $("invoicesBackButton")?.addEventListener(
     "click",
     () => showScreen("editMenuScreen")
 );
-
-
-async function initialiseInvoices() {
-
-    if (!isTeacher()) {
-        return;
-    }
-
-
-    if ($("invoiceDateInput")) {
-
-        $("invoiceDateInput").value =
-            todayISO();
-    }
-
-
-    await Promise.all([
-        refreshInvoiceNumber(),
-        populateInvoiceEvents(),
-        loadInvoices()
-    ]);
-
-
-    updateInvoiceEventVisibility();
-}
-
-
-async function refreshInvoiceNumber() {
-
-    if (!$("invoiceNumberInput")) {
-        return;
-    }
-
-
-    try {
-
-        const date =
-            $("invoiceDateInput")?.value ||
-            todayISO();
-
-
-        const {
-            data,
-            error
-        } = await db.rpc(
-            "preview_next_invoice_number",
-            {
-                p_invoice_date:
-                    date
-            }
-        );
-
-
-        if (error) {
-            throw error;
-        }
-
-
-        $("invoiceNumberInput").value =
-            data || "";
-
-    } catch (error) {
-
-        console.error(error);
-
-        $("invoiceNumberInput").value =
-            "";
-    }
-}
-
-
-async function populateInvoiceEvents() {
-
-    const select =
-        $("invoiceEventSelect");
-
-    if (!select) {
-        return;
-    }
-
-
-    if (!state.events.length) {
-        await loadEvents();
-    }
-
-
-    select.innerHTML = `
-        <option value="">
-            Veranstaltung auswählen
-        </option>
-    `;
-
-
-    state.events.forEach(
-        event => {
-
-            const option =
-                document.createElement("option");
-
-            option.value =
-                event.id;
-
-            option.textContent =
-                `${event.name} · ${dateDE(event.event_date)}`;
-
-            select.appendChild(
-                option
-            );
-        }
-    );
-}
-
-
-function updateInvoiceEventVisibility() {
-
-    const context =
-        $("invoiceContextSelect")
-            ?.value;
-
-    const field =
-        $("invoiceEventField");
-
-
-    if (!field) {
-        return;
-    }
-
-
-    const eventMode =
-        context ===
-        "sonderveranstaltung";
-
-
-    field.hidden =
-        !eventMode;
-
-    field.style.display =
-        eventMode
-            ? ""
-            : "none";
-}
-
 
 $("invoiceContextSelect")?.addEventListener(
     "change",
     updateInvoiceEventVisibility
 );
 
-
 $("invoiceDateInput")?.addEventListener(
     "change",
     refreshInvoiceNumber
 );
 
+$("invoicePfandInput")?.addEventListener(
+    "input",
+    updateInvoicePfand
+);
 
 $("invoiceForm")?.addEventListener(
     "submit",
     saveInvoice
 );
+
+$("receiptForm")?.addEventListener(
+    "submit",
+    saveBookkeepingReceipt
+);
+
+
+function accountingDateKey(date) {
+    return [
+        date.getFullYear(),
+        String(date.getMonth() + 1).padStart(2, "0"),
+        String(date.getDate()).padStart(2, "0")
+    ].join("-");
+}
+
+
+function accountingMoneyInput(raw) {
+    const text = String(raw || "")
+        .trim()
+        .replace(/\s|€/g, "");
+
+    const valid =
+        /^(?:\d+|\d{1,3}(?:\.\d{3})+)(?:,\d{1,2})?$/.test(text);
+
+    return valid ? parseMoney(text) : NaN;
+}
+
+
+function updateInvoicePfand() {
+    const quantity = Number($("invoicePfandInput")?.value);
+
+    setText(
+        "invoicePfandAmount",
+        Number.isSafeInteger(quantity) && quantity >= 0
+            ? money(quantity * 0.25)
+            : "—"
+    );
+}
+
+
+async function initialiseInvoices() {
+    if (!isTeacher()) return;
+
+    $("invoiceDateInput").value ||= todayISO();
+    $("receiptDateInput").value ||= todayISO();
+
+    setText("invoiceFormMessage", "");
+    setText("receiptFormMessage", "");
+
+    updateInvoicePfand();
+
+    await Promise.all([
+        refreshInvoiceNumber(),
+        populateInvoiceEvents(),
+        loadInvoices(),
+        loadBookkeepingReceipts()
+    ]);
+
+    updateInvoiceEventVisibility();
+}
+
+
+async function refreshInvoiceNumber() {
+    if (!isTeacher() || !$("invoiceNumberInput")) return;
+
+    const { data, error } = await db.rpc(
+        "preview_next_invoice_number",
+        {
+            p_invoice_date:
+                $("invoiceDateInput").value || todayISO()
+        }
+    );
+
+    if (error) {
+        console.error(error);
+        $("invoiceNumberInput").value = "";
+        return;
+    }
+
+    $("invoiceNumberInput").value = data || "";
+}
+
+
+async function populateInvoiceEvents() {
+    const select = $("invoiceEventSelect");
+    if (!select) return;
+
+    const previous = select.value;
+
+    if (!state.events.length) {
+        await loadEvents();
+    }
+
+    select.innerHTML =
+        '<option value="">Veranstaltung auswählen</option>';
+
+    state.events.forEach(event => {
+        const option = document.createElement("option");
+
+        option.value = event.id;
+        option.textContent =
+            `${event.name} · ${dateDE(event.event_date)}`;
+
+        select.appendChild(option);
+    });
+
+    select.value = previous;
+}
+
+
+function updateInvoiceEventVisibility() {
+    const field = $("invoiceEventField");
+    if (!field) return;
+
+    const visible =
+        $("invoiceContextSelect")?.value === "sonderveranstaltung";
+
+    field.hidden = !visible;
+    field.style.display = visible ? "" : "none";
+}
 
 
 async function askInvoiceStockUpdate() {
@@ -2314,11 +2301,8 @@ async function askInvoiceStockUpdate() {
         dialog.addEventListener(
             "close",
             () => {
-                const yes =
-                    dialog.returnValue === "yes";
-
+                const yes = dialog.returnValue === "yes";
                 dialog.remove();
-
                 resolve(yes);
             },
             { once: true }
@@ -2329,86 +2313,203 @@ async function askInvoiceStockUpdate() {
 }
 
 
+/*
+ * Chargement de toutes les entrées par pages.
+ * Aucun maximum de dix entrées dans les historiques.
+ */
+async function loadAllAccountingRows(table) {
+    const rows = new Map();
+    let offset = 0;
+
+    while (true) {
+        const { data, error, count } = await db
+            .from(table)
+            .select("*", { count: "exact" })
+            .order("created_at", { ascending: false })
+            .order("id", { ascending: false })
+            .range(offset, offset + 499);
+
+        if (error) throw error;
+
+        const page = data || [];
+
+        page.forEach(row => {
+            rows.set(row.id, row);
+        });
+
+        offset += page.length;
+
+        if (
+            !page.length ||
+            (
+                count != null
+                    ? offset >= count
+                    : page.length < 500
+            )
+        ) {
+            break;
+        }
+    }
+
+    return Array.from(rows.values());
+}
+
+
+async function loadInvoices() {
+    if (!isTeacher() || !$("invoiceList")) return null;
+
+    try {
+        const invoices = await loadAllAccountingRows("invoices");
+
+        $("invoiceList").innerHTML = invoices.length
+            ? ""
+            : "<p>Noch keine Rechnung.</p>";
+
+        setText(
+            "invoiceHistoryTitle",
+            `Alle Rechnungen (${invoices.length})`
+        );
+
+        invoices.forEach(invoice => {
+            const row = document.createElement("article");
+            row.className = "invoice-row";
+
+            row.innerHTML = `
+                <div>
+                    <strong>
+                        ${esc(invoice.invoice_number || "Rechnung")}
+                    </strong>
+
+                    <small>
+                        ${dateDE(invoice.invoice_date)}
+                        · ${esc(invoice.supplier || "Ohne Laden")}
+                    </small>
+                </div>
+
+                <div>
+                    <small>
+                        ${esc(invoice.context)}
+                        · Pfand: ${integer(invoice.pfand_quantity)}
+                        / ${money(invoice.pfand_amount || 0)}
+                    </small>
+
+                    <strong>
+                        ${money(invoice.total_amount)}
+                    </strong>
+                </div>
+            `;
+
+            $("invoiceList").appendChild(row);
+        });
+
+        return invoices;
+
+    } catch (error) {
+        console.error(error);
+
+        $("invoiceList").innerHTML =
+            "<p>Rechnungen konnten nicht geladen werden.</p>";
+
+        return null;
+    }
+}
+
+
+async function loadBookkeepingReceipts() {
+    if (!isTeacher() || !$("receiptList")) return null;
+
+    try {
+        const receipts = await loadAllAccountingRows(
+            "bookkeeping_receipts"
+        );
+
+        $("receiptList").innerHTML = receipts.length
+            ? ""
+            : "<p>Noch keine sonstige Einnahme.</p>";
+
+        setText(
+            "receiptHistoryTitle",
+            `Alle sonstigen Einnahmen (${receipts.length})`
+        );
+
+        receipts.forEach(receipt => {
+            const row = document.createElement("article");
+            row.className = "invoice-row";
+
+            const kindLabel =
+                receipt.kind === "pfand_return"
+                    ? "Pfandrückgabe"
+                    : "Sonstige Einnahme";
+
+            row.innerHTML = `
+                <div>
+                    <strong>${esc(receipt.reason)}</strong>
+                    <small>${dateDE(receipt.receipt_date)}</small>
+                </div>
+
+                <div>
+                    <small>${kindLabel}</small>
+                    <strong>${money(receipt.amount)}</strong>
+                </div>
+            `;
+
+            $("receiptList").appendChild(row);
+        });
+
+        return receipts;
+
+    } catch (error) {
+        console.error(error);
+
+        $("receiptList").innerHTML =
+            "<p>Einnahmen konnten nicht geladen werden.</p>";
+
+        return null;
+    }
+}
+
+
 async function saveInvoice(event) {
     event.preventDefault();
 
-    if (!isTeacher() || saveInvoice.busy) {
-        return;
-    }
+    if (!isTeacher() || saveInvoice.busy) return;
 
     setText("invoiceFormMessage", "");
 
-    const context =
-        $("invoiceContextSelect")?.value;
-
-    const invoiceDate =
-        $("invoiceDateInput")?.value;
-
+    const context = $("invoiceContextSelect").value;
+    const invoiceDate = $("invoiceDateInput").value;
     const supplier =
-        $("invoiceSupplierInput")?.value.trim() || null;
+        $("invoiceSupplierInput").value.trim() || null;
 
-    const rawTotal = String(
-        $("invoiceTotalInput")?.value || ""
-    )
-        .trim()
-        .replace(/\s|€/g, "");
+    const total = accountingMoneyInput(
+        $("invoiceTotalInput").value
+    );
+
+    const pfand = Number($("invoicePfandInput").value);
 
     const eventId =
         context === "sonderveranstaltung"
-            ? $("invoiceEventSelect")?.value || null
+            ? $("invoiceEventSelect").value || null
             : null;
 
-    if (!invoiceDate) {
-        setText(
-            "invoiceFormMessage",
-            "Bitte ein Rechnungsdatum auswählen."
-        );
-
-        return;
-    }
-
     if (
-        ![
-            "getränke",
-            "bäckerei",
-            "sonderveranstaltung"
-        ].includes(context)
+        !invoiceDate ||
+        !Number.isFinite(total) ||
+        total <= 0 ||
+        !Number.isSafeInteger(pfand) ||
+        pfand < 0 ||
+        pfand * 0.25 > total
     ) {
         setText(
             "invoiceFormMessage",
-            "Bitte einen gültigen Bereich auswählen."
+            "Bitte Datum, Gesamtkosten und Pfandanzahl prüfen. " +
+            "Der Pfandbetrag darf die Gesamtkosten nicht überschreiten."
         );
 
         return;
     }
 
-    if (
-        !/^(?:\d+|\d{1,3}(?:\.\d{3})+)(?:,\d{1,2})?$/
-            .test(rawTotal)
-    ) {
-        setText(
-            "invoiceFormMessage",
-            "Bitte gültige Gesamtkosten eingeben, z. B. 200,00."
-        );
-
-        return;
-    }
-
-    const total = parseMoney(rawTotal);
-
-    if (!Number.isFinite(total) || total <= 0) {
-        setText(
-            "invoiceFormMessage",
-            "Bitte Gesamtkosten größer als 0 eingeben."
-        );
-
-        return;
-    }
-
-    if (
-        context === "sonderveranstaltung" &&
-        !eventId
-    ) {
+    if (context === "sonderveranstaltung" && !eventId) {
         setText(
             "invoiceFormMessage",
             "Bitte eine Veranstaltung auswählen."
@@ -2418,217 +2519,190 @@ async function saveInvoice(event) {
     }
 
     saveInvoice.busy = true;
-
-    const button = $("saveInvoiceButton");
-
-    if (button) {
-        button.disabled = true;
-    }
+    $("saveInvoiceButton").disabled = true;
 
     let saved = false;
 
     try {
         const { data, error } = await db.rpc(
-            "create_invoice_with_number",
+            "create_bookkeeping_invoice",
             {
                 p_context: context,
                 p_invoice_date: invoiceDate,
                 p_supplier: supplier,
                 p_total_amount: total,
-                p_event_id: eventId
+                p_event_id: eventId,
+                p_pfand_quantity: pfand
             }
         );
 
-        if (error) {
-            throw error;
-        }
-
-        const invoice = Array.isArray(data)
-            ? data[0]
-            : data;
+        if (error) throw error;
 
         saved = true;
 
+        const invoice = Array.isArray(data) ? data[0] : data;
+
         $("invoiceSupplierInput").value = "";
         $("invoiceTotalInput").value = "";
+        $("invoicePfandInput").value = "0";
 
-        // Retirer l'ancien contexte de facture.
+        updateInvoicePfand();
+
         state.currentInventoryInvoice = null;
 
-        const card =
-            $("inventoryInvoiceContextCard");
+        const card = $("inventoryInvoiceContextCard");
 
         if (card) {
             card.hidden = true;
             card.style.display = "none";
         }
 
-        toast(
-            "Rechnung gespeichert.",
-            "success"
-        );
-
-        // Actualiser la liste avant de proposer Inventur.
-        const [invoices] = await Promise.all([
+        const [list] = await Promise.all([
             loadInvoices(),
             refreshInvoiceNumber()
         ]);
 
-        if (!Array.isArray(invoices)) {
+        $("invoiceHistory").open = true;
+
+        toast("Rechnung gespeichert.", "success");
+
+        if (!Array.isArray(list)) {
             setText(
                 "invoiceFormMessage",
-                "Rechnung gespeichert. Die Liste konnte nicht aktualisiert werden. Bitte Rechnungen erneut öffnen; nicht nochmals hinzufügen."
+                "Rechnung gespeichert. Liste bitte erneut öffnen; " +
+                "nicht nochmals hinzufügen."
             );
 
             return;
         }
 
-        // La page Inventur actuelle concerne les boissons.
-        if (context !== "getränke") {
-            return;
-        }
+        if (
+            context === "getränke" &&
+            invoice?.id &&
+            await askInvoiceStockUpdate()
+        ) {
+            state.currentInventoryInvoice = invoice;
 
-        if (!invoice?.id) {
             setText(
-                "invoiceFormMessage",
-                "Rechnung gespeichert. Die Verknüpfung zum Wareneingang konnte nicht geladen werden."
+                "inventoryInvoiceNumber",
+                invoice.invoice_number || "Rechnung"
             );
 
-            return;
+            setText(
+                "inventoryInvoiceSupplier",
+                invoice.supplier || supplier || "—"
+            );
+
+            if (card) {
+                card.hidden = false;
+                card.style.display = "";
+            }
+
+            showScreen("teacherInventoryScreen");
+            await renderTeacherInventory();
         }
-
-        const updateStock =
-            await askInvoiceStockUpdate();
-
-        if (!updateStock) {
-            return;
-        }
-
-        state.currentInventoryInvoice = invoice;
-
-        setText(
-            "inventoryInvoiceNumber",
-            invoice.invoice_number || "Rechnung"
-        );
-
-        setText(
-            "inventoryInvoiceSupplier",
-            invoice.supplier || supplier || "—"
-        );
-
-        if (card) {
-            card.hidden = false;
-            card.style.display = "";
-        }
-
-        showScreen("teacherInventoryScreen");
-
-        await renderTeacherInventory();
 
     } catch (error) {
-        console.error("Rechnung:", error);
+        console.error(error);
 
         setText(
             "invoiceFormMessage",
             saved
-                ? "Rechnung gespeichert. Der nächste Schritt konnte nicht geöffnet werden. Bitte nicht nochmals hinzufügen."
-                : `Rechnung konnte nicht gespeichert werden. ${
-                    error.message || "Bitte erneut versuchen."
-                }`
+                ? "Rechnung gespeichert. Bitte nicht nochmals " +
+                  "hinzufügen; Buchhaltung erneut öffnen."
+                : "Rechnung konnte nicht gespeichert werden. " +
+                  (error.message || "Bitte erneut versuchen.")
         );
 
     } finally {
         saveInvoice.busy = false;
+        $("saveInvoiceButton").disabled = false;
+    }
+}
 
-        if (button) {
-            button.disabled = false;
+
+async function saveBookkeepingReceipt(event) {
+    event.preventDefault();
+
+    if (!isTeacher() || saveBookkeepingReceipt.busy) return;
+
+    setText("receiptFormMessage", "");
+
+    const date = $("receiptDateInput").value;
+    const kind = $("receiptKindInput").value;
+    const reason = $("receiptReasonInput").value.trim();
+
+    const amount = accountingMoneyInput(
+        $("receiptAmountInput").value
+    );
+
+    if (
+        !date ||
+        !reason ||
+        !Number.isFinite(amount) ||
+        amount <= 0
+    ) {
+        setText(
+            "receiptFormMessage",
+            "Bitte Datum, Grund und einen Betrag größer als 0 eingeben."
+        );
+
+        return;
+    }
+
+    saveBookkeepingReceipt.busy = true;
+    $("saveReceiptButton").disabled = true;
+
+    let saved = false;
+
+    try {
+        const { error } = await db.rpc(
+            "create_bookkeeping_receipt",
+            {
+                p_receipt_date: date,
+                p_kind: kind,
+                p_reason: reason,
+                p_amount: amount
+            }
+        );
+
+        if (error) throw error;
+
+        saved = true;
+
+        $("receiptReasonInput").value = "";
+        $("receiptAmountInput").value = "";
+
+        const rows = await loadBookkeepingReceipts();
+
+        $("receiptHistory").open = true;
+
+        toast("Einnahme gespeichert.", "success");
+
+        if (!rows) {
+            setText(
+                "receiptFormMessage",
+                "Einnahme gespeichert. Liste bitte erneut öffnen; " +
+                "nicht nochmals hinzufügen."
+            );
         }
+
+    } catch (error) {
+        console.error(error);
+
+        setText(
+            "receiptFormMessage",
+            saved
+                ? "Einnahme gespeichert. Bitte nicht nochmals hinzufügen."
+                : "Einnahme konnte nicht gespeichert werden. " +
+                  (error.message || "Bitte erneut versuchen.")
+        );
+
+    } finally {
+        saveBookkeepingReceipt.busy = false;
+        $("saveReceiptButton").disabled = false;
     }
 }
-async function loadInvoices() {
-    if (!isTeacher()) {
-        return null;
-    }
-
-    const box = $("invoiceList");
-
-    if (!box) {
-        return null;
-    }
-
-    const { data, error } = await db
-        .from("invoices")
-        .select("*")
-        .order("created_at", {
-            ascending: false
-        })
-        .order("id", {
-            ascending: false
-        })
-        .limit(10);
-
-    if (error) {
-        console.error("Rechnungen:", error);
-
-        box.innerHTML = `
-            <div class="empty-state">
-                Rechnungen konnten nicht geladen werden.
-            </div>
-        `;
-
-        return null;
-    }
-
-    const invoices = data || [];
-
-    box.innerHTML = invoices.length
-        ? ""
-        : `
-            <div class="empty-state">
-                Noch keine Rechnung.
-            </div>
-        `;
-
-    invoices.forEach(invoice => {
-        const row =
-            document.createElement("article");
-
-        row.className = "invoice-row";
-
-        row.innerHTML = `
-            <div>
-                <strong>
-                    ${esc(
-                        invoice.invoice_number || "Rechnung"
-                    )}
-                </strong>
-
-                <small>
-                    ${dateDE(invoice.invoice_date)}
-                    ·
-                    ${esc(
-                        invoice.supplier || "Ohne Laden"
-                    )}
-                </small>
-            </div>
-
-            <div>
-                <small>
-                    ${esc(invoice.context || "")}
-                </small>
-
-                <strong>
-                    ${money(invoice.total_amount)}
-                </strong>
-            </div>
-        `;
-
-        box.appendChild(row);
-    });
-
-    return invoices;
-}
-
 
 /* =====================================================================
    SCHÜLER
@@ -7541,219 +7615,167 @@ function reportPeriodStart(
 
 
 async function loadReports() {
+    if (!isTeacher()) return;
 
-    if (!isTeacher()) {
-        return;
-    }
-
+    const generation = (loadReports.generation || 0) + 1;
+    loadReports.generation = generation;
 
     setText(
         "reportCurrentDate",
-        new Date()
-            .toLocaleDateString(
-                "de-DE"
-            )
+        new Date().toLocaleDateString("de-DE")
     );
 
+    const start = reportPeriodStart(state.reportPeriod);
 
-    const start =
-        reportPeriodStart(
-            state.reportPeriod
+    const end = new Date();
+    end.setDate(end.getDate() + 1);
+    end.setHours(0, 0, 0, 0);
+
+    try {
+        const [sales, ledger] = await Promise.all([
+            db
+                .from("report_sales_lines_v1")
+                .select("*")
+                .gte("sold_at", start.toISOString())
+                .lt("sold_at", end.toISOString()),
+
+            db.rpc("get_bookkeeping_entries", {
+                p_from: accountingDateKey(start),
+                p_to: accountingDateKey(end)
+            })
+        ]);
+
+        if (generation !== loadReports.generation) return;
+
+        if (sales.error) throw sales.error;
+        if (ledger.error) throw ledger.error;
+
+        const lines = sales.data || [];
+        const entries = ledger.data || [];
+
+        state.reportLines = lines;
+        state.reportAccountingEntries = entries;
+
+        const sum = (rows, field) =>
+            rows.reduce(
+                (total, row) =>
+                    total + Math.round(number(row[field]) * 100),
+                0
+            ) / 100;
+
+        const schoolLines = lines.filter(
+            line => line.area !== "bäckerei"
         );
 
-
-    const {
-        data,
-        error
-    } = await db
-        .from(
-            "report_sales_lines_v1"
-        )
-        .select("*")
-        .gte(
-            "sold_at",
-            start.toISOString()
+        const unknown = schoolLines.some(
+            line => line.estimated_profit == null
         );
 
+        const baseProfit = sum(
+            schoolLines,
+            "estimated_profit"
+        );
 
-    if (error) {
+        const adjustment = sum(entries, "profit_delta");
+
+        const pfandPaid = -sum(
+            entries.filter(entry => entry.kind === "pfand_paid"),
+            "profit_delta"
+        );
+
+        const pfandReturned = sum(
+            entries.filter(entry => entry.kind === "pfand_return"),
+            "amount"
+        );
+
+        const otherIncome = sum(
+            entries.filter(entry => entry.kind === "other"),
+            "amount"
+        );
+
+        setText(
+            "reportRevenue",
+            money(sum(lines, "revenue"))
+        );
+
+        setText(
+            "reportDrinksRevenue",
+            money(
+                sum(
+                    lines.filter(line => line.area === "getränke"),
+                    "revenue"
+                )
+            )
+        );
+
+        setText(
+            "reportBakeryRevenue",
+            money(
+                sum(
+                    lines.filter(line => line.area === "bäckerei"),
+                    "revenue"
+                )
+            )
+        );
+
+        const salesCount = new Set(
+            lines
+                .map(line => line.order_id || line.event_order_id)
+                .filter(Boolean)
+        ).size;
+
+        setText("reportSalesCount", String(salesCount));
+
+        setText(
+            "reportProfit",
+            unknown ? "—" : money(baseProfit + adjustment)
+        );
+
+        let panel = $("reportAccountingSummary");
+
+        if (!panel) {
+            panel = document.createElement("div");
+            panel.id = "reportAccountingSummary";
+            panel.className = "report-kpi-grid";
+
+            $("reportProfit")
+                .closest(".report-kpi-grid")
+                .after(panel);
+        }
+
+        panel.innerHTML = `
+            <article class="report-kpi-card">
+                <span>Pfand bezahlt · LauterMacher</span>
+                <strong>${money(pfandPaid)}</strong>
+            </article>
+
+            <article class="report-kpi-card">
+                <span>Pfand zurückerhalten</span>
+                <strong>${money(pfandReturned)}</strong>
+            </article>
+
+            <article class="report-kpi-card">
+                <span>Sonstige Einnahmen</span>
+                <strong>${money(otherIncome)}</strong>
+            </article>
+        `;
+
+        renderReportProducts(lines);
+        await renderSchoolYearChart();
+
+    } catch (error) {
+        if (generation !== loadReports.generation) return;
 
         console.error(error);
 
+        setText("reportProfit", "—");
+        $("reportAccountingSummary")?.remove();
 
         toast(
-            "Berichte konnten nicht geladen werden.",
+            "Berichte konnten nicht vollständig geladen werden.",
             "error"
         );
-
-        return;
     }
-
-
-    const lines =
-        data || [];
-
-
-    state.reportLines =
-        lines;
-
-
-    const revenue =
-        lines.reduce(
-            (
-                sum,
-                line
-            ) =>
-                sum +
-                number(
-                    line.revenue
-                ),
-            0
-        );
-
-
-    const drinksRevenue =
-        lines
-        .filter(
-            line =>
-                line.area ===
-                "getränke"
-        )
-        .reduce(
-            (
-                sum,
-                line
-            ) =>
-                sum +
-                number(
-                    line.revenue
-                ),
-            0
-        );
-
-
-    const bakeryRevenue =
-        lines
-        .filter(
-            line =>
-                line.area ===
-                "bäckerei"
-        )
-        .reduce(
-            (
-                sum,
-                line
-            ) =>
-                sum +
-                number(
-                    line.revenue
-                ),
-            0
-        );
-
-
-    const saleIds =
-        new Set(
-            lines
-            .map(
-                line =>
-                    line.order_id ||
-                    line.event_order_id
-            )
-            .filter(Boolean)
-        );
-
-
-    /*
-     * Bäckerei appartient économiquement à la boulangerie :
-     * son chiffre d'affaires est visible mais n'entre pas
-     * dans le bénéfice LauterMacher.
-     *
-     * Si le coût est inconnu, on ne l'invente pas.
-     */
-
-    const schoolLines =
-        lines.filter(
-            line =>
-                line.area !==
-                "bäckerei"
-        );
-
-
-    const knownProfitLines =
-        schoolLines.filter(
-            line =>
-                line.estimated_profit != null
-        );
-
-
-    const hasUnknownProfit =
-        schoolLines.some(
-            line =>
-                line.estimated_profit == null
-        );
-
-
-    const schoolProfit =
-        knownProfitLines.reduce(
-            (
-                sum,
-                line
-            ) =>
-                sum +
-                number(
-                    line.estimated_profit
-                ),
-            0
-        );
-
-
-    setText(
-        "reportRevenue",
-        money(revenue)
-    );
-
-
-    setText(
-        "reportDrinksRevenue",
-        money(
-            drinksRevenue
-        )
-    );
-
-
-    setText(
-        "reportBakeryRevenue",
-        money(
-            bakeryRevenue
-        )
-    );
-
-
-    setText(
-        "reportSalesCount",
-        String(
-            saleIds.size
-        )
-    );
-
-
-    setText(
-        "reportProfit",
-        hasUnknownProfit
-            ? "—"
-            : money(
-                schoolProfit
-            )
-    );
-
-
-    renderReportProducts(
-        lines
-    );
-
-
-    await renderSchoolYearChart();
 }
 
 
@@ -8007,49 +8029,149 @@ function renderReportProducts(
    ===================================================================== */
 
 async function renderSchoolYearChart() {
+    const chart = $("schoolYearProfitChart");
 
-    const chart =
-        $("schoolYearProfitChart");
+    if (!chart || !isTeacher()) return;
 
+    const generation =
+        (renderSchoolYearChart.generation || 0) + 1;
 
-    if (!chart) {
-        return;
-    }
+    renderSchoolYearChart.generation = generation;
 
+    const start = reportPeriodStart("schoolyear");
+    const end = new Date(start.getFullYear() + 1, 7, 1);
 
-    const start =
-        reportPeriodStart(
-            "schoolyear"
+    try {
+        const [sales, ledger] = await Promise.all([
+            db
+                .from("report_sales_lines_v1")
+                .select("*")
+                .gte("sold_at", start.toISOString())
+                .lt("sold_at", end.toISOString()),
+
+            db.rpc("get_bookkeeping_entries", {
+                p_from: accountingDateKey(start),
+                p_to: accountingDateKey(end)
+            })
+        ]);
+
+        if (generation !== renderSchoolYearChart.generation) {
+            return;
+        }
+
+        if (sales.error) throw sales.error;
+        if (ledger.error) throw ledger.error;
+
+        const lines = sales.data || [];
+        const entries = ledger.data || [];
+
+        const months = Array.from(
+            { length: 11 },
+            (_, index) => {
+                const date = new Date(
+                    start.getFullYear(),
+                    start.getMonth() + index,
+                    1
+                );
+
+                const key = accountingDateKey(date).slice(0, 7);
+
+                const relevant = lines.filter(line =>
+                    line.area !== "bäckerei" &&
+                    accountingDateKey(
+                        new Date(line.sold_at)
+                    ).slice(0, 7) === key
+                );
+
+                const adjustments = entries.filter(
+                    entry => entry.entry_date.slice(0, 7) === key
+                );
+
+                const salesCents = relevant.reduce(
+                    (sum, line) =>
+                        sum +
+                        Math.round(
+                            number(line.estimated_profit) * 100
+                        ),
+                    0
+                );
+
+                const adjustmentCents = adjustments.reduce(
+                    (sum, entry) =>
+                        sum +
+                        Math.round(
+                            number(entry.profit_delta) * 100
+                        ),
+                    0
+                );
+
+                return {
+                    date,
+                    value: (salesCents + adjustmentCents) / 100,
+                    unknown: relevant.some(
+                        line => line.estimated_profit == null
+                    )
+                };
+            }
         );
 
-
-    const end =
-        new Date(
-            start.getFullYear() + 1,
-            7,
-            1
+        const max = Math.max(
+            1,
+            ...months
+                .filter(month => !month.unknown)
+                .map(month => Math.abs(month.value))
         );
 
+        chart.innerHTML = "";
 
-    const {
-        data,
-        error
-    } = await db
-        .from(
-            "report_sales_lines_v1"
-        )
-        .select("*")
-        .gte(
-            "sold_at",
-            start.toISOString()
-        )
-        .lt(
-            "sold_at",
-            end.toISOString()
-        );
+        months.forEach(month => {
+            const column = document.createElement("div");
+            column.className = "chart-column";
 
+            const height = month.unknown
+                ? 0
+                : Math.abs(month.value) / max * 85;
 
-    if (error) {
+            const position = month.value < 0
+                ? "top:90px"
+                : "bottom:90px";
+
+            const negativeClass = month.value < 0
+                ? "is-negative"
+                : "";
+
+            const tooltip = month.unknown
+                ? "Kosten teilweise unbekannt"
+                : money(month.value);
+
+            column.innerHTML = `
+                <div class="chart-value">
+                    ${month.unknown ? "—" : money(month.value)}
+                </div>
+
+                <div class="accounting-chart-plot">
+                    <div
+                        class="accounting-chart-bar ${negativeClass}"
+                        style="${position};height:${height}px"
+                        title="${esc(tooltip)}"
+                    ></div>
+                </div>
+
+                <small>
+                    ${month.date.toLocaleDateString(
+                        "de-DE",
+                        { month: "short" }
+                    )}
+                </small>
+            `;
+
+            chart.appendChild(column);
+        });
+
+    } catch (error) {
+        if (generation !== renderSchoolYearChart.generation) {
+            return;
+        }
 
         console.error(error);
 
@@ -8058,175 +8180,7 @@ async function renderSchoolYearChart() {
                 Diagramm konnte nicht geladen werden.
             </div>
         `;
-
-        return;
     }
-
-
-    const lines =
-        data || [];
-
-
-    const months =
-        Array.from(
-            {
-                length:
-                    11
-            },
-            (
-                _,
-                index
-            ) => {
-
-                const date =
-                    new Date(
-                        start.getFullYear(),
-                        start.getMonth() +
-                        index,
-                        1
-                    );
-
-
-                const relevant =
-                    lines.filter(
-                        line => {
-
-                            const sold =
-                                new Date(
-                                    line.sold_at
-                                );
-
-
-                            return (
-                                sold.getFullYear() ===
-                                    date.getFullYear() &&
-                                sold.getMonth() ===
-                                    date.getMonth() &&
-                                line.area !==
-                                    "bäckerei"
-                            );
-                        }
-                    );
-
-
-                const unknown =
-                    relevant.some(
-                        line =>
-                            line.estimated_profit ==
-                            null
-                    );
-
-
-                const value =
-                    relevant.reduce(
-                        (
-                            sum,
-                            line
-                        ) =>
-                            sum +
-                            (
-                                line.estimated_profit ==
-                                null
-                                    ? 0
-                                    : number(
-                                        line.estimated_profit
-                                    )
-                            ),
-                        0
-                    );
-
-
-                return {
-                    date,
-                    value,
-                    unknown
-                };
-            }
-        );
-
-
-    const max =
-        Math.max(
-            1,
-            ...months.map(
-                month =>
-                    month.value
-            )
-        );
-
-
-    chart.innerHTML =
-        "";
-
-
-    months.forEach(
-        month => {
-
-            const column =
-                document.createElement(
-                    "div"
-                );
-
-
-            column.className =
-                "chart-column";
-
-
-            const height =
-                month.value <= 0
-                    ? 4
-                    : Math.max(
-                        8,
-                        (
-                            month.value /
-                            max
-                        ) *
-                        180
-                    );
-
-
-            column.innerHTML = `
-                <div class="chart-value">
-                    ${
-                        month.unknown
-                            ? "—"
-                            : money(
-                                month.value
-                            )
-                    }
-                </div>
-
-                <div
-                    class="chart-bar"
-                    style="height:${height}px"
-                    title="${
-                        month.unknown
-                            ? "Kosten teilweise unbekannt"
-                            : esc(
-                                money(
-                                    month.value
-                                )
-                            )
-                    }"
-                ></div>
-
-                <small>
-                    ${month.date.toLocaleDateString(
-                        "de-DE",
-                        {
-                            month:
-                                "short"
-                        }
-                    )}
-                </small>
-            `;
-
-
-            chart.appendChild(
-                column
-            );
-        }
-    );
 }
 
 
