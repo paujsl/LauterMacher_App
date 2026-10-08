@@ -5903,3 +5903,128 @@ html body #breadcrumb.breadcrumb {
 #invoicesScreen #receiptForm + h2 {
     margin-top: 34px;
 }
+/* =====================================================================
+   BUCHHALTUNG — LETZTE EINTRÄGE
+   ===================================================================== */
+
+#invoicesScreen .bookkeeping-history-card {
+    margin-top: 30px;
+    padding: 14px;
+    border-radius: 16px;
+    background: #f5f6f8;
+    color: #12496c;
+}
+
+#invoicesScreen .bookkeeping-history-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 2px 4px 16px;
+    cursor: pointer;
+    list-style: none;
+}
+
+#invoicesScreen .bookkeeping-history-summary::-webkit-details-marker {
+    display: none;
+}
+
+#invoicesScreen .bookkeeping-history-summary > span:first-child {
+    font-size: 1.25rem;
+    font-weight: 850;
+}
+
+#invoicesScreen .bookkeeping-history-summary > span:last-child {
+    margin-left: auto;
+    color: #68778a;
+    font-size: 0.8rem;
+    white-space: nowrap;
+}
+
+#invoicesScreen .bookkeeping-history-summary::after {
+    content: "▾";
+    font-size: 1.1rem;
+}
+
+#invoicesScreen #bookkeepingHistory:not([open])
+    .bookkeeping-history-summary::after {
+    content: "▸";
+}
+
+#invoicesScreen .bookkeeping-table-scroll {
+    max-height: 360px;
+    overflow: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #b9b7ff #f5f6f8;
+    -webkit-overflow-scrolling: touch;
+}
+
+#invoicesScreen .bookkeeping-table-scroll::-webkit-scrollbar {
+    width: 9px;
+    height: 9px;
+}
+
+#invoicesScreen .bookkeeping-table-scroll::-webkit-scrollbar-thumb {
+    border-radius: 12px;
+    background: #b9b7ff;
+}
+
+#invoicesScreen .bookkeeping-table {
+    width: 100%;
+    min-width: 720px;
+    border-collapse: separate;
+    border-spacing: 0 6px;
+    font-size: 0.88rem;
+}
+
+#invoicesScreen .bookkeeping-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    padding: 10px 12px;
+    background: #f5f6f8;
+    color: #12496c;
+    font-weight: 850;
+    text-align: left;
+    white-space: nowrap;
+}
+
+#invoicesScreen .bookkeeping-table td {
+    padding: 11px 12px;
+    border-top: 1px solid #e1e5ea;
+    border-bottom: 1px solid #e1e5ea;
+    background: #fff;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+#invoicesScreen .bookkeeping-table td:first-child {
+    border-left: 1px solid #e1e5ea;
+    border-radius: 11px 0 0 11px;
+}
+
+#invoicesScreen .bookkeeping-table td:last-child {
+    border-right: 1px solid #e1e5ea;
+    border-radius: 0 11px 11px 0;
+}
+
+#invoicesScreen .bookkeeping-table th:last-child,
+#invoicesScreen .bookkeeping-table .bookkeeping-amount {
+    text-align: right;
+}
+
+#invoicesScreen .bookkeeping-amount {
+    font-weight: 800;
+}
+
+#invoicesScreen .bookkeeping-income-row .bookkeeping-amount {
+    color: #267456;
+}
+
+#invoicesScreen .bookkeeping-expense-row .bookkeeping-amount {
+    color: #12496c;
+}
+
+#invoicesScreen #bookkeepingHistoryMessage:empty {
+    display: none;
+}
