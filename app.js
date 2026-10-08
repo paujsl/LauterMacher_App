@@ -9783,81 +9783,68 @@ function renderAccessSelection() {
     const list = $("accessStudentChoices");
     list.innerHTML = "";
 
-    students
-        .filter(student =>
-            personName(student)
-                .toLocaleLowerCase("de-DE")
-                .includes(search)
-        )
-        .forEach(student => {
-            const label = document.createElement("label");
-            label.className = "access-choice";
+    const visibleStudents = students.filter(student =>
+        personName(student)
+            .toLocaleLowerCase("de-DE")
+            .includes(search)
+    );
 
-            const input = document.createElement("input");
-            input.type = "checkbox";
-            input.checked = selected.has(student.id);
+    visibleStudents.forEach(student => {
+        const button = document.createElement("button");
+        const isSelected = selected.has(student.id);
 
-            input.addEventListener("change", () => {
-                if (input.checked) {
-                    selected.add(student.id);
-                } else {
-                    selected.delete(student.id);
-                }
+        button.type = "button";
 
-                renderAccessSelection();
-            });
+        button.className = isSelected
+            ? "access-chip is-selected"
+            : "access-chip";
 
-            const text = document.createElement("span");
-            text.textContent = personName(student);
+        button.textContent = personName(student);
 
-            label.append(input, text);
-            list.appendChild(label);
+        button.setAttribute(
+            "aria-pressed",
+            String(isSelected)
+        );
+
+        button.addEventListener("click", () => {
+            if (selected.has(student.id)) {
+                selected.delete(student.id);
+            } else {
+                selected.add(student.id);
+            }
+
+            renderAccessSelection();
         });
 
-    const all = $("accessSelectAll");
+        list.appendChild(button);
+    });
 
-    all.checked =
+    if (!visibleStudents.length) {
+        const message = document.createElement("p");
+        message.textContent = "Keine Schüler gefunden.";
+        list.appendChild(message);
+    }
+
+    const allSelected =
         students.length > 0 &&
         selected.size === students.length;
 
-    all.indeterminate =
-        selected.size > 0 &&
-        selected.size < students.length;
+    const allButton = $("accessSelectAll");
 
-    all.disabled = !students.length;
+    allButton.disabled = !students.length;
 
-    const chips = $("accessSelectedStudents");
-    chips.innerHTML = "";
+    allButton.className = allSelected
+        ? "access-chip is-selected"
+        : "access-chip";
 
-    students
-        .filter(student => selected.has(student.id))
-        .forEach(student => {
-            const chip = document.createElement("button");
+    allButton.setAttribute(
+        "aria-pressed",
+        String(allSelected)
+    );
 
-            chip.type = "button";
-            chip.className = "access-chip";
-
-            chip.setAttribute(
-                "aria-label",
-                `${personName(student)} abwählen`
-            );
-
-            chip.innerHTML = `
-                <span
-                    class="access-chip-tick"
-                    aria-hidden="true"
-                >✓</span>
-
-                <span>${esc(personName(student))}</span>
-            `;
-
-            chip.addEventListener("click", () => {
-                selected.delete(student.id);
-                renderAccessSelection();
-            });
-
-            chips.appendChild(chip);
-        });
+    allButton.textContent = allSelected
+        ? "Alle abwählen"
+        : "Alle auswählen";
 
     setText(
         "accessSelectionCount",
@@ -10081,15 +10068,19 @@ $("accessSearch")?.addEventListener(
 
 
 $("accessSelectAll")?.addEventListener(
-    "change",
-    event => {
-        studentAccessState.selected = event.target.checked
-            ? new Set(
-                studentAccessState.students.map(
-                    student => student.id
-                )
-            )
-            : new Set();
+    "click",
+    () => {
+        const students = studentAccessState.students;
+
+        const allSelected =
+            students.length > 0 &&
+            studentAccessState.selected.size === students.length;
+
+        studentAccessState.selected = allSelected
+            ? new Set()
+            : new Set(
+                students.map(student => student.id)
+            );
 
         renderAccessSelection();
     }
