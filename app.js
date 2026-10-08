@@ -943,13 +943,7 @@ async function loadInventorySubmissions() {
             *,
             inventory_submission_items(*)
         `)
-        .order(
-            "created_at",
-            {
-                ascending:
-                    false
-            }
-        )
+        .order("submitted_at", { ascending:  false } )
         .limit(20);
 
 
@@ -1039,7 +1033,7 @@ async function loadInventorySubmissions() {
 
                     <small>
                         ${
-                            submission.created_at
+                            submission.submitted_at
                                 ? new Intl.DateTimeFormat(
                                     "de-DE",
                                     {
@@ -1051,7 +1045,7 @@ async function loadInventorySubmissions() {
                                     }
                                 ).format(
                                     new Date(
-                                        submission.created_at
+                                        submission.submitted_at
                                     )
                                 )
                                 : ""
