@@ -2368,12 +2368,8 @@ async function loadBookkeepingReceipts() {
 
 
 async function loadBookkeepingHistory() {
-    if (!isTeacher() || !$("bookkeepingList")) return null;
+    if (!isTeacher()) return null;
 
-    /*
-     * Les deux chargements de l'écran utilisent la même requête
-     * lorsqu'ils sont lancés simultanément.
-     */
     if (loadBookkeepingHistory.pending) {
         return loadBookkeepingHistory.pending;
     }
@@ -2391,14 +2387,15 @@ async function loadBookkeepingHistory() {
                     date: invoice.invoice_date,
                     createdAt: invoice.created_at,
                     type: "invoice",
-                    title: invoice.invoice_number || "Rechnung",
+                    typeLabel: "Rechnung",
                     description: [
-                        invoice.supplier || "Ohne Laden",
+                        invoice.invoice_number || "Rechnung",
+                        invoice.supplier,
                         invoice.context
                     ].filter(Boolean).join(" · "),
                     amount: invoice.total_amount,
-                    pfandQuantity: invoice.pfand_quantity,
-                    pfandAmount: invoice.pfand_amount
+                    pfandQuantity: integer(invoice.pfand_quantity),
+                    pfandAmount: number(invoice.pfand_amount)
                 })),
 
                 ...receipts.map(receipt => ({
@@ -2406,11 +2403,11 @@ async function loadBookkeepingHistory() {
                     date: receipt.receipt_date,
                     createdAt: receipt.created_at,
                     type: receipt.kind,
-                    title: receipt.reason,
-                    description:
+                    typeLabel:
                         receipt.kind === "pfand_return"
                             ? "Pfandrückgabe"
                             : "Sonstige Einnahme",
+                    description: receipt.reason,
                     amount: receipt.amount
                 }))
             ];
@@ -2423,67 +2420,73 @@ async function loadBookkeepingHistory() {
 
             const list = $("bookkeepingList");
 
-            list.innerHTML = entries.length
-                ? ""
-                : "<p>Noch keine Einträge.</p>";
+            if (list) {
+                list.innerHTML = "";
+
+                if (!entries.length) {
+                    list.innerHTML = `
+                        <tr>
+                            <td colspan="4">Noch keine Einträge.</td>
+                        </tr>
+                    `;
+                }
+
+                entries.forEach(entry => {
+                    const row = document.createElement("tr");
+                    const isInvoice = entry.type === "invoice";
+
+                    row.className = isInvoice
+                        ? "bookkeeping-expense-row"
+                        : "bookkeeping-income-row";
+
+                    const pfandInfo =
+                        isInvoice && entry.pfandQuantity > 0
+                            ? ` · Pfand: ${entry.pfandQuantity} / ${
+                                money(entry.pfandAmount)
+                            }`
+                            : "";
+
+                    const description =
+                        entry.description + pfandInfo;
+
+                    row.innerHTML = `
+                        <td>${esc(dateDE(entry.date))}</td>
+
+                        <td>${esc(entry.typeLabel)}</td>
+
+                        <td title="${esc(description)}">
+                            ${esc(description)}
+                        </td>
+
+                        <td class="bookkeeping-amount">
+                            ${isInvoice ? "−" : "+"}
+                            ${money(entry.amount)}
+                        </td>
+                    `;
+
+                    list.appendChild(row);
+                });
+            }
 
             setText(
-                "bookkeepingHistoryTitle",
-                `Alle Einträge (${entries.length})`
+                "bookkeepingHistoryCount",
+                `${entries.length} ${
+                    entries.length === 1 ? "Eintrag" : "Einträge"
+                }`
             );
 
-            entries.forEach(entry => {
-                const row = document.createElement("article");
-                row.className = "invoice-row";
-
-                const isInvoice = entry.type === "invoice";
-
-                const typeLabel = isInvoice
-                    ? "Rechnung"
-                    : entry.description;
-
-                const pfandLabel =
-                    isInvoice && integer(entry.pfandQuantity) > 0
-                        ? ` · Pfand: ${integer(entry.pfandQuantity)} / ${
-                            money(entry.pfandAmount || 0)
-                        }`
-                        : "";
-
-                const description = isInvoice
-                    ? ` · ${esc(entry.description)}`
-                    : "";
-
-                row.innerHTML = `
-                    <div>
-                        <strong>${esc(entry.title)}</strong>
-
-                        <small>
-                            ${dateDE(entry.date)}${description}
-                        </small>
-                    </div>
-
-                    <div>
-                        <small>
-                            ${typeLabel}${pfandLabel}
-                        </small>
-
-                        <strong>
-                            ${isInvoice ? "−" : "+"} ${money(entry.amount)}
-                        </strong>
-                    </div>
-                `;
-
-                list.appendChild(row);
-            });
+            setText("bookkeepingHistoryMessage", "");
 
             return { invoices, receipts };
 
         } catch (error) {
             console.error(error);
 
-            $("bookkeepingList").innerHTML = `
-                <p>Einträge konnten nicht geladen werden.</p>
-            `;
+            setText(
+                "bookkeepingHistoryMessage",
+                "Einträge konnten nicht aktualisiert werden. " +
+                "Bitte Buchhaltung erneut öffnen."
+            );
 
             return null;
         }
@@ -2499,7 +2502,6 @@ async function loadBookkeepingHistory() {
         }
     }
 }
-
 async function saveInvoice(event) {
     event.preventDefault();
 
@@ -2509,6 +2511,7 @@ async function saveInvoice(event) {
 
     const context = $("invoiceContextSelect").value;
     const invoiceDate = $("invoiceDateInput").value;
+
     const supplier =
         $("invoiceSupplierInput").value.trim() || null;
 
@@ -2588,24 +2591,30 @@ async function saveInvoice(event) {
             card.style.display = "none";
         }
 
-        const [list] = await Promise.all([
-            loadInvoices(),
-            refreshInvoiceNumber()
-        ]);
-
-        $("bookkeepingHistory").open = true;
+        setText("invoiceFormMessage", "");
 
         toast("Rechnung gespeichert.", "success");
 
-        if (!Array.isArray(list)) {
-            setText(
-                "invoiceFormMessage",
-                "Rechnung gespeichert. Liste bitte erneut öffnen; " +
-                "nicht nochmals hinzufügen."
-            );
+        const history = $("bookkeepingHistory");
 
-            return;
+        if (history) {
+            history.open = true;
         }
+
+        /*
+         * Une erreur de rafraîchissement ne transforme pas
+         * une facture enregistrée en échec d'enregistrement.
+         */
+        const updates = await Promise.allSettled([
+            loadBookkeepingHistory(),
+            refreshInvoiceNumber()
+        ]);
+
+        updates.forEach(result => {
+            if (result.status === "rejected") {
+                console.error(result.reason);
+            }
+        });
 
         if (
             context === "getränke" &&
@@ -2631,26 +2640,36 @@ async function saveInvoice(event) {
 
             showScreen("teacherInventoryScreen");
             await renderTeacherInventory();
+
+        } else {
+            $("invoiceTotalInput")?.focus();
         }
 
     } catch (error) {
         console.error(error);
 
-        setText(
-            "invoiceFormMessage",
-            saved
-                ? "Rechnung gespeichert. Bitte nicht nochmals " +
-                  "hinzufügen; Buchhaltung erneut öffnen."
-                : "Rechnung konnte nicht gespeichert werden. " +
-                  (error.message || "Bitte erneut versuchen.")
-        );
+        if (saved) {
+            setText("invoiceFormMessage", "");
+
+            toast(
+                "Rechnung gespeichert. Ansicht konnte nicht " +
+                "vollständig aktualisiert werden.",
+                "info"
+            );
+
+        } else {
+            setText(
+                "invoiceFormMessage",
+                "Rechnung konnte nicht gespeichert werden. " +
+                (error.message || "Bitte erneut versuchen.")
+            );
+        }
 
     } finally {
         saveInvoice.busy = false;
         $("saveInvoiceButton").disabled = false;
     }
 }
-
 
 async function saveBookkeepingReceipt(event) {
     event.preventDefault();
@@ -2704,30 +2723,39 @@ async function saveBookkeepingReceipt(event) {
         $("receiptReasonInput").value = "";
         $("receiptAmountInput").value = "";
 
-        const rows = await loadBookkeepingReceipts();
-
-        $("bookkeepingHistory").open = true;
+        setText("receiptFormMessage", "");
 
         toast("Einnahme gespeichert.", "success");
 
-        if (!rows) {
-            setText(
-                "receiptFormMessage",
-                "Einnahme gespeichert. Liste bitte erneut öffnen; " +
-                "nicht nochmals hinzufügen."
-            );
+        const history = $("bookkeepingHistory");
+
+        if (history) {
+            history.open = true;
         }
+
+        await loadBookkeepingHistory();
+
+        $("receiptReasonInput")?.focus();
 
     } catch (error) {
         console.error(error);
 
-        setText(
-            "receiptFormMessage",
-            saved
-                ? "Einnahme gespeichert. Bitte nicht nochmals hinzufügen."
-                : "Einnahme konnte nicht gespeichert werden. " +
-                  (error.message || "Bitte erneut versuchen.")
-        );
+        if (saved) {
+            setText("receiptFormMessage", "");
+
+            toast(
+                "Einnahme gespeichert. Ansicht konnte nicht " +
+                "vollständig aktualisiert werden.",
+                "info"
+            );
+
+        } else {
+            setText(
+                "receiptFormMessage",
+                "Einnahme konnte nicht gespeichert werden. " +
+                (error.message || "Bitte erneut versuchen.")
+            );
+        }
 
     } finally {
         saveBookkeepingReceipt.busy = false;
