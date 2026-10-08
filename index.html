@@ -1856,21 +1856,49 @@
             ></p>
         </form>
 
-         <h2>Letzte Einträge</h2>
+         <section class="bookkeeping-history-card">
 
-<details
-    class="accounting-history"
-    id="bookkeepingHistory"
->
-    <summary id="bookkeepingHistoryTitle">
-        Alle Einträge
-    </summary>
+    <details id="bookkeepingHistory" open>
 
-    <div
-        class="invoice-list"
-        id="bookkeepingList"
-    ></div>
-</details>
+        <summary class="bookkeeping-history-summary">
+            <span>Letzte Einträge</span>
+            <span id="bookkeepingHistoryCount">0 Einträge</span>
+        </summary>
+
+        <div
+            class="bookkeeping-table-scroll"
+            tabindex="0"
+            aria-label="Buchhaltungseinträge"
+        >
+            <table class="bookkeeping-table">
+
+                <thead>
+                    <tr>
+                        <th scope="col">Datum</th>
+                        <th scope="col">Art</th>
+                        <th scope="col">Beschreibung</th>
+                        <th scope="col">Betrag</th>
+                    </tr>
+                </thead>
+
+                <tbody id="bookkeepingList">
+                    <tr>
+                        <td colspan="4">Noch keine Einträge.</td>
+                    </tr>
+                </tbody>
+
+            </table>
+        </div>
+
+        <p
+            class="form-message"
+            id="bookkeepingHistoryMessage"
+            role="status"
+        ></p>
+
+    </details>
+
+</section>
 
     </section>
 </main>
