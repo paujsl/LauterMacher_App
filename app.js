@@ -930,35 +930,51 @@ $("freeDrinksSaveButton")?.addEventListener("click", () => {
 async function finishFreeDrinks(items) {
     if (!state.currentPerson || finishFreeDrinks.busy) return;
 
+    if (!items.length) {
+        askShiftEnd("freeDrinksScreen");
+        return;
+    }
+
     finishFreeDrinks.busy = true;
 
-    ["freeDrinksNoneButton", "freeDrinksSaveButton"].forEach(id => {
+    const buttonIds = [
+        "freeDrinksNoneButton",
+        "freeDrinksSaveButton",
+        "freeDrinksEndButton"
+    ];
+
+    buttonIds.forEach(id => {
         if ($(id)) $(id).disabled = true;
     });
 
     let saved = false;
 
     try {
-        if (!isTeacher() && items.length) {
-            const { error } = await db.rpc("record_free_drinks", {
-                p_items: items,
-                p_context: "getränke",
-                p_event_id: null
-            });
+        if (!isTeacher()) {
+            const { error } = await db.rpc(
+                "record_free_drinks",
+                {
+                    p_items: items,
+                    p_context: "getränke",
+                    p_event_id: null
+                }
+            );
 
             if (error) throw error;
 
             saved = true;
         }
 
+        // Nouvelle saisie, sans reprendre les quantités
+        // qui viennent d'être enregistrées.
+        renderFreeDrinks();
+
         toast(
             isTeacher()
-                ? "Test beendet – keine Daten wurden gespeichert."
-                : "Gut gemacht heute, Team! 🎉",
+                ? "Testeingabe abgeschlossen. Weitere Getränke können eingetragen werden."
+                : "Getränke gespeichert. Weitere Getränke können eingetragen werden.",
             "success"
         );
-
-        goHome();
 
         if (saved) {
             try {
@@ -973,15 +989,15 @@ async function finishFreeDrinks(items) {
 
         toast(
             saved
-                ? "Kostenlose Getränke gespeichert. Ansicht konnte nicht aktualisiert werden."
-                : "Schicht konnte nicht beendet werden.",
+                ? "Getränke gespeichert. Bitte nicht nochmals eintragen."
+                : "Getränke konnten nicht gespeichert werden.",
             "error"
         );
 
     } finally {
         finishFreeDrinks.busy = false;
 
-        ["freeDrinksNoneButton", "freeDrinksSaveButton"].forEach(id => {
+        buttonIds.forEach(id => {
             if ($(id)) $(id).disabled = false;
         });
     }
