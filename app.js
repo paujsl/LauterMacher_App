@@ -665,17 +665,16 @@ async function completeCashierPayment(area, event) {
 
                 orderNumber = nextBakeryTestOrderNumber();
 
-                state.bakeryTestOrders ??= [];
-
                 state.bakeryTestOrders.unshift({
-                    id: testId,
-                    owner_id: personId,
-                    order_number: orderNumber,
-                    status: "offen",
-                    created_at: new Date().toISOString(),
-                    served_at: null,
-                    items
-                });
+    id: testId,
+    owner_id: personId,
+    order_number: orderNumber,
+    status: "offen",
+    total_amount: total / 100,
+    created_at: new Date().toISOString(),
+    served_at: null,
+    items
+});
             }
 
         } else {
@@ -1072,14 +1071,106 @@ $("bakeryOutputBackButton")?.addEventListener(
     () => showScreen("bakeryMenuScreen")
 );
 
+function askShiftEnd(backScreen) {
+    if (document.getElementById("shiftEndDrinksDialog")) {
+        return;
+    }
+
+    const dialog = document.createElement("dialog");
+
+    dialog.id = "shiftEndDrinksDialog";
+    dialog.className = "shift-end-drinks-dialog";
+
+    dialog.setAttribute(
+        "aria-labelledby",
+        "shiftEndDrinksTitle"
+    );
+
+    dialog.innerHTML = `
+        <h2 id="shiftEndDrinksTitle">
+            Schicht beenden?
+        </h2>
+
+        <p>
+            Sind die kostenlosen Getränke für alle
+            Schülerinnen und Schüler der heutigen
+            Schicht bereits eingetragen?
+        </p>
+
+        <form method="dialog">
+
+            <button
+                class="secondary-action"
+                value="cancel"
+                type="submit"
+            >
+                Zurück
+            </button>
+
+            <button
+                class="secondary-action"
+                value="drinks"
+                type="submit"
+            >
+                Nein, Getränke eintragen
+            </button>
+
+            <button
+                class="primary-action"
+                value="finish"
+                type="submit"
+            >
+                Ja, Schicht beenden
+            </button>
+
+        </form>
+    `;
+
+    document.body.appendChild(dialog);
+
+    dialog.addEventListener("close", () => {
+        const action = dialog.returnValue;
+
+        dialog.remove();
+
+        if (action === "drinks") {
+            if (backScreen === "freeDrinksScreen") {
+                // Conserver les quantités déjà saisies.
+                showScreen("freeDrinksScreen");
+            } else {
+                openFreeDrinks(backScreen);
+            }
+
+        } else if (action === "finish") {
+            toast(
+                isTeacher()
+                    ? "Test beendet – keine echten Daten wurden geändert."
+                    : "Gut gemacht heute, Team! 🎉",
+                "success"
+            );
+
+            goHome();
+        }
+    }, { once: true });
+
+    dialog.showModal();
+}
+
+
 $("bakeryCashShiftEndButton")?.addEventListener("click", () => {
-    toast("Gut gemacht heute, Team! 🎉", "success");
-    goHome();
+    askShiftEnd("bakerySaleScreen");
 });
 
+
 $("bakeryOutputShiftEndButton")?.addEventListener("click", () => {
-    toast("Gut gemacht heute, Team! 🎉", "success");
-    goHome();
+    askShiftEnd("bakeryOutputScreen");
+});
+
+
+$("freeDrinksEndButton")?.addEventListener("click", () => {
+    if (!finishFreeDrinks.busy) {
+        askShiftEnd("freeDrinksScreen");
+    }
 });
 const bakeryServingIds = new Set();
 
@@ -1232,6 +1323,56 @@ async function loadBakeryOrders() {
 }
 
 
+function bakeryOrderTotal(order) {
+    const storedTotal = order.total_amount ?? order.total;
+
+    if (
+        storedTotal !== null &&
+        storedTotal !== undefined &&
+        Number.isFinite(Number(storedTotal))
+    ) {
+        return Number(storedTotal);
+    }
+
+    return bakeryOrderItems(order).reduce(
+        (sum, item) => {
+            return sum +
+                productPrice(item) * integer(item.quantity);
+        },
+        0
+    );
+}
+
+
+function bakeryCardDate(value) {
+    if (!value) return "";
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) return "";
+
+    const parts = new Intl.DateTimeFormat("de-DE", {
+        timeZone: "Europe/Berlin",
+        day: "2-digit",
+        month: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        hourCycle: "h23"
+    }).formatToParts(date);
+
+    const values = {};
+
+    for (const part of parts) {
+        values[part.type] = part.value;
+    }
+
+    return (
+        `${values.day}.${values.month} · ` +
+        `${values.hour}:${values.minute}`
+    );
+}
+
+
 function renderBakeryOrders(orders) {
     const teacherView = isTeacher();
 
@@ -1265,14 +1406,22 @@ function renderBakeryOrders(orders) {
 
     if (!openBox || !doneBox) return;
 
-    openBox.innerHTML = open.length
-        ? ""
-        : `
+    openBox.innerHTML = "";
+
+    const masonry = document.createElement("div");
+
+    masonry.className = "bakery-order-masonry";
+
+    openBox.appendChild(masonry);
+
+    if (!open.length) {
+        masonry.innerHTML = `
             <div class="empty-state bakery-output-empty">
                 <strong>Alles erledigt! ✓</strong>
                 <span>Keine offenen Bestellungen.</span>
             </div>
         `;
+    }
 
     for (const order of open) {
         const card = document.createElement("article");
@@ -1284,55 +1433,66 @@ function renderBakeryOrders(orders) {
                 order.owner_id === state.currentPerson?.id
             : !testOrder;
 
+        const heading = testOrder
+            ? bakeryOrderLabel(order)
+            : `Bestellung #${order.order_number ?? "---"}`;
+
         card.className =
             "output-order-card" +
             (testOrder ? " bakery-test-order" : "");
-
-        const items = bakeryOrderItems(order);
 
         card.innerHTML = `
             <div class="bakery-order-card-header">
 
                 <strong class="output-order-number">
-                    ${esc(bakeryOrderLabel(order))}
+                    ${esc(heading)}
                 </strong>
 
+            </div>
+
+            <div class="bakery-order-card-body">
+
                 <time class="bakery-order-time">
-                    ${esc(bakeryOrderDate(order.created_at))}
+                    ${esc(bakeryCardDate(order.created_at))}
                 </time>
 
+                <div class="output-order-items">
+
+                    ${bakeryOrderItems(order).map(item => `
+                        <div class="bakery-order-item">
+
+                            <strong class="bakery-item-quantity">
+                                ${integer(item.quantity)}×
+                            </strong>
+
+                            <span>
+                                ${esc(bakeryOrderItemName(item))}
+                            </span>
+
+                        </div>
+                    `).join("")}
+
+                </div>
+
+                <div class="bakery-order-total">
+                    Gesamt:
+                    ${esc(money(bakeryOrderTotal(order)))}
+                </div>
+
+                ${canServe ? `
+                    <button
+                        class="bakery-served-button"
+                        type="button"
+                    >
+                        Ausgeben
+                    </button>
+                ` : `
+                    <span class="bakery-readonly-label">
+                        Nur Ansicht
+                    </span>
+                `}
+
             </div>
-
-            <div class="output-order-items">
-
-                ${items.map(item => `
-                    <div class="bakery-order-item">
-
-                        <strong class="bakery-item-quantity">
-                            ${integer(item.quantity)}×
-                        </strong>
-
-                        <span>
-                            ${esc(bakeryOrderItemName(item))}
-                        </span>
-
-                    </div>
-                `).join("")}
-
-            </div>
-
-            ${canServe ? `
-                <button
-                    class="bakery-served-button"
-                    type="button"
-                >
-                    ✓ Serviert
-                </button>
-            ` : `
-                <span class="bakery-readonly-label">
-                    Nur Ansicht
-                </span>
-            `}
         `;
 
         const button = card.querySelector("button");
@@ -1346,14 +1506,14 @@ function renderBakeryOrders(orders) {
             });
         }
 
-        openBox.appendChild(card);
+        masonry.appendChild(card);
     }
 
     doneBox.innerHTML = done.length
         ? ""
         : `
             <div class="empty-state">
-                <small>Noch keine erledigten Bestellungen.</small>
+                <small>Noch keine fertigen Bestellungen.</small>
             </div>
         `;
 
@@ -1364,45 +1524,23 @@ function renderBakeryOrders(orders) {
             "completed-order-row" +
             (order.is_teacher_test ? " bakery-test-order" : "");
 
-        const description = bakeryOrderItems(order)
-            .map(item => {
-                return (
-                    `${integer(item.quantity)}× ` +
-                    bakeryOrderItemName(item)
-                );
-            })
-            .join(" · ");
-
         row.innerHTML = `
-            <div class="bakery-completed-topline">
+            <strong>
+                ${esc(bakeryOrderLabel(order))}
+            </strong>
 
-                <strong>
-                    ${esc(bakeryOrderLabel(order))}
-                </strong>
-
-                <span class="bakery-served-label">
-                    ✓ Serviert
-                </span>
-
-            </div>
-
-            <time class="bakery-completed-date">
+            <time>
                 ${esc(
                     bakeryOrderDate(
                         order.served_at || order.created_at
                     )
                 )}
             </time>
-
-            <div class="bakery-completed-items">
-                ${esc(description)}
-            </div>
         `;
 
         doneBox.appendChild(row);
     }
 }
-
 
 async function serveBakeryOrder(id) {
     if (!state.currentPerson || bakeryServingIds.has(id)) {
