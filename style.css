@@ -7378,3 +7378,345 @@ body.teacher-mode :is(
     column-span: all;
     min-height: 180px;
 }
+/* =========================================================
+   AUSGABE — DISPOSITION FINALE DU DASHBOARD
+   ========================================================= */
+
+#bakeryOutputScreen {
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+}
+
+
+/* En-tête */
+
+#bakeryOutputScreen .bakery-dashboard-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 28px;
+}
+
+#bakeryOutputScreen .bakery-dashboard-header h1 {
+    grid-column: 2;
+    grid-row: 1;
+    margin: 0;
+    color: #094369;
+    font-size: clamp(1.3rem, 2.2vw, 1.9rem);
+    font-weight: 800;
+    text-align: center;
+}
+
+#bakeryOutputEditButton {
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: start;
+    width: auto;
+    white-space: nowrap;
+}
+
+#bakeryOutputScreen #bakeryOutputShiftEndButton {
+    grid-column: 3;
+    grid-row: 1;
+    justify-self: end;
+    width: auto;
+    white-space: nowrap;
+
+    padding: 11px 16px;
+    border: 2px solid #094369;
+    border-radius: 10px;
+    background: #ffffff;
+    color: #094369;
+    font-weight: 800;
+}
+
+
+/* 20 % historique à gauche, 80 % commandes à droite */
+
+#bakeryOutputScreen .bakery-output-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 4fr);
+    gap: 24px;
+    align-items: start;
+}
+
+#bakeryOutputScreen .bakery-completed-orders-panel {
+    grid-column: 1;
+    grid-row: 1;
+    min-width: 0;
+
+    padding: 14px;
+    border: 2px solid #094369;
+    border-radius: 26px;
+    background: #ffffff;
+    box-sizing: border-box;
+}
+
+#bakeryOutputScreen .bakery-open-orders-panel {
+    grid-column: 2;
+    grid-row: 1;
+    min-width: 0;
+
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+#bakeryOutputScreen .bakery-output-heading {
+    margin: 0 0 18px;
+}
+
+#bakeryOutputScreen .bakery-output-heading h2 {
+    margin: 0;
+    color: #094369;
+    font-size: 1.3rem;
+    font-weight: 800;
+}
+
+
+/* Cartes compactes, hauteurs libres */
+
+#bakeryOutputScreen .bakery-output-orders {
+    display: block;
+    column-width: auto;
+    column-count: auto;
+
+    max-height: 72vh;
+    padding: 2px 7px 2px 2px;
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+}
+
+#bakeryOutputScreen .bakery-order-masonry {
+    column-width: 190px;
+    column-gap: 14px;
+}
+
+#bakeryOutputScreen .output-order-card {
+    display: inline-block;
+    width: 100%;
+    margin: 0 0 14px;
+    padding: 0;
+
+    break-inside: avoid;
+    vertical-align: top;
+    overflow: hidden;
+
+    border: 2px solid #094369;
+    border-radius: 20px;
+    background: #ffffff;
+    box-sizing: border-box;
+}
+
+#bakeryOutputScreen .bakery-order-card-header {
+    padding: 11px 12px;
+    background: #094369;
+}
+
+#bakeryOutputScreen .output-order-number,
+#bakeryOutputScreen .bakery-test-order .output-order-number {
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: 800;
+    line-height: 1.25;
+}
+
+#bakeryOutputScreen .bakery-order-card-body {
+    padding: 0 10px 10px;
+}
+
+#bakeryOutputScreen .bakery-order-time {
+    margin: 5px 0 13px;
+    color: #7a7a7a;
+    font-size: 0.65rem;
+    text-align: right;
+}
+
+#bakeryOutputScreen .bakery-order-item {
+    gap: 5px;
+    color: #094369;
+    font-size: 0.9rem;
+    font-weight: 700;
+    line-height: 1.35;
+}
+
+#bakeryOutputScreen .bakery-order-total {
+    margin: 8px 0 12px;
+    color: #094369;
+    font-size: 0.9rem;
+    font-weight: 800;
+}
+
+#bakeryOutputScreen .bakery-served-button {
+    width: 100%;
+    padding: 9px 12px;
+    border-radius: 999px;
+    background: #b2bd43;
+    color: #094369;
+    font-size: 1.05rem;
+    font-weight: 800;
+}
+
+
+/* Historique : barre déroulante */
+
+#bakeryOutputScreen .bakery-completed-history {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+}
+
+#bakeryOutputScreen .bakery-completed-history summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+
+    padding: 11px 10px;
+    border-radius: 12px;
+    background: #f0edff;
+    color: #094369;
+
+    font-size: 0.95rem;
+    font-weight: 800;
+    line-height: 1.35;
+    list-style: none;
+    cursor: pointer;
+}
+
+#bakeryOutputScreen .bakery-completed-history summary > span {
+    flex: 1;
+    min-width: 0;
+}
+
+#bakeryOutputScreen .bakery-completed-history summary::-webkit-details-marker {
+    display: none;
+}
+
+#bakeryOutputScreen .bakery-completed-history summary::after {
+    content: "▸";
+    flex: 0 0 auto;
+    margin-left: 0;
+    color: #8b7ed4;
+}
+
+#bakeryOutputScreen .bakery-completed-history[open] summary::after {
+    content: "▾";
+}
+
+#bakeryOutputScreen .bakery-completed-scroll {
+    display: block;
+    max-height: 65vh;
+    margin-top: 12px;
+    padding-right: 5px;
+    overflow: auto;
+
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+    scrollbar-color: #bab0f4 #edf0f4;
+}
+
+#bakeryOutputScreen .completed-order-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+
+    width: max-content;
+    min-width: 100%;
+    margin: 0 0 5px;
+    padding: 8px 9px;
+
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #f5f6f8;
+    white-space: nowrap;
+    box-sizing: border-box;
+}
+
+#bakeryOutputScreen .completed-order-row strong {
+    color: #094369;
+    font-size: 0.8rem;
+}
+
+#bakeryOutputScreen .completed-order-row time {
+    color: #667085;
+    font-size: 0.68rem;
+}
+
+#bakeryOutputScreen .bakery-completed-scroll::-webkit-scrollbar {
+    width: 10px;
+    height: 8px;
+}
+
+#bakeryOutputScreen .bakery-completed-scroll::-webkit-scrollbar-track {
+    border-radius: 999px;
+    background: #edf0f4;
+}
+
+#bakeryOutputScreen .bakery-completed-scroll::-webkit-scrollbar-thumb {
+    border: 2px solid #edf0f4;
+    border-radius: 999px;
+    background: #bab0f4;
+}
+
+
+/* Tests personnels jaunes */
+
+#bakeryOutputScreen .bakery-test-order .bakery-order-card-body,
+#bakeryOutputScreen .completed-order-row.bakery-test-order {
+    background: #fff7d5;
+}
+
+
+/* Très petit écran : historique sous les commandes */
+
+@media (max-width: 600px) {
+
+    #bakeryOutputScreen .bakery-dashboard-header {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 12px;
+    }
+
+    #bakeryOutputScreen .bakery-dashboard-header h1 {
+        grid-column: 1 / -1;
+        grid-row: 2;
+        margin-top: 6px;
+    }
+
+    #bakeryOutputEditButton {
+        grid-column: 1;
+        grid-row: 1;
+    }
+
+    #bakeryOutputScreen #bakeryOutputShiftEndButton {
+        grid-column: 2;
+        grid-row: 1;
+    }
+
+    #bakeryOutputScreen .bakery-output-layout {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 20px;
+    }
+
+    #bakeryOutputScreen .bakery-open-orders-panel {
+        grid-column: 1;
+        grid-row: 1;
+    }
+
+    #bakeryOutputScreen .bakery-completed-orders-panel {
+        grid-column: 1;
+        grid-row: 2;
+    }
+
+    #bakeryOutputScreen .bakery-completed-scroll {
+        max-height: 280px;
+    }
+
+}
