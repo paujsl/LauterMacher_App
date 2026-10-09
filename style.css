@@ -8183,3 +8183,7 @@ body.teacher-mode :is(
     }
 
 }
+#freeDrinksScreen .free-drinks-warning {
+    color: #b42318 !important;
+    font-weight: 800;
+}
