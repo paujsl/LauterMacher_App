@@ -6335,3 +6335,149 @@ html body #breadcrumb.breadcrumb {
     outline: 3px solid #b9b7ff;
     outline-offset: 2px;
 }
+/* =====================================================================
+   PRODUKTE — PRIX PLUS VISIBLES
+   ===================================================================== */
+
+#productsScreen [data-product-field="price"] {
+    color: #267456;
+    font-size: 1.05rem;
+    font-weight: 850;
+    white-space: nowrap;
+}
+
+
+/* =====================================================================
+   HISTORIQUES — STYLE COMMUN
+   ===================================================================== */
+
+#teacherInventoryNotice.admin-history-card,
+#productsScreen .admin-history-card {
+    margin-top: 28px;
+    padding: 14px;
+    border-radius: 16px;
+    background: #f5f6f8;
+    color: #12496c;
+}
+
+.admin-history-card[hidden] {
+    display: none !important;
+}
+
+.admin-history-card .admin-history-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 2px 4px 16px;
+    cursor: pointer;
+    list-style: none;
+}
+
+.admin-history-card .admin-history-summary::-webkit-details-marker {
+    display: none;
+}
+
+.admin-history-card .admin-history-summary > span:first-child {
+    font-size: 1.25rem;
+    font-weight: 850;
+}
+
+.admin-history-card .admin-history-summary > span:last-child {
+    margin-left: auto;
+    color: #68778a;
+    font-size: 0.8rem;
+    white-space: nowrap;
+}
+
+.admin-history-card .admin-history-summary::after {
+    content: "▾";
+}
+
+.admin-history-card details:not([open])
+    > .admin-history-summary::after {
+    content: "▸";
+}
+
+.admin-history-card .admin-history-scroll {
+    max-height: 360px;
+    overflow: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #b9b7ff #f5f6f8;
+    -webkit-overflow-scrolling: touch;
+}
+
+.admin-history-card .admin-history-scroll::-webkit-scrollbar {
+    width: 9px;
+    height: 9px;
+}
+
+.admin-history-card .admin-history-scroll::-webkit-scrollbar-thumb {
+    border-radius: 12px;
+    background: #b9b7ff;
+}
+
+.admin-history-card .admin-history-table {
+    width: 100%;
+    min-width: 700px;
+    border-collapse: separate;
+    border-spacing: 0 6px;
+    font-size: 0.88rem;
+}
+
+#productsScreen .admin-history-table {
+    min-width: 1000px;
+}
+
+.admin-history-card .admin-history-table th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    padding: 10px 12px;
+    background: #f5f6f8;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.admin-history-card .admin-history-table td {
+    padding: 11px 12px;
+    border-top: 1px solid #e1e5ea;
+    border-bottom: 1px solid #e1e5ea;
+    background: #fff;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+.admin-history-card .admin-history-table td:first-child {
+    border-left: 1px solid #e1e5ea;
+    border-radius: 11px 0 0 11px;
+}
+
+.admin-history-card .admin-history-table td:last-child {
+    border-right: 1px solid #e1e5ea;
+    border-radius: 0 11px 11px 0;
+}
+
+.admin-history-card .admin-history-table td small {
+    display: block;
+    margin-top: 3px;
+    color: #68778a;
+    font-size: 0.75rem;
+}
+
+.admin-history-card .history-current td {
+    background: #e8e1ff;
+}
+
+.admin-history-card .history-unseen td {
+    background: #e7f3ff;
+}
+
+.admin-history-card .history-seen td {
+    background: #f0f1f4;
+    color: #68778a;
+}
+
+.admin-history-card .form-message:empty {
+    display: none;
+}
