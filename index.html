@@ -1180,11 +1180,12 @@
             Zahlung erfolgreich!
         </h1>
 
-        <p>
-            Bestellnummer
+        <p class="bakery-order-instruction">
+            Bitte gib diese Bestellnummer an den Schüler oder Kunden weiter!
         </p>
 
         <div
+            aria-live="polite"
             class="big-order-number"
             id="bakerySuccessOrderNumber"
         >
@@ -1228,10 +1229,23 @@
         hidden
         id="bakeryOutputTestBanner"
     >
-        ⚠️ Testumgebung – keine Daten werden gespeichert
+        Lehrer-Testumgebung
     </div>
 
-    <header class="screen-header">
+
+    <header class="page-header bakery-dashboard-header">
+
+        <button
+            class="secondary-action"
+            id="bakeryOutputShiftEndButton"
+            type="button"
+        >
+            Schicht beenden
+        </button>
+
+        <h1>
+            🍽️ Bäckerei – Ausgabe
+        </h1>
 
         <button
             class="back-button"
@@ -1241,36 +1255,51 @@
             ← Bäckerei
         </button>
 
-        <h1>
-            🍽️ Bäckerei – Ausgabe
-        </h1>
-
     </header>
 
+
     <section class="bakery-output-layout">
+
+        <aside class="bakery-completed-orders-panel">
+
+            <details
+                class="bakery-completed-history"
+                open
+            >
+
+                <summary>
+
+                    <span>
+                        Fertige Bestellungen ·
+                    </span>
+
+                    <span
+                        class="bakery-order-count"
+                        id="bakeryCompletedOrderCount"
+                    >
+                        0
+                    </span>
+
+                </summary>
+
+                <div
+                    class="bakery-completed-scroll"
+                    id="bakeryCompletedOrders"
+                ></div>
+
+            </details>
+
+        </aside>
+
 
         <div class="bakery-open-orders-panel">
 
             <div class="bakery-output-heading">
 
-                <div>
-
-                    <h2>
-                        Offene Bestellungen
-                    </h2>
-
-                    <p>
-                        Bestellung vorbereiten und anschließend als ausgegeben markieren.
-                    </p>
-
-                </div>
-
-                <span
-                    class="bakery-order-count"
-                    id="bakeryOpenOrderCount"
-                >
-                    0
-                </span>
+                <h2>
+                    Offene Bestellungen ·
+                    <span id="bakeryOpenOrderCount">0</span>
+                </h2>
 
             </div>
 
@@ -1281,44 +1310,7 @@
 
         </div>
 
-
-        <aside class="bakery-completed-orders-panel">
-
-            <div class="bakery-output-heading">
-
-                <h2>
-                    Fertige Bestellungen
-                </h2>
-
-                <span
-                    class="bakery-order-count"
-                    id="bakeryCompletedOrderCount"
-                >
-                    0
-                </span>
-
-            </div>
-
-            <div
-                class="bakery-completed-orders"
-                id="bakeryCompletedOrders"
-            ></div>
-
-        </aside>
-
     </section>
-
-    <div class="bakery-shift-end-area">
-
-        <button
-            class="secondary-action"
-            id="bakeryOutputShiftEndButton"
-            type="button"
-        >
-            Schicht beenden
-        </button>
-
-    </div>
 
 </main>
 
