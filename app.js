@@ -1119,6 +1119,9 @@ async function renderProductsAdmin() {
 
         box.appendChild(empty);
     }
+
+   await renderProductChangeHistory();
+   
 }
 
 async function saveProduct(event) {
@@ -1612,11 +1615,13 @@ async function renderTeacherInventory() {
 }
 
     try {
-        const [stocks, dashboard] = await Promise.all([
-            db.from("inventory").select("*"),
+        const [stocks, dashboard, inventoryHistory] = await Promise.all([
+    db.from("inventory").select("*"),
 
-            db.rpc("teacher_inventory_dashboard")
-        ]);
+    db.rpc("teacher_inventory_dashboard"),
+
+    db.rpc("teacher_get_inventory_history")
+]);
 
         if (
             generation !== renderTeacherInventory.generation ||
@@ -1638,8 +1643,13 @@ async function renderTeacherInventory() {
         const submission =
             dashboard.data?.latest || null;
 
-        const history =
-            dashboard.data?.history || [];
+        const history = inventoryHistory.error
+    ? dashboard.data?.history || []
+    : inventoryHistory.data || [];
+
+if (inventoryHistory.error) {
+    console.error(inventoryHistory.error);
+}
 
         const items =
             submission?.inventory_submission_items || [];
@@ -1670,75 +1680,115 @@ async function renderTeacherInventory() {
 
         // Historique au-dessus du tableau.
 
-        let notice = $("teacherInventoryNotice");
+       let notice = $("teacherInventoryNotice");
 
 if (!notice) {
     notice = document.createElement("section");
     notice.id = "teacherInventoryNotice";
 }
 
-// Placer l'historique après la liste des produits,
-// même si le bloc existe déjà.
 box.after(notice);
 
-        notice.className = "teacher-inventory-history";
-        notice.hidden = false;
+const historyOpen =
+    notice.querySelector("details")?.open ?? true;
 
-        notice.innerHTML = `
-            <h2>Letzte Inventuren</h2>
+notice.className =
+    "teacher-inventory-history admin-history-card";
 
-            <div class="teacher-inventory-history-list">
-                ${history.length ? `
-                    <div class="teacher-inventory-history-heading">
-                        <span>Datum</span>
-                        <span>Schüler/in</span>
-                        <span>Status</span>
-                    </div>
-                ` : `
-                    <p>Noch keine eingereichte Inventur.</p>
-                `}
+notice.hidden = false;
 
-                ${history.map(entry => {
-                    const replaced =
-                        entry.reviewed_note ===
-                        "Durch neuere Inventur ersetzt.";
+notice.innerHTML = `
+    <details ${historyOpen ? "open" : ""}>
 
-                    const current =
-                        entry.id === submission?.id;
+        <summary class="admin-history-summary">
+            <span>Letzte Inventuren</span>
+            <span>${history.length} Einträge</span>
+        </summary>
 
-                    const status = replaced
-                        ? "Durch neuere Inventur ersetzt"
-                        : entry.status === "angenommen"
-                            ? "Geprüft"
-                            : entry.status === "eingereicht"
-                                ? "Prüfung ausstehend"
-                                : "Abgelehnt";
+        <div
+            class="admin-history-scroll"
+            tabindex="0"
+            aria-label="Letzte Inventuren"
+        >
+            <table class="admin-history-table">
 
-                    return `
-                        <div class="
-                            teacher-inventory-history-row
-                            ${current
-                                ? "is-current"
-                                : replaced
-                                    ? "is-replaced"
-                                    : ""}
-                        ">
-                            <span>
-                                ${esc(dateText(entry.submitted_at))}
-                            </span>
+                <thead>
+                    <tr>
+                        <th scope="col">Datum</th>
+                        <th scope="col">Schüler/in</th>
+                        <th scope="col">Status</th>
+                    </tr>
+                </thead>
 
-                            <span title="${esc(entry.student_name)}">
-                                ${esc(entry.student_name)}
-                            </span>
+                <tbody>
+                    ${
+                        history.length
+                            ? history.map(entry => {
+                                const replaced =
+                                    entry.reviewed_note ===
+                                    "Durch neuere Inventur ersetzt.";
 
-                            <span>
-                                ${esc(status)}
-                            </span>
-                        </div>
-                    `;
-                }).join("")}
-            </div>
-        `;
+                                const current =
+                                    entry.id === submission?.id;
+
+                                const status = replaced
+                                    ? "Durch neuere Inventur ersetzt"
+                                    : entry.status === "angenommen"
+                                        ? "Geprüft"
+                                        : entry.status === "eingereicht"
+                                            ? "Prüfung ausstehend"
+                                            : "Abgelehnt";
+
+                                const rowClass = current
+                                    ? "history-current"
+                                    : replaced
+                                        ? "history-seen"
+                                        : "";
+
+                                return `
+                                    <tr class="${rowClass}">
+                                        <td>
+                                            ${esc(
+                                                adminHistoryDate(
+                                                    entry.submitted_at
+                                                )
+                                            )}
+                                        </td>
+
+                                        <td>
+                                            ${esc(entry.student_name)}
+                                        </td>
+
+                                        <td>${esc(status)}</td>
+                                    </tr>
+                                `;
+                            }).join("")
+                            : `
+                                <tr>
+                                    <td colspan="3">
+                                        Noch keine eingereichte Inventur.
+                                    </td>
+                                </tr>
+                            `
+                    }
+                </tbody>
+
+            </table>
+        </div>
+
+        ${
+            inventoryHistory.error
+                ? `
+                    <p class="form-message">
+                        Das vollständige Inventurverzeichnis
+                        konnte nicht geladen werden.
+                    </p>
+                `
+                : ""
+        }
+
+    </details>
+`;
 
         const oldHistory =
             $("inventorySubmissionsList")
@@ -10142,3 +10192,229 @@ setInterval(() => {
         renderAccessHistory();
     }
 }, 60000);
+/* =====================================================================
+   HISTORIQUES — INVENTUR ET PRODUKTE
+   ===================================================================== */
+
+function adminHistoryDate(value) {
+    return new Intl.DateTimeFormat("de-DE", {
+        timeZone: "Europe/Berlin",
+        dateStyle: "short",
+        timeStyle: "short"
+    }).format(new Date(value));
+}
+
+
+function productHistoryDescription(entry) {
+    const before = entry.before_values || {};
+    const after = entry.after_values || {};
+
+    if (entry.action === "created") {
+        return "Produkt hinzugefügt";
+    }
+
+    const labels = {
+        name: "Name",
+        price: "Preis",
+        category: "Bereich",
+        icon: "Symbol",
+        active: "Status"
+    };
+
+    return (entry.changed_fields || [])
+        .filter(field => field !== "_created")
+        .map(field => {
+            if (field === "active" && after.active === false) {
+                return "Produkt entfernt";
+            }
+
+            if (field === "active" && after.active === true) {
+                return "Produkt wieder aktiviert";
+            }
+
+            return (
+                `${labels[field] || field}: ` +
+                `${productChangeValue(field, before[field])} → ` +
+                `${productChangeValue(field, after[field])}`
+            );
+        })
+        .join(" · ") || "Produkt geändert";
+}
+
+
+async function renderProductChangeHistory() {
+    const list = $("productAdminList");
+
+    if (!list) return;
+
+    let panel = $("productChangeHistoryPanel");
+
+    if (!isTeacher()) {
+        if (panel) panel.hidden = true;
+        return;
+    }
+
+    if (!panel) {
+        panel = document.createElement("section");
+        panel.id = "productChangeHistoryPanel";
+        panel.className = "admin-history-card teacher-only";
+    }
+
+    list.after(panel);
+
+    panel.hidden = false;
+    panel.style.display = "";
+
+    const open =
+        panel.querySelector("details")?.open ?? true;
+
+    panel.innerHTML = `
+        <details ${open ? "open" : ""}>
+
+            <summary class="admin-history-summary">
+                <span>Letzte Änderungen</span>
+
+                <span id="productChangeHistoryCount">
+                    Lädt …
+                </span>
+            </summary>
+
+            <div
+                class="admin-history-scroll"
+                tabindex="0"
+                aria-label="Produktänderungen"
+            >
+                <table class="admin-history-table">
+
+                    <thead>
+                        <tr>
+                            <th scope="col">Datum</th>
+                            <th scope="col">Person</th>
+                            <th scope="col">Produkt</th>
+                            <th scope="col">Änderung</th>
+                            <th scope="col">Status</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="productChangeHistoryRows"></tbody>
+
+                </table>
+            </div>
+
+            <p
+                class="form-message"
+                id="productChangeHistoryMessage"
+                role="status"
+            ></p>
+
+        </details>
+    `;
+
+    const personId = state.currentPerson.id;
+
+    const generation =
+        (renderProductChangeHistory.generation || 0) + 1;
+
+    renderProductChangeHistory.generation = generation;
+
+    try {
+        const { data, error } = await db.rpc(
+            "teacher_get_product_change_history"
+        );
+
+        if (
+            generation !== renderProductChangeHistory.generation ||
+            !isTeacher() ||
+            state.currentPerson?.id !== personId
+        ) {
+            return;
+        }
+
+        if (error) throw error;
+
+        const entries = data || [];
+        const body = $("productChangeHistoryRows");
+
+        setText(
+            "productChangeHistoryCount",
+            `${entries.length} Einträge`
+        );
+
+        body.innerHTML = entries.length
+            ? ""
+            : `
+                <tr>
+                    <td colspan="5">Noch keine Änderungen.</td>
+                </tr>
+            `;
+
+        entries.forEach(entry => {
+            const unseen =
+                entry.student_change && !entry.seen_at;
+
+            const row = document.createElement("tr");
+
+            row.className = unseen
+                ? "history-unseen"
+                : entry.student_change
+                    ? "history-seen"
+                    : "";
+
+            const name =
+                entry.after_values?.name ||
+                entry.before_values?.name ||
+                entry.product_id;
+
+            const status = entry.student_change
+                ? entry.seen_at
+                    ? "Gesehen"
+                    : "Neu"
+                : "—";
+
+            row.innerHTML = `
+                <td>
+                    ${esc(adminHistoryDate(entry.changed_at))}
+                </td>
+
+                <td>
+                    ${esc(entry.actor_name)}
+
+                    <small>
+                        ${
+                            entry.student_change
+                                ? "Schüler/in"
+                                : "Lehrkraft"
+                        }
+                    </small>
+                </td>
+
+                <td>${esc(name)}</td>
+
+                <td>
+                    ${esc(productHistoryDescription(entry))}
+                </td>
+
+                <td>${status}</td>
+            `;
+
+            body.appendChild(row);
+        });
+
+    } catch (error) {
+        if (
+            generation !== renderProductChangeHistory.generation ||
+            !isTeacher()
+        ) {
+            return;
+        }
+
+        console.error(error);
+
+        setText("productChangeHistoryCount", "");
+
+        setText(
+            "productChangeHistoryMessage",
+            "Änderungen konnten nicht geladen werden."
+        );
+    }
+}
