@@ -6724,3 +6724,116 @@ html body #breadcrumb.breadcrumb {
     outline: 3px solid #b9b7ff;
     outline-offset: 2px;
 }
+/* =====================================================================
+   GETRÄNKE + BÄCKEREI — CAISSES
+   ===================================================================== */
+
+/* Boutons de paiement en vert accent. */
+
+#drinksPayButton,
+#drinksPaidButton,
+#bakeryPayButton,
+#bakeryPaidButton {
+    background: #b2bd43;
+    border-color: #b2bd43;
+    color: #12496c;
+    font-weight: 850;
+}
+
+/* Touches de calculatrice en violet. */
+
+#drinksPaymentKeypad .payment-key,
+#bakeryPaymentKeypad .payment-key {
+    color: #8172cf;
+    font-weight: 850;
+}
+
+
+/* =====================================================================
+   PROFESSEUR — UNIVERS TEST JAUNE
+   ===================================================================== */
+
+body.teacher-mode :is(
+    #drinksSaleScreen,
+    #drinksPaymentScreen,
+    #drinksSuccessScreen,
+    #freeDrinksScreen,
+    #bakerySaleScreen,
+    #bakeryPaymentScreen,
+    #bakerySuccessScreen,
+    #bakeryOutputScreen
+) {
+    box-sizing: border-box;
+    min-height: calc(100vh - 160px);
+    background: #fff9df;
+    border: 2px solid #efd575;
+    border-radius: 20px;
+}
+
+body.teacher-mode :is(
+    #drinksTestBanner,
+    #drinksPaymentTestBanner,
+    #freeDrinksTestBanner,
+    #bakerySaleTestBanner,
+    #bakeryPaymentTestBanner
+) {
+    margin-bottom: 24px;
+    padding: 18px 22px;
+    border: 2px solid #e5bd39;
+    border-radius: 18px;
+    background: #fff0ae;
+    color: #665000;
+    font-size: 1.05rem;
+    font-weight: 850;
+}
+
+
+/* =====================================================================
+   ZAHLUNG ERFOLGREICH — CENTRAGE
+   ===================================================================== */
+
+#drinksSuccessScreen .success-content,
+#bakerySuccessScreen .success-content {
+    box-sizing: border-box;
+    width: min(100%, 760px);
+    margin: 0 auto;
+    padding: clamp(28px, 5vw, 60px) 20px;
+    text-align: center;
+}
+
+#drinksSuccessScreen .success-content h1,
+#drinksSuccessScreen .success-content p,
+#bakerySuccessScreen .success-content h1,
+#bakerySuccessScreen .success-content p {
+    text-align: center;
+}
+
+#drinksSuccessScreen .success-icon,
+#bakerySuccessScreen .success-icon {
+    margin-right: auto;
+    margin-left: auto;
+}
+
+#drinksSuccessScreen .success-actions,
+#bakerySuccessScreen .success-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 22px;
+}
+
+body.teacher-mode :is(
+    #drinksSuccessScreen,
+    #bakerySuccessScreen
+) .success-content::before {
+    content: "TESTUMGEBUNG — Keine echten Verkäufe oder Bestandsänderungen";
+    display: block;
+    margin-bottom: 28px;
+    padding: 16px 20px;
+    border: 2px solid #e5bd39;
+    border-radius: 18px;
+    background: #fff0ae;
+    color: #665000;
+    font-weight: 850;
+}
