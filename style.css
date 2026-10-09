@@ -6481,3 +6481,11 @@ html body #breadcrumb.breadcrumb {
 .admin-history-card .form-message:empty {
     display: none;
 }
+/* Produkte — prix en vert accent, gras, taille intermédiaire. */
+
+#productsScreen [data-product-field="price"] {
+    color: #b2bd43;
+    font-size: 0.95rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
