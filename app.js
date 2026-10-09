@@ -598,6 +598,39 @@ function handleCashierKey(area, event) {
 }
 
 
+function bakeryBerlinDay(value = new Date()) {
+    return new Intl.DateTimeFormat("en-CA", {
+        timeZone: "Europe/Berlin",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+    }).format(new Date(value));
+}
+
+
+function nextBakeryTestOrderNumber() {
+    const teacherId = state.currentPerson?.id;
+
+    if (!teacherId || !isTeacher()) {
+        throw new Error("teacher_required");
+    }
+
+    const key = `${teacherId}:${bakeryBerlinDay()}`;
+
+    state.bakeryTestCounters ??= {};
+
+    const number = state.bakeryTestCounters[key] ?? 1;
+
+    if (number > 50) {
+        throw new Error("test_order_number_limit_reached");
+    }
+
+    state.bakeryTestCounters[key] = number + 1;
+
+    return number;
+}
+
+
 async function completeCashierPayment(area, event) {
     event.preventDefault();
 
@@ -609,6 +642,9 @@ async function completeCashierPayment(area, event) {
 
     if (total <= 0 || received < total) return;
 
+    const teacherTest = isTeacher();
+    const personId = state.currentPerson.id;
+
     state.cashierSaving = true;
     renderCashierPayment(area);
 
@@ -618,21 +654,27 @@ async function completeCashierPayment(area, event) {
         let change = (received - total) / 100;
         let orderNumber = "---";
 
-        if (isTeacher()) {
-            // Simulation locale uniquement.
+        if (teacherTest) {
+
             if (area === "bakery") {
-                orderNumber = String(
-                    Math.floor(100 + Math.random() * 900)
+                const testId = crypto.randomUUID();
+
+                const items = Object.values(cart).map(
+                    item => ({ ...item })
                 );
 
+                orderNumber = nextBakeryTestOrderNumber();
+
+                state.bakeryTestOrders ??= [];
+
                 state.bakeryTestOrders.unshift({
-                    id: crypto.randomUUID(),
+                    id: testId,
+                    owner_id: personId,
                     order_number: orderNumber,
                     status: "offen",
                     created_at: new Date().toISOString(),
-                    items: Object.values(cart).map(
-                        item => ({ ...item })
-                    )
+                    served_at: null,
+                    items
                 });
             }
 
@@ -653,7 +695,9 @@ async function completeCashierPayment(area, event) {
 
             saved = true;
 
-            const order = Array.isArray(data) ? data[0] : data;
+            const order = Array.isArray(data)
+                ? data[0]
+                : data;
 
             change = order?.change_amount ?? change;
             orderNumber = order?.order_number ?? orderNumber;
@@ -661,7 +705,7 @@ async function completeCashierPayment(area, event) {
 
         setText(
             "drinksSuccessDescription",
-            isTeacher()
+            teacherTest
                 ? "Testverkauf – keine Daten wurden gespeichert."
                 : "Verkauf wurde gespeichert."
         );
@@ -669,7 +713,14 @@ async function completeCashierPayment(area, event) {
         setText(`${area}SuccessChange`, money(change));
 
         if (area === "bakery") {
-            setText("bakerySuccessOrderNumber", orderNumber);
+            setText(
+                "bakerySuccessOrderNumber",
+                orderNumber === "---"
+                    ? "---"
+                    : teacherTest
+                        ? `Test #${orderNumber}`
+                        : `#${orderNumber}`
+            );
         }
 
         clearCart(cart);
@@ -679,7 +730,7 @@ async function completeCashierPayment(area, event) {
 
         showScreen(`${area}SuccessScreen`);
 
-        if (!isTeacher()) {
+        if (!teacherTest) {
             try {
                 await loadInventory();
             } catch (error) {
@@ -690,12 +741,29 @@ async function completeCashierPayment(area, event) {
     } catch (error) {
         console.error(error);
 
-        toast(
-            saved
-                ? "Verkauf gespeichert. Ansicht konnte nicht aktualisiert werden."
-                : "Zahlung konnte nicht gespeichert werden.",
-            saved ? "info" : "error"
-        );
+        const message = String(error?.message || "");
+
+        let notification =
+            "Zahlung konnte nicht gespeichert werden.";
+
+        if (saved) {
+            notification =
+                "Verkauf gespeichert. Ansicht konnte nicht aktualisiert werden.";
+
+        } else if (
+            message.includes("test_order_number_limit_reached")
+        ) {
+            notification =
+                "Alle 50 Testbestellnummern sind heute vergeben.";
+
+        } else if (
+            message.includes("daily_order_number_limit_reached")
+        ) {
+            notification =
+                "Alle Bestellnummern von 10 bis 499 sind heute vergeben.";
+        }
+
+        toast(notification, saved ? "info" : "error");
 
     } finally {
         state.cashierSaving = false;
@@ -1013,34 +1081,399 @@ $("bakeryOutputShiftEndButton")?.addEventListener("click", () => {
     toast("Gut gemacht heute, Team! 🎉", "success");
     goHome();
 });
-async function loadBakeryOrders(){
-    const banner=$("bakeryOutputTestBanner");if(banner){banner.hidden=!isTeacher();banner.style.display=isTeacher()?"":"none";}
-    if(isTeacher()){renderBakeryOrders(state.bakeryTestOrders);return;}
-    const {data,error}=await db.from("orders").select("*,order_items(*)").eq("area","bäckerei").order("created_at",{ascending:false}).limit(100);
-    if(error){console.error(error);toast("Bestellungen konnten nicht geladen werden.","error");return;}
-    renderBakeryOrders(data||[]);
+const bakeryServingIds = new Set();
+
+let bakeryOrdersLoadVersion = 0;
+
+
+function bakeryOrderDate(value) {
+    if (!value) return "";
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) return "";
+
+    return new Intl.DateTimeFormat("de-DE", {
+        timeZone: "Europe/Berlin",
+        day: "2-digit",
+        month: "2-digit",
+        year: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit"
+    }).format(date);
 }
-function renderBakeryOrders(orders){
-    const open=orders.filter(o=>o.status==="offen"),done=orders.filter(o=>o.status!=="offen").slice(0,20);
-    setText("bakeryOpenOrderCount",open.length);setText("bakeryCompletedOrderCount",done.length);
-    const openBox=$("bakeryOutputOrders"),doneBox=$("bakeryCompletedOrders");if(!openBox||!doneBox)return;
-    openBox.innerHTML=open.length?"":`<div class="empty-state"><strong>Alles erledigt!</strong></div>`;
-    open.forEach(o=>{
-        const card=document.createElement("article");card.className="output-order-card";
-        const items=o.order_items||o.items||[];
-        card.innerHTML=`<div class="output-order-number">${esc(o.order_number||"---")}</div><div class="output-order-items">${items.map(i=>`<div>${integer(i.quantity)}× ${esc(i.product_name||i.name||state.products.find(p=>p.id===i.product_id)?.name||"Produkt")}</div>`).join("")}</div><button class="primary-action" type="button">Ausgegeben</button>`;
-        card.querySelector("button").onclick=()=>serveBakeryOrder(o.id);openBox.appendChild(card);
-    });
-    doneBox.innerHTML=done.length?"":`<div class="empty-state"><small>Noch keine fertige Bestellung.</small></div>`;
-    done.forEach(o=>{const row=document.createElement("div");row.className="completed-order-row";row.innerHTML=`<strong>#${esc(o.order_number||"---")}</strong><span>✓ Fertig</span>`;doneBox.appendChild(row);});
+
+
+function bakeryOrderItems(order) {
+    return order.order_items || order.items || [];
 }
-async function serveBakeryOrder(id){
-    try{
-        if(isTeacher()){
-            const row=state.bakeryTestOrders.find(x=>x.id===id);if(row)row.status="ausgegeben";renderBakeryOrders(state.bakeryTestOrders);return;
+
+
+function bakeryOrderItemName(item) {
+    return (
+        item.product_name ||
+        item.name ||
+        state.products.find(
+            product => product.id === item.product_id
+        )?.name ||
+        "Produkt"
+    );
+}
+
+
+function ownBakeryTestOrders() {
+    if (!isTeacher()) return [];
+
+    const personId = state.currentPerson?.id;
+
+    return (state.bakeryTestOrders || [])
+        .filter(order => order.owner_id === personId)
+        .map(order => ({
+            ...order,
+            is_teacher_test: true
+        }));
+}
+
+
+function bakeryOrderLabel(order) {
+    const number = order.order_number ?? "---";
+
+    return order.is_teacher_test
+        ? `Test #${number}`
+        : `#${number}`;
+}
+
+
+async function loadBakeryOrders() {
+    const version = ++bakeryOrdersLoadVersion;
+
+    const personId = state.currentPerson?.id;
+    const teacherView = isTeacher();
+
+    if (!personId) return;
+
+    const banner = $("bakeryOutputTestBanner");
+
+    // Le cadre jaune existant suffit.
+    if (banner) {
+        banner.hidden = true;
+        banner.style.display = "none";
+    }
+
+    try {
+        const orders = [];
+        const pageSize = 500;
+
+        // Élèves et professeur chargent les commandes réelles.
+        for (let offset = 0; ; offset += pageSize) {
+            const { data, error } = await db
+                .from("orders")
+                .select("*,order_items(*)")
+                .eq("area", "bäckerei")
+                .eq("is_test", false)
+                .in("status", ["offen", "ausgegeben"])
+                .order("created_at", { ascending: false })
+                .order("id", { ascending: false })
+                .range(offset, offset + pageSize - 1);
+
+            if (error) throw error;
+
+            if (
+                version !== bakeryOrdersLoadVersion ||
+                state.currentPerson?.id !== personId ||
+                isTeacher() !== teacherView
+            ) {
+                return;
+            }
+
+            const page = data || [];
+
+            orders.push(...page);
+
+            if (page.length < pageSize) break;
         }
-        const {error}=await db.rpc("serve_bakery_order",{p_order_id:id});if(error)throw error;await loadBakeryOrders();
-    }catch(error){console.error(error);toast("Bestellung konnte nicht abgeschlossen werden.","error");}
+
+        const realOrders = [
+            ...new Map(
+                orders.map(order => [order.id, order])
+            ).values()
+        ].map(order => ({
+            ...order,
+            is_teacher_test: false
+        }));
+
+        renderBakeryOrders([
+            ...realOrders,
+            ...ownBakeryTestOrders()
+        ]);
+
+    } catch (error) {
+        if (
+            version !== bakeryOrdersLoadVersion ||
+            state.currentPerson?.id !== personId ||
+            isTeacher() !== teacherView
+        ) {
+            return;
+        }
+
+        console.error(error);
+
+        // Les tests personnels restent accessibles
+        // si le chargement des commandes réelles échoue.
+        if (teacherView) {
+            renderBakeryOrders(ownBakeryTestOrders());
+        }
+
+        toast(
+            "Echte Bestellungen konnten nicht geladen werden.",
+            "error"
+        );
+    }
+}
+
+
+function renderBakeryOrders(orders) {
+    const teacherView = isTeacher();
+
+    const visibleOrders = orders.filter(order => {
+        return !order.is_teacher_test || (
+            teacherView &&
+            order.owner_id === state.currentPerson?.id
+        );
+    });
+
+    const open = visibleOrders
+        .filter(order => order.status === "offen")
+        .sort(
+            (a, b) =>
+                new Date(a.created_at) - new Date(b.created_at)
+        );
+
+    const done = visibleOrders
+        .filter(order => order.status === "ausgegeben")
+        .sort(
+            (a, b) =>
+                new Date(b.served_at || b.created_at) -
+                new Date(a.served_at || a.created_at)
+        );
+
+    setText("bakeryOpenOrderCount", open.length);
+    setText("bakeryCompletedOrderCount", done.length);
+
+    const openBox = $("bakeryOutputOrders");
+    const doneBox = $("bakeryCompletedOrders");
+
+    if (!openBox || !doneBox) return;
+
+    openBox.innerHTML = open.length
+        ? ""
+        : `
+            <div class="empty-state bakery-output-empty">
+                <strong>Alles erledigt! ✓</strong>
+                <span>Keine offenen Bestellungen.</span>
+            </div>
+        `;
+
+    for (const order of open) {
+        const card = document.createElement("article");
+
+        const testOrder = Boolean(order.is_teacher_test);
+
+        const canServe = teacherView
+            ? testOrder &&
+                order.owner_id === state.currentPerson?.id
+            : !testOrder;
+
+        card.className =
+            "output-order-card" +
+            (testOrder ? " bakery-test-order" : "");
+
+        const items = bakeryOrderItems(order);
+
+        card.innerHTML = `
+            <div class="bakery-order-card-header">
+
+                <strong class="output-order-number">
+                    ${esc(bakeryOrderLabel(order))}
+                </strong>
+
+                <time class="bakery-order-time">
+                    ${esc(bakeryOrderDate(order.created_at))}
+                </time>
+
+            </div>
+
+            <div class="output-order-items">
+
+                ${items.map(item => `
+                    <div class="bakery-order-item">
+
+                        <strong class="bakery-item-quantity">
+                            ${integer(item.quantity)}×
+                        </strong>
+
+                        <span>
+                            ${esc(bakeryOrderItemName(item))}
+                        </span>
+
+                    </div>
+                `).join("")}
+
+            </div>
+
+            ${canServe ? `
+                <button
+                    class="bakery-served-button"
+                    type="button"
+                >
+                    ✓ Serviert
+                </button>
+            ` : `
+                <span class="bakery-readonly-label">
+                    Nur Ansicht
+                </span>
+            `}
+        `;
+
+        const button = card.querySelector("button");
+
+        if (button) {
+            button.dataset.orderId = order.id;
+            button.disabled = bakeryServingIds.has(order.id);
+
+            button.addEventListener("click", () => {
+                serveBakeryOrder(order.id);
+            });
+        }
+
+        openBox.appendChild(card);
+    }
+
+    doneBox.innerHTML = done.length
+        ? ""
+        : `
+            <div class="empty-state">
+                <small>Noch keine erledigten Bestellungen.</small>
+            </div>
+        `;
+
+    for (const order of done) {
+        const row = document.createElement("div");
+
+        row.className =
+            "completed-order-row" +
+            (order.is_teacher_test ? " bakery-test-order" : "");
+
+        const description = bakeryOrderItems(order)
+            .map(item => {
+                return (
+                    `${integer(item.quantity)}× ` +
+                    bakeryOrderItemName(item)
+                );
+            })
+            .join(" · ");
+
+        row.innerHTML = `
+            <div class="bakery-completed-topline">
+
+                <strong>
+                    ${esc(bakeryOrderLabel(order))}
+                </strong>
+
+                <span class="bakery-served-label">
+                    ✓ Serviert
+                </span>
+
+            </div>
+
+            <time class="bakery-completed-date">
+                ${esc(
+                    bakeryOrderDate(
+                        order.served_at || order.created_at
+                    )
+                )}
+            </time>
+
+            <div class="bakery-completed-items">
+                ${esc(description)}
+            </div>
+        `;
+
+        doneBox.appendChild(row);
+    }
+}
+
+
+async function serveBakeryOrder(id) {
+    if (!state.currentPerson || bakeryServingIds.has(id)) {
+        return;
+    }
+
+    const personId = state.currentPerson.id;
+    const teacherView = isTeacher();
+
+    let testOrder = null;
+
+    if (teacherView) {
+        testOrder = (state.bakeryTestOrders || [])
+            .find(order =>
+                order.id === id &&
+                order.owner_id === personId
+            );
+
+        // Un professeur ne peut jamais traiter
+        // une commande réelle depuis cet écran.
+        if (!testOrder) return;
+    }
+
+    bakeryServingIds.add(id);
+
+    const openBox = $("bakeryOutputOrders");
+
+    if (openBox) {
+        for (const button of openBox.querySelectorAll("button")) {
+            if (button.dataset.orderId === id) {
+                button.disabled = true;
+            }
+        }
+    }
+
+    try {
+        if (teacherView) {
+            if (testOrder.status === "offen") {
+                testOrder.status = "ausgegeben";
+                testOrder.served_at = new Date().toISOString();
+            }
+
+        } else {
+            const { error } = await db.rpc(
+                "serve_bakery_order",
+                { p_order_id: id }
+            );
+
+            if (error) throw error;
+        }
+
+    } catch (error) {
+        console.error(error);
+
+        if (state.currentPerson?.id === personId) {
+            toast(
+                "Bestellung konnte nicht als serviert markiert werden.",
+                "error"
+            );
+        }
+
+    } finally {
+        bakeryServingIds.delete(id);
+
+        if (
+            state.currentPerson?.id === personId &&
+            isTeacher() === teacherView
+        ) {
+            await loadBakeryOrders();
+        }
+    }
 }
 
 /* =====================================================================
