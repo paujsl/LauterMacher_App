@@ -11074,3 +11074,146 @@ function addCashierReportRealtime() {
         );
     });
 }
+/* =====================================================================
+   CALCULATRICES — SAISIE EN EUROS
+   ===================================================================== */
+
+function euroKeypadNext(raw, key) {
+    raw = String(raw || "");
+
+    if (key === "delete") {
+        return raw.slice(0, -1);
+    }
+
+    if (key === ",") {
+        return raw.includes(",")
+            ? raw
+            : (raw || "0") + ",";
+    }
+
+    if (!/^\d$/.test(key)) return raw;
+
+    if (raw.includes(",")) {
+        return raw.split(",")[1].length < 2
+            ? raw + key
+            : raw;
+    }
+
+    if (raw === "0") return key;
+
+    return raw.length < 6 ? raw + key : raw;
+}
+
+
+function euroKeypadCents(raw) {
+    const [whole = "0", fraction = ""] =
+        String(raw || "0").split(",");
+
+    return (
+        Number(whole || "0") * 100 +
+        Number(fraction.padEnd(2, "0"))
+    );
+}
+
+
+function installEuroPaymentKeypads() {
+    ["drinks", "bakery"].forEach(area => {
+        const keypad = $(`${area}PaymentKeypad`);
+
+        if (
+            !keypad ||
+            keypad.dataset.euroKeypadInstalled === "true"
+        ) {
+            return;
+        }
+
+        keypad.dataset.euroKeypadInstalled = "true";
+
+        keypad.innerHTML = [
+            "1", "2", "3",
+            "4", "5", "6",
+            "7", "8", "9",
+            ",", "0"
+        ].map(value => `
+            <button
+                class="payment-key"
+                data-value="${value}"
+                type="button"
+            >
+                ${value}
+            </button>
+        `).join("") + `
+            <button
+                aria-label="Letzte Ziffer löschen"
+                class="payment-key delete-key"
+                id="${area}DeletePaymentButton"
+                type="button"
+            >
+                ⌫
+            </button>
+        `;
+
+        // Nouvelle commande : vider la saisie précédente.
+        $(`${area}PayButton`)?.addEventListener(
+            "click",
+            () => {
+                state[`${area}PaymentInput`] = "";
+                state[`${area}ReceivedCents`] = 0;
+            },
+            true
+        );
+
+        /*
+         * Traiter les touches avant les anciens écouteurs.
+         * Cela évite qu'une seconde logique transforme
+         * la saisie en centimes.
+         */
+        keypad.addEventListener(
+            "click",
+            event => {
+                const button =
+                    event.target.closest(".payment-key");
+
+                if (!button || !keypad.contains(button)) return;
+
+                event.preventDefault();
+                event.stopImmediatePropagation();
+
+                if (state.cashierSaving) return;
+
+                const key =
+                    button.id === `${area}DeletePaymentButton`
+                        ? "delete"
+                        : button.dataset.value;
+
+                const raw = euroKeypadNext(
+                    state[`${area}PaymentInput`],
+                    key
+                );
+
+                state[`${area}PaymentInput`] = raw;
+
+                state[`${area}ReceivedCents`] =
+                    euroKeypadCents(raw);
+
+                if (area === "drinks") {
+                    renderDrinksPayment();
+                } else {
+                    renderBakeryPayment();
+                }
+            },
+            true
+        );
+    });
+}
+
+
+if (document.readyState === "loading") {
+    document.addEventListener(
+        "DOMContentLoaded",
+        installEuroPaymentKeypads,
+        { once: true }
+    );
+} else {
+    installEuroPaymentKeypads();
+}
