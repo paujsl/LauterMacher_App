@@ -1,4 +1,235 @@
+/* =========================================================
+   AUSGABE — EN-TÊTE DÉCALÉ ET HISTORIQUE À DROITE
+   ========================================================= */
 
+
+/* Trois niveaux distincts dans l’en-tête */
+
+#bakeryOutputScreen {
+    padding-top: 8px;
+}
+
+#bakeryOutputScreen .bakery-dashboard-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
+    align-items: start;
+    gap: 5px 14px;
+
+    margin-top: 0;
+    margin-bottom: 28px;
+}
+
+#bakeryOutputScreen #bakeryOutputEditButton {
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: start;
+    align-self: start;
+    margin: 0;
+}
+
+#bakeryOutputScreen #bakeryOutputShiftEndButton {
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: end;
+    align-self: start;
+    margin: 0;
+}
+
+#bakeryOutputScreen .bakery-dashboard-header h1 {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    justify-self: center;
+
+    width: 100%;
+    margin: 10px 0 0;
+    text-align: center;
+}
+
+
+/* Commandes ouvertes à gauche, terminées à droite */
+
+#bakeryOutputScreen .bakery-output-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 4fr) minmax(340px, 1fr);
+    gap: 24px;
+    align-items: start;
+}
+
+#bakeryOutputScreen .bakery-open-orders-panel {
+    grid-column: 1;
+    grid-row: 1;
+    min-width: 0;
+}
+
+#bakeryOutputScreen .bakery-completed-orders-panel {
+    grid-column: 2;
+    grid-row: 1;
+    min-width: 340px;
+
+    padding: 20px;
+    border: 2px solid #b5dfee;
+    border-radius: 26px;
+    background: #f4faff;
+    box-shadow: 0 2px 8px rgba(9, 67, 105, 0.04);
+    box-sizing: border-box;
+}
+
+
+/* Barre de menu déroulant violette */
+
+#bakeryOutputScreen .bakery-completed-history {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+}
+
+#bakeryOutputScreen .bakery-completed-history summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+
+    padding: 15px 13px;
+    border-radius: 15px;
+    background: #f0edff;
+    color: #094369;
+
+    font-size: 1rem;
+    font-weight: 800;
+    line-height: 1.3;
+    cursor: pointer;
+}
+
+#bakeryOutputScreen .bakery-completed-history summary > span {
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+}
+
+#bakeryOutputScreen .bakery-completed-history summary::after {
+    content: "▸";
+    flex: 0 0 auto;
+    color: #8b7ed4;
+}
+
+#bakeryOutputScreen .bakery-completed-history[open] summary::after {
+    content: "▾";
+}
+
+
+/* Historique : numéro et date sur une seule ligne */
+
+#bakeryOutputScreen .bakery-completed-scroll {
+    display: block;
+    max-height: 65vh;
+    margin-top: 14px;
+    padding-right: 5px;
+    overflow-y: auto;
+    overflow-x: auto;
+
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+    scrollbar-color: #bab0f4 #edf0f4;
+}
+
+#bakeryOutputScreen .completed-order-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+
+    width: max-content;
+    min-width: 100%;
+    margin: 0 0 7px;
+    padding: 11px 10px;
+
+    border: 1px solid #e3e6ec;
+    border-radius: 9px;
+    background: #f5f6f8;
+    white-space: nowrap;
+    box-sizing: border-box;
+}
+
+#bakeryOutputScreen .completed-order-row strong {
+    flex: 0 0 auto;
+    color: #094369;
+    font-size: 0.95rem;
+    font-weight: 800;
+}
+
+#bakeryOutputScreen .completed-order-row time {
+    flex: 0 0 auto;
+    color: #667085;
+    font-size: 0.8rem;
+}
+
+
+/* Les tests conservent leur fond jaune */
+
+#bakeryOutputScreen .completed-order-row.bakery-test-order {
+    background: #fff7d5;
+    border-color: #fdbe3f;
+}
+
+
+/* Quand les deux panneaux ne tiennent plus côte à côte */
+
+@media (max-width: 820px) {
+
+    #bakeryOutputScreen .bakery-output-layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    #bakeryOutputScreen .bakery-open-orders-panel {
+        grid-column: 1;
+        grid-row: 1;
+    }
+
+    #bakeryOutputScreen .bakery-completed-orders-panel {
+        grid-column: 1;
+        grid-row: 2;
+
+        width: 100%;
+        min-width: 0;
+    }
+
+    #bakeryOutputScreen .bakery-completed-scroll {
+        max-height: 340px;
+    }
+
+}
+
+
+/* Écrans particulièrement étroits */
+
+@media (max-width: 380px) {
+
+    #bakeryOutputScreen .bakery-completed-orders-panel {
+        padding: 12px;
+    }
+
+    #bakeryOutputScreen .bakery-completed-history summary {
+        padding: 12px 9px;
+        font-size: 0.85rem;
+    }
+
+    #bakeryOutputScreen .completed-order-row {
+        gap: 10px;
+        padding: 10px 8px;
+    }
+
+    #bakeryOutputScreen .completed-order-row strong {
+        font-size: 0.85rem;
+    }
+
+    #bakeryOutputScreen .completed-order-row time {
+        font-size: 0.72rem;
+    }
+
+}
 
 :root {
     --blue: #094369;
@@ -7717,6 +7948,238 @@ body.teacher-mode :is(
 
     #bakeryOutputScreen .bakery-completed-scroll {
         max-height: 280px;
+    }
+
+}
+/* =========================================================
+   AUSGABE — EN-TÊTE DÉCALÉ ET HISTORIQUE À DROITE
+   ========================================================= */
+
+
+/* Trois niveaux distincts dans l’en-tête */
+
+#bakeryOutputScreen {
+    padding-top: 8px;
+}
+
+#bakeryOutputScreen .bakery-dashboard-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
+    align-items: start;
+    gap: 5px 14px;
+
+    margin-top: 0;
+    margin-bottom: 28px;
+}
+
+#bakeryOutputScreen #bakeryOutputEditButton {
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: start;
+    align-self: start;
+    margin: 0;
+}
+
+#bakeryOutputScreen #bakeryOutputShiftEndButton {
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: end;
+    align-self: start;
+    margin: 0;
+}
+
+#bakeryOutputScreen .bakery-dashboard-header h1 {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    justify-self: center;
+
+    width: 100%;
+    margin: 10px 0 0;
+    text-align: center;
+}
+
+
+/* Commandes ouvertes à gauche, terminées à droite */
+
+#bakeryOutputScreen .bakery-output-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 4fr) minmax(340px, 1fr);
+    gap: 24px;
+    align-items: start;
+}
+
+#bakeryOutputScreen .bakery-open-orders-panel {
+    grid-column: 1;
+    grid-row: 1;
+    min-width: 0;
+}
+
+#bakeryOutputScreen .bakery-completed-orders-panel {
+    grid-column: 2;
+    grid-row: 1;
+    min-width: 340px;
+
+    padding: 20px;
+    border: 2px solid #b5dfee;
+    border-radius: 26px;
+    background: #f4faff;
+    box-shadow: 0 2px 8px rgba(9, 67, 105, 0.04);
+    box-sizing: border-box;
+}
+
+
+/* Barre de menu déroulant violette */
+
+#bakeryOutputScreen .bakery-completed-history {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+}
+
+#bakeryOutputScreen .bakery-completed-history summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+
+    padding: 15px 13px;
+    border-radius: 15px;
+    background: #f0edff;
+    color: #094369;
+
+    font-size: 1rem;
+    font-weight: 800;
+    line-height: 1.3;
+    cursor: pointer;
+}
+
+#bakeryOutputScreen .bakery-completed-history summary > span {
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+}
+
+#bakeryOutputScreen .bakery-completed-history summary::after {
+    content: "▸";
+    flex: 0 0 auto;
+    color: #8b7ed4;
+}
+
+#bakeryOutputScreen .bakery-completed-history[open] summary::after {
+    content: "▾";
+}
+
+
+/* Historique : numéro et date sur une seule ligne */
+
+#bakeryOutputScreen .bakery-completed-scroll {
+    display: block;
+    max-height: 65vh;
+    margin-top: 14px;
+    padding-right: 5px;
+    overflow-y: auto;
+    overflow-x: auto;
+
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+    scrollbar-color: #bab0f4 #edf0f4;
+}
+
+#bakeryOutputScreen .completed-order-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+
+    width: max-content;
+    min-width: 100%;
+    margin: 0 0 7px;
+    padding: 11px 10px;
+
+    border: 1px solid #e3e6ec;
+    border-radius: 9px;
+    background: #f5f6f8;
+    white-space: nowrap;
+    box-sizing: border-box;
+}
+
+#bakeryOutputScreen .completed-order-row strong {
+    flex: 0 0 auto;
+    color: #094369;
+    font-size: 0.95rem;
+    font-weight: 800;
+}
+
+#bakeryOutputScreen .completed-order-row time {
+    flex: 0 0 auto;
+    color: #667085;
+    font-size: 0.8rem;
+}
+
+
+/* Les tests conservent leur fond jaune */
+
+#bakeryOutputScreen .completed-order-row.bakery-test-order {
+    background: #fff7d5;
+    border-color: #fdbe3f;
+}
+
+
+/* Quand les deux panneaux ne tiennent plus côte à côte */
+
+@media (max-width: 820px) {
+
+    #bakeryOutputScreen .bakery-output-layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    #bakeryOutputScreen .bakery-open-orders-panel {
+        grid-column: 1;
+        grid-row: 1;
+    }
+
+    #bakeryOutputScreen .bakery-completed-orders-panel {
+        grid-column: 1;
+        grid-row: 2;
+
+        width: 100%;
+        min-width: 0;
+    }
+
+    #bakeryOutputScreen .bakery-completed-scroll {
+        max-height: 340px;
+    }
+
+}
+
+
+/* Écrans particulièrement étroits */
+
+@media (max-width: 380px) {
+
+    #bakeryOutputScreen .bakery-completed-orders-panel {
+        padding: 12px;
+    }
+
+    #bakeryOutputScreen .bakery-completed-history summary {
+        padding: 12px 9px;
+        font-size: 0.85rem;
+    }
+
+    #bakeryOutputScreen .completed-order-row {
+        gap: 10px;
+        padding: 10px 8px;
+    }
+
+    #bakeryOutputScreen .completed-order-row strong {
+        font-size: 0.85rem;
+    }
+
+    #bakeryOutputScreen .completed-order-row time {
+        font-size: 0.72rem;
     }
 
 }
