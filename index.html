@@ -1258,11 +1258,11 @@
     <header class="page-header bakery-dashboard-header">
 
         <button
-            class="secondary-action"
-            id="bakeryOutputShiftEndButton"
+            class="back-button"
+            id="bakeryOutputEditButton"
             type="button"
         >
-            Schicht beenden
+            ← Bearbeiten
         </button>
 
         <h1>
@@ -1270,11 +1270,11 @@
         </h1>
 
         <button
-            class="back-button"
-            id="bakeryOutputBackButton"
+            class="secondary-action"
+            id="bakeryOutputShiftEndButton"
             type="button"
         >
-            ← Bäckerei
+            Schicht beenden
         </button>
 
     </header>
@@ -1293,13 +1293,9 @@
 
                     <span>
                         Fertige Bestellungen ·
-                    </span>
-
-                    <span
-                        class="bakery-order-count"
-                        id="bakeryCompletedOrderCount"
-                    >
-                        0
+                        <span id="bakeryCompletedOrderCount">
+                            0
+                        </span>
                     </span>
 
                 </summary>
@@ -1314,7 +1310,7 @@
         </aside>
 
 
-        <div class="bakery-open-orders-panel">
+        <section class="bakery-open-orders-panel">
 
             <div class="bakery-output-heading">
 
@@ -1330,7 +1326,7 @@
                 id="bakeryOutputOrders"
             ></div>
 
-        </div>
+        </section>
 
     </section>
 
