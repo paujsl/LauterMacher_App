@@ -6520,3 +6520,207 @@ html body #breadcrumb.breadcrumb {
     font-weight: 800;
     line-height: 1;
 }
+/* =====================================================================
+   BENACHRICHTIGUNGEN — LISTE COMPACTE
+   ===================================================================== */
+
+#notificationsScreen #notificationsList {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 360px;
+    overflow: auto;
+    padding: 8px;
+    scrollbar-width: thin;
+    scrollbar-color: #b9b7ff #f5f6f8;
+    -webkit-overflow-scrolling: touch;
+}
+
+#notificationsScreen #notificationsList::-webkit-scrollbar {
+    width: 9px;
+    height: 9px;
+}
+
+#notificationsScreen #notificationsList::-webkit-scrollbar-thumb {
+    border-radius: 12px;
+    background: #b9b7ff;
+}
+
+#notificationsScreen #notificationsList .notification-card {
+    flex: 0 0 auto;
+    box-sizing: border-box;
+    width: max-content;
+    min-width: 100%;
+    margin: 0;
+    padding: 10px 12px;
+    border-radius: 12px;
+}
+
+#notificationsScreen #notificationsList .notification-card-main {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 12px;
+}
+
+#notificationsScreen #notificationsList .notification-card-icon {
+    flex: 0 0 34px;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    font-size: 1rem;
+}
+
+#notificationsScreen #notificationsList
+    .notification-card-main > div:last-child {
+    display: grid;
+    grid-template-columns:
+        230px
+        minmax(360px, max-content)
+        minmax(220px, max-content);
+    align-items: center;
+    gap: 18px;
+}
+
+#notificationsScreen #notificationsList .notification-card strong {
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    text-align: left;
+    white-space: nowrap;
+}
+
+#notificationsScreen #notificationsList .notification-card p {
+    margin: 0;
+    padding: 0;
+    font-size: 0.86rem;
+    line-height: 1.4;
+    text-align: left;
+    white-space: nowrap;
+}
+
+#notificationsScreen #notificationsList .notification-card small {
+    margin: 0;
+    font-size: 0.77rem;
+    line-height: 1.4;
+    text-align: right;
+    white-space: nowrap;
+}
+
+
+/* =====================================================================
+   EMPFÄNGER — BULLES COMME DANS SCHÜLER
+   ===================================================================== */
+
+#notificationsScreen #notificationRecipientList {
+    display: block;
+    width: 100%;
+    min-width: 0;
+}
+
+#notificationsScreen #notificationRecipientSearch {
+    width: 100%;
+}
+
+#notificationsScreen .notification-selection-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin: 14px 0 10px;
+}
+
+#notificationsScreen #notificationRecipientCount {
+    color: #68778a;
+    font-size: 0.82rem;
+    white-space: nowrap;
+}
+
+#notificationsScreen .notification-recipient-bubbles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    max-height: 180px;
+    overflow-y: auto;
+    padding: 12px;
+    border: 1px solid #e1e5ea;
+    border-radius: 12px;
+    background: #f7f8fa;
+}
+
+#notificationsScreen .notification-recipient-chip {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    padding: 9px 14px;
+    border: 1px solid #dce1e7;
+    border-radius: 22px;
+    background: #fff;
+    color: #12496c;
+    font-size: 0.85rem;
+    font-weight: 650;
+    cursor: pointer;
+}
+
+#notificationsScreen .notification-recipient-chip[hidden] {
+    display: none !important;
+}
+
+/* Garder les cases accessibles au clavier,
+   tout en les présentant sous forme de bulles. */
+
+#notificationsScreen .notification-recipient-chip input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+#notificationsScreen .recipient-chip-name {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#notificationsScreen .recipient-chip-circle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 20px;
+    box-sizing: border-box;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #b7aedf;
+    border-radius: 50%;
+    background: #fff;
+}
+
+#notificationsScreen .notification-recipient-chip:has(input:checked) {
+    border-color: #9283df;
+    background: #ddd6fa;
+}
+
+#notificationsScreen .notification-recipient-chip
+    input:checked + .recipient-chip-name .recipient-chip-circle {
+    border-color: #8172cf;
+    background: #8172cf;
+    color: #fff;
+}
+
+#notificationsScreen .notification-recipient-chip
+    input:checked + .recipient-chip-name .recipient-chip-circle::after {
+    content: "✓";
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1;
+}
+
+#notificationsScreen .notification-recipient-chip:focus-within {
+    outline: 3px solid #b9b7ff;
+    outline-offset: 2px;
+}
