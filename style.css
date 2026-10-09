@@ -6489,3 +6489,34 @@ html body #breadcrumb.breadcrumb {
     font-weight: 800;
     white-space: nowrap;
 }
+/* Bulles élèves : cercle après le nom. */
+
+#studentsScreen #accessStudentChoices .access-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#studentsScreen #accessStudentChoices .access-chip::after {
+    content: "";
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 20px;
+    width: 20px;
+    height: 20px;
+    box-sizing: border-box;
+    border: 2px solid #b7aedf;
+    border-radius: 50%;
+    background: #fff;
+}
+
+#studentsScreen #accessStudentChoices .access-chip.is-selected::after {
+    content: "✓";
+    border-color: #8172cf;
+    background: #8172cf;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1;
+}
