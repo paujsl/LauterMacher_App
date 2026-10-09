@@ -3771,147 +3771,174 @@ async function openNotificationsAdmin() {
 }
 
 
-async function loadNotificationRecipients() {
-
-    const box =
-        $("notificationRecipientList");
-
-    if (!box) {
-        return;
-    }
-
-
-    const {
-        data,
-        error
-    } = await db
-        .from("people")
-        .select(
-            "id,first_name,last_name,student_number"
-        )
-        .eq(
-            "person_type",
-            "schüler"
-        )
-        .eq(
-            "active",
-            true
-        )
-        .order(
-            "first_name",
-            {
-                ascending:
-                    true
-            }
-        );
-
-
-    if (error) {
-
-        console.error(error);
-
-        box.innerHTML = `
-            <p>
-                Schüler konnten nicht geladen werden.
-            </p>
-        `;
-
-        return;
-    }
-
-
-    const students =
-        data || [];
-
-
-    box.innerHTML = `
-        <label class="recipient-option recipient-option-all">
-
-            <input
-                id="notificationSelectAllStudents"
-                type="checkbox"
-            />
-
-            <span>
-                Alle
-            </span>
-
-        </label>
-
-        ${students.map(
-            student => `
-                <label class="recipient-option">
-
-                    <input
-                        data-notification-recipient
-                        type="checkbox"
-                        value="${esc(student.id)}"
-                    />
-
-                    <span>
-                        ${esc(
-                            personName(student)
-                        )}
-                    </span>
-
-                </label>
-            `
-        ).join("")}
-    `;
-
-
-    $("notificationSelectAllStudents")
-        ?.addEventListener(
-            "change",
-            event => {
-
-                $$(
-                    "#notificationRecipientList [data-notification-recipient]"
-                )
-                .forEach(
-                    checkbox => {
-
-                        checkbox.checked =
-                            event.target.checked;
-                    }
-                );
-            }
-        );
-
-
-    $$(
+function updateNotificationRecipientSelection() {
+    const inputs = $$(
         "#notificationRecipientList [data-notification-recipient]"
-    )
-    .forEach(
-        checkbox => {
+    );
 
-            checkbox.addEventListener(
-                "change",
-                () => {
+    const selected = inputs.filter(input => input.checked).length;
 
-                    const all =
-                        $$(
-                            "#notificationRecipientList [data-notification-recipient]"
-                        );
+    const all = $("notificationSelectAllStudents");
 
-                    const selectAll =
-                        $("notificationSelectAllStudents");
+    if (all) {
+        all.checked =
+            inputs.length > 0 &&
+            selected === inputs.length;
 
-                    if (selectAll) {
+        all.indeterminate =
+            selected > 0 &&
+            selected < inputs.length;
 
-                        selectAll.checked =
-                            all.length > 0 &&
-                            all.every(
-                                item =>
-                                    item.checked
-                            );
-                    }
-                }
-            );
-        }
+        all.disabled = !inputs.length;
+    }
+
+    setText(
+        "notificationRecipientCount",
+        `${selected} ausgewählt`
+    );
+
+    setText(
+        "notificationSelectAllLabel",
+        inputs.length > 0 && selected === inputs.length
+            ? "Alle abwählen"
+            : "Alle auswählen"
     );
 }
 
+
+async function loadNotificationRecipients() {
+    const box = $("notificationRecipientList");
+
+    if (!box || !isTeacher()) return;
+
+    const selected = new Set(
+        $$(
+            "#notificationRecipientList " +
+            "[data-notification-recipient]:checked"
+        ).map(input => input.value)
+    );
+
+    const { data, error } = await db
+        .from("people")
+        .select("id,first_name,last_name,student_number")
+        .eq("person_type", "schüler")
+        .eq("active", true)
+        .order("first_name", { ascending: true });
+
+    if (error) {
+        console.error(error);
+
+        box.innerHTML =
+            "<p>Schüler konnten nicht geladen werden.</p>";
+
+        return;
+    }
+
+    box.innerHTML = `
+        <input
+            id="notificationRecipientSearch"
+            type="search"
+            placeholder="Schüler suchen"
+            aria-label="Schüler suchen"
+        >
+
+        <div class="notification-selection-heading">
+
+            <label
+                class="notification-recipient-chip notification-recipient-all"
+            >
+                <input
+                    id="notificationSelectAllStudents"
+                    type="checkbox"
+                >
+
+                <span id="notificationSelectAllLabel">
+                    Alle auswählen
+                </span>
+            </label>
+
+            <span id="notificationRecipientCount">
+                0 ausgewählt
+            </span>
+
+        </div>
+
+        <div class="notification-recipient-bubbles">
+
+            ${(data || []).map(student => `
+                <label
+                    class="notification-recipient-chip"
+                    data-recipient-name="${
+                        esc(
+                            personName(student)
+                                .toLocaleLowerCase("de-DE")
+                        )
+                    }"
+                >
+                    <input
+                        type="checkbox"
+                        data-notification-recipient
+                        value="${esc(student.id)}"
+                        ${selected.has(student.id) ? "checked" : ""}
+                    >
+
+                    <span class="recipient-chip-name">
+
+                        ${esc(personName(student))}
+
+                        <span
+                            class="recipient-chip-circle"
+                            aria-hidden="true"
+                        ></span>
+
+                    </span>
+                </label>
+            `).join("")}
+
+        </div>
+    `;
+
+    $("notificationSelectAllStudents").addEventListener(
+        "change",
+        event => {
+            $$(
+                "#notificationRecipientList " +
+                "[data-notification-recipient]"
+            ).forEach(input => {
+                input.checked = event.target.checked;
+            });
+
+            updateNotificationRecipientSelection();
+        }
+    );
+
+    $$(
+        "#notificationRecipientList [data-notification-recipient]"
+    ).forEach(input => {
+        input.addEventListener(
+            "change",
+            updateNotificationRecipientSelection
+        );
+    });
+
+    $("notificationRecipientSearch").addEventListener(
+        "input",
+        event => {
+            const search = event.target.value
+                .trim()
+                .toLocaleLowerCase("de-DE");
+
+            $$(
+                "#notificationRecipientList [data-recipient-name]"
+            ).forEach(label => {
+                label.hidden =
+                    !label.dataset.recipientName.includes(search);
+            });
+        }
+    );
+
+    updateNotificationRecipientSelection();
+}
 
 $("teacherSendNotificationButton")?.addEventListener(
     "click",
@@ -4006,14 +4033,12 @@ $("teacherSendNotificationButton")?.addEventListener(
 
 
             $$(
-                "#notificationRecipientList input[type='checkbox']"
-            )
-            .forEach(
-                input => {
-                    input.checked =
-                        false;
-                }
-            );
+    "#notificationRecipientList input[type='checkbox']"
+).forEach(input => {
+    input.checked = false;
+});
+
+updateNotificationRecipientSelection();
 
 
             setText(
