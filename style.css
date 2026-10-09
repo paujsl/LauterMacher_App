@@ -7170,3 +7170,26 @@ body.teacher-mode :is(
     font-size: 1.1rem;
     font-weight: 800;
 }
+/* =========================================================
+   AUSGABE — TESTS PERSONNELS DU PROFESSEUR
+   ========================================================= */
+
+#bakeryOutputScreen .output-order-card.bakery-test-order,
+#bakeryOutputScreen .completed-order-row.bakery-test-order {
+    background: #fff7d5;
+    border-color: #fdbe3f;
+}
+
+#bakeryOutputScreen .bakery-test-order .output-order-number {
+    color: #78520b;
+    font-size: 1.9rem;
+}
+
+#bakeryOutputScreen .bakery-readonly-label {
+    display: block;
+    align-self: flex-end;
+    margin-top: auto;
+    color: #667085;
+    font-size: 0.78rem;
+    font-weight: 600;
+}
