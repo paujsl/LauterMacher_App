@@ -7141,3 +7141,32 @@ body.teacher-mode :is(
         align-self: flex-start;
     }
 }
+/* Montants sans bulles : Zu zahlen et Kunde gibt. */
+
+:is(#drinksPaymentScreen, #bakeryPaymentScreen)
+    .payment-summary-card {
+    justify-content: center;
+    gap: 8px;
+    padding: 2px 0;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+:is(#drinksPaymentScreen, #bakeryPaymentScreen)
+    .payment-summary-card > span {
+    font-size: 0.95rem;
+    font-weight: 650;
+}
+
+:is(#drinksPaymentScreen, #bakeryPaymentScreen)
+    .payment-summary-card > span::after {
+    content: ":";
+}
+
+:is(#drinksPaymentScreen, #bakeryPaymentScreen)
+    .payment-summary-card > strong {
+    font-size: 1.1rem;
+    font-weight: 800;
+}
