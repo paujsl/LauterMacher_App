@@ -1630,6 +1630,10 @@ async function serveBakeryOrder(id) {
     }
 }
 
+$("bakeryOutputEditButton")?.addEventListener("click", () => {
+    showScreen("editMenuScreen");
+});
+
 /* =====================================================================
    BEARBEITEN
    ===================================================================== */
