@@ -473,145 +473,546 @@ function renderCart(containerId,totalId,buttonId,cart,onChange){
 }
 
 /* =====================================================================
-   GETRÄNKE
+   GETRÄNKE + BÄCKEREI — CAISSES
    ===================================================================== */
 
-function drinksProducts(){return state.products.filter(p=>productArea(p).includes("geträn")||productArea(p)==="drinks");}
-function renderDrinksSale(){
-    renderProductGrid("drinksProductGrid",drinksProducts(),state.drinksCart,renderDrinksSale);
-    renderCart("drinksCartItems","drinksCartTotal","drinksPayButton",state.drinksCart,renderDrinksSale);
-    const teacher=isTeacher();["drinksTestBanner"].forEach(id=>{const e=$(id);if(e){e.hidden=!teacher;e.style.display=teacher?"":"none";}});
-}
-$("drinksSaleBackButton")?.addEventListener("click",goHome);
-$("drinksPayButton")?.addEventListener("click",()=>{
-    if(cartTotal(state.drinksCart)<=0)return;
-    state.drinksReceivedCents=0;renderDrinksPayment();showScreen("drinksPaymentScreen");
-});
-$("drinksPaymentBackButton")?.addEventListener("click",()=>showScreen("drinksSaleScreen"));
+function cashierEntryCents(raw) {
+    const [euros = "0", decimals = ""] =
+        String(raw || "0").split(",");
 
-function renderDrinksPayment(){
-    const total=cartTotal(state.drinksCart),received=state.drinksReceivedCents/100;
-    setText("drinksPaymentTotal",money(total));setText("drinksAmountReceived",money(received));setText("drinksChangeAmount",money(Math.max(0,received-total)));
-    const b=$("drinksPaidButton");if(b)b.disabled=total<=0||received+0.0001<total;
-    const banner=$("drinksPaymentTestBanner");if(banner){banner.hidden=!isTeacher();banner.style.display=isTeacher()?"":"none";}
+    return (
+        Number(euros || "0") * 100 +
+        Number(decimals.padEnd(2, "0"))
+    );
 }
-$("drinksPaymentKeypad")?.addEventListener("click",e=>{
-    const key=e.target.closest(".payment-key");if(!key)return;
-    if(key.id==="drinksDeletePaymentButton")state.drinksReceivedCents=centsDelete(state.drinksReceivedCents);
-    else state.drinksReceivedCents=centsAppend(state.drinksReceivedCents,key.dataset.value);
-    renderDrinksPayment();
-});
-$("drinksPaidButton")?.addEventListener("click",async event=>{
+
+
+function cashierEntryKey(raw, key) {
+    raw = String(raw || "");
+
+    if (key === "delete") {
+        return raw.slice(0, -1);
+    }
+
+    if (key === ",") {
+        return raw.includes(",")
+            ? raw
+            : (raw || "0") + ",";
+    }
+
+    if (!/^\d$/.test(key)) return raw;
+
+    if (raw.includes(",")) {
+        return raw.split(",")[1].length < 2
+            ? raw + key
+            : raw;
+    }
+
+    if (raw === "0") return key;
+
+    return raw.length < 6 ? raw + key : raw;
+}
+
+
+function cashierCartCents(cart) {
+    return Object.values(cart).reduce(
+        (sum, item) =>
+            sum +
+            Math.round(productPrice(item) * 100) *
+            integer(item.quantity),
+        0
+    );
+}
+
+
+function openCashierPayment(area) {
+    if (cashierCartCents(state[`${area}Cart`]) <= 0) return;
+
+    state[`${area}PaymentInput`] = "";
+    state[`${area}ReceivedCents`] = 0;
+
+    renderCashierPayment(area);
+    showScreen(`${area}PaymentScreen`);
+}
+
+
+function renderCashierPayment(area) {
+    const total = cashierCartCents(state[`${area}Cart`]);
+    const received = state[`${area}ReceivedCents`] || 0;
+
+    setText(`${area}PaymentTotal`, money(total / 100));
+    setText(`${area}AmountReceived`, money(received / 100));
+
+    setText(
+        `${area}ChangeAmount`,
+        money(Math.max(0, received - total) / 100)
+    );
+
+    const button = $(`${area}PaidButton`);
+
+    if (button) {
+        button.disabled =
+            !!state.cashierSaving ||
+            total <= 0 ||
+            received < total;
+    }
+
+    const banner = $(`${area}PaymentTestBanner`);
+
+    if (banner) {
+        banner.hidden = !isTeacher();
+        banner.style.display = isTeacher() ? "" : "none";
+    }
+}
+
+
+function renderDrinksPayment() {
+    renderCashierPayment("drinks");
+}
+
+
+function renderBakeryPayment() {
+    renderCashierPayment("bakery");
+}
+
+
+function handleCashierKey(area, event) {
+    if (state.cashierSaving) return;
+
+    const button = event.target.closest(".payment-key");
+    if (!button) return;
+
+    const key = button.id === `${area}DeletePaymentButton`
+        ? "delete"
+        : button.dataset.value;
+
+    const raw = cashierEntryKey(
+        state[`${area}PaymentInput`],
+        key
+    );
+
+    state[`${area}PaymentInput`] = raw;
+    state[`${area}ReceivedCents`] = cashierEntryCents(raw);
+
+    renderCashierPayment(area);
+}
+
+
+async function completeCashierPayment(area, event) {
     event.preventDefault();
-   
-    const total=cartTotal(state.drinksCart),received=state.drinksReceivedCents/100;
-    if(total<=0||received+0.0001<total)return;
-    const btn=$("drinksPaidButton");btn.disabled=true;
-    try{
-        if(isTeacher()){
-            setText("drinksSuccessDescription","Testverkauf – keine Daten wurden gespeichert.");
-        }else{
-            const {error}=await db.rpc("create_sale_order",{p_area:"getränke",p_items:cartItemsForRpc(state.drinksCart),p_payment_amount:received});
-            if(error)throw error;
-            setText("drinksSuccessDescription","Verkauf wurde gespeichert.");
+
+    if (!state.currentPerson || state.cashierSaving) return;
+
+    const cart = state[`${area}Cart`];
+    const total = cashierCartCents(cart);
+    const received = state[`${area}ReceivedCents`] || 0;
+
+    if (total <= 0 || received < total) return;
+
+    state.cashierSaving = true;
+    renderCashierPayment(area);
+
+    let saved = false;
+
+    try {
+        let change = (received - total) / 100;
+        let orderNumber = "---";
+
+        if (isTeacher()) {
+            // Simulation locale uniquement.
+            if (area === "bakery") {
+                orderNumber = String(
+                    Math.floor(100 + Math.random() * 900)
+                );
+
+                state.bakeryTestOrders.unshift({
+                    id: crypto.randomUUID(),
+                    order_number: orderNumber,
+                    status: "offen",
+                    created_at: new Date().toISOString(),
+                    items: Object.values(cart).map(
+                        item => ({ ...item })
+                    )
+                });
+            }
+
+        } else {
+            const { data, error } = await db.rpc(
+                "create_sale_order",
+                {
+                    p_area: area === "drinks"
+                        ? "getränke"
+                        : "bäckerei",
+
+                    p_items: cartItemsForRpc(cart),
+                    p_payment_amount: received / 100
+                }
+            );
+
+            if (error) throw error;
+
+            saved = true;
+
+            const order = Array.isArray(data) ? data[0] : data;
+
+            change = order?.change_amount ?? change;
+            orderNumber = order?.order_number ?? orderNumber;
         }
-        setText("drinksSuccessChange",money(received-total));
-        clearCart(state.drinksCart);state.drinksReceivedCents=0;showScreen("drinksSuccessScreen");
-    }catch(error){console.error(error);toast("Zahlung konnte nicht gespeichert werden.","error");renderDrinksPayment();}
-});
-$("drinksNewOrderButton")?.addEventListener("click",()=>{renderDrinksSale();showScreen("drinksSaleScreen");});
-$("drinksShiftEndButton")?.addEventListener("click",()=>openFreeDrinks("drinksSaleScreen"));
-$("drinksSuccessShiftEndButton")?.addEventListener("click",()=>openFreeDrinks("drinksSuccessScreen"));
 
-/* =====================================================================
-   FREE DRINKS
-   ===================================================================== */
+        setText(
+            "drinksSuccessDescription",
+            isTeacher()
+                ? "Testverkauf – keine Daten wurden gespeichert."
+                : "Verkauf wurde gespeichert."
+        );
 
-function openFreeDrinks(backScreen){
-    state.freeDrinksBackScreen=backScreen;
-    const banner=$("freeDrinksTestBanner");if(banner){banner.hidden=!isTeacher();banner.style.display=isTeacher()?"":"none";}
-    renderFreeDrinks();showScreen("freeDrinksScreen");
+        setText(`${area}SuccessChange`, money(change));
+
+        if (area === "bakery") {
+            setText("bakerySuccessOrderNumber", orderNumber);
+        }
+
+        clearCart(cart);
+
+        state[`${area}PaymentInput`] = "";
+        state[`${area}ReceivedCents`] = 0;
+
+        showScreen(`${area}SuccessScreen`);
+
+        if (!isTeacher()) {
+            try {
+                await loadInventory();
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+    } catch (error) {
+        console.error(error);
+
+        toast(
+            saved
+                ? "Verkauf gespeichert. Ansicht konnte nicht aktualisiert werden."
+                : "Zahlung konnte nicht gespeichert werden.",
+            saved ? "info" : "error"
+        );
+
+    } finally {
+        state.cashierSaving = false;
+        renderCashierPayment(area);
+    }
 }
-function renderFreeDrinks(){
-    const box=$("freeDrinksList");if(!box)return;box.innerHTML="";
-    drinksProducts().filter(activeProduct).forEach(p=>{
-        const row=document.createElement("div");row.className="quantity-product-row";row.dataset.productId=p.id;row.dataset.quantity="0";
-        row.innerHTML=`<span>${esc(productIcon(p))}</span><strong>${esc(p.name)}</strong><div class="quantity-control"><button type="button" data-minus>−</button><span data-value>0</span><button type="button" data-plus>+</button></div>`;
-        const update=d=>{const q=Math.max(0,integer(row.dataset.quantity)+d);row.dataset.quantity=q;row.querySelector("[data-value]").textContent=q;};
-        row.querySelector("[data-minus]").onclick=()=>update(-1);row.querySelector("[data-plus]").onclick=()=>update(1);box.appendChild(row);
+
+
+/* GETRÄNKE */
+
+function drinksProducts() {
+    return state.products.filter(product =>
+        productArea(product).includes("geträn") ||
+        productArea(product) === "drinks"
+    );
+}
+
+
+function renderDrinksSale() {
+    renderProductGrid(
+        "drinksProductGrid",
+        drinksProducts(),
+        state.drinksCart,
+        renderDrinksSale
+    );
+
+    renderCart(
+        "drinksCartItems",
+        "drinksCartTotal",
+        "drinksPayButton",
+        state.drinksCart,
+        renderDrinksSale
+    );
+
+    const banner = $("drinksTestBanner");
+
+    if (banner) {
+        banner.hidden = !isTeacher();
+        banner.style.display = isTeacher() ? "" : "none";
+    }
+}
+
+
+$("drinksSaleBackButton")?.addEventListener("click", goHome);
+
+$("drinksPayButton")?.addEventListener(
+    "click",
+    () => openCashierPayment("drinks")
+);
+
+$("drinksPaymentBackButton")?.addEventListener("click", () => {
+    if (!state.cashierSaving) showScreen("drinksSaleScreen");
+});
+
+$("drinksPaymentKeypad")?.addEventListener(
+    "click",
+    event => handleCashierKey("drinks", event)
+);
+
+$("drinksPaidButton")?.addEventListener(
+    "click",
+    event => completeCashierPayment("drinks", event)
+);
+
+$("drinksNewOrderButton")?.addEventListener("click", () => {
+    renderDrinksSale();
+    showScreen("drinksSaleScreen");
+});
+
+$("drinksShiftEndButton")?.addEventListener(
+    "click",
+    () => openFreeDrinks("drinksSaleScreen")
+);
+
+$("drinksSuccessShiftEndButton")?.addEventListener(
+    "click",
+    () => openFreeDrinks("drinksSuccessScreen")
+);
+
+
+/* KOSTENLOSE GETRÄNKE */
+
+function openFreeDrinks(backScreen) {
+    state.freeDrinksBackScreen = backScreen;
+
+    const banner = $("freeDrinksTestBanner");
+
+    if (banner) {
+        banner.hidden = !isTeacher();
+        banner.style.display = isTeacher() ? "" : "none";
+    }
+
+    renderFreeDrinks();
+    showScreen("freeDrinksScreen");
+}
+
+
+function renderFreeDrinks() {
+    const box = $("freeDrinksList");
+    if (!box) return;
+
+    box.innerHTML = "";
+
+    drinksProducts().filter(activeProduct).forEach(product => {
+        const row = document.createElement("div");
+
+        row.className = "quantity-product-row";
+        row.dataset.productId = product.id;
+        row.dataset.quantity = "0";
+
+        row.innerHTML = `
+            <span>${esc(productIcon(product))}</span>
+            <strong>${esc(product.name)}</strong>
+
+            <div class="quantity-control">
+                <button type="button" data-minus>−</button>
+                <span data-value>0</span>
+                <button type="button" data-plus>+</button>
+            </div>
+        `;
+
+        const update = delta => {
+            if (finishFreeDrinks.busy) return;
+
+            const quantity = Math.max(
+                0,
+                integer(row.dataset.quantity) + delta
+            );
+
+            row.dataset.quantity = quantity;
+            row.querySelector("[data-value]").textContent = quantity;
+        };
+
+        row.querySelector("[data-minus]").onclick = () => update(-1);
+        row.querySelector("[data-plus]").onclick = () => update(1);
+
+        box.appendChild(row);
     });
 }
-$("freeDrinksBackButton")?.addEventListener("click",()=>showScreen(state.freeDrinksBackScreen||"drinksSaleScreen"));
-$("freeDrinksNoneButton")?.addEventListener("click",()=>finishFreeDrinks([]));
-$("freeDrinksSaveButton")?.addEventListener("click",()=>{
-    const items=$$("#freeDrinksList [data-product-id]").map(row=>({product_id:row.dataset.productId,quantity:integer(row.dataset.quantity)})).filter(x=>x.quantity>0);
+
+
+$("freeDrinksBackButton")?.addEventListener("click", () => {
+    if (!finishFreeDrinks.busy) {
+        showScreen(state.freeDrinksBackScreen || "drinksSaleScreen");
+    }
+});
+
+$("freeDrinksNoneButton")?.addEventListener(
+    "click",
+    () => finishFreeDrinks([])
+);
+
+$("freeDrinksSaveButton")?.addEventListener("click", () => {
+    const items = $$("#freeDrinksList [data-product-id]")
+        .map(row => ({
+            product_id: row.dataset.productId,
+            quantity: integer(row.dataset.quantity)
+        }))
+        .filter(item => item.quantity > 0);
+
     finishFreeDrinks(items);
 });
-async function finishFreeDrinks(items){
-    try{
-        if(!isTeacher()&&items.length){
-            const {error}=await db.rpc("record_free_drinks",{p_items:items,p_context:"getränke",p_event_id:null});
-            if(error)throw error;
+
+
+async function finishFreeDrinks(items) {
+    if (!state.currentPerson || finishFreeDrinks.busy) return;
+
+    finishFreeDrinks.busy = true;
+
+    ["freeDrinksNoneButton", "freeDrinksSaveButton"].forEach(id => {
+        if ($(id)) $(id).disabled = true;
+    });
+
+    let saved = false;
+
+    try {
+        if (!isTeacher() && items.length) {
+            const { error } = await db.rpc("record_free_drinks", {
+                p_items: items,
+                p_context: "getränke",
+                p_event_id: null
+            });
+
+            if (error) throw error;
+
+            saved = true;
         }
-        toast("Gut gemacht heute, Team! 🎉","success");goHome();
-    }catch(error){console.error(error);toast("Schicht konnte nicht beendet werden.","error");}
-}
 
-/* =====================================================================
-   BÄCKEREI
-   ===================================================================== */
+        toast(
+            isTeacher()
+                ? "Test beendet – keine Daten wurden gespeichert."
+                : "Gut gemacht heute, Team! 🎉",
+            "success"
+        );
 
-function bakeryProducts(){return state.products.filter(p=>productArea(p).includes("bäck")||productArea(p).includes("back")||productArea(p)==="bakery");}
-$("bakeryMenuBackButton")?.addEventListener("click",goHome);
-$("bakeryCashierButton")?.addEventListener("click",()=>{clearCart(state.bakeryCart);renderBakerySale();showScreen("bakerySaleScreen");});
-$("bakeryOutputButton")?.addEventListener("click",async()=>{showScreen("bakeryOutputScreen");await loadBakeryOrders();});
-$("bakerySaleBackButton")?.addEventListener("click",()=>showScreen("bakeryMenuScreen"));
-function renderBakerySale(){
-    renderProductGrid("bakeryProductGrid",bakeryProducts(),state.bakeryCart,renderBakerySale);
-    renderCart("bakeryCartItems","bakeryCartTotal","bakeryPayButton",state.bakeryCart,renderBakerySale);
-    const banner=$("bakerySaleTestBanner");if(banner){banner.hidden=!isTeacher();banner.style.display=isTeacher()?"":"none";}
-}
-$("bakeryPayButton")?.addEventListener("click",()=>{
-    if(cartTotal(state.bakeryCart)<=0)return;
-    state.bakeryReceivedCents=0;renderBakeryPayment();showScreen("bakeryPaymentScreen");
-});
-$("bakeryPaymentBackButton")?.addEventListener("click",()=>showScreen("bakerySaleScreen"));
-function renderBakeryPayment(){
-    const total=cartTotal(state.bakeryCart),received=state.bakeryReceivedCents/100;
-    setText("bakeryPaymentTotal",money(total));setText("bakeryAmountReceived",money(received));setText("bakeryChangeAmount",money(Math.max(0,received-total)));
-    const b=$("bakeryPaidButton");if(b)b.disabled=total<=0||received+0.0001<total;
-    const banner=$("bakeryPaymentTestBanner");if(banner){banner.hidden=!isTeacher();banner.style.display=isTeacher()?"":"none";}
-}
-$("bakeryPaymentKeypad")?.addEventListener("click",e=>{
-    const key=e.target.closest(".payment-key");if(!key)return;
-    if(key.id==="bakeryDeletePaymentButton")state.bakeryReceivedCents=centsDelete(state.bakeryReceivedCents);
-    else state.bakeryReceivedCents=centsAppend(state.bakeryReceivedCents,key.dataset.value);
-    renderBakeryPayment();
-});
-$("bakeryPaidButton")?.addEventListener("click",async event=>{
-    event.preventDefault();
-   
-    const total=cartTotal(state.bakeryCart),received=state.bakeryReceivedCents/100;if(total<=0||received+0.0001<total)return;
-    const btn=$("bakeryPaidButton");btn.disabled=true;
-    try{
-        let orderNumber;
-        if(isTeacher()){
-            orderNumber=String(Math.floor(100+Math.random()*900));
-            state.bakeryTestOrders.unshift({id:crypto.randomUUID(),order_number:orderNumber,status:"offen",created_at:new Date().toISOString(),items:Object.values(state.bakeryCart).map(x=>({...x}))});
-        }else{
-            const {data,error}=await db.rpc("create_sale_order",{p_area:"bäckerei",p_items:cartItemsForRpc(state.bakeryCart),p_payment_amount:received});
-            if(error)throw error;
-            orderNumber=data?.order_number||data?.[0]?.order_number||"---";
+        goHome();
+
+        if (saved) {
+            try {
+                await loadInventory();
+            } catch (error) {
+                console.error(error);
+            }
         }
-        setText("bakerySuccessOrderNumber",orderNumber);setText("bakerySuccessChange",money(received-total));
-        clearCart(state.bakeryCart);state.bakeryReceivedCents=0;showScreen("bakerySuccessScreen");
-    }catch(error){console.error(error);toast("Zahlung konnte nicht gespeichert werden.","error");renderBakeryPayment();}
-});
-$("bakeryNewOrderButton")?.addEventListener("click",()=>{renderBakerySale();showScreen("bakerySaleScreen");});
-$("bakeryOutputBackButton")?.addEventListener("click",()=>showScreen("bakeryMenuScreen"));
-$("bakeryCashShiftEndButton")?.addEventListener("click",()=>{toast("Gut gemacht heute, Team! 🎉","success");goHome();});
-$("bakeryOutputShiftEndButton")?.addEventListener("click",()=>{toast("Gut gemacht heute, Team! 🎉","success");goHome();});
 
+    } catch (error) {
+        console.error(error);
+
+        toast(
+            saved
+                ? "Kostenlose Getränke gespeichert. Ansicht konnte nicht aktualisiert werden."
+                : "Schicht konnte nicht beendet werden.",
+            "error"
+        );
+
+    } finally {
+        finishFreeDrinks.busy = false;
+
+        ["freeDrinksNoneButton", "freeDrinksSaveButton"].forEach(id => {
+            if ($(id)) $(id).disabled = false;
+        });
+    }
+}
+
+
+/* BÄCKEREI */
+
+function bakeryProducts() {
+    return state.products.filter(product =>
+        productArea(product).includes("bäck") ||
+        productArea(product).includes("back") ||
+        productArea(product) === "bakery"
+    );
+}
+
+
+function renderBakerySale() {
+    renderProductGrid(
+        "bakeryProductGrid",
+        bakeryProducts(),
+        state.bakeryCart,
+        renderBakerySale
+    );
+
+    renderCart(
+        "bakeryCartItems",
+        "bakeryCartTotal",
+        "bakeryPayButton",
+        state.bakeryCart,
+        renderBakerySale
+    );
+
+    const banner = $("bakerySaleTestBanner");
+
+    if (banner) {
+        banner.hidden = !isTeacher();
+        banner.style.display = isTeacher() ? "" : "none";
+    }
+}
+
+
+$("bakeryMenuBackButton")?.addEventListener("click", goHome);
+
+$("bakeryCashierButton")?.addEventListener("click", () => {
+    clearCart(state.bakeryCart);
+    renderBakerySale();
+    showScreen("bakerySaleScreen");
+});
+
+$("bakeryOutputButton")?.addEventListener("click", async () => {
+    showScreen("bakeryOutputScreen");
+    await loadBakeryOrders();
+});
+
+$("bakerySaleBackButton")?.addEventListener(
+    "click",
+    () => showScreen("bakeryMenuScreen")
+);
+
+$("bakeryPayButton")?.addEventListener(
+    "click",
+    () => openCashierPayment("bakery")
+);
+
+$("bakeryPaymentBackButton")?.addEventListener("click", () => {
+    if (!state.cashierSaving) showScreen("bakerySaleScreen");
+});
+
+$("bakeryPaymentKeypad")?.addEventListener(
+    "click",
+    event => handleCashierKey("bakery", event)
+);
+
+$("bakeryPaidButton")?.addEventListener(
+    "click",
+    event => completeCashierPayment("bakery", event)
+);
+
+$("bakeryNewOrderButton")?.addEventListener("click", () => {
+    renderBakerySale();
+    showScreen("bakerySaleScreen");
+});
+
+$("bakeryOutputBackButton")?.addEventListener(
+    "click",
+    () => showScreen("bakeryMenuScreen")
+);
+
+$("bakeryCashShiftEndButton")?.addEventListener("click", () => {
+    toast("Gut gemacht heute, Team! 🎉", "success");
+    goHome();
+});
+
+$("bakeryOutputShiftEndButton")?.addEventListener("click", () => {
+    toast("Gut gemacht heute, Team! 🎉", "success");
+    goHome();
+});
 async function loadBakeryOrders(){
     const banner=$("bakeryOutputTestBanner");if(banner){banner.hidden=!isTeacher();banner.style.display=isTeacher()?"":"none";}
     if(isTeacher()){renderBakeryOrders(state.bakeryTestOrders);return;}
@@ -7881,16 +8282,20 @@ async function loadReports() {
     end.setHours(0, 0, 0, 0);
 
     try {
-        const [sales, ledger] = await Promise.all([
-            db
-                .from("report_sales_lines_v1")
-                .select("*")
-                .gte("sold_at", start.toISOString())
-                .lt("sold_at", end.toISOString()),
+        const [sales, ledger, freeDrinks] = await Promise.all([
+            db.rpc("teacher_get_cashier_sales_lines", {
+                p_from: start.toISOString(),
+                p_to: end.toISOString()
+            }),
 
             db.rpc("get_bookkeeping_entries", {
                 p_from: accountingDateKey(start),
                 p_to: accountingDateKey(end)
+            }),
+
+            db.rpc("teacher_get_free_drinks_report", {
+                p_from: start.toISOString(),
+                p_to: end.toISOString()
             })
         ]);
 
@@ -7920,11 +8325,7 @@ async function loadReports() {
             line => line.estimated_profit == null
         );
 
-        const baseProfit = sum(
-            schoolLines,
-            "estimated_profit"
-        );
-
+        const baseProfit = sum(schoolLines, "estimated_profit");
         const adjustment = sum(entries, "profit_delta");
 
         const pfandPaid = -sum(
@@ -7942,38 +8343,32 @@ async function loadReports() {
             "amount"
         );
 
-        setText(
-            "reportRevenue",
-            money(sum(lines, "revenue"))
-        );
+        setText("reportRevenue", money(sum(lines, "revenue")));
 
         setText(
             "reportDrinksRevenue",
-            money(
-                sum(
-                    lines.filter(line => line.area === "getränke"),
-                    "revenue"
-                )
-            )
+            money(sum(
+                lines.filter(line => line.area === "getränke"),
+                "revenue"
+            ))
         );
 
         setText(
             "reportBakeryRevenue",
-            money(
-                sum(
-                    lines.filter(line => line.area === "bäckerei"),
-                    "revenue"
-                )
-            )
+            money(sum(
+                lines.filter(line => line.area === "bäckerei"),
+                "revenue"
+            ))
         );
 
-        const salesCount = new Set(
-            lines
-                .map(line => line.order_id || line.event_order_id)
-                .filter(Boolean)
-        ).size;
-
-        setText("reportSalesCount", String(salesCount));
+        setText(
+            "reportSalesCount",
+            String(new Set(
+                lines
+                    .map(line => line.order_id || line.event_order_id)
+                    .filter(Boolean)
+            ).size)
+        );
 
         setText(
             "reportProfit",
@@ -8010,6 +8405,8 @@ async function loadReports() {
         `;
 
         renderReportProducts(lines);
+        renderFreeDrinksReport(freeDrinks.data, freeDrinks.error);
+
         await renderSchoolYearChart();
 
     } catch (error) {
@@ -8292,11 +8689,10 @@ async function renderSchoolYearChart() {
 
     try {
         const [sales, ledger] = await Promise.all([
-            db
-                .from("report_sales_lines_v1")
-                .select("*")
-                .gte("sold_at", start.toISOString())
-                .lt("sold_at", end.toISOString()),
+            db.rpc("teacher_get_cashier_sales_lines", {
+    p_from: start.toISOString(),
+    p_to: end.toISOString()
+}),
 
             db.rpc("get_bookkeeping_entries", {
                 p_from: accountingDateKey(start),
@@ -9231,6 +9627,8 @@ if (
         );
     });
 }
+   addCashierReportRealtime();
+   
     state.realtimeChannel.subscribe(
         status => {
 
@@ -10540,4 +10938,139 @@ async function renderProductChangeHistory() {
             "Änderungen konnten nicht geladen werden."
         );
     }
+}
+function renderFreeDrinksReport(data, error = null) {
+    if (!isTeacher()) return;
+
+    let panel = $("freeDrinksReportPanel");
+
+    if (!panel) {
+        panel = document.createElement("section");
+        panel.id = "freeDrinksReportPanel";
+        panel.className = "admin-history-card teacher-only";
+
+        const anchor =
+            $("reportAccountingSummary") ||
+            $("reportProfit")?.closest(".report-kpi-grid");
+
+        if (!anchor) return;
+
+        anchor.after(panel);
+    }
+
+    const open = panel.querySelector("details")?.open ?? true;
+    const entries = data?.entries || [];
+
+    panel.innerHTML = `
+        <div class="free-drinks-report-heading">
+            <h2>Kostenlose Getränke – Anzahl</h2>
+
+            <strong>
+                ${error ? "—" : `${integer(data?.quantity)} Stück`}
+            </strong>
+        </div>
+
+        <details ${open ? "open" : ""}>
+
+            <summary class="admin-history-summary">
+                <span>Letzte Einträge</span>
+                <span>${entries.length} Einträge</span>
+            </summary>
+
+            <div
+                class="admin-history-scroll"
+                tabindex="0"
+                aria-label="Kostenlose Getränke"
+            >
+                <table class="admin-history-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Datum</th>
+                            <th scope="col">Erfasst von</th>
+                            <th scope="col">Produkt</th>
+                            <th scope="col">Anzahl</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        ${
+                            entries.length
+                                ? entries.map(entry => `
+                                    <tr>
+                                        <td>
+                                            ${esc(
+                                                adminHistoryDate(
+                                                    entry.created_at
+                                                )
+                                            )}
+                                        </td>
+                                        <td>${esc(entry.person_name)}</td>
+                                        <td>${esc(entry.product_name)}</td>
+                                        <td>${integer(entry.quantity)}</td>
+                                    </tr>
+                                `).join("")
+                                : `
+                                    <tr>
+                                        <td colspan="4">
+                                            Noch keine Einträge im gewählten Zeitraum.
+                                        </td>
+                                    </tr>
+                                `
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+        </details>
+
+        ${
+            error
+                ? `
+                    <p class="form-message">
+                        Kostenlose Getränke konnten nicht geladen werden.
+                    </p>
+                `
+                : ""
+        }
+    `;
+
+    if (error) console.error(error);
+}
+
+
+function queueCashierReportRefresh() {
+    if (
+        !isTeacher() ||
+        state.currentScreenId !== "reportsScreen"
+    ) {
+        return;
+    }
+
+    clearTimeout(queueCashierReportRefresh.timer);
+
+    queueCashierReportRefresh.timer = setTimeout(() => {
+        if (
+            isTeacher() &&
+            state.currentScreenId === "reportsScreen"
+        ) {
+            loadReports();
+        }
+    }, 300);
+}
+
+
+function addCashierReportRealtime() {
+    if (!state.realtimeChannel || !isTeacher()) return;
+
+    ["orders", "order_items"].forEach(table => {
+        state.realtimeChannel.on(
+            "postgres_changes",
+            {
+                event: "*",
+                schema: "public",
+                table
+            },
+            queueCashierReportRefresh
+        );
+    });
 }
