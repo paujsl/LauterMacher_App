@@ -251,7 +251,10 @@ async function loadCurrentPerson(){
 async function checkStudentTestAccess() {
     const person = state.currentPerson;
 
-    if (!person || person.person_type === "lehrer") {
+    if (
+        !person ||
+        person.person_type === "lehrer"
+    ) {
         return true;
     }
 
@@ -260,6 +263,11 @@ async function checkStudentTestAccess() {
     );
 
     if (error) throw error;
+
+    // La session peut avoir changé pendant la requête.
+    if (state.currentPerson?.id !== person.id) {
+        return false;
+    }
 
     if (data?.allowed === true) {
         return true;
@@ -270,36 +278,53 @@ async function checkStudentTestAccess() {
     }
 
     /*
-     * Ne pas fermer une autre session si l'utilisateur
-     * a changé pendant la requête.
+     * Fermer immédiatement les écrans de travail,
+     * avant d'attendre la déconnexion Supabase.
      */
-    if (state.currentPerson?.id !== person.id) {
-        return false;
-    }
-
     state.currentPerson = null;
     state.selectedLoginPerson = null;
 
     showSchoolClosed();
 
     const screen = $("schoolClosedScreen");
+
+    const title = screen?.querySelector("h1, h2");
     const message = screen?.querySelector("p");
+
+    if (title) {
+        title.textContent =
+            "Deine Website macht auch Feierabend.";
+    }
 
     if (message) {
         message.textContent =
-            "Dein Zugang ist vorübergehend gesperrt. " +
-            "Eine Lehrkraft kann ihn freischalten. " +
+            "Dein Zugang ist derzeit gesperrt. " +
+            "Eine Lehrkraft kann ihn wieder freischalten. " +
             "Bitte lade die Seite danach erneut.";
     }
 
-    if (state.realtimeChannel) {
-        const channel = state.realtimeChannel;
-        state.realtimeChannel = null;
+    const channel = state.realtimeChannel;
+    state.realtimeChannel = null;
 
-        await db.removeChannel(channel);
+    /*
+     * La fermeture visuelle a déjà eu lieu.
+     * Nettoyer ensuite la connexion et l'abonnement.
+     */
+    const cleanup = [
+        db.auth.signOut()
+    ];
+
+    if (channel) {
+        cleanup.push(db.removeChannel(channel));
     }
 
-    await db.auth.signOut();
+    const results = await Promise.allSettled(cleanup);
+
+    results.forEach(result => {
+        if (result.status === "rejected") {
+            console.error(result.reason);
+        }
+    });
 
     return false;
 }
@@ -9149,7 +9174,38 @@ function startRealtime() {
         }
     );
 
+/*
+ * Contrôle immédiat de l'accès lors d'un changement
+ * d'autorisation ou de période de test.
+ */
+if (
+    state.currentPerson &&
+    !isTeacher()
+) {
+    const studentId = state.currentPerson.id;
 
+    [
+        "student_access_grants",
+        "student_access_tests"
+    ].forEach(table => {
+        state.realtimeChannel.on(
+            "postgres_changes",
+            {
+                event: "*",
+                schema: "public",
+                table,
+                filter: `student_id=eq.${studentId}`
+            },
+            () => {
+                if (
+                    state.currentPerson?.id === studentId
+                ) {
+                    enforceSchoolHoursForCurrentSession();
+                }
+            }
+        );
+    });
+}
     state.realtimeChannel.subscribe(
         status => {
 
@@ -9506,29 +9562,53 @@ function enforceTeacherOnlyUI() {
 async function enforceSchoolHoursForCurrentSession() {
     if (
         !state.currentPerson ||
-        isTeacher() ||
-        enforceSchoolHoursForCurrentSession.busy
+        isTeacher()
     ) {
+        return;
+    }
+
+    /*
+     * Si une révocation arrive pendant un contrôle,
+     * effectuer un nouveau contrôle juste après.
+     */
+    if (enforceSchoolHoursForCurrentSession.busy) {
+        enforceSchoolHoursForCurrentSession.pending = true;
         return;
     }
 
     enforceSchoolHoursForCurrentSession.busy = true;
 
     try {
-        if (!await checkStudentTestAccess()) {
-            return;
-        }
+        do {
+            enforceSchoolHoursForCurrentSession.pending = false;
 
-        if (
-            !DEVELOPMENT_MODE &&
-            !schoolOpenNow()
-        ) {
-            state.currentPerson = null;
+            if (
+                !state.currentPerson ||
+                isTeacher()
+            ) {
+                return;
+            }
 
-            showSchoolClosed();
+            if (!await checkStudentTestAccess()) {
+                return;
+            }
 
-            await db.auth.signOut();
-        }
+            if (
+                !DEVELOPMENT_MODE &&
+                !schoolOpenNow()
+            ) {
+                state.currentPerson = null;
+                state.selectedLoginPerson = null;
+
+                showSchoolClosed();
+
+                await db.auth.signOut();
+                return;
+            }
+
+        } while (
+            enforceSchoolHoursForCurrentSession.pending
+        );
 
     } catch (error) {
         console.error(
@@ -9547,9 +9627,27 @@ async function enforceSchoolHoursForCurrentSession() {
  * DEVELOPMENT_MODE sera désactivé.
  */
 
+// Contrôle de secours si un événement Realtime est manqué.
 setInterval(
     enforceSchoolHoursForCurrentSession,
-    15 * 1000
+    2000
+);
+
+// Contrôle au retour dans l'onglet.
+document.addEventListener(
+    "visibilitychange",
+    () => {
+        if (!document.hidden) {
+            enforceSchoolHoursForCurrentSession();
+        }
+    }
+);
+
+window.addEventListener(
+    "focus",
+    () => {
+        enforceSchoolHoursForCurrentSession();
+    }
 );
 
 
