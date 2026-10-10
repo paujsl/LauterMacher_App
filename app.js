@@ -4994,20 +4994,12 @@ $("teacherSendNotificationButton")?.addEventListener(
 
         try {
 
-            const {
-                error
-            } = await db.rpc(
-                "teacher_send_notification",
+                        const { error } = await db.rpc(
+                "teacher_send_student_notification",
                 {
-                    p_recipient_ids:
-                        recipientIds,
-
-                    p_title:
-                        title,
-
-                    p_message:
-                        message ||
-                        null
+                    p_recipient_ids: recipientIds,
+                    p_title: title,
+                    p_message: message || null
                 }
             );
 
@@ -5062,7 +5054,7 @@ updateNotificationRecipientSelection();
 
             const diagnostic = [
                 "Benachrichtigung konnte nicht gesendet werden.",
-                "Funktion: teacher_send_notification",
+                "Funktion: teacher_send_student_notification",
                 `Fehlercode: ${error?.code || "unbekannt"}`,
                 `Meldung: ${
                     error?.message ||
