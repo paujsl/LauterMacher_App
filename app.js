@@ -473,7 +473,10 @@ async function openAppRoute(hash) {
                 );
             }
 
-            showScreen(screen);
+                        showScreen(screen);
+
+            // Réactiver les URL avant le chargement des données.
+            appRouteHistoryMuted = false;
 
             if (screen === "drinksPaymentScreen") {
                 renderCashierPayment("drinks");
