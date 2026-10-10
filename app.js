@@ -5053,17 +5053,39 @@ updateNotificationRecipientSelection();
                 await loadSentNotifications();
             }
 
-        } catch (error) {
+                } catch (error) {
 
-            console.error(error);
-
-            setText(
-                "teacherNotificationMessageStatus",
-                "Benachrichtigung konnte nicht gesendet werden."
+            console.error(
+                "teacher_send_notification:",
+                error
             );
 
-        } finally {
+            const diagnostic = [
+                "Benachrichtigung konnte nicht gesendet werden.",
+                "Funktion: teacher_send_notification",
+                `Fehlercode: ${error?.code || "unbekannt"}`,
+                `Meldung: ${
+                    error?.message ||
+                    String(error)
+                }`,
+                error?.details
+                    ? `Details: ${error.details}`
+                    : "",
+                error?.hint
+                    ? `Hinweis: ${error.hint}`
+                    : ""
+            ].filter(Boolean).join("\n");
 
+            const status = $(
+                "teacherNotificationMessageStatus"
+            );
+
+            if (status) {
+                status.style.whiteSpace = "pre-line";
+                status.textContent = diagnostic;
+            }
+
+        } finally {
             if (button) {
                 button.disabled = false;
             }
