@@ -132,20 +132,471 @@ const screenTitles = {
     eventEndInventoryScreen:"Sonderveranstaltung · Endinventur"
 };
 
-function showScreen(id,{login=false}={}){
-    $$(".screen").forEach(el=>{el.style.display="none";el.classList.remove("screen-visible");});
-    const target=$(id); if(!target)return;
-    target.hidden=false; target.style.display="block"; target.classList.add("screen-visible");
-    state.previousScreenId=state.currentScreenId;
-    state.currentScreenId=id;
-    const authenticated=!!state.currentPerson&&!login;
-    const header=$("appHeader"), breadcrumb=$("breadcrumb");
-    if(header){header.hidden=!authenticated;header.style.display=authenticated?"":"none";}
-    if(breadcrumb){breadcrumb.hidden=!authenticated||id==="homeScreen";breadcrumb.style.display=(!authenticated||id==="homeScreen")?"none":"";}
-    setText("breadcrumbCurrent",screenTitles[id]||"");
-    window.scrollTo({top:0,behavior:"auto"});
+/* =========================================================
+   NAVIGATION — URL PAR ÉCRAN
+   ========================================================= */
+
+const APP_SCREEN_ROUTES = {
+    identityScreen: "/connexion",
+    pinLoginScreen: "/connexion/pin",
+    schoolClosedScreen: "/feierabend",
+
+    homeScreen: "/homepage",
+
+    drinksSaleScreen: "/getraenke/kasse",
+    drinksPaymentScreen: "/getraenke/bezahlen",
+    drinksSuccessScreen: "/getraenke/bezahlt",
+    freeDrinksScreen: "/getraenke/kostenlose-getraenke",
+
+    bakeryMenuScreen: "/baeckerei",
+    bakerySaleScreen: "/baeckerei/kasse",
+    bakeryPaymentScreen: "/baeckerei/bezahlen",
+    bakerySuccessScreen: "/baeckerei/bezahlt",
+    bakeryOutputScreen: "/baeckerei/ausgabe",
+
+    editMenuScreen: "/bearbeiten",
+    productsScreen: "/bearbeiten/produkte",
+    studentInventoryScreen: "/bearbeiten/inventur",
+    teacherInventoryScreen: "/bearbeiten/inventur-pruefen",
+    invoicesScreen: "/bearbeiten/buchhaltung",
+    studentsScreen: "/bearbeiten/schueler",
+    notificationsScreen: "/bearbeiten/benachrichtigungen",
+
+    reportsScreen: "/berichte",
+
+    eventsScreen: "/sonderveranstaltungen",
+    eventTypeScreen: "/sonderveranstaltungen/typ",
+    eventCreateScreen: "/sonderveranstaltungen/neu",
+    eventWorkspaceScreen: "/sonderveranstaltungen/uebersicht",
+    eventProductsScreen: "/sonderveranstaltungen/produkte",
+    eventSaleScreen: "/sonderveranstaltungen/kasse",
+    eventPaymentScreen: "/sonderveranstaltungen/bezahlen",
+    eventSuccessScreen: "/sonderveranstaltungen/bezahlt",
+    eventOutputScreen: "/sonderveranstaltungen/ausgabe",
+    eventEndInventoryScreen: "/sonderveranstaltungen/endinventur"
+};
+
+const APP_ROUTE_SCREENS = Object.fromEntries(
+    Object.entries(APP_SCREEN_ROUTES).map(
+        ([screen, route]) => [route, screen]
+    )
+);
+
+const APP_EVENT_CONTEXT_SCREENS = new Set([
+    "eventWorkspaceScreen",
+    "eventProductsScreen",
+    "eventSaleScreen",
+    "eventPaymentScreen",
+    "eventSuccessScreen",
+    "eventOutputScreen",
+    "eventEndInventoryScreen"
+]);
+
+let appInitialRouteHash = window.location.hash;
+let appInitialRouteUsed = false;
+let appRouteHistoryMuted = false;
+let appRouteRequest = 0;
+
+
+function readAppRoute(hash = window.location.hash) {
+    const raw = hash.replace(/^#/, "") || "/homepage";
+    const separator = raw.indexOf("?");
+
+    const path = separator >= 0
+        ? raw.slice(0, separator)
+        : raw;
+
+    const query = separator >= 0
+        ? raw.slice(separator + 1)
+        : "";
+
+    return {
+        screen: APP_ROUTE_SCREENS[path] || "homeScreen",
+        params: new URLSearchParams(query)
+    };
 }
-function goHome(){showScreen("homeScreen");}
+
+
+function appScreenHash(id) {
+    const route = APP_SCREEN_ROUTES[id] || "/homepage";
+    const params = new URLSearchParams();
+
+    if (
+        APP_EVENT_CONTEXT_SCREENS.has(id) &&
+        state.currentEvent?.id
+    ) {
+        params.set("event", state.currentEvent.id);
+    }
+
+    if (id === "eventCreateScreen") {
+        params.set(
+            "type",
+            $("eventCreateTypeInput")?.value || "food"
+        );
+    }
+
+    const query = params.toString();
+
+    return `#${route}${query ? `?${query}` : ""}`;
+}
+
+
+function allowedAppScreen(id) {
+    if (!$(id)) {
+        return state.currentPerson
+            ? "homeScreen"
+            : "identityScreen";
+    }
+
+    if (id === "schoolClosedScreen") {
+        return id;
+    }
+
+    if (!state.currentPerson) {
+        if (state.currentScreenId === "schoolClosedScreen") {
+            return "schoolClosedScreen";
+        }
+
+        return id === "pinLoginScreen" &&
+            state.selectedLoginPerson
+                ? "pinLoginScreen"
+                : "identityScreen";
+    }
+
+    if (
+        id === "identityScreen" ||
+        id === "pinLoginScreen"
+    ) {
+        return "homeScreen";
+    }
+
+    if ($(id).classList.contains("teacher-only") && !isTeacher()) {
+        return "homeScreen";
+    }
+
+    return id;
+}
+
+
+function showScreen(
+    requestedId,
+    { login = false, historyMode = "push" } = {}
+) {
+    const id = allowedAppScreen(requestedId);
+    const target = $(id);
+
+    if (!target) return;
+
+    $$(".screen").forEach(element => {
+        element.style.display = "none";
+        element.classList.remove("screen-visible");
+    });
+
+    target.hidden = false;
+    target.style.display = "block";
+    target.classList.add("screen-visible");
+
+    if (state.currentScreenId !== id) {
+        state.previousScreenId = state.currentScreenId;
+    }
+
+    state.currentScreenId = id;
+
+    const loginScreen = [
+        "identityScreen",
+        "pinLoginScreen",
+        "schoolClosedScreen"
+    ].includes(id);
+
+    const authenticated =
+        Boolean(state.currentPerson) &&
+        !login &&
+        !loginScreen;
+
+    const header = $("appHeader");
+    const breadcrumb = $("breadcrumb");
+
+    if (header) {
+        header.hidden = !authenticated;
+        header.style.display = authenticated ? "" : "none";
+    }
+
+    if (breadcrumb) {
+        const hidden = !authenticated || id === "homeScreen";
+
+        breadcrumb.hidden = hidden;
+        breadcrumb.style.display = hidden ? "none" : "";
+    }
+
+    setText("breadcrumbCurrent", screenTitles[id] || "");
+
+    if (!appRouteHistoryMuted) {
+        const hash = appScreenHash(id);
+
+        const replace =
+            historyMode === "replace" ||
+            loginScreen ||
+            id !== requestedId ||
+            window.location.hash === hash;
+
+        const routeState = {
+            lauterMacher: true,
+            screen: id
+        };
+
+        if (replace) {
+            window.history.replaceState(routeState, "", hash);
+        } else {
+            window.history.pushState(routeState, "", hash);
+        }
+    }
+
+    window.scrollTo({
+        top: 0,
+        behavior: "auto"
+    });
+}
+
+
+function goHome() {
+    showScreen("homeScreen");
+}
+
+async function openAppRoute(hash) {
+    const request = ++appRouteRequest;
+    const personId = state.currentPerson?.id;
+
+    let { screen, params } = readAppRoute(hash);
+
+    try {
+        if (state.currentPerson && !isTeacher()) {
+            if (!await checkStudentTestAccess()) return;
+
+            if (!schoolOpenNow()) {
+                showSchoolClosed();
+                return;
+            }
+        }
+
+        if (
+            request !== appRouteRequest ||
+            state.currentPerson?.id !== personId
+        ) {
+            return;
+        }
+
+        screen = allowedAppScreen(screen);
+
+        // Ces confirmations appartiennent à un paiement terminé.
+        // Revenir dessus ouvre la caisse, sans rejouer le paiement.
+        const successFallbacks = {
+            drinksSuccessScreen: "drinksSaleScreen",
+            bakerySuccessScreen: "bakerySaleScreen",
+            eventSuccessScreen: "eventSaleScreen"
+        };
+
+        screen = successFallbacks[screen] || screen;
+
+        if (
+            screen === "drinksPaymentScreen" &&
+            cashierCartCents(state.drinksCart) <= 0
+        ) {
+            screen = "drinksSaleScreen";
+        }
+
+        if (
+            screen === "bakeryPaymentScreen" &&
+            cashierCartCents(state.bakeryCart) <= 0
+        ) {
+            screen = "bakerySaleScreen";
+        }
+
+        // Chaque événement possède son identifiant dans l'URL.
+        if (
+            state.currentPerson &&
+            APP_EVENT_CONTEXT_SCREENS.has(screen)
+        ) {
+            const eventId = params.get("event");
+
+            if (
+                !eventId ||
+                !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(eventId)
+            ) {
+                screen = "eventsScreen";
+
+            } else {
+                const { data, error } = await db
+                    .from("events")
+                    .select("*")
+                    .eq("id", eventId)
+                    .maybeSingle();
+
+                if (error) throw error;
+
+                if (
+                    request !== appRouteRequest ||
+                    state.currentPerson?.id !== personId
+                ) {
+                    return;
+                }
+
+                if (!data || eventClosed(data)) {
+                    screen = "eventsScreen";
+                } else {
+                    state.currentEvent = data;
+                }
+            }
+        }
+
+        appRouteHistoryMuted = true;
+
+        try {
+            if (
+                APP_EVENT_CONTEXT_SCREENS.has(screen) &&
+                state.currentEvent
+            ) {
+                await openEventWorkspace(state.currentEvent);
+            }
+
+            if (
+                request !== appRouteRequest ||
+                state.currentPerson?.id !== personId
+            ) {
+                return;
+            }
+
+            if (screen === "eventCreateScreen") {
+                openEventCreate(
+                    params.get("type") === "other"
+                        ? "other"
+                        : "food"
+                );
+            }
+
+            showScreen(screen);
+
+            if (screen === "drinksPaymentScreen") {
+                renderCashierPayment("drinks");
+
+            } else if (screen === "bakeryPaymentScreen") {
+                renderCashierPayment("bakery");
+
+            } else if (screen === "freeDrinksScreen") {
+                if (!$("freeDrinksList")?.children.length) {
+                    renderFreeDrinks();
+                }
+
+            } else if (screen === "invoicesScreen") {
+                await initialiseInvoices();
+
+            } else if (screen === "notificationsScreen") {
+                if (isTeacher()) {
+                    await loadNotificationRecipients();
+                }
+
+                await refreshVisibleScreen();
+
+            } else if (screen === "eventSaleScreen") {
+                await loadEventProducts();
+                renderEventSale();
+
+            } else if (screen === "eventPaymentScreen") {
+                // Le panier événement n'est pas restauré
+                // après un rechargement de la page.
+                showScreen("eventSaleScreen");
+                await loadEventProducts();
+                renderEventSale();
+
+            } else if (screen === "eventEndInventoryScreen") {
+                await loadEventProducts();
+                renderEventEndInventory();
+
+            } else {
+                await refreshVisibleScreen();
+            }
+
+        } finally {
+            appRouteHistoryMuted = false;
+        }
+
+        if (
+            request === appRouteRequest &&
+            state.currentPerson?.id === personId
+        ) {
+            showScreen(state.currentScreenId, {
+                historyMode: "replace"
+            });
+        }
+
+    } catch (error) {
+        appRouteHistoryMuted = false;
+
+        if (
+            request !== appRouteRequest ||
+            state.currentPerson?.id !== personId
+        ) {
+            return;
+        }
+
+        console.error("Navigation:", error);
+
+        toast(
+            "Die Seite konnte nicht geöffnet werden.",
+            "error"
+        );
+
+        showScreen(
+            state.currentPerson ? "homeScreen" : "identityScreen",
+            { historyMode: "replace" }
+        );
+    }
+}
+
+
+async function openInitialAppRoute() {
+    if (appInitialRouteUsed) {
+        showScreen("homeScreen", {
+            historyMode: "replace"
+        });
+        return;
+    }
+
+    appInitialRouteUsed = true;
+
+    await openAppRoute(
+        appInitialRouteHash || "#/homepage"
+    );
+}
+
+
+function handleAppBrowserNavigation() {
+    const hash = window.location.hash;
+
+    // Un lien protégé peut être repris après connexion.
+    if (!state.currentPerson && !appInitialRouteUsed) {
+        appInitialRouteHash = hash;
+    }
+
+    openAppRoute(hash);
+}
+
+
+window.addEventListener(
+    "popstate",
+    handleAppBrowserNavigation
+);
+
+
+window.addEventListener("hashchange", () => {
+    // Retour/Suivant peut émettre aussi hashchange.
+    // Éviter de recharger deux fois l'écran déjà affiché.
+    if (
+        window.location.hash !== appScreenHash(state.currentScreenId)
+    ) {
+        handleAppBrowserNavigation();
+    }
+});
+
 $("homeLogoButton")?.addEventListener("click",goHome);
 $("breadcrumbHomeButton")?.addEventListener("click",goHome);
 
@@ -362,7 +813,7 @@ async function initialiseAuthenticatedApp() {
         ]);
 
         startRealtime();
-        goHome();
+        await openInitialAppRoute();
 
     } catch (error) {
         console.error(error);
