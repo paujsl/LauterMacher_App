@@ -8240,3 +8240,9 @@ body.teacher-mode :is(
     outline: 3px solid #bab0f4;
     outline-offset: 3px;
 }
+/* Masquer les écrans tant que showScreen()
+   ne les a pas explicitement ouverts. */
+
+.screen:not(.screen-visible) {
+    display: none !important;
+}
