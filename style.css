@@ -8246,3 +8246,154 @@ body.teacher-mode :is(
 .screen:not(.screen-visible) {
     display: none !important;
 }
+/* =========================================================
+   SON DERVERANSTALTUNGEN — COMPLÉMENT V6
+   ========================================================= */
+
+.event-v6-dialog {
+    width: min(620px, calc(100vw - 32px));
+    max-height: calc(100dvh - 32px);
+    box-sizing: border-box;
+    overflow: auto;
+    padding: 24px;
+    border: 0;
+    border-radius: 24px;
+    color: #09436a;
+    background: white;
+}
+
+.event-v6-dialog::backdrop {
+    background: rgb(9 67 106 / 40%);
+}
+
+.event-v6-dialog .form-field {
+    margin: 14px 0;
+}
+
+.event-v6-dialog input,
+.event-v6-dialog select,
+.event-v6-dialog textarea {
+    box-sizing: border-box;
+    max-width: 100%;
+}
+
+.event-v6-dialog textarea {
+    width: 100%;
+    padding: 12px;
+}
+
+.event-v6-offer {
+    padding: 12px 20px;
+    border: 0;
+    border-radius: 999px;
+    background: #ff79bd;
+    color: #52213e;
+    font: inherit;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.event-v6-offer:focus-visible {
+    outline: 3px solid #09436a;
+    outline-offset: 3px;
+}
+
+#foodEventWorkspace.event-v6-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+#foodEventWorkspace .admin-menu-card {
+    min-width: 0;
+}
+
+#foodEventWorkspace .admin-menu-card strong,
+#foodEventWorkspace .admin-menu-card small {
+    word-break: normal;
+    overflow-wrap: normal;
+}
+
+.event-v6-chips,
+.event-v6-output-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 16px 0;
+}
+
+.event-v6-chips button {
+    border-radius: 999px;
+    padding: 10px 16px;
+}
+
+.event-v6-chips button:disabled {
+    opacity: .65;
+}
+
+.event-v6-output-tabs button {
+    padding: 10px 16px;
+    border-radius: 14px;
+    cursor: pointer;
+}
+
+.event-v6-test {
+    background: #fff5c4 !important;
+}
+
+.event-v6-warning {
+    color: #b91c1c;
+    font-weight: 800;
+}
+
+.event-v6-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 20px;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px 16px;
+    margin: 6px 0;
+    border: 1px solid #d9e2ea;
+    border-radius: 14px;
+    background: white;
+    color: #09436a;
+    font: inherit;
+    text-align: left;
+}
+
+button.event-v6-row {
+    cursor: pointer;
+}
+
+.event-v6-row strong {
+    flex: 1;
+    min-width: 140px;
+}
+
+.event-v6-history summary {
+    padding: 14px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.event-v6-history #pastEventsList {
+    max-height: 280px;
+    overflow-y: auto;
+}
+
+#eventV6Dialog [hidden],
+#eventCostsFields [hidden],
+.event-v6-offer[hidden],
+.event-v6-output-tabs[hidden] {
+    display: none !important;
+}
+
+@media (max-width: 700px) {
+    #foodEventWorkspace.event-v6-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .event-v6-dialog {
+        padding: 18px;
+    }
+}
