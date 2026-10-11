@@ -12276,3 +12276,1465 @@ if (document.readyState === "loading") {
 } else {
     installEuroPaymentKeypads();
 }
+/* =========================================================
+   SON DERVERANSTALTUNGEN — COMPLÉMENT V6
+   À ajouter une seule fois à la fin de app.js.
+   ========================================================= */
+
+(() => {
+    const V = {
+        invoice: null,
+        invoiceMode: false,
+        busy: false,
+        outputMode: "test"
+    };
+
+    const dialog = $("eventV6Dialog");
+    const form = $("eventV6Form");
+
+    const visible = (node, yes) => {
+        if (!node) return;
+        node.hidden = !yes;
+        node.style.display = yes ? "" : "none";
+    };
+
+    const fail = error => {
+        console.error(error);
+
+        const text = String(error?.message || error);
+
+        if (text.includes("price_changed")) {
+            return "Der Preis wurde geändert. Bitte den Warenkorb prüfen und erneut bezahlen.";
+        }
+
+        if (text.includes("insufficient_stock")) {
+            return "Nicht genug Bestand: " +
+                text.split("insufficient_stock:").pop().trim();
+        }
+
+        if (
+            text.includes("invoice_not_available") ||
+            text.includes("event_invoice_links")
+        ) {
+            return "Diese Rechnung ist bereits einer Veranstaltung zugeordnet.";
+        }
+
+        return "Bitte die Angaben prüfen. " + text;
+    };
+
+    const amount = value => {
+        const s = String(value ?? "").trim().replace(",", ".");
+
+        if (!/^\d+(\.\d{1,2})?$/.test(s)) {
+            throw Error("Bitte einen gültigen Betrag eingeben.");
+        }
+
+        return Number(s);
+    };
+
+    const quantity = value => {
+        if (!/^\d+$/.test(String(value))) {
+            throw Error("Bitte eine ganze Anzahl eingeben.");
+        }
+
+        const n = Number(value);
+
+        if (!Number.isSafeInteger(n) || n > 2147483647) {
+            throw Error("Ungültige Anzahl.");
+        }
+
+        return n;
+    };
+
+    const rpc = async (name, args) => {
+        const { data, error } = await db.rpc(name, args);
+
+        if (error) throw error;
+
+        return Array.isArray(data) ? data[0] : data;
+    };
+
+    const intercept = (
+        id,
+        type,
+        handler,
+        when = () => true
+    ) => {
+        $(id)?.addEventListener(
+            type,
+            async event => {
+                if (!when()) return;
+
+                event.preventDefault();
+                event.stopImmediatePropagation();
+
+                if (V.busy) return;
+
+                V.busy = true;
+
+                const button =
+                    event.currentTarget.tagName === "BUTTON"
+                        ? event.currentTarget
+                        : event.currentTarget.querySelector(
+                            '[type="submit"]'
+                        );
+
+                if (button) button.disabled = true;
+
+                try {
+                    await handler(event);
+                } catch (error) {
+                    toast(fail(error), "error");
+                } finally {
+                    V.busy = false;
+                    if (button) button.disabled = false;
+                }
+            },
+            true
+        );
+    };
+
+    const openDialog = (
+        title,
+        html,
+        save,
+        label = "Speichern"
+    ) => {
+        if (dialog.open) dialog.close();
+
+        $("eventV6Title").textContent = title;
+        $("eventV6Fields").innerHTML = html;
+        $("eventV6Message").textContent = "";
+        $("eventV6Save").textContent = label;
+
+        visible($("eventV6Save"), !!save);
+
+        form.onsubmit = async event => {
+            event.preventDefault();
+
+            if (V.busy || !save) return;
+
+            V.busy = true;
+            $("eventV6Save").disabled = true;
+
+            try {
+                await save();
+            } catch (error) {
+                $("eventV6Message").textContent = fail(error);
+            } finally {
+                V.busy = false;
+                $("eventV6Save").disabled = false;
+            }
+        };
+
+        dialog.showModal();
+    };
+
+    $("eventV6Cancel").onclick = () => {
+        if (!V.busy) dialog.close();
+    };
+
+    dialog.addEventListener("cancel", event => {
+        if (V.busy) event.preventDefault();
+    });
+
+    const field = (
+        label,
+        name,
+        value = "",
+        type = "text",
+        required = true
+    ) => `
+        <label class="form-field">
+            <span>${esc(label)}</span>
+            <input
+                name="${name}"
+                type="${type}"
+                value="${esc(value)}"
+                ${type === "number" ? 'min="0" step="1"' : ""}
+                ${required ? "required" : ""}
+            >
+        </label>
+    `;
+
+    const value = name =>
+        form.elements.namedItem(name).value;
+
+
+    /* Raccordement avec les identifiants du HTML joint. */
+
+    if ($("eventSaleProductGrid")) {
+        $("eventSaleProductGrid").id = "eventProductGrid";
+    }
+
+    const oldShowScreen = showScreen;
+
+    showScreen = (id, options) => {
+        if (id === "eventEndInventoryScreen") {
+            id = "eventWorkspaceScreen";
+        }
+
+        if (V.invoiceMode && id !== "invoicesScreen") {
+            V.invoiceMode = false;
+            $("invoiceContextSelect").disabled = false;
+            $("saveInvoiceButton").textContent =
+                "Rechnung speichern";
+        }
+
+        oldShowScreen(id, options);
+    };
+
+    visible($("eventEndInventoryButton"), false);
+
+    $("eventEndInventoryScreen")
+        ?.classList.add("teacher-only");
+
+    $("foodEventWorkspace")
+        ?.classList.add("event-v6-grid");
+
+    $("eventDirectRevenueField")?.remove();
+    $("eventStartInventoryField")?.remove();
+
+
+    /* Création : question sur les coûts et sélection de facture. */
+
+    $("eventCreateForm").insertAdjacentHTML(
+        "beforeend",
+        `
+        <fieldset class="form-card" id="eventCostsFields">
+            <legend id="eventCostsQuestion"></legend>
+
+            <label>
+                <input
+                    name="eventCosts"
+                    type="radio"
+                    value="yes"
+                    required
+                >
+                Ja
+            </label>
+
+            <label>
+                <input
+                    name="eventCosts"
+                    type="radio"
+                    value="no"
+                    required
+                >
+                Nein
+            </label>
+
+            <div id="eventInvoiceChoice" hidden>
+                <label class="form-field">
+                    <span>Vorhandene Rechnung</span>
+
+                    <select id="eventInvoiceChoiceSelect">
+                        <option value="">
+                            Rechnung auswählen
+                        </option>
+                    </select>
+                </label>
+
+                <button
+                    class="secondary-action"
+                    type="button"
+                    id="eventNewInvoiceButton"
+                >
+                    + Rechnung in Buchhaltung vorbereiten
+                </button>
+
+                <p id="eventInvoiceDraftLabel"></p>
+            </div>
+        </fieldset>
+        `
+    );
+
+    $("saveEventButton").before($("eventCostsFields"));
+
+    $("eventCostsFields").onchange = () => {
+        visible(
+            $("eventInvoiceChoice"),
+            document.querySelector(
+                '[name="eventCosts"]:checked'
+            )?.value === "yes"
+        );
+    };
+
+    $("eventInvoiceChoiceSelect").onchange = () => {
+        V.invoice = null;
+        $("eventInvoiceDraftLabel").textContent = "";
+    };
+
+    const invoices = async () => {
+        const { data, error } = await db
+            .from("invoices")
+            .select("id,invoice_number,supplier,total_amount")
+            .is("event_id", null)
+            .order("created_at", { ascending: false });
+
+        if (error) throw error;
+
+        const {
+            data: links,
+            error: linkError
+        } = await db
+            .from("event_invoice_links")
+            .select("invoice_id");
+
+        if (linkError) throw linkError;
+
+        const used = new Set(
+            (links || []).map(x => x.invoice_id)
+        );
+
+        $("eventInvoiceChoiceSelect").innerHTML =
+            '<option value="">Rechnung auswählen</option>' +
+            (data || [])
+                .filter(i => !used.has(i.id))
+                .map(i => `
+                    <option value="${i.id}">
+                        ${esc(
+                            i.invoice_number ||
+                            i.supplier ||
+                            "Rechnung"
+                        )}
+                        · ${money(i.total_amount)}
+                    </option>
+                `)
+                .join("");
+    };
+
+    openEventCreate = type => {
+        if (!isTeacher()) return;
+
+        V.invoice = null;
+        V.invoiceMode = false;
+
+        $("eventCreateForm").reset();
+        $("eventCreateTypeInput").value = type;
+        $("eventDateInput").value = todayISO();
+
+        setText(
+            "eventCreateTitle",
+            type === "food"
+                ? "Neue Food-Veranstaltung"
+                : "Neue Veranstaltung"
+        );
+
+        setText(
+            "eventCostsQuestion",
+            type === "food"
+                ? "Sind für diese Veranstaltung Kosten entstanden?"
+                : "Wurde Material für diese Veranstaltung gekauft?"
+        );
+
+        visible($("eventInvoiceChoice"), false);
+
+        setText("eventInvoiceDraftLabel", "");
+        setText("eventCreateMessage", "");
+
+        showScreen("eventCreateScreen");
+
+        invoices().catch(error => {
+            setText("eventCreateMessage", fail(error));
+        });
+    };
+
+    intercept("eventCreateForm", "submit", async () => {
+        if (!isTeacher()) return;
+
+        const choice = document.querySelector(
+            '[name="eventCosts"]:checked'
+        )?.value;
+
+        if (!choice) {
+            throw Error("Bitte die Kostenfrage beantworten.");
+        }
+
+        const yes = choice === "yes";
+        const id =
+            $("eventInvoiceChoiceSelect").value || null;
+
+        if (yes && !id && !V.invoice) {
+            throw Error(
+                "Bitte eine Rechnung auswählen oder vorbereiten."
+            );
+        }
+
+        const e = await rpc("create_event_v6", {
+            p_name: $("eventNameInput").value.trim(),
+            p_event_date: $("eventDateInput").value,
+            p_event_type: $("eventCreateTypeInput").value,
+            p_description:
+                $("eventDescriptionInput").value.trim() || null,
+            p_has_costs: yes,
+            p_invoice_id: yes ? id : null,
+            p_invoice: yes && !id ? V.invoice : null
+        });
+
+        V.invoice = null;
+
+        await loadEvents();
+        await openEventWorkspace(e);
+    });
+
+
+    /* Préparation d'une nouvelle facture dans Buchhaltung. */
+
+    intercept("eventNewInvoiceButton", "click", async () => {
+        V.invoiceMode = true;
+
+        try {
+            await initialiseInvoices();
+
+            $("invoiceForm").reset();
+            $("invoiceDateInput").value = todayISO();
+            $("invoicePfandInput").value = "0";
+
+            $("invoiceContextSelect").value =
+                "sonderveranstaltung";
+
+            $("invoiceContextSelect").disabled = true;
+
+            visible($("invoiceEventField"), false);
+
+            setText(
+                "invoiceFormMessage",
+                "Diese Rechnung wird zusammen mit der Veranstaltung gespeichert."
+            );
+
+            $("saveInvoiceButton").textContent =
+                "Rechnung übernehmen und zurück";
+
+            showScreen("invoicesScreen");
+        } catch (error) {
+            V.invoiceMode = false;
+            throw error;
+        }
+    });
+
+    const returnToCreate = () => {
+        V.invoiceMode = false;
+
+        $("invoiceContextSelect").disabled = false;
+
+        $("saveInvoiceButton").textContent =
+            "Rechnung speichern";
+
+        updateInvoiceEventVisibility();
+        showScreen("eventCreateScreen");
+    };
+
+    intercept(
+        "invoicesBackButton",
+        "click",
+        returnToCreate,
+        () => V.invoiceMode
+    );
+
+    intercept(
+        "invoiceForm",
+        "submit",
+        async () => {
+            const total = amount(
+                $("invoiceTotalInput").value
+            );
+
+            const pfand = quantity(
+                $("invoicePfandInput").value
+            );
+
+            if (
+                total <= 0 ||
+                pfand * 0.25 > total ||
+                !$("invoiceDateInput").value
+            ) {
+                throw Error(
+                    "Bitte Datum, Betrag und Pfand prüfen."
+                );
+            }
+
+            V.invoice = {
+                date: $("invoiceDateInput").value,
+                supplier:
+                    $("invoiceSupplierInput").value.trim() ||
+                    null,
+                total,
+                pfand
+            };
+
+            $("eventInvoiceChoiceSelect").value = "";
+
+            setText(
+                "eventInvoiceDraftLabel",
+                `Rechnung vorbereitet · ${money(total)}`
+            );
+
+            returnToCreate();
+        },
+        () => V.invoiceMode
+    );
+
+
+    /* Produits, prix et panier. */
+
+    eventProductPrice = p =>
+        number(
+            p?.promotion_price ??
+            p?.price ??
+            p?.unit_price
+        );
+
+    loadEventProducts = async () => {
+        if (!state.currentEvent) return;
+
+        const id = state.currentEvent.id;
+
+        const { data, error } = await db
+            .from("event_products")
+            .select("*")
+            .eq("event_id", id)
+            .order("name");
+
+        if (error) throw error;
+        if (state.currentEvent?.id !== id) return;
+
+        state.currentEventProducts = data || [];
+
+        renderEventProducts();
+        populateGlobalEventProductSelect();
+
+        for (const item of Object.values(state.eventCart)) {
+            const current = state.currentEventProducts.find(
+                p => p.id === item.id
+            );
+
+            if (current) {
+                Object.assign(item, {
+                    price: current.price,
+                    promotion_price: current.promotion_price
+                });
+            }
+        }
+
+        if (state.currentScreenId === "eventSaleScreen") {
+            renderEventSale();
+        }
+
+        if (state.currentScreenId === "eventPaymentScreen") {
+            renderEventPayment();
+        }
+    };
+
+    populateGlobalEventProductSelect = () => {
+        let box = $("eventGlobalChips");
+
+        if (!box) {
+            const old = $("globalProductForEventSelect")
+                ?.closest(".form-card");
+
+            if (old) visible(old, false);
+
+            box = document.createElement("div");
+            box.id = "eventGlobalChips";
+            box.className = "event-v6-chips";
+
+            $("eventProductsList").before(box);
+        }
+
+        const used = new Set(
+            (state.currentEventProducts || [])
+                .map(p => p.product_id)
+        );
+
+        box.innerHTML = state.products
+            .filter(activeProduct)
+            .map(p => `
+                <button
+                    type="button"
+                    class="secondary-action"
+                    data-product="${esc(p.id)}"
+                    ${used.has(p.id) ? "disabled" : ""}
+                >
+                    ${esc(productIcon(p))}
+                    ${esc(p.name)}
+                    ${used.has(p.id) ? "✓" : "+"}
+                </button>
+            `)
+            .join("");
+
+        box.querySelectorAll("button").forEach(button => {
+            button.onclick = async () => {
+                if (V.busy) return;
+
+                V.busy = true;
+                button.disabled = true;
+
+                try {
+                    await rpc("upsert_event_product", {
+                        p_event_id: state.currentEvent.id,
+                        p_product_id: button.dataset.product
+                    });
+
+                    await loadEventProducts();
+                } catch (error) {
+                    toast(fail(error), "error");
+                    button.disabled = false;
+                } finally {
+                    V.busy = false;
+                }
+            };
+        });
+    };
+
+    const oldRenderProducts = renderEventProducts;
+
+    renderEventProducts = () => {
+        oldRenderProducts();
+
+        $("eventProductsList")
+            .querySelectorAll(".product-admin-row")
+            .forEach((row, i) => {
+                const p = state.currentEventProducts[i];
+
+                row.querySelector(
+                    ".product-admin-main small"
+                ).textContent =
+                    `${money(p.price)} · ` +
+                    (
+                        p.product_id
+                            ? "Regulärer Bestand"
+                            : `Veranstaltungsbestand: ${p.stock_quantity}`
+                    ) +
+                    (
+                        p.promotion_price != null
+                            ? " · Angebot " +
+                              money(p.promotion_price)
+                            : ""
+                    );
+            });
+    };
+
+    openEventProductModal = (product = null) => {
+        openDialog(
+            product
+                ? "Produkt bearbeiten"
+                : "Eigenes Veranstaltungsprodukt",
+
+            field(
+                "Name",
+                "name",
+                product?.name || ""
+            ) +
+            field(
+                "Normalpreis (€)",
+                "price",
+                product?.price ?? ""
+            ) +
+            field(
+                "Symbol",
+                "icon",
+                product?.icon || "🍔",
+                "text",
+                false
+            ) +
+            (
+                !product?.product_id
+                    ? field(
+                        product
+                            ? "Zusätzliche Menge (zum Bestand addieren)"
+                            : "Anfangsbestand",
+                        "stock",
+                        "0",
+                        "number"
+                    )
+                    : "<p>Dieses Produkt verwendet den regulären Bestand.</p>"
+            ),
+
+            async () => {
+                await rpc("save_event_product_v6", {
+                    p_event_id: state.currentEvent.id,
+                    p_event_product_id: product?.id || null,
+                    p_product_id: product?.product_id || null,
+                    p_name: value("name").trim(),
+                    p_price: amount(value("price")),
+                    p_icon: value("icon") || "🍔",
+                    p_add_stock: product?.product_id
+                        ? 0
+                        : quantity(value("stock"))
+                });
+
+                dialog.close();
+                await loadEventProducts();
+            }
+        );
+    };
+
+
+    /* Angebot : uniquement pour l'événement courant. */
+
+    const offer = async () => {
+        await loadEventProducts();
+
+        const products = [...state.currentEventProducts];
+
+        openDialog(
+            "🍬 Angebot",
+
+            "<p>Nur für diese Veranstaltung. Leer lassen, um das Angebot zu entfernen.</p>" +
+            products.map(p => field(
+                `${p.name} · Normalpreis ${money(p.price)}`,
+                p.id,
+                p.promotion_price ?? "",
+                "text",
+                false
+            )).join(""),
+
+            async () => {
+                const items = products.map(p => ({
+                    id: p.id,
+                    price: value(p.id).trim() === ""
+                        ? null
+                        : amount(value(p.id))
+                }));
+
+                await rpc("set_event_promotions_v6", {
+                    p_event_id: state.currentEvent.id,
+                    p_items: items
+                });
+
+                dialog.close();
+                await loadEventProducts();
+            }
+        );
+    };
+
+    [
+        "eventWorkspaceScreen",
+        "eventSaleScreen",
+        "eventOutputScreen"
+    ].forEach(id => {
+        const button = document.createElement("button");
+
+        button.type = "button";
+        button.className = "event-v6-offer";
+        button.textContent = "🍬 Angebot";
+
+        button.onclick = () => {
+            if (V.busy) return;
+
+            offer().catch(error => {
+                toast(fail(error), "error");
+            });
+        };
+
+        $(id).querySelector("header").append(button);
+    });
+
+    const oldOpenWorkspace = openEventWorkspace;
+
+    openEventWorkspace = async e => {
+        await oldOpenWorkspace(e);
+
+        const food =
+            state.currentEvent?.event_type === "food";
+
+        $("eventWorkspaceScreen")
+            .querySelector(".event-v6-offer")
+            .hidden = !food;
+
+        visible($("eventEndInventoryButton"), false);
+        visible($("editOtherEventRevenueButton"), false);
+    };
+
+    const oldRenderSale = renderEventSale;
+
+    renderEventSale = () => {
+        oldRenderSale();
+
+        $("eventSaleScreen").classList.toggle(
+            "event-v6-test",
+            isTeacher()
+        );
+    };
+
+    const oldRenderPayment = renderEventPayment;
+
+    renderEventPayment = () => {
+        oldRenderPayment();
+
+        $("eventPaymentScreen").classList.toggle(
+            "event-v6-test",
+            isTeacher()
+        );
+    };
+
+
+    /* Paiement : commandes professeur uniquement en mémoire. */
+
+    intercept("eventPaidButton", "click", async () => {
+        const total = eventCartTotal();
+        const received = state.eventReceivedCents / 100;
+
+        if (total <= 0 || received < total) return;
+
+        let order;
+
+        if (isTeacher()) {
+            order = {
+                id: crypto.randomUUID(),
+                event_id: state.currentEvent.id,
+                order_number: String(
+                    Math.floor(100 + Math.random() * 900)
+                ),
+                status: "offen",
+
+                items: eventCartItemsForRpc().map(item => ({
+                    ...item,
+                    product_name:
+                        state.eventCart[
+                            item.event_product_id
+                        ].name
+                }))
+            };
+
+            (
+                state.eventTestOrders[
+                    state.currentEvent.id
+                ] ||= []
+            ).unshift(order);
+
+        } else {
+            try {
+                order = await rpc(
+                    "create_event_sale_order",
+                    {
+                        p_event_id: state.currentEvent.id,
+                        p_items: eventCartItemsForRpc(),
+                        p_payment_amount: received
+                    }
+                );
+            } catch (error) {
+                if (
+                    String(error.message)
+                        .includes("price_changed")
+                ) {
+                    await loadEventProducts();
+                }
+
+                throw error;
+            }
+        }
+
+        setText(
+            "eventSuccessOrderNumber",
+            order.order_number
+        );
+
+        setText(
+            "eventSuccessChange",
+            money(
+                order.change_amount ??
+                received - total
+            )
+        );
+
+        clearCart(state.eventCart);
+        state.eventReceivedCents = 0;
+
+        showScreen("eventSuccessScreen");
+    });
+
+
+    /* Fin du service : gratuités, sans clôturer l'événement. */
+
+    const free = async () => {
+        await loadEventProducts();
+
+        const products = [...state.currentEventProducts];
+
+        openDialog(
+            "Schicht beenden",
+
+            `
+            <p>
+                Trage die kostenlosen Produkte ein, die du und
+                deine Kolleginnen und Kollegen während der
+                heutigen Schicht genommen habt.
+            </p>
+
+            <p class="event-v6-warning">
+                ‼️ Nur du erfasst heute die kostenlosen Produkte
+                für das gesamte Team. Frage deshalb alle
+                Kolleginnen und Kollegen, bevor du dieses
+                Fenster schließt!
+            </p>
+
+            <p>
+                Nur neue Mengen eintragen. Bereits gespeicherte
+                Mengen nicht erneut erfassen.
+            </p>
+            ` +
+            products.map(p => field(
+                p.name,
+                p.id,
+                "0",
+                "number"
+            )).join(""),
+
+            async () => {
+                const items = products
+                    .map(p => ({
+                        event_product_id: p.id,
+                        quantity: quantity(value(p.id))
+                    }))
+                    .filter(i => i.quantity > 0);
+
+                if (!isTeacher()) {
+                    await rpc("record_event_free_v6", {
+                        p_event_id: state.currentEvent.id,
+                        p_items: items
+                    });
+                }
+
+                dialog.close();
+
+                showTeamFinished(
+                    "Danke für deinen Einsatz! Die Veranstaltung bleibt geöffnet.",
+                    () => openEventWorkspace(
+                        state.currentEvent
+                    )
+                );
+            },
+
+            isTeacher()
+                ? "Test: Schicht beenden"
+                : "Speichern und Schicht beenden"
+        );
+    };
+
+    [
+        "eventShiftEndButton",
+        "eventCashShiftEndButton",
+        "eventOutputShiftEndButton"
+    ].forEach(id => {
+        intercept(id, "click", free);
+    });
+
+    if (!$("eventOutputShiftEndButton")) {
+        const b = document.createElement("button");
+
+        b.id = "eventOutputShiftEndButton";
+        b.type = "button";
+        b.className = "secondary-action";
+        b.textContent = "Schicht beenden";
+
+        $("eventOutputScreen")
+            .querySelector("header")
+            .append(b);
+
+        intercept(b.id, "click", free);
+    }
+
+
+    /* Professeur : tests personnels ou consultation réelle. */
+
+    const toolbar = document.createElement("div");
+
+    toolbar.className = "event-v6-output-tabs";
+
+    toolbar.innerHTML = `
+        <button type="button" data-mode="test">
+            Meine Testbestellungen
+        </button>
+
+        <button type="button" data-mode="real">
+            Echte Bestellungen ansehen
+        </button>
+    `;
+
+    $("eventOutputOrders").before(toolbar);
+
+    toolbar.querySelectorAll("button").forEach(b => {
+        b.onclick = () => {
+            V.outputMode = b.dataset.mode;
+
+            loadEventOrders().catch(error => {
+                toast(fail(error), "error");
+            });
+        };
+    });
+
+    loadEventOrders = async () => {
+        if (!state.currentEvent) return;
+
+        visible(toolbar, isTeacher());
+
+        $("eventOutputScreen").classList.toggle(
+            "event-v6-test",
+            isTeacher()
+        );
+
+        const readOnly =
+            isTeacher() && V.outputMode === "real";
+
+        let orders;
+
+        if (isTeacher() && !readOnly) {
+            orders =
+                state.eventTestOrders[
+                    state.currentEvent.id
+                ] || [];
+        } else {
+            const { data, error } = await db
+                .from("event_orders")
+                .select("*,event_order_items(*)")
+                .eq("event_id", state.currentEvent.id)
+                .eq("is_test", false)
+                .order("created_at", {
+                    ascending: false
+                });
+
+            if (error) throw error;
+
+            orders = (data || []).map(o => ({
+                ...o,
+                items: o.event_order_items || []
+            }));
+        }
+
+        renderEventOrders(orders);
+
+        if (readOnly) {
+            $("eventOutputOrders")
+                .querySelectorAll("[data-serve-event]")
+                .forEach(b => b.remove());
+        }
+
+        setText(
+            "eventOutputTestBanner",
+            readOnly
+                ? "Echte Bestellungen · Nur ansehen"
+                : "⚠️ Testumgebung – keine echten Verkäufe"
+        );
+
+        visible(
+            $("eventOutputTestBanner"),
+            isTeacher()
+        );
+    };
+
+    const oldServe = serveEventOrder;
+
+    serveEventOrder = async id => {
+        if (
+            isTeacher() &&
+            V.outputMode === "real"
+        ) {
+            return;
+        }
+
+        await oldServe(id);
+    };
+
+
+    /* Clôture officielle : professeur uniquement. */
+
+    intercept("closeEventButton", "click", async () => {
+        if (!isTeacher()) return;
+
+        await loadEventProducts();
+
+        const e = state.currentEvent;
+        const food = e.event_type === "food";
+
+        if (!food) state.currentEventProducts = [];
+
+        const custom = state.currentEventProducts.filter(
+            p => !p.product_id
+        );
+
+        openDialog(
+            "Veranstaltung offiziell abschließen",
+
+            (
+                !food
+                    ? field(
+                        "Umsatz (€) – 0 € ist gültig",
+                        "revenue",
+                        e.direct_revenue ?? ""
+                    )
+                    : "<p>Die Einnahmen werden aus den echten Verkäufen berechnet.</p>"
+            ) +
+
+            `
+            <label class="form-field">
+                <span>
+                    ${
+                        food
+                            ? "Sind noch eigens für diese Veranstaltung erstellte Produkte übrig?"
+                            : "Sind Produkte oder Materialien übrig?"
+                    }
+                </span>
+
+                <select name="leftovers" required>
+                    <option value="">Bitte wählen</option>
+                    <option value="no">Nein</option>
+                    <option value="yes">Ja</option>
+                </select>
+            </label>
+
+            <div id="eventV6Counts" hidden>
+                ${
+                    food
+                        ? custom.map(p => field(
+                            p.name,
+                            p.id,
+                            "",
+                            "number"
+                        )).join("")
+                        : `
+                            <p>
+                                Eine Zeile pro Produkt oder
+                                Material: Name; Anzahl
+                            </p>
+
+                            <textarea
+                                name="materials"
+                                rows="5"
+                                placeholder="Becher; 20"
+                            ></textarea>
+                        `
+                }
+            </div>
+            ` +
+
+            (
+                food
+                    ? `
+                        <label>
+                            <input
+                                type="checkbox"
+                                name="free"
+                                required
+                            >
+                            Die kostenlosen Produkte wurden
+                            vollständig erfasst
+                            (auch 0 ist möglich).
+                        </label>
+                    `
+                    : ""
+            ) +
+
+            "<p>Nur diese Aktion schließt die Veranstaltung endgültig ab.</p>",
+
+            async () => {
+                const left =
+                    value("leftovers") === "yes";
+
+                let counts = [];
+
+                if (left && food) {
+                    counts = custom.map(p => ({
+                        id: p.id,
+                        quantity: quantity(value(p.id))
+                    }));
+                }
+
+                if (left && !food) {
+                    counts = value("materials")
+                        .split("\n")
+                        .filter(s => s.trim())
+                        .map(s => {
+                            const parts = s.split(";");
+
+                            if (
+                                parts.length !== 2 ||
+                                !parts[0].trim()
+                            ) {
+                                throw Error(
+                                    "Bitte Name; Anzahl eingeben."
+                                );
+                            }
+
+                            return {
+                                name: parts[0].trim(),
+                                quantity: quantity(
+                                    parts[1].trim()
+                                )
+                            };
+                        });
+                }
+
+                const summary = await rpc(
+                    "close_event_v6",
+                    {
+                        p_event_id: e.id,
+                        p_revenue: food
+                            ? null
+                            : amount(value("revenue")),
+                        p_leftovers: left,
+                        p_counts: counts,
+                        p_free_confirmed: food
+                            ? form.elements
+                                .namedItem("free")
+                                .checked
+                            : false
+                    }
+                );
+
+                dialog.close();
+                state.currentEvent = null;
+
+                clearCart(state.eventCart);
+
+                await loadEvents();
+                showScreen("eventsScreen");
+                renderEvents();
+
+                openDialog(
+                    "Veranstaltung abgeschlossen",
+
+                    `
+                    <p>
+                        Einnahmen:
+                        <strong>
+                            ${money(summary.revenue)}
+                        </strong>
+                    </p>
+
+                    <p>
+                        Verkäufe:
+                        <strong>
+                            ${integer(summary.sales)}
+                        </strong>
+                    </p>
+
+                    <p>
+                        Kostenlose Einheiten:
+                        <strong>
+                            ${integer(summary.free_units)}
+                        </strong>
+                    </p>
+                    `,
+
+                    null
+                );
+            },
+
+            "Offiziell abschließen"
+        );
+
+        const select =
+            form.elements.namedItem("leftovers");
+
+        select.onchange = () => {
+            const yes = select.value === "yes";
+
+            visible($("eventV6Counts"), yes);
+
+            $("eventV6Counts")
+                .querySelectorAll("input")
+                .forEach(input => {
+                    input.required = yes;
+                });
+        };
+
+        $("eventV6Counts")
+            .querySelectorAll("input")
+            .forEach(input => {
+                input.required = false;
+            });
+    });
+
+
+    /* Historique compact, repliable et défilant. */
+
+    renderEvents = () => {
+        const open = state.events.filter(
+            e => !eventClosed(e)
+        );
+
+        const closed = state.events
+            .filter(eventClosed)
+            .sort((a, b) =>
+                String(
+                    b.completed_at || b.event_date
+                ).localeCompare(
+                    String(
+                        a.completed_at || a.event_date
+                    )
+                )
+            );
+
+        $("upcomingEventsList").innerHTML = "";
+        $("pastEventsList").innerHTML = "";
+
+        const row = (e, done) => {
+            const element = document.createElement(
+                done ? "div" : "button"
+            );
+
+            element.className = "event-v6-row";
+
+            if (!done) {
+                element.type = "button";
+
+                element.onclick = () =>
+                    openEventWorkspace(e);
+            }
+
+            element.innerHTML = `
+                <strong>${esc(e.name)}</strong>
+
+                <span>${dateDE(e.event_date)}</span>
+
+                <span>
+                    ${
+                        e.event_type === "food"
+                            ? "🍔 Food"
+                            : "🎟️ Anderes"
+                    }
+                </span>
+
+                ${
+                    done
+                        ? "<span>✓ Abgeschlossen</span>"
+                        : ""
+                }
+            `;
+
+            return element;
+        };
+
+        open.forEach(e => {
+            $("upcomingEventsList").append(
+                row(e, false)
+            );
+        });
+
+        closed.forEach(e => {
+            $("pastEventsList").append(
+                row(e, true)
+            );
+        });
+
+        if (!open.length) {
+            $("upcomingEventsList").textContent =
+                "Keine offenen Veranstaltungen.";
+        }
+
+        if (!closed.length) {
+            $("pastEventsList").textContent =
+                "Noch keine abgeschlossenen Veranstaltungen.";
+        }
+    };
+
+    const past = $("pastEventsList");
+    const section = past.closest(".event-list-section");
+    const details = document.createElement("details");
+
+    details.className = "event-v6-history";
+
+    details.innerHTML = `
+        <summary>Letzte Veranstaltungen</summary>
+    `;
+
+    section.replaceChildren(details);
+    details.append(past);
+
+
+    /* Texte pour les boissons gratuites habituelles. */
+
+    const intro = $("freeDrinksScreen")
+        ?.querySelector(".celebration-heading p");
+
+    if (intro) {
+        intro.textContent =
+            "Trage die kostenlosen Getränke ein, die du und deine Kolleginnen und Kollegen während der heutigen Schicht genommen habt.";
+
+        intro.insertAdjacentHTML(
+            "afterend",
+            `
+            <p class="event-v6-warning">
+                ‼️ Nur du erfasst heute die kostenlosen Getränke
+                für das gesamte Team. Frage deshalb alle
+                Kolleginnen und Kollegen, bevor du dieses
+                Fenster schließt!
+            </p>
+            `
+        );
+    }
+
+
+    /* Secours si Realtime est momentanément indisponible. */
+
+    let refreshing = false;
+
+    setInterval(async () => {
+        if (
+            refreshing ||
+            document.hidden ||
+            !state.currentPerson ||
+            !state.currentEvent ||
+            V.busy
+        ) {
+            return;
+        }
+
+        const screen = state.currentScreenId;
+
+        if (![
+            "eventOutputScreen",
+            "eventSaleScreen",
+            "eventPaymentScreen"
+        ].includes(screen)) {
+            return;
+        }
+
+        refreshing = true;
+
+        try {
+            const { data, error } = await db
+                .from("events")
+                .select("*")
+                .eq("id", state.currentEvent.id)
+                .single();
+
+            if (error) throw error;
+
+            state.currentEvent = data;
+
+            if (eventClosed(data)) {
+                dialog.close();
+                clearCart(state.eventCart);
+
+                state.currentEvent = null;
+
+                await loadEvents();
+                showScreen("eventsScreen");
+                renderEvents();
+
+                return;
+            }
+
+            if (screen === "eventOutputScreen") {
+                await loadEventOrders();
+            } else {
+                await loadEventProducts();
+            }
+        } catch (error) {
+            console.error(error);
+        } finally {
+            refreshing = false;
+        }
+    }, 5000);
+
+    db.auth.onAuthStateChange(event => {
+        if (event === "SIGNED_OUT") {
+            V.invoice = null;
+            V.invoiceMode = false;
+            dialog.close();
+        }
+    });
+})();
