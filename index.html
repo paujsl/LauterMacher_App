@@ -4097,6 +4097,39 @@
      Aucun products.js.
      ========================================================= -->
 
+   <!-- Fenêtre commune : Angebot, produits gratuits et clôture professeur -->
+<dialog id="eventV6Dialog" class="event-v6-dialog">
+  <form id="eventV6Form">
+    <h2 id="eventV6Title"></h2>
+
+    <div id="eventV6Fields"></div>
+
+    <p
+      id="eventV6Message"
+      class="form-message"
+      role="alert"
+    ></p>
+
+    <div class="modal-actions">
+      <button
+        id="eventV6Cancel"
+        class="secondary-action"
+        type="button"
+      >
+        Schließen
+      </button>
+
+      <button
+        id="eventV6Save"
+        class="primary-action"
+        type="submit"
+      >
+        Speichern
+      </button>
+    </div>
+  </form>
+</dialog>  
+     
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
