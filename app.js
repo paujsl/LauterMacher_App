@@ -15718,6 +15718,8 @@ if (document.readyState === "loading") {
                 </section>
             `).join("");
 
+            $("teacherInventoryList").append(teacherCustom);
+
             applyFilter("teacher");
 
         } catch (error) {
