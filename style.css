@@ -8602,3 +8602,65 @@ button.event-v6-row {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
+/* =========================================================
+   CAISSES — NOMS LISIBLES ET CARTES PRODUITS COMPACTES
+   ========================================================= */
+
+/* Panier : nom sur toute la largeur */
+:is(#drinksSaleScreen, #bakerySaleScreen, #eventSaleScreen)
+.cart-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px 12px;
+}
+
+:is(#drinksSaleScreen, #bakerySaleScreen, #eventSaleScreen)
+.cart-row > div:first-child {
+    grid-column: 1 / -1;
+    min-width: 0;
+}
+
+:is(#drinksSaleScreen, #bakerySaleScreen, #eventSaleScreen)
+.cart-row > div:first-child strong {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    overflow-wrap: anywhere;
+}
+
+:is(#drinksSaleScreen, #bakerySaleScreen, #eventSaleScreen)
+.cart-row > .quantity-control {
+    grid-column: 1;
+    justify-self: start;
+}
+
+:is(#drinksSaleScreen, #bakerySaleScreen, #eventSaleScreen)
+.cart-row > strong:last-child {
+    grid-column: 2;
+    justify-self: end;
+    text-align: right;
+    white-space: nowrap;
+}
+
+/* Produits : largeur liée au contenu, sans étirement */
+:is(#drinksSaleScreen, #bakerySaleScreen, #eventSaleScreen)
+.product-grid {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 10px;
+}
+
+:is(#drinksSaleScreen, #bakerySaleScreen, #eventSaleScreen)
+.sale-product-card {
+    flex: 0 0 auto;
+    width: max-content;
+    min-width: 0;
+    max-width: 100%;
+    padding: 10px 8px;
+}
+
+:is(#drinksSaleScreen, #bakerySaleScreen, #eventSaleScreen)
+.sale-product-card strong {
+    white-space: nowrap;
+}
