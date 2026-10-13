@@ -9755,3 +9755,8 @@ body * {
         font-size: 0.8rem;
     }
 }
+/* Message d’erreur de connexion */
+
+#pinLoginError {
+    color: #b42318 !important;
+}
