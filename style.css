@@ -8640,3 +8640,69 @@ button.event-v6-row {
     text-align: right;
     white-space: nowrap;
 }
+/* =========================================================
+   PAIEMENT — MONTANT REÇU ET MONNAIE À RENDRE
+   Getränke et Bäckerei
+   ========================================================= */
+
+/* Les deux-points figurent maintenant directement dans le HTML */
+:is(#drinksPaymentScreen, #bakeryPaymentScreen)
+.payment-summary-card > span::after,
+
+:is(#drinksPaymentScreen, #bakeryPaymentScreen)
+.change-container > span::after {
+    content: none;
+}
+
+/* Deux rectangles arrondis, plus étroits que le bouton Bezahlt */
+:is(#drinksPaymentScreen, #bakeryPaymentScreen)
+.payment-received-card,
+
+:is(#drinksPaymentScreen, #bakeryPaymentScreen)
+.change-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    box-sizing: border-box;
+    width: min(300px, 100%);
+    min-height: 52px;
+    margin: 0 auto;
+    padding: 12px 14px;
+    gap: 8px;
+
+    border: none;
+    border-radius: 20px;
+    box-shadow: none;
+}
+
+/* Montant donné par le client */
+:is(#drinksPaymentScreen, #bakeryPaymentScreen)
+.payment-received-card {
+    background: #cfe7f7;
+}
+
+/* Monnaie à rendre */
+:is(#drinksPaymentScreen, #bakeryPaymentScreen)
+.change-container {
+    background: #d8cff8;
+}
+
+/* Même taille de texte dans les deux bulles */
+:is(#drinksPaymentScreen, #bakeryPaymentScreen)
+.payment-received-card > span,
+
+:is(#drinksPaymentScreen, #bakeryPaymentScreen)
+.payment-received-card > strong,
+
+:is(#drinksPaymentScreen, #bakeryPaymentScreen)
+.change-container > span,
+
+:is(#drinksPaymentScreen, #bakeryPaymentScreen)
+.change-container > strong {
+    color: #12496c;
+    font-size: 1.1rem;
+    font-weight: 800;
+    line-height: 1.3;
+    white-space: nowrap;
+}
