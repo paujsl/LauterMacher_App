@@ -9007,3 +9007,9 @@ body * {
     overflow-x: auto;
     scrollbar-gutter: stable;
 }
+/* Un seul avertissement pour les boissons gratuites */
+#freeDrinksScreen .free-drinks-warning {
+    color: #b91c1c;
+    font-weight: 800;
+    line-height: 1.5;
+}
