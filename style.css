@@ -9238,3 +9238,172 @@ body * {
         text-align: left;
     }
 }
+/* =========================================================
+   SON DERVERANSTALTUNG V7 — PRÉSENTATION COMPLÉMENTAIRE
+   ========================================================= */
+
+/* Angebot en haut à droite */
+:is(#eventWorkspaceScreen, #eventSaleScreen, #eventOutputScreen)
+.screen-header {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+}
+
+:is(#eventWorkspaceScreen, #eventSaleScreen, #eventOutputScreen)
+.screen-header > .back-button {
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: start;
+}
+
+:is(#eventWorkspaceScreen, #eventSaleScreen, #eventOutputScreen)
+.event-v6-offer {
+    grid-column: 3;
+    grid-row: 1;
+    justify-self: end;
+    white-space: nowrap;
+}
+
+:is(#eventWorkspaceScreen, #eventSaleScreen, #eventOutputScreen)
+.screen-header > h1,
+#eventWorkspaceScreen .screen-title-stack {
+    grid-column: 1 / -1;
+    grid-row: 2;
+}
+
+#eventOutputScreen #eventOutputShiftEndButton {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+}
+
+/* Produits disponibles : clairs */
+#eventProductsScreen #eventGlobalChips button {
+    background: #edf5fb;
+    border-color: #cbdce9;
+    color: #55738b;
+}
+
+/* Produits sélectionnés : bleu foncé */
+#eventProductsScreen #eventGlobalChips button.is-selected,
+#eventProductsScreen #eventGlobalChips button.is-selected:disabled {
+    background: #094369;
+    border-color: #094369;
+    color: white;
+    opacity: 1;
+}
+
+#eventProductsScreen #eventSelectAllDrinksButton {
+    margin: 12px 0 0;
+}
+
+/* Lignes compactes, Bearbeiten à droite */
+#eventProductsScreen .event-v7-product-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+}
+
+#eventProductsScreen .product-admin-main,
+#eventProductsScreen .product-admin-main > div {
+    min-width: 0;
+}
+
+#eventProductsScreen .product-admin-main strong {
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: normal;
+}
+
+#eventProductsScreen .product-admin-actions {
+    display: flex;
+    width: auto;
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+}
+
+#eventProductsScreen .product-admin-actions button {
+    width: auto;
+    white-space: nowrap;
+}
+
+#eventProductsScreen .event-v7-products-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+/* Historique toujours ouvert */
+#eventsScreen .event-list-section h2 {
+    font-size: 1.5rem;
+    font-weight: 800;
+}
+
+#eventsScreen .event-v7-history {
+    margin-top: 24px;
+    padding: 20px;
+    border: 1px solid var(--grey-200, #e2e5e8);
+    border-radius: var(--radius, 22px);
+    background: white;
+    box-shadow: var(--shadow-small);
+}
+
+#eventsScreen #pastEventsList {
+    max-height: 280px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+#eventsScreen #pastEventsList .event-v6-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto auto;
+    gap: 10px;
+    padding: 10px 12px;
+    font-size: 0.85rem;
+}
+
+#eventsScreen #pastEventsList .event-v6-row strong {
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+/* Saisie des produits gratuits : lignes comme dans Getränke */
+#eventV6Dialog #eventFreeProductList .quantity-product-row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+}
+
+#eventV6Dialog .free-drinks-warning {
+    color: #b91c1c;
+    font-weight: 800;
+    line-height: 1.5;
+}
+
+#eventV6Dialog #eventFreeProductList strong {
+    word-break: normal;
+    overflow-wrap: normal;
+}
+
+@media (max-width: 520px) {
+    #eventOutputScreen #eventOutputShiftEndButton {
+        grid-column: 1 / -1;
+        grid-row: 2;
+    }
+
+    #eventOutputScreen .screen-header > h1 {
+        grid-row: 3;
+    }
+
+    #eventsScreen #pastEventsList .event-v6-row {
+        grid-template-columns: minmax(0, 1fr) auto;
+    }
+}
