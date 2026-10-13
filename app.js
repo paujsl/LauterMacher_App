@@ -3332,7 +3332,7 @@ notice.innerHTML = `
             });
         }
 
-        const products = drinksProducts()
+        const products = state.products
             .filter(activeProduct)
             .slice();
 
@@ -3406,6 +3406,7 @@ notice.innerHTML = `
             const row = document.createElement("div");
 
             row.className = "teacher-inventory-row";
+            row.dataset.stockCategory = productArea(product);
 
             row.innerHTML = `
                 <div class="inventory-product-info">
@@ -3554,7 +3555,7 @@ notice.innerHTML = `
                 }
 
                 await commitReview(
-                    "teacher_add_stock",
+                    "teacher_add_stock_v8",
                     {
                         p_product_id: product.id,
                         p_quantity: quantity,
@@ -12942,9 +12943,17 @@ if (document.readyState === "loading") {
             (
                 !product?.product_id
                     ? field(
-                        product
-                            ? "Zusätzliche Menge (zum Bestand addieren)"
-                            : "Anfangsbestand",
+                                                product
+                            ? (
+                                isTeacher()
+                                    ? "Zusätzliche Menge (zum Bestand addieren)"
+                                    : "Zusätzliche Menge (Lehrer bestätigt)"
+                            )
+                            : (
+                                isTeacher()
+                                    ? "Anfangsbestand"
+                                    : "Anfangsbestand (Lehrer bestätigt)"
+                            ),
                         "stock",
                         "0",
                         "number"
@@ -12974,7 +12983,7 @@ if (document.readyState === "loading") {
 
     /* Angebot : uniquement pour l'événement courant. */
 
-    const offer = async () => {
+        const offer = async () => {
         await loadEventProducts();
 
         const products = [...state.currentEventProducts];
@@ -12983,13 +12992,40 @@ if (document.readyState === "loading") {
             "🍬 Angebot",
 
             "<p>Nur für diese Veranstaltung. Leer lassen, um das Angebot zu entfernen.</p>" +
-            products.map(p => field(
-                `${p.name} · Normalpreis ${money(p.price)}`,
-                p.id,
-                p.promotion_price ?? "",
-                "text",
-                false
-            )).join(""),
+
+            products.map(p => `
+                <label class="event-offer-row-v8">
+                    <div class="inventory-product-info">
+                        <span class="inventory-product-icon">
+                            ${esc(
+                                state.products.find(item =>
+                                    String(item.id) === String(p.product_id)
+                                )?.icon || p.icon || "🍔"
+                            )}
+                        </span>
+
+                        <div>
+                            <strong>${esc(p.name)}</strong>
+                            <small>
+                                Normalpreis: ${money(p.price)}
+                            </small>
+                        </div>
+                    </div>
+
+                    <input
+                        name="${esc(p.id)}"
+                        type="text"
+                        inputmode="decimal"
+                        aria-label="${esc(p.name)}: Angebotspreis in Euro"
+                        placeholder="€"
+                        value="${esc(
+                            p.promotion_price == null
+                                ? ""
+                                : String(p.promotion_price).replace(".", ",")
+                        )}"
+                    >
+                </label>
+            `).join(""),
 
             async () => {
                 const items = products.map(p => ({
@@ -13009,7 +13045,6 @@ if (document.readyState === "loading") {
             }
         );
     };
-
     [
         "eventWorkspaceScreen",
         "eventSaleScreen",
@@ -13377,6 +13412,12 @@ if (document.readyState === "loading") {
                             : "Sind Produkte oder Materialien übrig?"
                     }
                 </span>
+                              
+                                <small class="event-leftovers-note-v8">
+                    Dies betrifft nur Produkte oder Materialien, die
+                    speziell für diese Veranstaltung gekauft wurden.
+                    Reguläre Getränke gehören nicht dazu.
+                </small>
 
                 <select name="leftovers" required>
                     <option value="">Bitte wählen</option>
@@ -15374,4 +15415,699 @@ if (document.readyState === "loading") {
         },
         true
     );
+})();
+/* =========================================================
+   V8 — PRODUITS SPÉCIFIQUES ET VALIDATION DES STOCKS
+   ========================================================= */
+
+(() => {
+    let catalog = [];
+    let loading = 0;
+    let saving = false;
+    let editing = null;
+
+    const filters = {
+        student: "all",
+        teacher: "all"
+    };
+
+    const message = error => {
+        console.error(error);
+
+        const text = String(error.message || error);
+
+        if (text.includes("stock_changed_reload")) {
+            return "Der Bestand hat sich geändert. Bitte neu zählen und erneut senden.";
+        }
+
+        if (text.includes("proposal_already_reviewed")) {
+            return "Diese Inventur wurde bereits geprüft.";
+        }
+
+        if (text.includes("event_stock_archived")) {
+            return "Dieses Veranstaltungsprodukt ist bereits abgeschlossen.";
+        }
+
+        return "Die Änderung konnte nicht gespeichert werden. " + text;
+    };
+
+    const rpc = async (name, args = {}) => {
+        const { data, error } = await db.rpc(name, args);
+
+        if (error) throw error;
+
+        return data;
+    };
+
+    const qty = input => {
+        const raw = String(input.value).trim();
+
+        if (
+            !/^\d+$/.test(raw) ||
+            Number(raw) > 2147483647
+        ) {
+            throw Error(
+                "Bitte eine ganze Anzahl ab 0 eintragen."
+            );
+        }
+
+        return Number(raw);
+    };
+
+    const choices = [
+        ["all", "Alle"],
+        ["getränke", "🥤 Getränke"],
+        ["bäckerei", "🥨 Bäckerei"],
+        ["event", "🎪 Sonderveranstaltung"]
+    ];
+
+    const productTabs =
+        $("productsScreen").querySelector(".filter-tabs");
+
+    const eventTab = document.createElement("button");
+
+    eventTab.type = "button";
+    eventTab.className = "filter-tab";
+    eventTab.dataset.productFilter = "event";
+    eventTab.textContent = "🎪 Sonderveranstaltung";
+    eventTab.hidden = true;
+
+    productTabs.append(eventTab);
+
+    for (const role of ["student", "teacher"]) {
+        const list = $(role + "InventoryList");
+        const tabs = document.createElement("div");
+
+        tabs.className = "filter-tabs";
+        tabs.id = role + "InventoryFiltersV8";
+
+        tabs.innerHTML = choices.map(([value, label]) => `
+            <button
+                type="button"
+                class="filter-tab ${value === "all" ? "active" : ""}"
+                data-stock-filter="${value}"
+                data-stock-role="${role}"
+                ${value === "event" ? "hidden" : ""}
+            >
+                ${label}
+            </button>
+        `).join("");
+
+        list.before(tabs);
+    }
+
+    const teacherCustom = document.createElement("div");
+
+    teacherCustom.id = "teacherEventStockV8";
+    $("teacherInventoryList").after(teacherCustom);
+
+    const refresh = async () => {
+        catalog = await rpc("event_stock_catalog_v8");
+
+        const exists = catalog.length > 0;
+
+        eventTab.hidden = !exists;
+
+        if (!exists && productFilter === "event") {
+            productFilter = "all";
+        }
+
+        for (const role of ["student", "teacher"]) {
+            $(role + "InventoryFiltersV8")
+                .querySelector('[data-stock-filter="event"]')
+                .hidden = !exists;
+
+            if (!exists && filters[role] === "event") {
+                filters[role] = "all";
+            }
+        }
+    };
+
+    const applyFilter = role => {
+        const value = filters[role];
+
+        $(role + "InventoryFiltersV8")
+            .querySelectorAll("button")
+            .forEach(button => {
+                button.classList.toggle(
+                    "active",
+                    button.dataset.stockFilter === value
+                );
+            });
+
+        $(role + "InventoryList")
+            .querySelectorAll("[data-stock-category]")
+            .forEach(row => {
+                row.hidden =
+                    value !== "all" &&
+                    row.dataset.stockCategory !== value;
+            });
+
+        if (role === "teacher") {
+            teacherCustom.hidden =
+                value !== "all" && value !== "event";
+
+            $("teacherInventoryList")
+                .querySelector(".teacher-inventory-heading")
+                ?.classList.toggle(
+                    "event-v8-hidden",
+                    value === "event"
+                );
+        }
+    };
+
+    const productInfo = product => `
+        <div class="inventory-product-info">
+            <span class="inventory-product-icon">
+                ${esc(product.icon || "🍔")}
+            </span>
+
+            <div>
+                <strong>${esc(product.name)}</strong>
+
+                <small>
+                    🎪 ${esc(product.event_name)}
+                    · Bestand: ${product.stock_quantity}
+                    ${product.closed ? " · Restbestand" : ""}
+                </small>
+            </div>
+        </div>
+    `;
+
+    const studentBase = renderStudentInventory;
+
+    renderStudentInventory = async () => {
+        const token = ++loading;
+
+        studentBase();
+
+        try {
+            await refresh();
+
+            if (token !== loading) return;
+
+            const list = $("studentInventoryList");
+
+            catalog.forEach(product => {
+                const row = document.createElement("div");
+
+                row.className = "inventory-count-row";
+                row.dataset.stockCategory = "event";
+                row.dataset.eventStock = product.id;
+                row.dataset.eventId = product.event_id;
+                row.dataset.stockVersion = product.stock_version;
+
+                row.innerHTML = productInfo(product) + `
+                    <input
+                        class="inventory-count-input"
+                        data-event-count
+                        type="number"
+                        min="0"
+                        step="1"
+                        inputmode="numeric"
+                        placeholder="0"
+                        aria-label="Gezählter Bestand"
+                    >
+                `;
+
+                if (product.proposals.length) {
+                    row.querySelector("small")
+                        .append(" · Bestätigung ausstehend");
+                }
+
+                list.append(row);
+            });
+
+            applyFilter("student");
+
+        } catch (error) {
+            toast(message(error), "error");
+        }
+    };
+
+    const teacherBase = renderTeacherInventory;
+
+    renderTeacherInventory = async () => {
+        await teacherBase();
+
+        if (!isTeacher()) return;
+
+        try {
+            await refresh();
+
+            teacherCustom.innerHTML = catalog.map(product => `
+                <section class="event-stock-card-v8">
+                    ${productInfo(product)}
+
+                    ${product.proposals.map(proposal => `
+                        <div class="event-stock-review-v8">
+                            <span>
+                                ${
+                                    proposal.kind === "addition"
+                                        ? "Zusätzlicher Bestand"
+                                        : "Gezählter Bestand"
+                                }:
+                                <strong>${proposal.quantity}</strong>
+                                · ${esc(proposal.author_name)}
+                                · ${dateDE(proposal.submitted_at)}
+                            </span>
+
+                            <div>
+                                <button
+                                    type="button"
+                                    class="primary-action"
+                                    data-event-review="${proposal.id}"
+                                >
+                                    Bestätigen
+                                </button>
+
+                                <button
+                                    type="button"
+                                    class="secondary-action"
+                                    data-event-reject="${proposal.id}"
+                                >
+                                    Ablehnen
+                                </button>
+                            </div>
+                        </div>
+                    `).join("")}
+
+                    <div class="event-stock-review-v8">
+                        <label>
+                            Gezählter Bestand:
+
+                            <input
+                                class="inventory-count-input"
+                                type="number"
+                                min="0"
+                                step="1"
+                                inputmode="numeric"
+                                data-teacher-count="${product.id}"
+                                placeholder="0"
+                            >
+                        </label>
+
+                        <button
+                            type="button"
+                            class="secondary-action"
+                            data-teacher-propose="${product.id}"
+                        >
+                            Zur Bestätigung vormerken
+                        </button>
+                    </div>
+                </section>
+            `).join("");
+
+            applyFilter("teacher");
+
+        } catch (error) {
+            toast(message(error), "error");
+        }
+    };
+
+    const productsBase = renderProductsAdmin;
+
+    renderProductsAdmin = async () => {
+        await productsBase();
+
+        try {
+            await refresh();
+
+            if (
+                productFilter === "all" &&
+                !$("productAdminList").children.length
+            ) {
+                await productsBase();
+            }
+
+            productTabs.querySelectorAll("button")
+                .forEach(button => {
+                    button.classList.toggle(
+                        "active",
+                        button.dataset.productFilter === productFilter
+                    );
+                });
+
+            $("productAdminList")
+                .querySelectorAll("[data-event-admin]")
+                .forEach(row => row.remove());
+
+            if (
+                productFilter !== "all" &&
+                productFilter !== "event"
+            ) {
+                return;
+            }
+
+            catalog.forEach(product => {
+                const row = document.createElement("div");
+
+                row.className = "product-admin-item";
+                row.dataset.eventAdmin = product.id;
+
+                row.innerHTML = `
+                    <div class="product-admin-row">
+                        ${productInfo(product)}
+
+                        <div class="product-admin-actions">
+                            <button
+                                type="button"
+                                class="secondary-action"
+                                data-event-edit-v8="${product.id}"
+                            >
+                                ${
+                                    product.closed
+                                        ? "Inventur"
+                                        : "Bearbeiten"
+                                }
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                $("productAdminList").append(row);
+            });
+
+        } catch (error) {
+            toast(message(error), "error");
+        }
+    };
+
+    const editor = document.createElement("dialog");
+
+    editor.className = "event-v6-dialog";
+    editor.id = "eventProductEditorV8";
+
+    editor.innerHTML = `
+        <form>
+            <h2>Veranstaltungsprodukt bearbeiten</h2>
+
+            <label class="form-field">
+                Name
+                <input name="name" required>
+            </label>
+
+            <label class="form-field">
+                Normalpreis (€)
+                <input name="price" required inputmode="decimal">
+            </label>
+
+            <label class="form-field">
+                Symbol
+                <input name="icon" required>
+            </label>
+
+            <label class="form-field">
+                Zusätzliche Menge
+                <input
+                    name="stock"
+                    type="number"
+                    min="0"
+                    step="1"
+                    required
+                    value="0"
+                >
+            </label>
+
+            <p>
+                Der Bestand eines Schülers wird erst nach
+                Bestätigung durch den Lehrer übernommen.
+            </p>
+
+            <p class="form-message" role="alert"></p>
+
+            <div class="modal-actions">
+                <button
+                    type="button"
+                    class="secondary-action"
+                    data-close-v8
+                >
+                    Schließen
+                </button>
+
+                <button
+                    type="submit"
+                    class="primary-action"
+                >
+                    Speichern
+                </button>
+            </div>
+        </form>
+    `;
+
+    document.body.append(editor);
+
+    editor.querySelector("[data-close-v8]").onclick = () => {
+        if (!saving) editor.close();
+    };
+
+    editor.addEventListener("cancel", event => {
+        if (saving) event.preventDefault();
+    });
+
+    editor.querySelector("form").onsubmit = async event => {
+        event.preventDefault();
+
+        if (saving || !editing) return;
+
+        saving = true;
+
+        const form = event.currentTarget;
+        const button = form.querySelector('[type="submit"]');
+
+        button.disabled = true;
+
+        try {
+            const price = String(form.elements.price.value)
+                .trim()
+                .replace(",", ".");
+
+            if (
+                !/^\d+(\.\d{1,2})?$/.test(price) ||
+                Number(price) <= 0
+            ) {
+                throw Error("Bitte einen gültigen Preis eingeben.");
+            }
+
+            await rpc("save_event_product_v6", {
+                p_event_id: editing.event_id,
+                p_event_product_id: editing.id,
+                p_product_id: null,
+                p_name: form.elements.name.value.trim(),
+                p_price: Number(price),
+                p_icon: form.elements.icon.value.trim(),
+                p_add_stock: qty(form.elements.stock)
+            });
+
+            editor.close();
+
+            await renderProductsAdmin();
+
+            if (state.currentEvent?.id === editing.event_id) {
+                await loadEventProducts();
+            }
+
+            toast(
+                "Produkt gespeichert. Schüler-Bestände warten auf Bestätigung.",
+                "success"
+            );
+
+        } catch (error) {
+            form.querySelector(".form-message").textContent =
+                message(error);
+
+        } finally {
+            saving = false;
+            button.disabled = false;
+        }
+    };
+
+    document.addEventListener("click", async event => {
+        const target = event.target.closest("button");
+
+        if (!target) return;
+
+        const stockFilter = target.dataset.stockFilter;
+        const productChoice = target.dataset.productFilter;
+
+        const submit =
+            target.id === "submitStudentInventoryButton";
+
+        const review =
+            target.dataset.eventReview ||
+            target.dataset.eventReject;
+
+        const proposal = target.dataset.teacherPropose;
+        const edit = target.dataset.eventEditV8;
+
+        if (
+            stockFilter === undefined &&
+            productChoice === undefined &&
+            !submit &&
+            !review &&
+            !proposal &&
+            !edit
+        ) {
+            return;
+        }
+
+        event.preventDefault();
+        event.stopImmediatePropagation();
+
+        if (saving) return;
+
+        if (stockFilter !== undefined) {
+            filters[target.dataset.stockRole] = stockFilter;
+            applyFilter(target.dataset.stockRole);
+            return;
+        }
+
+        if (productChoice !== undefined) {
+            productFilter = productChoice;
+            await renderProductsAdmin();
+            return;
+        }
+
+        if (edit) {
+            editing = catalog.find(product => product.id === edit);
+
+            if (!editing) return;
+
+            if (editing.closed) {
+                if (isTeacher()) {
+                    await renderTeacherInventory();
+                    showScreen("teacherInventoryScreen");
+                    filters.teacher = "event";
+                    applyFilter("teacher");
+                } else {
+                    await renderStudentInventory();
+                    showScreen("studentInventoryScreen");
+                    filters.student = "event";
+                    applyFilter("student");
+                }
+
+                return;
+            }
+
+            const form = editor.querySelector("form");
+
+            form.reset();
+
+            form.elements.name.value = editing.name;
+
+            form.elements.price.value =
+                String(editing.price).replace(".", ",");
+
+            form.elements.icon.value = editing.icon || "🍔";
+            form.querySelector(".form-message").textContent = "";
+
+            editor.showModal();
+            return;
+        }
+
+        saving = true;
+        target.disabled = true;
+
+        try {
+            if (submit) {
+                const regular = [];
+                const custom = [];
+
+                $("studentInventoryList")
+                    .querySelectorAll("[data-product-id]")
+                    .forEach(row => {
+                        const input =
+                            row.querySelector("[data-inventory-count]");
+
+                        if (input.value.trim() !== "") {
+                            regular.push({
+                                product_id: row.dataset.productId,
+                                quantity: qty(input)
+                            });
+                        }
+                    });
+
+                $("studentInventoryList")
+                    .querySelectorAll("[data-event-stock]")
+                    .forEach(row => {
+                        const input =
+                            row.querySelector("[data-event-count]");
+
+                        if (input.value.trim() !== "") {
+                            custom.push({
+                                id: row.dataset.eventStock,
+                                event_id: row.dataset.eventId,
+                                quantity: qty(input),
+                                version: row.dataset.stockVersion
+                            });
+                        }
+                    });
+
+                if (!regular.length && !custom.length) {
+                    throw Error(
+                        "Bitte mindestens einen Bestand eintragen."
+                    );
+                }
+
+                await rpc("submit_inventory_v8", {
+                    p_regular: regular,
+                    p_custom: custom
+                });
+
+                $("studentInventoryMessage").textContent =
+                    "Inventur wurde an den Lehrer geschickt.";
+
+                await renderStudentInventory();
+
+                toast("Inventur gesendet.", "success");
+
+            } else if (review) {
+                await rpc("review_event_stock_v8", {
+                    p_id: review,
+                    p_accept: !!target.dataset.eventReview
+                });
+
+                await renderTeacherInventory();
+
+                if (state.currentEvent) {
+                    await loadEventProducts();
+                }
+
+                toast("Inventur geprüft.", "success");
+
+            } else if (proposal) {
+                const product = catalog.find(
+                    product => product.id === proposal
+                );
+
+                const input = teacherCustom.querySelector(
+                    `[data-teacher-count="${proposal}"]`
+                );
+
+                await rpc("submit_inventory_v8", {
+                    p_regular: [],
+                    p_custom: [{
+                        id: product.id,
+                        event_id: product.event_id,
+                        quantity: qty(input),
+                        version: product.stock_version
+                    }]
+                });
+
+                await renderTeacherInventory();
+
+                toast(
+                    "Bitte den gezählten Bestand jetzt bestätigen.",
+                    "success"
+                );
+            }
+
+        } catch (error) {
+            toast(message(error), "error");
+
+        } finally {
+            saving = false;
+            target.disabled = false;
+        }
+    }, true);
 })();
