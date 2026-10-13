@@ -8398,7 +8398,7 @@ button.event-v6-row {
     }
 }
 /* =========================================================
-   SON DERVERANSTALTUNG — BULLE AU SURVOL
+   SONDERVERANSTALTUNG — BULLE IN BEARBEITUNG
    ========================================================= */
 
 #homeEventsButton {
@@ -8430,13 +8430,6 @@ button.event-v6-row {
     visibility: visible;
     pointer-events: none;
     transition: opacity 150ms ease;
-}
-
-@media (hover: hover) {
-    #homeEventsButton:hover .event-work-badge {
-        opacity: 1;
-        visibility: visible;
-    }
 }
 
 /* =========================================================
