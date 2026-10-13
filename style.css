@@ -9760,3 +9760,35 @@ body * {
 #pinLoginError {
     color: #b42318 !important;
 }
+/* Petit champ : nombre d’unités par IAN */
+
+#productModal .product-ian-fields {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    min-width: 0;
+}
+
+#productModal #productIanInput {
+    flex: 1 1 0;
+    min-width: 0;
+    width: 100%;
+}
+
+#productModal .product-ian-units {
+    display: flex;
+    flex-direction: column;
+    flex: 0 0 72px;
+    gap: 4px;
+    margin: 0;
+}
+
+#productModal .product-ian-units span {
+    font-size: 0.75rem;
+}
+
+#productModal #productIanUnitsInput {
+    box-sizing: border-box;
+    width: 72px;
+    text-align: center;
+}
