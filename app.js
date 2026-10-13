@@ -253,10 +253,6 @@ function allowedAppScreen(id) {
     }
 
     if (!state.currentPerson) {
-        if (state.currentScreenId === "schoolClosedScreen") {
-            return "schoolClosedScreen";
-        }
-
         return id === "pinLoginScreen" &&
             state.selectedLoginPerson
                 ? "pinLoginScreen"
@@ -1954,7 +1950,7 @@ function renderBakeryOrders(orders) {
                         class="bakery-served-button"
                         type="button"
                     >
-                        Ausgeben
+                        Ausgegeben
                     </button>
                 ` : `
                     <span class="bakery-readonly-label">
@@ -15061,7 +15057,7 @@ if (document.readyState === "loading") {
                                     data-serve-event
                                     type="button"
                                 >
-                                    Ausgeben
+                                    Ausgegeben
                                 </button>
                             `
                             : `
@@ -16180,4 +16176,72 @@ if (document.readyState === "loading") {
             target.disabled = false;
         }
     }, true);
+})();
+/* Feierabend : permettre de changer de profil */
+
+(() => {
+    const screen = $("schoolClosedScreen");
+
+    if (!screen || $("changeProfileClosedButton")) return;
+
+    const button = document.createElement("button");
+
+    button.id = "changeProfileClosedButton";
+    button.type = "button";
+    button.className = "primary-action";
+    button.textContent = "Profil wechseln";
+    button.style.marginTop = "20px";
+
+    const message = document.createElement("p");
+    message.className = "form-message";
+    message.setAttribute("role", "alert");
+
+    const container =
+        screen.querySelector(".school-closed-card") || screen;
+
+    container.append(button, message);
+
+    button.addEventListener("click", async () => {
+        if (button.disabled) return;
+
+        button.disabled = true;
+        message.textContent = "";
+
+        try {
+            const { error } = await db.auth.signOut({
+                scope: "local"
+            });
+
+            if (error) throw error;
+
+            state.currentPerson = null;
+            state.selectedLoginPerson = null;
+            state.studentAccessAllowed = false;
+
+            if (state.realtimeChannel) {
+                const channel = state.realtimeChannel;
+                state.realtimeChannel = null;
+
+                await db.removeChannel(channel);
+            }
+
+            applyRoleUI();
+
+            showScreen("identityScreen", {
+                login: true,
+                historyMode: "replace"
+            });
+
+            await loadLoginPeople();
+
+        } catch (error) {
+            console.error("Profilwechsel:", error);
+
+            message.textContent =
+                "Profilwechsel fehlgeschlagen. Bitte erneut versuchen.";
+
+        } finally {
+            button.disabled = false;
+        }
+    });
 })();
