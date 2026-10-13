@@ -3597,14 +3597,58 @@
                 >
 
             </label>
-                         <label class="form-field">
+                                   <div class="form-field">
                 <span>IAN (Artikelnummer)</span>
 
+                <div class="product-ian-fields">
+                    <input
+                        id="productIanInput"
+                        type="text"
+                        maxlength="64"
+                        placeholder="Optional"
+                        aria-label="IAN (Artikelnummer)"
+                        autocomplete="off"
+                    >
+
+                    <label class="product-ian-units">
+                        <span>Stück</span>
+
+                        <input
+                            id="productIanUnitsInput"
+                            type="number"
+                            min="1"
+                            max="2147483647"
+                            step="1"
+                            value="1"
+                            required
+                            inputmode="numeric"
+                            aria-label="Einheiten pro IAN"
+                            title="Wie viele einzelne Produkte enthält eine Packung?"
+                        >
+                    </label>
+                </div>
+            </div>
+
+            <label class="form-field">
+                <span>Name im Geschäft</span>
+
                 <input
-                    id="productIanInput"
+                    id="productStoreNameInput"
                     type="text"
-                    maxlength="64"
+                    maxlength="150"
                     placeholder="Optional"
+                    autocomplete="off"
+                >
+            </label>
+
+            <label class="form-field">
+                <span>Einkaufspreis pro Stück (€)</span>
+
+                <input
+                    id="productPurchasePriceInput"
+                    type="text"
+                    inputmode="decimal"
+                    placeholder="Optional, z. B. 0,50"
                     autocomplete="off"
                 >
             </label>
