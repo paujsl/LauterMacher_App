@@ -14377,3 +14377,192 @@ if (document.readyState === "loading") {
         }
     };
 })();
+/* Notifications reçues : suppression personnelle professeur */
+
+(() => {
+    let loadVersion = 0;
+    const deleting = new Set();
+
+    /* Charger les notifications sans celles retirées */
+    loadNotifications = async () => {
+        const person = state.currentPerson;
+        if (!person) return;
+
+        const teacher = isTeacher();
+        const version = ++loadVersion;
+
+        const notificationsQuery = db
+            .from("notifications")
+            .select("*")
+            .or([
+                `recipient_person_id.eq.${person.id}`,
+                `recipient_type.eq.${teacher ? "teacher" : "student"}`,
+                "recipient_type.eq.all"
+            ].join(","))
+            .order("created_at", { ascending: false })
+            .limit(100);
+
+        const dismissalsQuery = teacher
+            ? db.from("notification_dismissals")
+                .select("notification_id")
+                .eq("person_id", person.id)
+            : Promise.resolve({
+                data: [],
+                error: null
+            });
+
+        const [notifications, dismissals] =
+            await Promise.all([
+                notificationsQuery,
+                dismissalsQuery
+            ]);
+
+        if (
+            version !== loadVersion ||
+            state.currentPerson?.id !== person.id
+        ) {
+            return;
+        }
+
+        if (notifications.error) throw notifications.error;
+        if (dismissals.error) throw dismissals.error;
+
+        const removed = new Set(
+            (dismissals.data || []).map(
+                item => item.notification_id
+            )
+        );
+
+        state.notifications = (notifications.data || [])
+            .filter(item => !removed.has(item.id));
+
+        renderNotificationBadge();
+        renderNotificationPreview();
+
+        if (state.currentScreenId === "notificationsScreen") {
+            renderNotificationsPage();
+        }
+    };
+
+    /* Ajouter la croix aux notifications reçues */
+    const previousRender = renderNotificationsPage;
+
+    renderNotificationsPage = () => {
+        previousRender();
+
+        if (
+            !isTeacher() ||
+            state.notificationMode === "sent"
+        ) {
+            return;
+        }
+
+        $$("#notificationsList .notification-card")
+            .forEach((card, index) => {
+                const notification = state.notifications[index];
+                if (!notification) return;
+
+                card.classList.add("notification-removable");
+
+                const button = document.createElement("button");
+
+                button.type = "button";
+                button.className = "notification-remove-button";
+                button.dataset.removeNotification = notification.id;
+                button.textContent = "×";
+                button.title = "Benachrichtigung entfernen";
+
+                button.setAttribute(
+                    "aria-label",
+                    `Benachrichtigung entfernen: ${notification.title || ""}`
+                );
+
+                card.append(button);
+            });
+    };
+
+    const list = $("notificationsList");
+
+    /* Intercepter la croix avant la navigation de la notification */
+    list?.addEventListener(
+        "click",
+        async event => {
+            const button = event.target.closest(
+                "[data-remove-notification]"
+            );
+
+            if (!button) return;
+
+            event.preventDefault();
+            event.stopImmediatePropagation();
+
+            if (!isTeacher()) return;
+
+            const id = button.dataset.removeNotification;
+
+            if (deleting.has(id)) return;
+
+            deleting.add(id);
+            button.disabled = true;
+
+            try {
+                const { data, error } = await db.rpc(
+                    "teacher_dismiss_notification",
+                    {
+                        p_notification_id: id
+                    }
+                );
+
+                if (error) throw error;
+                if (data !== true) {
+                    throw Error("Entfernen fehlgeschlagen.");
+                }
+
+                state.notifications = state.notifications
+                    .filter(notification => notification.id !== id);
+
+                renderNotificationBadge();
+                renderNotificationPreview();
+                renderNotificationsPage();
+
+                toast(
+                    "Benachrichtigung entfernt.",
+                    "success"
+                );
+            } catch (error) {
+                console.error(error);
+
+                button.disabled = false;
+
+                toast(
+                    "Benachrichtigung konnte nicht entfernt werden.",
+                    "error"
+                );
+            } finally {
+                deleting.delete(id);
+            }
+        },
+        true
+    );
+
+    /* Utilisation au clavier sans ouvrir la notification */
+    list?.addEventListener(
+        "keydown",
+        event => {
+            const button = event.target.closest(
+                "[data-remove-notification]"
+            );
+
+            if (
+                button &&
+                (event.key === "Enter" || event.key === " ")
+            ) {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+
+                button.click();
+            }
+        },
+        true
+    );
+})();
