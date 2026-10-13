@@ -4111,7 +4111,7 @@ button.event-list-row:hover {
     }
 
     .current-person-name {
-        display: none;
+        display: block;
     }
 
     .current-person-role {
