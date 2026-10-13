@@ -9013,3 +9013,46 @@ body * {
     font-weight: 800;
     line-height: 1.5;
 }
+/* Champ PIN avec crayon gris à droite */
+
+#studentModal .student-pin-editor {
+    position: relative;
+    width: 100%;
+}
+
+#studentModal .student-pin-editor input {
+    box-sizing: border-box;
+    width: 100%;
+    padding-right: 52px;
+}
+
+#studentModal .student-pin-pencil {
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    transform: translateY(-50%);
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: none;
+    border-radius: 10px;
+
+    background: transparent;
+    color: #737b85;
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+#studentModal .student-pin-pencil:hover {
+    background: #f1f3f5;
+    color: #094369;
+}
+
+#studentModal .student-pin-pencil[hidden] {
+    display: none;
+}
