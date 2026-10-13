@@ -2805,7 +2805,7 @@ function renderStudentInventory() {
 
     box.innerHTML = "";
 
-    drinksProducts()
+        state.products
         .filter(activeProduct)
         .forEach(product => {
 
@@ -2813,6 +2813,7 @@ function renderStudentInventory() {
 
             row.className = "inventory-count-row";
             row.dataset.productId = product.id;
+            row.dataset.stockCategory = productArea(product);
 
             row.innerHTML = `
                 <div class="inventory-product-info">
