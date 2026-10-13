@@ -9056,3 +9056,57 @@ body * {
 #studentModal .student-pin-pencil[hidden] {
     display: none;
 }
+/* Inventaire élève : lignes compactes, saisie toujours à droite */
+
+#studentInventoryScreen .inventory-count-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 90px;
+    align-items: center;
+
+    padding: 10px 12px;
+    gap: 12px;
+}
+
+#studentInventoryScreen .inventory-product-info {
+    min-width: 0;
+    gap: 10px;
+}
+
+#studentInventoryScreen .inventory-product-info > div {
+    min-width: 0;
+}
+
+#studentInventoryScreen .inventory-product-info strong {
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: normal;
+}
+
+#studentInventoryScreen .inventory-count-input {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+
+    box-sizing: border-box;
+    width: 90px;
+    min-height: 44px;
+    padding: 8px;
+}
+
+/* Très petites fenêtres : champ légèrement moins large */
+@media (max-width: 420px) {
+    #studentInventoryScreen .inventory-count-row {
+        grid-template-columns: minmax(0, 1fr) 72px;
+        gap: 8px;
+    }
+
+    #studentInventoryScreen .inventory-count-input {
+        width: 72px;
+    }
+
+    #studentInventoryScreen .inventory-product-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 1.25rem;
+    }
+}
