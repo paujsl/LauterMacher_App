@@ -3641,17 +3641,32 @@
                 >
             </label>
 
-            <label class="form-field">
-                <span>Einkaufspreis pro Stück (€)</span>
+                       <div class="form-field">
+                <span>Einkaufspreis (€)</span>
 
-                <input
-                    id="productPurchasePriceInput"
-                    type="text"
-                    inputmode="decimal"
-                    placeholder="Optional, z. B. 0,50"
-                    autocomplete="off"
-                >
-            </label>
+                <div class="product-purchase-fields">
+                    <input
+                        id="productPurchasePriceInput"
+                        type="text"
+                        inputmode="decimal"
+                        placeholder="Preis der Packung"
+                        aria-label="Einkaufspreis der gesamten Packung"
+                        autocomplete="off"
+                    >
+
+                    <label class="product-unit-cost">
+                        <span>EK pro Stück</span>
+
+                        <input
+                            id="productUnitCostInput"
+                            type="text"
+                            readonly
+                            aria-label="Berechneter Einkaufspreis pro Stück"
+                            placeholder="—"
+                        >
+                    </label>
+                </div>
+            </div>
 
             <label class="form-field">
                 <span>EAN (Barcode)</span>
