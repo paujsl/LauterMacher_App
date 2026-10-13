@@ -8640,27 +8640,3 @@ button.event-v6-row {
     text-align: right;
     white-space: nowrap;
 }
-
-/* Produits : largeur liée au contenu, sans étirement */
-:is(#drinksSaleScreen, #bakerySaleScreen, #eventSaleScreen)
-.product-grid {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-start;
-    justify-content: flex-start;
-    gap: 10px;
-}
-
-:is(#drinksSaleScreen, #bakerySaleScreen, #eventSaleScreen)
-.sale-product-card {
-    flex: 0 0 auto;
-    width: max-content;
-    min-width: 0;
-    max-width: 100%;
-    padding: 10px 8px;
-}
-
-:is(#drinksSaleScreen, #bakerySaleScreen, #eventSaleScreen)
-.sale-product-card strong {
-    white-space: nowrap;
-}
