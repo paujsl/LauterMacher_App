@@ -14279,3 +14279,101 @@ if (document.readyState === "loading") {
         }
     });
 })();
+/* Élèves : numéro masqué et modification du PIN par crayon */
+
+(() => {
+    const numberInput = $("studentNumberInput");
+
+    /* Conserve la valeur existante sans afficher le champ */
+    if (numberInput) {
+        const label = numberInput.closest("label");
+
+        if (label) {
+            label.hidden = true;
+            label.style.display = "none";
+        }
+
+        numberInput.type = "hidden";
+    }
+
+    const pin = $("studentPinInput");
+    if (!pin) return;
+
+    const wrapper = document.createElement("div");
+    wrapper.className = "student-pin-editor";
+
+    pin.before(wrapper);
+    wrapper.append(pin);
+
+    const pencil = document.createElement("button");
+
+    pencil.type = "button";
+    pencil.className = "student-pin-pencil";
+    pencil.textContent = "✎";
+    pencil.title = "PIN ändern";
+    pencil.setAttribute("aria-label", "PIN ändern");
+
+    wrapper.append(pencil);
+
+    const lockPin = () => {
+        pin.value = "";
+        pin.readOnly = true;
+        pin.required = false;
+        pin.placeholder = "****";
+
+        pencil.title = "PIN ändern";
+        pencil.setAttribute("aria-label", "PIN ändern");
+
+        setText(
+            "studentPinHint",
+            "Zum Ändern auf den Stift klicken."
+        );
+    };
+
+    pencil.onclick = () => {
+        if (pin.readOnly) {
+            pin.readOnly = false;
+            pin.required = true;
+            pin.placeholder = "Neue PIN";
+            pin.focus();
+
+            pencil.title = "PIN-Änderung verwerfen";
+            pencil.setAttribute(
+                "aria-label",
+                "PIN-Änderung verwerfen"
+            );
+
+            setText(
+                "studentPinHint",
+                "Neue PIN mit 4 Ziffern eingeben."
+            );
+        } else {
+            /* Un second clic annule la modification du PIN */
+            lockPin();
+        }
+    };
+
+    const previousOpenStudentModal = openStudentModal;
+
+    openStudentModal = student => {
+        if (!isTeacher()) return;
+
+        previousOpenStudentModal(student);
+
+        pin.type = "password";
+        pin.value = "";
+
+        if (student) {
+            pencil.hidden = false;
+            lockPin();
+        } else {
+            /* Création : le PIN doit être saisi directement */
+            pencil.hidden = true;
+            pin.readOnly = false;
+            pin.required = true;
+            pin.placeholder = "4 Ziffern";
+
+            setText("studentPinHint", "4 Ziffern");
+        }
+    };
+})();
