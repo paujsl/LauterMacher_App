@@ -9110,3 +9110,43 @@ body * {
         font-size: 1.25rem;
     }
 }
+/* Croix de suppression dans l'historique professeur */
+
+#notificationsList .notification-removable {
+    position: relative;
+    padding-right: 54px;
+}
+
+#notificationsList .notification-remove-button {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 36px;
+    height: 36px;
+    padding: 0;
+
+    border: none;
+    border-radius: 10px;
+    background: transparent;
+    color: #737b85;
+
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+#notificationsList .notification-remove-button:hover {
+    background: #fff0f0;
+    color: #b91c1c;
+}
+
+#notificationsList .notification-remove-button:focus-visible {
+    outline: 2px solid #094369;
+    outline-offset: 2px;
+}
