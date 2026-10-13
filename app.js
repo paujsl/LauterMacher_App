@@ -15712,7 +15712,7 @@ if (document.readyState === "loading") {
                             class="secondary-action"
                             data-teacher-propose="${product.id}"
                         >
-                            Zur Bestätigung vormerken
+                            Vormerken
                         </button>
                     </div>
                 </section>
