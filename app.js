@@ -13802,3 +13802,331 @@ if (document.readyState === "loading") {
         }
     });
 })();
+/* =========================================================
+   NOTIFICATIONS — NAVIGATION ET APERÇU COMPACT
+   ========================================================= */
+
+(() => {
+    const handled = new Set();
+    let opening = false;
+
+    /* Ouvrir l'historique et charger les destinataires professeur */
+    const archive = async () => {
+        hideNotificationPopover();
+
+        state.notificationMode = "received";
+
+        showScreen("notificationsScreen");
+
+        if (isTeacher()) {
+            await openNotificationsAdmin();
+        } else {
+            await loadNotifications();
+            renderNotificationsPage();
+        }
+    };
+
+    /* Enregistrer la lecture avant de retirer une notification */
+    markNotificationRead = async notification => {
+        if (!notification || notification.read_at) return;
+
+        const { data, error } = await db.rpc(
+            "mark_notification_read",
+            {
+                p_notification_id: notification.id
+            }
+        );
+
+        if (error) throw error;
+
+        if (data !== true) {
+            throw Error(
+                "Benachrichtigung konnte nicht als gelesen markiert werden."
+            );
+        }
+
+        const timestamp = new Date().toISOString();
+
+        notification.read_at = timestamp;
+
+        const saved = state.notifications.find(
+            n => n.id === notification.id
+        );
+
+        if (saved) saved.read_at = timestamp;
+
+        renderNotificationBadge();
+        renderNotificationPreview();
+    };
+
+    /* Destinations reconnues : aucun lien arbitraire n'est exécuté */
+    const navigate = async notification => {
+        const target = String(
+            notification.link_target || ""
+        );
+
+        const type = String(
+            notification.notification_type || ""
+        );
+
+        /* Produits */
+        if (
+            ["products", "productsScreen"].includes(target) ||
+            type === "product_change"
+        ) {
+            await loadProducts();
+            renderProductsAdmin();
+            showScreen("productsScreen");
+            return;
+        }
+
+        /* Inventaires */
+        if (
+            [
+                "inventory",
+                "teacherInventoryScreen",
+                "studentInventoryScreen"
+            ].includes(target) ||
+            type === "inventory"
+        ) {
+            if (isTeacher()) {
+                showScreen("teacherInventoryScreen");
+                await renderTeacherInventory();
+            } else {
+                renderStudentInventory();
+                showScreen("studentInventoryScreen");
+            }
+
+            return;
+        }
+
+        /* Événements */
+        if (
+            [
+                "events",
+                "event_end_inventory",
+                "eventWorkspaceScreen"
+            ].includes(target) ||
+            type === "event_closure_reminder"
+        ) {
+            await loadEvents();
+
+            const event = state.events.find(
+                e => e.id === notification.link_data?.event_id
+            );
+
+            if (event && !eventClosed(event)) {
+                await openEventWorkspace(event);
+            } else {
+                showScreen("eventsScreen");
+                renderEvents();
+            }
+
+            return;
+        }
+
+        /* Comptabilité */
+        if (target === "invoices" && isTeacher()) {
+            showScreen("invoicesScreen");
+            await initialiseInvoices();
+            return;
+        }
+
+        /* Gestion des élèves */
+        if (target === "students" && isTeacher()) {
+            showScreen("studentsScreen");
+            await loadStudents();
+            return;
+        }
+
+        /* Rapports */
+        if (target === "reports" && isTeacher()) {
+            showScreen("reportsScreen");
+            await loadReports();
+            return;
+        }
+
+        /* Message sans écran associé : ouvrir l'historique */
+        await archive();
+    };
+
+    const activate = async notification => {
+        if (
+            opening ||
+            handled.has(notification.id)
+        ) {
+            return;
+        }
+
+        opening = true;
+        handled.add(notification.id);
+
+        try {
+            await markNotificationRead(notification);
+
+            hideNotificationPopover();
+
+            await navigate(notification);
+        } catch (error) {
+            console.error(error);
+
+            toast(
+                "Benachrichtigung konnte nicht geöffnet werden. Bitte erneut versuchen.",
+                "error"
+            );
+        } finally {
+            opening = false;
+            handled.delete(notification.id);
+        }
+    };
+
+    /* Liste affichée dans la cloche */
+    renderNotificationPreview = () => {
+        const box = $("notificationPreviewList");
+
+        if (!box) return;
+
+        const notifications = [...state.notifications]
+            .sort((a, b) =>
+                String(b.created_at).localeCompare(
+                    String(a.created_at)
+                )
+            )
+            .filter(notification =>
+                !isTeacher() || !notification.read_at
+            )
+            .slice(0, 5);
+
+        box.innerHTML = "";
+
+        if (!notifications.length) {
+            box.innerHTML = `
+                <div class="notification-preview-empty">
+                    Keine neuen Benachrichtigungen.
+                </div>
+            `;
+
+            return;
+        }
+
+        for (const notification of notifications) {
+            const button = document.createElement("button");
+
+            button.type = "button";
+
+            button.className =
+                "notification-preview-item notification-compact " +
+                (
+                    notification.read_at
+                        ? "notification-read"
+                        : "notification-new"
+                );
+
+            button.title =
+                `${notification.title || "Benachrichtigung"} – ` +
+                `${notification.message || ""}`;
+
+            button.setAttribute(
+                "aria-label",
+                button.title
+            );
+
+            button.innerHTML = `
+                <strong>
+                    ${esc(
+                        notification.title ||
+                        "Benachrichtigung"
+                    )}
+                </strong>
+
+                <span
+                    class="notification-separator"
+                    aria-hidden="true"
+                >
+                    –
+                </span>
+
+                <small>
+                    ${esc(notification.message || "")}
+                </small>
+            `;
+
+            button.onclick = () => activate(notification);
+
+            box.append(button);
+        }
+    };
+
+    /* Les notifications de l'historique sont aussi navigables */
+    const originalPage = renderNotificationsPage;
+
+    renderNotificationsPage = () => {
+        originalPage();
+
+        if (state.notificationMode === "sent") return;
+
+        const cards = $$(
+            "#notificationsList .notification-card"
+        );
+
+        cards.forEach((card, index) => {
+            const notification = state.notifications[index];
+
+            if (!notification) return;
+
+            card.tabIndex = 0;
+            card.setAttribute("role", "button");
+
+            card.addEventListener(
+                "click",
+                event => {
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+
+                    activate(notification);
+                },
+                true
+            );
+
+            card.addEventListener(
+                "keydown",
+                event => {
+                    if (
+                        event.key === "Enter" ||
+                        event.key === " "
+                    ) {
+                        event.preventDefault();
+                        activate(notification);
+                    }
+                }
+            );
+        });
+    };
+
+    /* Corrige Alle anzeigen : charge aussi Empfänger */
+    $("showAllNotificationsButton")?.addEventListener(
+        "click",
+        async event => {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+
+            if (opening) return;
+
+            opening = true;
+
+            try {
+                await archive();
+            } catch (error) {
+                console.error(error);
+
+                toast(
+                    "Benachrichtigungen konnten nicht geladen werden.",
+                    "error"
+                );
+            } finally {
+                opening = false;
+            }
+        },
+        true
+    );
+})();
