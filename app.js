@@ -14130,3 +14130,152 @@ if (document.readyState === "loading") {
         true
     );
 })();
+/* =========================================================
+   FIN DE SERVICE — GETRÄNKE ET BÄCKEREI
+   ========================================================= */
+
+(() => {
+    let drinksEntryOpen = false;
+
+    const interceptClick = (id, handler) => {
+        $(id)?.addEventListener(
+            "click",
+            event => {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+
+                handler();
+            },
+            true
+        );
+    };
+
+    /* Fin de service Bäckerei : aucun formulaire de boissons */
+    const finishBakeryShift = () => {
+        if (state.cashierSaving) return;
+
+        clearCart(state.bakeryCart);
+        state.bakeryReceivedCents = 0;
+        state.bakeryPaymentInput = "";
+
+        goHome();
+
+        toast(
+            "Gut gemacht heute, Team! 🎉",
+            "success"
+        );
+    };
+
+    interceptClick(
+        "bakeryCashShiftEndButton",
+        finishBakeryShift
+    );
+
+    interceptClick(
+        "bakeryOutputShiftEndButton",
+        finishBakeryShift
+    );
+
+    /* Supprimer l'avertissement ajouté par l'ancien complément */
+    const screen = $("freeDrinksScreen");
+
+    screen?.querySelectorAll(".event-v6-warning")
+        .forEach(element => element.remove());
+
+    const intro = screen?.querySelector(
+        ".celebration-heading p"
+    );
+
+    if (intro) {
+        intro.textContent =
+            "Erfasse hier die kostenlosen Getränke.";
+    }
+
+    const warning = screen?.querySelector(
+        ".free-drinks-warning"
+    );
+
+    if (warning) {
+        warning.textContent =
+            "‼️ Nur du erfasst heute die kostenlosen Getränke " +
+            "für das gesamte Team. Bitte schließe dieses Fenster " +
+            "erst, wenn du alle kostenlosen Getränke des Teams " +
+            "für diese Schicht eingetragen und gespeichert hast!";
+    }
+
+    /* Formulaire accessible depuis Getränke uniquement */
+    const previousOpenFreeDrinks = openFreeDrinks;
+
+    openFreeDrinks = backScreen => {
+        if (![
+            "drinksSaleScreen",
+            "drinksSuccessScreen"
+        ].includes(backScreen)) {
+            return;
+        }
+
+        drinksEntryOpen = true;
+        previousOpenFreeDrinks(backScreen);
+    };
+
+    /* Empêcher l'ouverture directe depuis une autre rubrique */
+    const previousShowScreen = showScreen;
+
+    showScreen = (id, options) => {
+        if (
+            id === "freeDrinksScreen" &&
+            !drinksEntryOpen
+        ) {
+            previousShowScreen("homeScreen", options);
+            return;
+        }
+
+        previousShowScreen(id, options);
+    };
+
+    /* Terminer Getränke après sauvegarde des quantités */
+    const finishDrinksShift = () => {
+        if (finishFreeDrinks.busy) return;
+
+        const unsaved = $$(
+            "#freeDrinksList [data-product-id]"
+        ).some(row => integer(row.dataset.quantity) > 0);
+
+        if (unsaved) {
+            toast(
+                "Bitte zuerst die Getränke speichern.",
+                "info"
+            );
+            return;
+        }
+
+        drinksEntryOpen = false;
+
+        clearCart(state.drinksCart);
+        state.drinksReceivedCents = 0;
+        state.drinksPaymentInput = "";
+
+        goHome();
+
+        toast(
+            "Gut gemacht heute, Team! 🎉",
+            "success"
+        );
+    };
+
+    interceptClick(
+        "freeDrinksEndButton",
+        finishDrinksShift
+    );
+
+    interceptClick(
+        "freeDrinksNoneButton",
+        finishDrinksShift
+    );
+
+    db.auth.onAuthStateChange(event => {
+        if (event === "SIGNED_OUT") {
+            drinksEntryOpen = false;
+        }
+    });
+})();
