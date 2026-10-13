@@ -4717,10 +4717,10 @@ $("studentForm")?.addEventListener(
 
                 const {
                     error
-                } = await db.rpc(
+                                } = await db.rpc(
                     "teacher_update_student",
                     {
-                        p_person_id:
+                        p_student_id:
                             id,
 
                         p_first_name:
