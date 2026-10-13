@@ -4789,13 +4789,21 @@ $("studentForm")?.addEventListener(
                 "success"
             );
 
-        } catch (error) {
+               } catch (error) {
 
-            console.error(error);
+            console.error("Schüler speichern:", error);
+
+            const details = [
+                error?.code,
+                error?.message,
+                error?.details,
+                error?.hint
+            ].filter(Boolean).join(" · ");
 
             setText(
                 "studentFormMessage",
-                "Schüler konnte nicht gespeichert werden."
+                "Schüler konnte nicht gespeichert werden." +
+                (details ? " " + details : "")
             );
 
         } finally {
