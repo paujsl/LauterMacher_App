@@ -8537,3 +8537,105 @@ button.event-v6-row {
         font-size: 1.3rem;
     }
 }
+/* Accueil : cartes assez larges pour leurs titres */
+
+#homeScreen .home-menu-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+}
+
+#homeScreen .home-menu-card {
+    flex: 1 1 23rem;
+    min-width: min-content;
+
+    grid-template-columns: 3rem max-content 1rem;
+    justify-content: space-between;
+}
+
+#homeScreen .home-menu-text {
+    min-width: min-content;
+}
+
+#homeScreen .home-menu-text strong {
+    font-size: 1.1rem;
+    white-space: nowrap;
+}
+
+#homeScreen .home-menu-text small {
+    max-width: 20rem;
+}
+
+/* Sur mobile, l'icône passe au-dessus pour libérer la largeur */
+@media (max-width: 480px) {
+    #homeScreen .home-menu-card {
+        flex-basis: 100%;
+        grid-template-columns: max-content 1rem;
+        justify-content: center;
+        gap: 12px;
+    }
+
+    #homeScreen .home-menu-icon {
+        grid-column: 1 / -1;
+        justify-self: center;
+    }
+
+    #homeScreen .home-menu-text {
+        grid-column: 1;
+    }
+
+    #homeScreen .home-menu-arrow {
+        grid-column: 2;
+    }
+}
+/* Accueil : cartes assez larges pour leurs titres */
+
+#homeScreen .home-menu-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+}
+
+#homeScreen .home-menu-card {
+    flex: 1 1 23rem;
+    min-width: min-content;
+
+    grid-template-columns: 3rem max-content 1rem;
+    justify-content: space-between;
+}
+
+#homeScreen .home-menu-text {
+    min-width: min-content;
+}
+
+#homeScreen .home-menu-text strong {
+    font-size: 1.1rem;
+    white-space: nowrap;
+}
+
+#homeScreen .home-menu-text small {
+    max-width: 20rem;
+}
+
+/* Sur mobile, l'icône passe au-dessus pour libérer la largeur */
+@media (max-width: 480px) {
+    #homeScreen .home-menu-card {
+        flex-basis: 100%;
+        grid-template-columns: max-content 1rem;
+        justify-content: center;
+        gap: 12px;
+    }
+
+    #homeScreen .home-menu-icon {
+        grid-column: 1 / -1;
+        justify-self: center;
+    }
+
+    #homeScreen .home-menu-text {
+        grid-column: 1;
+    }
+
+    #homeScreen .home-menu-arrow {
+        grid-column: 2;
+    }
+}
