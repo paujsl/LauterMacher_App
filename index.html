@@ -3245,54 +3245,41 @@
 
     </header>
 
-    <section class="output-content">
+        <section class="bakery-output-layout">
 
-        <div class="section-heading">
+        <aside class="bakery-completed-orders-panel">
 
-            <div>
+            <div class="bakery-completed-history">
 
-                <h2>
-                    Offene Bestellungen
-                </h2>
+                <div class="bakery-completed-heading">
+                    Fertige Bestellungen ·
+                    <span id="eventCompletedOrderCount">0</span>
+                </div>
 
-                <p>
-                    Neue Bestellungen erscheinen automatisch.
-                </p>
+                <div
+                    class="bakery-completed-scroll"
+                    id="eventCompletedOrders"
+                ></div>
 
             </div>
 
-            <span
-                class="count-badge"
-                id="eventOpenOrderCount"
-            >
-                0
-            </span>
+        </aside>
 
-        </div>
+        <section class="bakery-open-orders-panel">
 
-        <div
-            class="output-orders-grid"
-            id="eventOutputOrders"
-        ></div>
+            <div class="bakery-output-heading">
+                <h2>
+                    Offene Bestellungen ·
+                    <span id="eventOpenOrderCount">0</span>
+                </h2>
+            </div>
 
-        <div
-            class="empty-state"
-            id="eventOutputEmpty"
-        >
+            <div
+                class="bakery-output-orders"
+                id="eventOutputOrders"
+            ></div>
 
-            <span>
-                ✨
-            </span>
-
-            <strong>
-                Alles erledigt!
-            </strong>
-
-            <p>
-                Momentan gibt es keine offene Bestellung.
-            </p>
-
-        </div>
+        </section>
 
     </section>
 
