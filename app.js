@@ -10,9 +10,9 @@ const SUPABASE_KEY = "sb_publishable_xiM5w8RhiN0I0j5HSVPfnw_LhLQgozX";
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 /* Pendant le développement Pauline + ChatGPT : false = horaires scolaires actifs. */
-const DEVELOPMENT_MODE = true;
-const SCHOOL_OPEN_HOUR = 9;
-const SCHOOL_CLOSE_HOUR = 15;
+const DEVELOPMENT_MODE = false;
+const SCHOOL_OPEN_HOUR = 8;
+const SCHOOL_CLOSE_HOUR = 14;
 
 const $ = id => document.getElementById(id);
 const $$ = selector => Array.from(document.querySelectorAll(selector));
@@ -13735,6 +13735,70 @@ if (document.readyState === "loading") {
             V.invoice = null;
             V.invoiceMode = false;
             dialog.close();
+        }
+    });
+})();
+
+/* =========================================================
+   ACCÈS ÉLÈVES — HORAIRES ET AUTORISATIONS PROFESSEUR
+   Supabase décide de l'accès.
+   ========================================================= */
+
+(() => {
+    state.studentAccessAllowed = false;
+
+    /*
+     * La vérification se fait après le PIN :
+     * avant connexion, on ne peut pas vérifier
+     * l'autorisation exceptionnelle de cet élève.
+     */
+    studentMayOpenPin = () => true;
+
+    schoolOpenNow = () =>
+        isTeacher() ||
+        state.studentAccessAllowed === true;
+
+    const previousCheck = checkStudentTestAccess;
+
+    checkStudentTestAccess = async () => {
+        const person = state.currentPerson;
+
+        if (!person) return false;
+        if (isTeacher()) return true;
+
+        state.studentAccessAllowed = false;
+
+        try {
+            const allowed = await previousCheck();
+
+            if (state.currentPerson?.id !== person.id) {
+                return false;
+            }
+
+            state.studentAccessAllowed = allowed === true;
+
+            return state.studentAccessAllowed;
+        } catch (error) {
+            console.error(
+                "Zugangsprüfung fehlgeschlagen:",
+                error
+            );
+
+            state.studentAccessAllowed = false;
+            state.currentPerson = null;
+            state.selectedLoginPerson = null;
+
+            showSchoolClosed();
+
+            await db.auth.signOut();
+
+            return false;
+        }
+    };
+
+    db.auth.onAuthStateChange(event => {
+        if (event === "SIGNED_OUT") {
+            state.studentAccessAllowed = false;
         }
     });
 })();
