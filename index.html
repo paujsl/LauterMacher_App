@@ -3597,6 +3597,32 @@
                 >
 
             </label>
+                         <label class="form-field">
+                <span>IAN (Artikelnummer)</span>
+
+                <input
+                    id="productIanInput"
+                    type="text"
+                    maxlength="64"
+                    placeholder="Optional"
+                    autocomplete="off"
+                >
+            </label>
+
+            <label class="form-field">
+                <span>EAN (Barcode)</span>
+
+                <input
+                    id="productEanInput"
+                    type="text"
+                    inputmode="numeric"
+                    maxlength="13"
+                    pattern="([0-9]{8}|[0-9]{13})"
+                    placeholder="8 oder 13 Ziffern · optional"
+                    title="Bitte 8 oder 13 Ziffern eingeben."
+                    autocomplete="off"
+                >
+            </label>
         </div>
 
         <input
