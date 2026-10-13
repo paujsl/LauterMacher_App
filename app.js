@@ -14188,7 +14188,7 @@ if (document.readyState === "loading") {
 
     if (intro) {
         intro.textContent =
-            "Erfasse hier die kostenlosen Getränke.";
+            "Trage die kostenlosen Getränke ein, die du und deine Kolleginnen und Kollegen während der heutigen Schicht genommen habt.";
     }
 
     const warning = screen?.querySelector(
