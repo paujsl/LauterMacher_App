@@ -9792,3 +9792,38 @@ body * {
     width: 72px;
     text-align: center;
 }
+/* Prix du lot et petit champ du prix unitaire */
+
+#productModal .product-purchase-fields {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    min-width: 0;
+}
+
+#productModal #productPurchasePriceInput {
+    flex: 1 1 0;
+    min-width: 0;
+    width: 100%;
+}
+
+#productModal .product-unit-cost {
+    display: flex;
+    flex-direction: column;
+    flex: 0 0 88px;
+    gap: 4px;
+    margin: 0;
+}
+
+#productModal .product-unit-cost span {
+    font-size: 0.75rem;
+    white-space: nowrap;
+}
+
+#productModal #productUnitCostInput {
+    box-sizing: border-box;
+    width: 88px;
+    text-align: center;
+    background: var(--blue-light);
+    color: var(--blue-dark);
+}
