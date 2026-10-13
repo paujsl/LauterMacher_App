@@ -2237,12 +2237,20 @@ function openProductModal(product) {
     $("productStoreNameInput").value =
         product?.store_name || "";
 
+        const packPrice =
+        product?.purchase_pack_price != null
+            ? Number(product.purchase_pack_price)
+            : product?.purchase_price != null
+                ? Number(product.purchase_price) *
+                  Number(product.units_per_ian ?? 1)
+                : null;
+
     $("productPurchasePriceInput").value =
-        product?.purchase_price == null
+        packPrice == null
             ? ""
-            : Number(product.purchase_price)
-                .toFixed(2)
-                .replace(".", ",");
+            : packPrice.toFixed(2).replace(".", ",");
+
+    updateProductUnitCostPreview();
 
     $("productEanInput").value =
         product?.ean || "";
@@ -2706,6 +2714,15 @@ async function saveProduct(event) {
             return;
         }
     }
+
+       const purchasePackPrice = purchasePrice;
+
+    purchasePrice =
+        purchasePackPrice == null
+            ? null
+            : Number(
+                (purchasePackPrice / unitsPerIan).toFixed(6)
+            );
     const payload = {
         name,
 
@@ -2728,7 +2745,9 @@ async function saveProduct(event) {
 
         store_name: storeName || null,
 
-        purchase_price: purchasePrice
+                purchase_price: purchasePrice,
+
+        purchase_pack_price: purchasePackPrice
     };
 
     if (
@@ -16341,3 +16360,49 @@ if (document.readyState === "loading") {
         }
     });
 })();
+/* Calcul automatique : prix du lot / unités du lot */
+
+function updateProductUnitCostPreview() {
+    const output = $("productUnitCostInput");
+
+    if (!output) return;
+
+    const units = Number(
+        $("productIanUnitsInput")?.value
+    );
+
+    const rawPrice = String(
+        $("productPurchasePriceInput")?.value || ""
+    ).trim().replace(/\s|€/g, "");
+
+    if (
+        !Number.isInteger(units) ||
+        units < 1 ||
+        !/^(?:\d+|\d{1,3}(?:\.\d{3})+)(?:,\d{1,2})?$/
+            .test(rawPrice)
+    ) {
+        output.value = "";
+        return;
+    }
+
+    const packPrice = parseMoney(rawPrice);
+
+    if (!Number.isFinite(packPrice) || packPrice < 0) {
+        output.value = "";
+        return;
+    }
+
+    output.value =
+        (packPrice / units).toFixed(2).replace(".", ",") +
+        " €";
+}
+
+[
+    "productIanUnitsInput",
+    "productPurchasePriceInput"
+].forEach(id => {
+    $(id)?.addEventListener(
+        "input",
+        updateProductUnitCostPreview
+    );
+});
