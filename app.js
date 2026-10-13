@@ -2227,6 +2227,12 @@ function openProductModal(product) {
 
     $("productIconInput").value =
         product?.icon || "";
+   
+       $("productIanInput").value =
+        product?.ian || "";
+
+    $("productEanInput").value =
+        product?.ean || "";
 
     $("productActiveInput").checked =
         product?.active !== false;
@@ -2380,16 +2386,11 @@ async function renderProductsAdmin() {
                                 )}
                             </span>
 
-                            ·
-
-                            <span
-                                data-product-field="category"
-                                class="${marked("category")}"
-                            >
-                                ${esc(
-                                    product.category || productArea(product)
-                                )}
-                            </span>
+                                                       ${
+                                product.ian
+                                    ? " · " + esc(product.ian)
+                                    : ""
+                            }
 
                             <span
                                 data-product-field="active"
@@ -2620,6 +2621,21 @@ async function saveProduct(event) {
         return;
     }
 
+
+       const ian = $("productIanInput").value.trim();
+
+    const ean = $("productEanInput").value
+        .trim()
+        .replace(/\s+/g, "");
+
+    if (ean && !/^(\d{8}|\d{13})$/.test(ean)) {
+        setText(
+            "productFormMessage",
+            "Die EAN muss aus 8 oder 13 Ziffern bestehen."
+        );
+
+        return;
+    }
     const payload = {
         name,
 
@@ -2631,8 +2647,12 @@ async function saveProduct(event) {
         icon:
             $("productIconInput").value.trim() || null,
 
-        active:
-            $("productActiveInput").checked
+                active:
+            $("productActiveInput").checked,
+
+        ian: ian || null,
+
+        ean: ean || null
     };
 
     if (
