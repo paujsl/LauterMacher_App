@@ -8397,3 +8397,37 @@ button.event-v6-row {
         padding: 18px;
     }
 }
+/* Sonderveranstaltung : bulle de travaux au survol */
+
+#homeEventsButton {
+    position: relative;
+}
+
+#homeEventsButton .event-work-badge {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+
+    padding: 5px 9px;
+    border-radius: 999px;
+
+    background: var(--yellow, #ffc43d);
+    color: #624900;
+
+    font-size: 0.68rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    white-space: nowrap;
+
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 150ms ease;
+}
+
+@media (hover: hover) {
+    #homeEventsButton:hover .event-work-badge {
+        opacity: 1;
+        visibility: visible;
+    }
+}
