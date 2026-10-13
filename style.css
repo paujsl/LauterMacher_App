@@ -9689,3 +9689,69 @@ body * {
         font-size: 0.75rem;
     }
 }
+/* Produits spécifiques : même disposition que le stock habituel */
+
+#teacherEventStockV8 .event-stock-card-v8 {
+    grid-template-columns:
+        minmax(0, 1fr)
+        minmax(240px, 340px);
+
+    align-items: center;
+    padding: 10px 14px;
+    gap: 12px;
+}
+
+#teacherEventStockV8 .event-stock-entry-v9 {
+    grid-column: 2;
+    grid-row: 1;
+
+    display: grid;
+    grid-template-columns:
+        minmax(0, 1fr)
+        minmax(0, 1fr)
+        auto;
+
+    align-items: center;
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+    gap: 8px;
+}
+
+#teacherEventStockV8 .event-stock-entry-v9 input {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+}
+
+#teacherEventStockV8 .event-stock-entry-v9 button {
+    margin: 0;
+    white-space: nowrap;
+}
+
+@media (max-width: 600px) {
+    #teacherEventStockV8 .event-stock-card-v8 {
+        grid-template-columns: minmax(0, 1fr) 210px;
+        padding: 10px;
+        gap: 8px;
+    }
+
+    #teacherEventStockV8 .event-stock-entry-v9 {
+        grid-template-columns:
+            minmax(0, 1fr)
+            minmax(0, 1fr)
+            auto;
+
+        gap: 5px;
+    }
+
+    #teacherEventStockV8 .event-stock-entry-v9 input {
+        padding: 6px;
+    }
+
+    #teacherEventStockV8 .event-stock-entry-v9 button {
+        padding: 8px;
+        font-size: 0.8rem;
+    }
+}
