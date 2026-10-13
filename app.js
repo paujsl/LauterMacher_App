@@ -2231,6 +2231,19 @@ function openProductModal(product) {
        $("productIanInput").value =
         product?.ian || "";
 
+       $("productIanUnitsInput").value =
+        product?.units_per_ian ?? 1;
+
+    $("productStoreNameInput").value =
+        product?.store_name || "";
+
+    $("productPurchasePriceInput").value =
+        product?.purchase_price == null
+            ? ""
+            : Number(product.purchase_price)
+                .toFixed(2)
+                .replace(".", ",");
+
     $("productEanInput").value =
         product?.ean || "";
 
@@ -2636,6 +2649,63 @@ async function saveProduct(event) {
 
         return;
     }
+
+       const rawUnitsPerIan =
+        $("productIanUnitsInput").value.trim();
+
+    const unitsPerIan = Number(rawUnitsPerIan);
+
+    if (
+        !/^\d+$/.test(rawUnitsPerIan) ||
+        !Number.isSafeInteger(unitsPerIan) ||
+        unitsPerIan < 1 ||
+        unitsPerIan > 2147483647
+    ) {
+        setText(
+            "productFormMessage",
+            "Bitte mindestens 1 Einheit pro Packung eingeben."
+        );
+
+        return;
+    }
+
+    const storeName =
+        $("productStoreNameInput").value.trim();
+
+    const rawPurchasePrice =
+        $("productPurchasePriceInput").value
+            .trim()
+            .replace(/\s|€/g, "");
+
+    let purchasePrice = null;
+
+    if (rawPurchasePrice !== "") {
+        if (
+            !/^(?:\d+|\d{1,3}(?:\.\d{3})+)(?:,\d{1,2})?$/
+                .test(rawPurchasePrice)
+        ) {
+            setText(
+                "productFormMessage",
+                "Bitte einen gültigen Einkaufspreis eingeben, z. B. 0,50."
+            );
+
+            return;
+        }
+
+        purchasePrice = parseMoney(rawPurchasePrice);
+
+        if (
+            !Number.isFinite(purchasePrice) ||
+            purchasePrice < 0
+        ) {
+            setText(
+                "productFormMessage",
+                "Der Einkaufspreis muss mindestens 0 € betragen."
+            );
+
+            return;
+        }
+    }
     const payload = {
         name,
 
@@ -2650,9 +2720,15 @@ async function saveProduct(event) {
                 active:
             $("productActiveInput").checked,
 
-        ian: ian || null,
+                ian: ian || null,
 
-        ean: ean || null
+        ean: ean || null,
+
+        units_per_ian: unitsPerIan,
+
+        store_name: storeName || null,
+
+        purchase_price: purchasePrice
     };
 
     if (
