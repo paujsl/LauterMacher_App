@@ -15692,27 +15692,42 @@ if (document.readyState === "loading") {
                         </div>
                     `).join("")}
 
-                    <div class="event-stock-review-v8">
-                        <label>
-                            Gezählter Bestand:
+                                        <div class="teacher-stock-form event-stock-entry-v9">
+                        <input
+                            data-teacher-count="${product.id}"
+                            type="number"
+                            min="${product.closed ? 0 : 1}"
+                            step="1"
+                            inputmode="numeric"
+                            placeholder="Menge"
+                            aria-label="${
+                                product.closed
+                                    ? 'Gezählter Restbestand'
+                                    : 'Zusätzliche Menge'
+                            }"
+                            ${product.proposals.length ? "disabled" : ""}
+                        >
 
-                            <input
-                                class="inventory-count-input"
-                                type="number"
-                                min="0"
-                                step="1"
-                                inputmode="numeric"
-                                data-teacher-count="${product.id}"
-                                placeholder="0"
-                            >
-                        </label>
+                        <input
+                            data-teacher-cost="${product.id}"
+                            type="text"
+                            inputmode="decimal"
+                            placeholder="EK optional"
+                            aria-label="Einkaufspreis pro Stück, optional"
+                            ${product.proposals.length ? "disabled" : ""}
+                        >
 
                         <button
                             type="button"
-                            class="secondary-action"
+                            class="primary-action teacher-action-add"
                             data-teacher-propose="${product.id}"
+                            ${product.proposals.length ? "disabled" : ""}
                         >
-                            Vormerken
+                            ${
+                                product.closed
+                                    ? "Bestand bestätigen"
+                                    : "+ Bestand"
+                            }
                         </button>
                     </div>
                 </section>
@@ -16090,7 +16105,7 @@ if (document.readyState === "loading") {
 
                 toast("Inventur geprüft.", "success");
 
-            } else if (proposal) {
+                        } else if (proposal) {
                 const product = catalog.find(
                     product => product.id === proposal
                 );
@@ -16099,24 +16114,56 @@ if (document.readyState === "loading") {
                     `[data-teacher-count="${proposal}"]`
                 );
 
-                await rpc("submit_inventory_v8", {
-                    p_regular: [],
-                    p_custom: [{
-                        id: product.id,
-                        event_id: product.event_id,
-                        quantity: qty(input),
-                        version: product.stock_version
-                    }]
+                const costInput = teacherCustom.querySelector(
+                    `[data-teacher-cost="${proposal}"]`
+                );
+
+                const rawCost = costInput.value
+                    .trim()
+                    .replace(",", ".");
+
+                let purchasePrice = null;
+
+                if (rawCost !== "") {
+                    if (!/^\d+(\.\d{1,2})?$/.test(rawCost)) {
+                        throw Error(
+                            "Bitte einen gültigen Einkaufspreis eingeben, z. B. 0,50."
+                        );
+                    }
+
+                    purchasePrice = Number(rawCost);
+                }
+
+                const quantity = qty(input);
+
+                if (!product.closed && quantity === 0) {
+                    throw Error(
+                        "Bitte eine Menge größer als 0 eintragen."
+                    );
+                }
+
+                await rpc("teacher_event_stock_v9", {
+                    p_product: product.id,
+                    p_quantity: quantity,
+                    p_version: product.stock_version,
+                    p_purchase_price: purchasePrice
                 });
 
                 await renderTeacherInventory();
 
+                if (
+                    state.currentEvent?.id === product.event_id
+                ) {
+                    await loadEventProducts();
+                }
+
                 toast(
-                    "Bitte den gezählten Bestand jetzt bestätigen.",
+                    product.closed
+                        ? "Restbestand bestätigt."
+                        : "Bestand aktualisiert.",
                     "success"
                 );
             }
-
         } catch (error) {
             toast(message(error), "error");
 
