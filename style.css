@@ -9526,3 +9526,67 @@ body * {
         width: 72px;
     }
 }
+/* Inventur : même design des filtres que dans Produkte */
+
+#studentInventoryFiltersV8,
+#teacherInventoryFiltersV8 {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+
+    gap: 10px;
+    margin: 16px 0 20px;
+}
+
+#studentInventoryFiltersV8 button,
+#teacherInventoryFiltersV8 button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    flex: 0 0 auto;
+    min-height: 40px;
+    padding: 9px 16px;
+
+    border: 1.5px solid #094369;
+    border-radius: 999px;
+    background: #ffffff;
+    color: #094369;
+
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 700;
+    line-height: 1.2;
+    white-space: nowrap;
+
+    cursor: pointer;
+
+    transition:
+        background-color 0.15s ease,
+        color 0.15s ease;
+}
+
+#studentInventoryFiltersV8 button.active,
+#teacherInventoryFiltersV8 button.active {
+    border-color: #094369;
+    background: #094369;
+    color: #ffffff;
+}
+
+@media (hover: hover) {
+    #studentInventoryFiltersV8 button:not(.active):hover,
+    #teacherInventoryFiltersV8 button:not(.active):hover {
+        background: #edf6fc;
+    }
+}
+
+#studentInventoryFiltersV8 button:focus-visible,
+#teacherInventoryFiltersV8 button:focus-visible {
+    outline: 3px solid #bab0f4;
+    outline-offset: 3px;
+}
+
+#studentInventoryFiltersV8 button[hidden],
+#teacherInventoryFiltersV8 button[hidden] {
+    display: none !important;
+}
