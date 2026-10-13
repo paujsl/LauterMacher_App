@@ -8920,3 +8920,70 @@ body .screen :is(.admin-menu-card, .choice-card)[hidden] {
 #notificationsList .notification-card[role="button"] {
     cursor: pointer;
 }
+/* =========================================================
+   AUSGABE — HISTORIQUE DANS UNE CARTE BLANCHE
+   ========================================================= */
+
+#bakeryOutputScreen .bakery-completed-orders-panel {
+    background: #ffffff;
+    border: 1px solid var(--grey-200, #e2e5e8);
+    border-radius: var(--radius, 22px);
+    box-shadow: var(--shadow, 0 8px 24px rgba(9, 67, 105, 0.12));
+    padding: 20px;
+}
+
+/* En-tête sans fond violet */
+#bakeryOutputScreen .bakery-completed-history summary {
+    background: #ffffff;
+    color: #094369;
+}
+
+/* Flèche du menu repliable */
+#bakeryOutputScreen .bakery-completed-history summary::after {
+    color: rgba(83, 113, 253, 0.8);
+}
+
+/* Défilement à l'intérieur de la carte */
+#bakeryOutputScreen .bakery-completed-scroll {
+    max-height: min(360px, 45vh);
+    margin-top: 14px;
+    padding-right: 8px;
+
+    overflow-y: auto;
+    overflow-x: auto;
+    scrollbar-gutter: stable;
+}
+
+/* =========================================================
+   SITE ENTIER — BARRES DE DÉFILEMENT BLEUES
+   ========================================================= */
+
+html,
+body,
+body * {
+    scrollbar-width: thin;
+    scrollbar-color:
+        rgba(83, 113, 253, 0.8)
+        #edf0f4 !important;
+}
+
+/* Chrome, Edge et Safari compatibles */
+*::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+    background: #edf0f4 !important;
+    border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb {
+    background: rgba(83, 113, 253, 0.8) !important;
+    border: 2px solid #edf0f4 !important;
+    border-radius: 999px !important;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+    background: rgba(83, 113, 253, 0.9) !important;
+}
