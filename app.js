@@ -15754,11 +15754,24 @@ if (document.readyState === "loading") {
                 .querySelectorAll("[data-event-admin]")
                 .forEach(row => row.remove());
 
-            if (
+                        if (
                 productFilter !== "all" &&
                 productFilter !== "event"
             ) {
                 return;
+            }
+
+            if (catalog.length > 0) {
+                $("productAdminList")
+                    .querySelectorAll(":scope > p")
+                    .forEach(element => {
+                        if (
+                            element.textContent.trim() ===
+                            "Keine Produkte in diesem Bereich."
+                        ) {
+                            element.remove();
+                        }
+                    });
             }
 
             catalog.forEach(product => {
