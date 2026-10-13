@@ -8518,3 +8518,87 @@ button.event-v6-row {
     font-size: 1.6rem;
     line-height: 1;
 }
+/* =========================================================
+   CAISSES — PRODUITS COMPACTS ET PANIER À DROITE
+   ========================================================= */
+
+/* Trois produits par ligne */
+:is(#drinksSaleScreen, #bakerySaleScreen, #eventSaleScreen)
+.product-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+}
+
+/* Cartes produits plus compactes */
+:is(#drinksSaleScreen, #bakerySaleScreen, #eventSaleScreen)
+.sale-product-card {
+    box-sizing: border-box;
+    min-width: 0;
+    min-height: 105px;
+    padding: 10px 8px;
+    gap: 4px;
+    font-size: 0.85rem;
+}
+
+/* Emojis plus petits */
+:is(#drinksSaleScreen, #bakerySaleScreen, #eventSaleScreen)
+.sale-product-icon {
+    font-size: 1.5rem;
+    margin-bottom: 2px;
+}
+
+/* Noms : retour à la ligne entre les mots */
+:is(#drinksSaleScreen, #bakerySaleScreen, #eventSaleScreen)
+.sale-product-card strong {
+    font-size: 0.85rem;
+    line-height: 1.2;
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: normal;
+    hyphens: none;
+}
+
+/* Prix */
+:is(#drinksSaleScreen, #bakerySaleScreen, #eventSaleScreen)
+.sale-product-card > span:last-of-type {
+    font-size: 0.8rem;
+}
+
+/* iPad : produits à gauche, panier à droite */
+@media (min-width: 700px) {
+    :is(#drinksSaleScreen, #bakerySaleScreen, #eventSaleScreen)
+    .sale-layout {
+        grid-template-columns:
+            minmax(0, 1fr)
+            clamp(260px, 34vw, 380px);
+        gap: 16px;
+        align-items: start;
+    }
+
+    :is(#drinksSaleScreen, #bakerySaleScreen, #eventSaleScreen)
+    .cart-panel {
+        position: sticky;
+        top: calc(var(--header-height, 66px) + 12px);
+        padding: 16px;
+    }
+}
+
+/* Téléphone ou fenêtre très étroite */
+@media (max-width: 699px) {
+    :is(#drinksSaleScreen, #bakerySaleScreen, #eventSaleScreen)
+    .sale-layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    :is(#drinksSaleScreen, #bakerySaleScreen, #eventSaleScreen)
+    .cart-panel {
+        position: static;
+    }
+}
+
+@media (max-width: 420px) {
+    :is(#drinksSaleScreen, #bakerySaleScreen, #eventSaleScreen)
+    .product-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
