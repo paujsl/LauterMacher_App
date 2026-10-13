@@ -8446,14 +8446,60 @@ button.event-v6-row {
    Élèves et professeur
    ========================================================= */
 
+/* Accueil : disposition des cartes sur trois lignes */
+
 #homeScreen .home-menu-grid {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: flex-start;
-    align-items: stretch;
+    display: grid;
+    grid-template-columns: 20rem 20rem;
+    justify-content: start;
+    align-items: start;
     gap: 18px;
 }
 
+/* Ligne 1 */
+#homeScreen #homeDrinksButton {
+    grid-column: 1;
+    grid-row: 1;
+}
+
+#homeScreen #homeBakeryButton {
+    grid-column: 2;
+    grid-row: 1;
+}
+
+/* Ligne 2 */
+#homeScreen #homeEditButton {
+    grid-column: 1;
+    grid-row: 2;
+}
+
+/* Rapports : côté professeur */
+#homeScreen #homeReportsButton {
+    grid-column: 2;
+    grid-row: 2;
+}
+
+/* Ligne 3 : garde sa largeur de 24rem */
+#homeScreen #homeEventsButton {
+    grid-column: 1 / -1;
+    grid-row: 3;
+}
+
+/* Si deux cartes ne tiennent plus : une par ligne */
+@media (max-width: 44rem) {
+    #homeScreen .home-menu-grid {
+        grid-template-columns: 24rem;
+    }
+
+    #homeScreen #homeDrinksButton,
+    #homeScreen #homeBakeryButton,
+    #homeScreen #homeEditButton,
+    #homeScreen #homeReportsButton,
+    #homeScreen #homeEventsButton {
+        grid-column: 1;
+        grid-row: auto;
+    }
+}
 #homeScreen .home-menu-card {
     /* Aucun étirement ni rétrécissement */
     flex: 0 0 auto;
