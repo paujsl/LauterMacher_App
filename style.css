@@ -8830,3 +8830,93 @@ body .screen :is(.admin-menu-card, .choice-card) > small {
 body .screen :is(.admin-menu-card, .choice-card)[hidden] {
     display: none !important;
 }
+/* =========================================================
+   CLOCHE — NOTIFICATIONS COMPACTES SUR UNE LIGNE
+   ========================================================= */
+
+#notificationPopover {
+    width: min(560px, calc(100vw - 24px));
+    box-sizing: border-box;
+}
+
+#notificationPreviewList .notification-compact {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    padding: 10px 12px;
+    gap: 6px;
+
+    text-align: left;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+/* Titre en gras */
+#notificationPreviewList .notification-compact > strong {
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: 65%;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    font-size: 0.91rem;
+    font-weight: 800;
+}
+
+/* Tiret entre le titre et le message */
+#notificationPreviewList .notification-separator {
+    flex: 0 0 auto;
+}
+
+/* Message normal, avec une fin en dégradé */
+#notificationPreviewList .notification-compact > small {
+    display: block;
+    flex: 1 1 0;
+    min-width: 0;
+
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: clip;
+
+    font-size: 0.8rem;
+    font-weight: 400;
+    opacity: 1;
+
+    -webkit-line-clamp: unset;
+    -webkit-box-orient: initial;
+
+    -webkit-mask-image:
+        linear-gradient(to right, #000 85%, transparent);
+    mask-image:
+        linear-gradient(to right, #000 85%, transparent);
+}
+
+/* Notifications nouvelles */
+#notificationPreviewList .notification-compact.notification-new {
+    background: #e8f3fc;
+    color: #094369;
+    border: 1px solid #cfe3f3;
+}
+
+/* Notifications déjà lues : visibles pour les élèves */
+#notificationPreviewList .notification-compact.notification-read {
+    background: #f1f3f5;
+    color: #737b85;
+    border: 1px solid #e2e5e8;
+}
+
+#notificationPreviewList .notification-compact:focus-visible {
+    outline: 2px solid #094369;
+    outline-offset: 2px;
+}
+
+#notificationsList .notification-card[role="button"] {
+    cursor: pointer;
+}
