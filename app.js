@@ -14566,3 +14566,811 @@ if (document.readyState === "loading") {
         true
     );
 })();
+/* =========================================================
+   SON DERVERANSTALTUNG — HARMONISATION V7
+   Ajouter une seule fois à la fin de app.js.
+   ========================================================= */
+
+(() => {
+    let busy = false;
+    let freeOpen = false;
+
+    const serving = new Set();
+
+    const icon = product => {
+        const habitual = state.products.find(
+            item => item.id === product.product_id
+        );
+
+        return habitual
+            ? productIcon(habitual)
+            : (product.icon || "🍔");
+    };
+
+    const rpc = async (name, args) => {
+        const { data, error } = await db.rpc(name, args);
+
+        if (error) throw error;
+
+        return Array.isArray(data) ? data[0] : data;
+    };
+
+    const errorText = error => {
+        console.error(error);
+
+        const message = String(error?.message || error);
+
+        return message.includes("insufficient_stock")
+            ? "Nicht genug Bestand: " +
+              message.split("insufficient_stock:").pop().trim()
+            : "Bitte erneut versuchen. " + message;
+    };
+
+    const context = () => ({
+        event: state.currentEvent?.id,
+        person: state.currentPerson?.id
+    });
+
+    const unchanged = saved =>
+        saved.event === state.currentEvent?.id &&
+        saved.person === state.currentPerson?.id;
+
+
+    /* Retirer les textes inutiles, conserver + Veranstaltung */
+    $("teacherEventActions")
+        ?.querySelector("div")
+        ?.remove();
+
+
+    /* Historique toujours ouvert */
+    const past = $("pastEventsList");
+    const history = past.closest(".event-list-section");
+
+    const heading = document.createElement("h2");
+    heading.textContent = "Letzte Veranstaltungen";
+
+    const headingRow = document.createElement("div");
+    headingRow.className = "section-heading";
+    headingRow.append(heading);
+
+    history.replaceChildren(headingRow, past);
+    history.classList.add("event-v7-history");
+
+
+    /* Sélection globale des boissons */
+    const all = document.createElement("button");
+
+    all.id = "eventSelectAllDrinksButton";
+    all.type = "button";
+    all.className = "secondary-action";
+    all.textContent = "Alle Getränke auswählen";
+
+    $("eventProductsList").before(all);
+
+    const footer = document.createElement("div");
+    footer.className = "event-v7-products-footer";
+
+    footer.innerHTML = `
+        <button
+            type="button"
+            class="primary-action"
+            id="eventProductsConfirmButton"
+        >
+            Produkte bestätigen
+        </button>
+    `;
+
+    $("eventProductsList").after(footer);
+
+
+    populateGlobalEventProductSelect = () => {
+        let box = $("eventGlobalChips");
+
+        if (!box) {
+            box = document.createElement("div");
+            box.id = "eventGlobalChips";
+            box.className = "event-v6-chips";
+
+            $("eventProductsList").before(box);
+        }
+
+        box.before(all);
+
+        const old = $("globalProductForEventSelect")
+            ?.closest(".form-card");
+
+        if (old) {
+            old.hidden = true;
+            old.style.display = "none";
+        }
+
+        const used = new Set(
+            (state.currentEventProducts || [])
+                .map(product => product.product_id)
+        );
+
+        box.innerHTML = state.products
+            .filter(activeProduct)
+            .map(product => `
+                <button
+                    type="button"
+                    class="secondary-action ${
+                        used.has(product.id)
+                            ? "is-selected"
+                            : ""
+                    }"
+                    data-event-catalog="${esc(product.id)}"
+                    ${used.has(product.id) ? "disabled" : ""}
+                >
+                    ${esc(productIcon(product))}
+                    ${esc(product.name)}
+                    ${used.has(product.id) ? "✓" : "+"}
+                </button>
+            `)
+            .join("");
+
+        box.querySelectorAll("button").forEach(button => {
+            button.onclick = async () => {
+                if (busy || !state.currentEvent) return;
+
+                busy = true;
+                button.disabled = true;
+
+                const saved = context();
+
+                try {
+                    const product = state.products.find(
+                        item =>
+                            item.id === button.dataset.eventCatalog
+                    );
+
+                    await rpc("upsert_event_product", {
+                        p_event_id: saved.event,
+                        p_product_id: product.id,
+                        p_name: product.name,
+                        p_price: product.price,
+                        p_icon: productIcon(product)
+                    });
+
+                    if (unchanged(saved)) {
+                        await loadEventProducts();
+                    }
+                } catch (error) {
+                    toast(errorText(error), "error");
+                    button.disabled = false;
+                } finally {
+                    busy = false;
+                }
+            };
+        });
+    };
+
+
+    /* Produits sélectionnés en lignes compactes */
+    renderEventProducts = () => {
+        const box = $("eventProductsList");
+        box.innerHTML = "";
+
+        if (!(state.currentEventProducts || []).length) {
+            box.innerHTML = `
+                <div class="empty-state">
+                    Noch keine Produkte ausgewählt.
+                </div>
+            `;
+
+            return;
+        }
+
+        for (const product of state.currentEventProducts) {
+            const row = document.createElement("article");
+
+            row.className =
+                "product-admin-row event-v7-product-row";
+
+            row.innerHTML = `
+                <div class="product-admin-main">
+                    <span>${esc(icon(product))}</span>
+
+                    <div>
+                        <strong>${esc(product.name)}</strong>
+
+                        <small>
+                            ${money(product.price)} ·
+                            ${
+                                product.product_id
+                                    ? "Regulärer Bestand"
+                                    : "Veranstaltungsbestand: " +
+                                      integer(product.stock_quantity)
+                            }
+                            ${
+                                product.promotion_price != null
+                                    ? " · Angebot " +
+                                      money(product.promotion_price)
+                                    : ""
+                            }
+                        </small>
+                    </div>
+                </div>
+
+                <div class="product-admin-actions">
+                    <button
+                        class="secondary-action"
+                        type="button"
+                    >
+                        Bearbeiten
+                    </button>
+                </div>
+            `;
+
+            row.querySelector("button").onclick = () =>
+                openEventProductModal(product);
+
+            box.append(row);
+        }
+    };
+
+
+    /* Clavier : mêmes touches et helpers que Getränke/Bäckerei */
+    $("eventPaymentKeypad").innerHTML = [
+        "1", "2", "3",
+        "4", "5", "6",
+        "7", "8", "9",
+        ",", "0"
+    ].map(key => `
+        <button
+            class="payment-key"
+            data-value="${key}"
+            type="button"
+        >
+            ${key}
+        </button>
+    `).join("") + `
+        <button
+            class="payment-key delete-key"
+            id="eventDeletePaymentButton"
+            aria-label="Letzte Ziffer löschen"
+            type="button"
+        >
+            ⌫
+        </button>
+    `;
+
+    $("eventPaymentScreen")
+        .querySelectorAll(".payment-summary-card > span")
+        .forEach((label, index) => {
+            label.textContent =
+                index === 0 ? "Zu zahlen:" : "Kunde gibt:";
+        });
+
+    $("eventAmountReceived")
+        .closest(".payment-summary-card")
+        .classList.add("payment-received-card");
+
+    $("eventPaymentScreen")
+        .querySelector(".change-container > span")
+        .textContent = "Rückgeld:";
+
+    $("eventSuccessScreen")
+        .querySelector(".success-content > p")
+        .textContent =
+            "Bitte gib diese Bestellnummer an den Schüler oder Kunden weiter!";
+
+    $("eventSuccessOrderNumber")
+        .setAttribute("aria-live", "polite");
+
+    $("eventOutputScreen")
+        .querySelector("header")
+        .classList.add("bakery-dashboard-header");
+
+
+    if (!$("eventSuccessShiftEndButton")) {
+        const button = document.createElement("button");
+
+        button.id = "eventSuccessShiftEndButton";
+        button.type = "button";
+        button.className = "secondary-action";
+        button.textContent = "Schicht beenden";
+
+        $("eventNewOrderButton").after(button);
+    }
+
+
+    const oldShow = showScreen;
+
+    showScreen = (id, options) => {
+        if (id === "eventSuccessScreen") {
+            const numberElement = $("eventSuccessOrderNumber");
+
+            numberElement.textContent =
+                "#" + numberElement.textContent.replace(/^#+/, "");
+
+            const test =
+                state.eventTestOrders[state.currentEvent?.id]?.[0];
+
+            if (isTeacher() && test && !test.created_at) {
+                test.created_at = new Date().toISOString();
+            }
+
+            state.eventPaymentInput = "";
+        }
+
+        oldShow(id, options);
+    };
+
+
+    /* Ausgabe : mêmes cartes et historique que Bäckerei */
+    renderEventOrders = orders => {
+        if (!state.currentEvent) return;
+
+        const open = (orders || [])
+            .filter(order => !eventOrderDone(order))
+            .sort((a, b) =>
+                String(a.created_at || "").localeCompare(
+                    String(b.created_at || "")
+                )
+            );
+
+        const done = (orders || [])
+            .filter(eventOrderDone)
+            .sort((a, b) =>
+                String(
+                    b.served_at || b.created_at || ""
+                ).localeCompare(
+                    String(a.served_at || a.created_at || "")
+                )
+            );
+
+        setText("eventOpenOrderCount", open.length);
+        setText("eventCompletedOrderCount", done.length);
+
+        const openBox = $("eventOutputOrders");
+        const doneBox = $("eventCompletedOrders");
+
+        if (!openBox || !doneBox) return;
+
+        openBox.innerHTML =
+            '<div class="bakery-order-masonry"></div>';
+
+        const masonry = openBox.firstElementChild;
+
+        if (!open.length) {
+            masonry.innerHTML = `
+                <div class="empty-state bakery-output-empty">
+                    <strong>Alles erledigt! ✓</strong>
+                    <span>Keine offenen Bestellungen.</span>
+                </div>
+            `;
+        }
+
+        for (const order of open) {
+            const test = isTeacher() && (
+                state.eventTestOrders[state.currentEvent.id] || []
+            ).some(item => item.id === order.id);
+
+            const canServe = test || !isTeacher();
+
+            const items =
+                order.items || order.event_order_items || [];
+
+            const total = order.total ?? items.reduce(
+                (sum, item) =>
+                    sum +
+                    number(item.unit_price) *
+                    integer(item.quantity),
+                0
+            );
+
+            const card = document.createElement("article");
+
+            card.className = "output-order-card" +
+                (test ? " bakery-test-order" : "");
+
+            card.innerHTML = `
+                <div class="bakery-order-card-header">
+                    <strong class="output-order-number">
+                        ${test ? "Testbestellung" : "Bestellung"}
+                        #${esc(order.order_number)}
+                    </strong>
+                </div>
+
+                <div class="bakery-order-card-body">
+                    <time class="bakery-order-time">
+                        ${esc(bakeryCardDate(
+                            order.created_at ||
+                            new Date().toISOString()
+                        ))}
+                    </time>
+
+                    <div class="output-order-items">
+                        ${items.map(item => `
+                            <div class="bakery-order-item">
+                                <strong class="bakery-item-quantity">
+                                    ${integer(item.quantity)}×
+                                </strong>
+
+                                <span>
+                                    ${esc(
+                                        item.product_name ||
+                                        item.name ||
+                                        "Produkt"
+                                    )}
+                                </span>
+                            </div>
+                        `).join("")}
+                    </div>
+
+                    <div class="bakery-order-total">
+                        Gesamt: ${money(total)}
+                    </div>
+
+                    ${
+                        canServe
+                            ? `
+                                <button
+                                    class="bakery-served-button"
+                                    data-serve-event
+                                    type="button"
+                                >
+                                    Ausgeben
+                                </button>
+                            `
+                            : `
+                                <span class="bakery-readonly-label">
+                                    Nur Ansicht
+                                </span>
+                            `
+                    }
+                </div>
+            `;
+
+            const button = card.querySelector("button");
+
+            if (button) {
+                button.disabled = serving.has(order.id);
+
+                button.onclick = () =>
+                    serveEventOrder(order.id);
+            }
+
+            masonry.append(card);
+        }
+
+        doneBox.innerHTML = done.length ? "" : `
+            <div class="empty-state">
+                <small>Noch keine fertigen Bestellungen.</small>
+            </div>
+        `;
+
+        for (const order of done) {
+            const row = document.createElement("div");
+            row.className = "completed-order-row";
+
+            row.innerHTML = `
+                <strong>#${esc(order.order_number)}</strong>
+
+                <time>
+                    ${esc(bakeryOrderDate(
+                        order.served_at ||
+                        order.created_at ||
+                        new Date().toISOString()
+                    ))}
+                </time>
+            `;
+
+            doneBox.append(row);
+        }
+
+        const empty = $("eventOutputEmpty");
+
+        if (empty) {
+            empty.hidden = true;
+            empty.style.display = "none";
+        }
+    };
+
+
+    serveEventOrder = async id => {
+        if (
+            serving.has(id) ||
+            !state.currentPerson ||
+            !state.currentEvent
+        ) {
+            return;
+        }
+
+        serving.add(id);
+
+        const saved = context();
+
+        try {
+            if (isTeacher()) {
+                const order = (
+                    state.eventTestOrders[saved.event] || []
+                ).find(item => item.id === id);
+
+                if (!order) return;
+
+                order.status = "ausgegeben";
+                order.served_at = new Date().toISOString();
+            } else {
+                await rpc("serve_event_order", {
+                    p_order_id: id
+                });
+            }
+        } catch (error) {
+            toast(errorText(error), "error");
+        } finally {
+            serving.delete(id);
+
+            if (unchanged(saved)) {
+                await loadEventOrders();
+            }
+        }
+    };
+
+
+    /* Produits gratuits de l'événement */
+    const dialog = $("eventV6Dialog");
+    const form = $("eventV6Form");
+
+    dialog.addEventListener("close", () => {
+        freeOpen = false;
+    });
+
+    dialog.addEventListener("cancel", event => {
+        if (freeOpen && busy) event.preventDefault();
+    });
+
+    const free = async () => {
+        if (!state.currentEvent || !state.currentPerson) return;
+
+        const saved = context();
+        const requestId = crypto.randomUUID();
+
+        await loadEventProducts();
+
+        if (!unchanged(saved)) return;
+
+        if (dialog.open) dialog.close();
+
+        freeOpen = true;
+
+        $("eventV6Title").textContent =
+            "Gut gemacht heute, Team!";
+
+        $("eventV6Message").textContent = "";
+        $("eventV6Save").hidden = false;
+        $("eventV6Save").style.display = "";
+
+        $("eventV6Save").textContent = isTeacher()
+            ? "Test: Schicht beenden"
+            : "Speichern und Schicht beenden";
+
+        $("eventV6Fields").innerHTML = `
+            <p>Erfasse hier die kostenlosen Produkte.</p>
+
+            <p class="free-drinks-warning">
+                ‼️ Nur du erfasst heute die kostenlosen Produkte
+                für das gesamte Team. Bitte schließe dieses
+                Fenster erst, wenn du alle kostenlosen Produkte
+                des Teams für diese Schicht eingetragen und
+                gespeichert hast!
+            </p>
+
+            <div
+                class="quantity-product-list"
+                id="eventFreeProductList"
+            ></div>
+        `;
+
+        const products = [...state.currentEventProducts];
+
+        for (const product of products) {
+            const row = document.createElement("div");
+
+            row.className = "quantity-product-row";
+            row.dataset.id = product.id;
+            row.dataset.quantity = "0";
+
+            row.innerHTML = `
+                <span>${esc(icon(product))}</span>
+                <strong>${esc(product.name)}</strong>
+
+                <div class="quantity-control">
+                    <button type="button" data-minus>−</button>
+                    <span data-value>0</span>
+                    <button type="button" data-plus>+</button>
+                </div>
+            `;
+
+            const update = delta => {
+                if (busy) return;
+
+                const quantity = Math.max(
+                    0,
+                    integer(row.dataset.quantity) + delta
+                );
+
+                row.dataset.quantity = String(quantity);
+
+                row.querySelector("[data-value]")
+                    .textContent = quantity;
+            };
+
+            row.querySelector("[data-minus]").onclick =
+                () => update(-1);
+
+            row.querySelector("[data-plus]").onclick =
+                () => update(1);
+
+            $("eventFreeProductList").append(row);
+        }
+
+        form.onsubmit = async event => {
+            event.preventDefault();
+
+            if (busy || !freeOpen) return;
+
+            busy = true;
+            $("eventV6Save").disabled = true;
+
+            try {
+                if (!unchanged(saved)) {
+                    throw Error(
+                        "Die Veranstaltung ist nicht mehr geöffnet."
+                    );
+                }
+
+                const items = $$(
+                    "#eventFreeProductList [data-id]"
+                )
+                    .map(row => ({
+                        event_product_id: row.dataset.id,
+                        quantity: integer(row.dataset.quantity)
+                    }))
+                    .filter(item => item.quantity > 0);
+
+                let clients;
+
+                if (isTeacher()) {
+                    clients = (
+                        state.eventTestOrders[saved.event] || []
+                    ).length;
+                } else {
+                    const summary = await rpc(
+                        "finish_event_shift_v7",
+                        {
+                            p_event_id: saved.event,
+                            p_items: items,
+                            p_request_id: requestId
+                        }
+                    );
+
+                    clients = summary.clients;
+                }
+
+                dialog.close();
+
+                clearCart(state.eventCart);
+                state.eventReceivedCents = 0;
+                state.eventPaymentInput = "";
+
+                if (unchanged(saved)) {
+                    goHome();
+
+                    toast(
+                        isTeacher()
+                            ? `Test beendet. ${clients} Testbestellungen.`
+                            : `Sehr gut gemacht heute, Team! Wir haben heute ${clients} Kunden bedient. 🎉`,
+                        "success"
+                    );
+                }
+            } catch (error) {
+                $("eventV6Message").textContent =
+                    errorText(error);
+            } finally {
+                busy = false;
+                $("eventV6Save").disabled = false;
+            }
+        };
+
+        dialog.showModal();
+    };
+
+
+    /* Remplace les anciens handlers des boutons concernés */
+    document.addEventListener(
+        "click",
+        async event => {
+            const button = event.target.closest("button");
+
+            if (!button) return;
+
+            const shift = [
+                "eventShiftEndButton",
+                "eventCashShiftEndButton",
+                "eventOutputShiftEndButton",
+                "eventSuccessShiftEndButton"
+            ].includes(button.id);
+
+            if (button.closest("#eventPaymentKeypad")) {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+
+                state.eventPaymentInput = euroKeypadNext(
+                    state.eventPaymentInput,
+                    button.id === "eventDeletePaymentButton"
+                        ? "delete"
+                        : button.dataset.value
+                );
+
+                state.eventReceivedCents = euroKeypadCents(
+                    state.eventPaymentInput
+                );
+
+                renderEventPayment();
+                return;
+            }
+
+            if (button.id === "eventPayButton") {
+                state.eventPaymentInput = "";
+                return;
+            }
+
+            if (
+                button.id === "eventV6Cancel" &&
+                freeOpen &&
+                busy
+            ) {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                return;
+            }
+
+            if (
+                !shift &&
+                ![
+                    "eventSelectAllDrinksButton",
+                    "eventProductsConfirmButton"
+                ].includes(button.id)
+            ) {
+                return;
+            }
+
+            event.preventDefault();
+            event.stopImmediatePropagation();
+
+            if (busy) return;
+
+            busy = true;
+            button.disabled = true;
+
+            const saved = context();
+
+            try {
+                if (shift) {
+                    await free();
+                } else if (
+                    button.id === "eventSelectAllDrinksButton"
+                ) {
+                    await rpc("add_event_drinks_v7", {
+                        p_event_id: saved.event
+                    });
+
+                    if (unchanged(saved)) {
+                        await loadEventProducts();
+                    }
+                } else if (unchanged(saved)) {
+                    await loadEventProducts();
+                    await openEventWorkspace(state.currentEvent);
+                }
+            } catch (error) {
+                toast(errorText(error), "error");
+            } finally {
+                busy = false;
+                button.disabled = false;
+            }
+        },
+        true
+    );
+})();
