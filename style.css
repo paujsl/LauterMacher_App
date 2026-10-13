@@ -9407,3 +9407,122 @@ body * {
         grid-template-columns: minmax(0, 1fr) auto;
     }
 }
+/* =========================================================
+   V8 — ANGEBOT ET INVENTUR DES PRODUITS SPÉCIFIQUES
+   ========================================================= */
+
+#eventV6Dialog .event-offer-row-v8 {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 90px;
+    align-items: center;
+    gap: 12px;
+
+    padding: 10px 12px;
+    margin-bottom: 8px;
+
+    background: #f5f7ff;
+    border-radius: 16px;
+}
+
+#eventV6Dialog .event-offer-row-v8 .inventory-product-info {
+    min-width: 0;
+    gap: 10px;
+}
+
+#eventV6Dialog .event-offer-row-v8 .inventory-product-info > div {
+    min-width: 0;
+}
+
+#eventV6Dialog .event-offer-row-v8 strong,
+#eventV6Dialog .event-offer-row-v8 small {
+    display: block;
+}
+
+#eventV6Dialog .event-offer-row-v8 input {
+    box-sizing: border-box;
+    width: 90px;
+    min-height: 44px;
+    padding: 8px;
+
+    border: 1px solid #f0a5cb;
+    border-radius: 12px;
+    background: #ffe3f0;
+    color: #912558;
+
+    text-align: center;
+    font: inherit;
+    font-weight: 700;
+}
+
+#eventV6Dialog .event-offer-row-v8 input:focus {
+    outline: 2px solid #e570ad;
+    outline-offset: 2px;
+}
+
+#eventV6Dialog .event-leftovers-note-v8 {
+    color: #c42e3b;
+    font-weight: 400;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.event-v8-hidden {
+    display: none !important;
+}
+
+#studentInventoryFiltersV8,
+#teacherInventoryFiltersV8 {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 16px 0;
+}
+
+#teacherEventStockV8 .event-stock-card-v8 {
+    margin: 10px 0;
+    padding: 12px;
+
+    border-radius: 16px;
+    background: white;
+    box-shadow: 0 4px 18px rgb(30 50 100 / 8%);
+}
+
+.event-stock-review-v8 {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.event-stock-review-v8 > div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.event-stock-review-v8 input {
+    width: 80px;
+    margin-left: 6px;
+}
+
+#studentInventoryList [hidden],
+#teacherInventoryList [hidden],
+#teacherEventStockV8[hidden],
+#productsScreen .filter-tabs [hidden],
+#studentInventoryFiltersV8 [hidden],
+#teacherInventoryFiltersV8 [hidden] {
+    display: none !important;
+}
+
+@media (max-width: 420px) {
+    #eventV6Dialog .event-offer-row-v8 {
+        grid-template-columns: minmax(0, 1fr) 72px;
+        gap: 8px;
+    }
+
+    #eventV6Dialog .event-offer-row-v8 input {
+        width: 72px;
+    }
+}
