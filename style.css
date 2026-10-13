@@ -9590,3 +9590,102 @@ body * {
 #teacherInventoryFiltersV8 button[hidden] {
     display: none !important;
 }
+/* Produits spécifiques : lignes compactes dans Inventur */
+
+#teacherEventStockV8 {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#teacherEventStockV8 .event-stock-card-v8 {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px 16px;
+
+    margin: 0;
+    padding: 10px 12px;
+
+    border: 1px solid var(--grey-200);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-small);
+}
+
+#teacherEventStockV8 .inventory-product-info {
+    grid-column: 1;
+    grid-row: 1;
+    min-width: 0;
+    gap: 10px;
+}
+
+#teacherEventStockV8 .inventory-product-info > div {
+    min-width: 0;
+}
+
+#teacherEventStockV8 .inventory-product-info strong {
+    font-size: 1rem;
+    line-height: 1.2;
+}
+
+#teacherEventStockV8 .inventory-product-info small {
+    font-size: 0.8rem;
+    line-height: 1.3;
+}
+
+#teacherEventStockV8 .event-stock-review-v8 {
+    grid-column: 1 / -1;
+    margin: 0;
+    gap: 8px;
+    font-size: 0.85rem;
+}
+
+/* Champ de saisie et bouton sur la ligne du produit */
+
+#teacherEventStockV8 .event-stock-review-v8:last-child {
+    grid-column: 2;
+    grid-row: 1;
+
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+}
+
+#teacherEventStockV8 .event-stock-review-v8:last-child label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#teacherEventStockV8 .inventory-count-input {
+    box-sizing: border-box;
+    width: 72px;
+    min-height: 40px;
+    margin: 0;
+    padding: 6px;
+    font-size: 1rem;
+}
+
+#teacherEventStockV8 .event-stock-review-v8 button {
+    min-height: 40px;
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    white-space: nowrap;
+}
+
+/* Petite fenêtre : les actions restent à droite */
+
+@media (max-width: 760px) {
+    #teacherEventStockV8 .event-stock-review-v8:last-child {
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 6px;
+    }
+
+    #teacherEventStockV8 .event-stock-review-v8:last-child label {
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 4px;
+        font-size: 0.75rem;
+    }
+}
