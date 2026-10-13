@@ -9150,3 +9150,91 @@ body * {
     outline: 2px solid #094369;
     outline-offset: 2px;
 }
+/* Notifications : lignes compactes sans défilement horizontal */
+
+#notificationsScreen #notificationsList {
+    min-width: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    gap: 6px;
+}
+
+#notificationsScreen #notificationsList .notification-card {
+    position: relative;
+    box-sizing: border-box;
+
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+
+    padding: 9px 12px;
+}
+
+/* Réserve la place de la croix professeur */
+#notificationsScreen #notificationsList
+.notification-card.notification-removable {
+    padding-right: 52px;
+}
+
+#notificationsScreen #notificationsList .notification-card-main {
+    min-width: 0;
+    gap: 8px;
+}
+
+#notificationsScreen #notificationsList .notification-card-icon {
+    flex: 0 0 28px;
+    width: 28px;
+    height: 28px;
+    font-size: 0.9rem;
+}
+
+/* Titre, message et date tiennent dans la ligne */
+#notificationsScreen #notificationsList
+.notification-card-main > div:last-child {
+    flex: 1 1 0;
+    min-width: 0;
+
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+}
+
+#notificationsScreen #notificationsList .notification-card strong {
+    font-size: 0.85rem;
+    white-space: nowrap;
+}
+
+/* Message normal, coupé progressivement en fin de ligne */
+#notificationsScreen #notificationsList .notification-card p {
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+
+    font-size: 0.8rem;
+    font-weight: 400;
+
+    -webkit-mask-image:
+        linear-gradient(to right, #000 85%, transparent);
+    mask-image:
+        linear-gradient(to right, #000 85%, transparent);
+}
+
+#notificationsScreen #notificationsList .notification-card small {
+    font-size: 0.72rem;
+    white-space: nowrap;
+}
+
+/* Petite fenêtre : date sous le titre et le message */
+@media (max-width: 700px) {
+    #notificationsScreen #notificationsList
+    .notification-card-main > div:last-child {
+        grid-template-columns: auto minmax(0, 1fr);
+        gap: 3px 8px;
+    }
+
+    #notificationsScreen #notificationsList .notification-card small {
+        grid-column: 1 / -1;
+        text-align: left;
+    }
+}
