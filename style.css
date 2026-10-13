@@ -8426,8 +8426,8 @@ button.event-v6-row {
     text-transform: uppercase;
     white-space: nowrap;
 
-    opacity: 0;
-    visibility: hidden;
+    opacity: 1;
+    visibility: visible;
     pointer-events: none;
     transition: opacity 150ms ease;
 }
