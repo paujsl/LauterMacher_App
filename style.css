@@ -10196,3 +10196,101 @@ body * {
         font-size: 1.3rem;
     }
 }
+/* =========================================================
+   BERICHTE V2 — ONGLETS ET COMPARAISONS
+   ========================================================= */
+
+/* Onglets avec apparence Chrome / Excel */
+
+#reportsScreen .r1-toolbar {
+    border-bottom: 2px solid #cad7e4;
+    align-items: flex-end;
+    padding-bottom: 0;
+}
+
+#reportsScreen nav.r1-tabs {
+    gap: 5px;
+    align-items: flex-end;
+}
+
+#reportsScreen nav.r1-tabs button {
+    border: 1.5px solid #cad7e4;
+    border-bottom: 2px solid #cad7e4;
+    border-radius: 15px 15px 0 0;
+
+    background: #e8eef6;
+    color: #094369;
+
+    min-height: 46px;
+    padding: 12px 24px;
+    margin-bottom: -2px;
+}
+
+#reportsScreen nav.r1-tabs button.active {
+    background: white;
+    color: #094369;
+    border-color: #094369;
+    border-bottom-color: white;
+
+    position: relative;
+    z-index: 1;
+
+    box-shadow: 0 -3px 10px rgb(9 67 105 / 5%);
+}
+
+#reportsScreen .r1-toolbar > .r1-actions {
+    padding-bottom: 8px;
+}
+
+/* Texte des graphiques */
+
+#reportsScreen svg text {
+    fill: #094369;
+}
+
+#reportsScreen svg .r2-bar-value {
+    fill: white;
+}
+
+/* Comparaisons en dehors des bulles */
+
+#reportsScreen .r2-kpi-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    min-width: 0;
+}
+
+#reportsScreen .r2-kpi-wrap .r1-kpi {
+    flex: 1;
+}
+
+#reportsScreen .r2-comparison {
+    margin: 0;
+    padding: 0 8px;
+    color: #64748b;
+    font-size: 0.8rem;
+    line-height: 1.4;
+}
+
+#reportsScreen .r2-comparison strong {
+    font-weight: 800;
+}
+
+/* Boissons gratuites : tons orange */
+
+#reportsScreen .r1-kpi.r2-orange {
+    background: #fff0e6;
+    border: 1px solid #ffd0b1;
+    border-left: 4px solid #ff914d;
+    color: #094369;
+}
+
+#reportsScreen .r1-kpi.r2-orange > strong {
+    color: #c9570f;
+}
+
+#reportsScreen .r2-purchase-key {
+    color: #094369;
+    font-weight: 700;
+}
