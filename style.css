@@ -9827,3 +9827,372 @@ body * {
     background: var(--blue-light);
     color: var(--blue-dark);
 }
+/* =========================================================
+   BERICHTE V1
+   ========================================================= */
+
+#reportsScreen .r1-content {
+    max-width: 1280px;
+    margin: auto;
+    padding: 18px;
+    display: grid;
+    gap: 18px;
+}
+
+#reportsScreen .r1-toolbar,
+#reportsScreen .r1-heading,
+#reportsScreen .r1-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+#reportsScreen .r1-actions {
+    justify-content: flex-end;
+}
+
+#reportsScreen .r1-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+#reportsScreen .r1-tabs button {
+    flex: 0 0 auto;
+    padding: 9px 16px;
+    min-height: 40px;
+
+    border: 1.5px solid #094369;
+    border-radius: 999px;
+    background: white;
+    color: #094369;
+
+    font: inherit;
+    font-weight: 700;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+#reportsScreen .r1-tabs button.active {
+    background: #094369;
+    color: white;
+}
+
+#reportsScreen .r1-tabs button:focus-visible,
+#reportsScreen select:focus-visible {
+    outline: 3px solid #5371fd;
+    outline-offset: 3px;
+}
+
+#reportsScreen .r1-periods {
+    margin-bottom: 10px;
+}
+
+#reportsScreen h2 {
+    margin: 0 0 12px;
+    font-size: 1.15rem;
+    color: #094369;
+}
+
+#reportsScreen h3 {
+    margin: 0 0 8px;
+    color: #094369;
+    font-size: 1rem;
+}
+
+#reportsScreen .r1-card {
+    background: white;
+    border: 1px solid #e5eaf0;
+    border-radius: 20px;
+    box-shadow: 0 5px 20px rgb(9 67 105 / 8%);
+    padding: 18px;
+    min-width: 0;
+}
+
+#reportsScreen .r1-result-top {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(240px, 1fr);
+    gap: 18px;
+    margin: 16px 0;
+}
+
+#reportsScreen .r1-kpis {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+#reportsScreen .r1-kpi {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    padding: 16px;
+    border-radius: 18px;
+    background: #edf4ff;
+    color: #094369;
+}
+
+#reportsScreen .r1-kpi strong {
+    font-size: 1.65rem;
+}
+
+#reportsScreen .r1-kpi small {
+    font-size: 0.8rem;
+}
+
+#reportsScreen .r1-green {
+    background: #e5f6e9;
+    color: #246e42;
+}
+
+#reportsScreen .r1-muted {
+    color: #64748b;
+    font-size: 0.85rem;
+    line-height: 1.5;
+}
+
+#reportsScreen #r1Results > .r1-card,
+#reportsScreen #r1Stock > .r1-card {
+    margin-top: 18px;
+}
+
+#reportsScreen .r1-winner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 0;
+    border-bottom: 1px solid #edf1f6;
+}
+
+#reportsScreen .r1-winner strong,
+#reportsScreen .r1-winner small {
+    display: block;
+}
+
+#reportsScreen .r1-winner small {
+    color: #64748b;
+    margin-top: 4px;
+}
+
+#reportsScreen .r1-medal {
+    font-size: 1.6rem;
+}
+
+#reportsScreen .r1-product-icon {
+    display: grid;
+    place-items: center;
+    background: #edf4ff;
+    border-radius: 12px;
+    width: 40px;
+    height: 40px;
+    flex: 0 0 auto;
+    font-size: 1.4rem;
+}
+
+#reportsScreen svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    font-family: inherit;
+    color: #094369;
+}
+
+#reportsScreen .r1-scroll {
+    overflow: auto;
+    max-height: 380px;
+    scrollbar-color: rgba(83, 113, 253, 0.8) #edf1f6;
+    scrollbar-width: thin;
+}
+
+#reportsScreen .r1-scroll::-webkit-scrollbar {
+    width: 9px;
+    height: 9px;
+}
+
+#reportsScreen .r1-scroll::-webkit-scrollbar-thumb {
+    background: rgba(83, 113, 253, 0.8);
+    border-radius: 999px;
+}
+
+#reportsScreen .r1-table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 0.9rem;
+}
+
+#reportsScreen .r1-table th,
+#reportsScreen .r1-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #edf1f6;
+    text-align: right;
+    white-space: nowrap;
+}
+
+#reportsScreen .r1-table th:first-child,
+#reportsScreen .r1-table td:first-child {
+    text-align: left;
+}
+
+#reportsScreen .r1-table th {
+    position: sticky;
+    top: 0;
+    background: #edf4ff;
+    color: #094369;
+}
+
+#reportsScreen .r1-gauges {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 14px;
+    margin: 16px 0;
+}
+
+#reportsScreen .r1-gauge {
+    text-align: center;
+}
+
+#reportsScreen .r1-gauge svg {
+    max-width: 180px;
+    margin: auto;
+}
+
+#reportsScreen .r1-stock-state {
+    font-weight: 700;
+    margin: 8px 0;
+}
+
+#reportsScreen .r1-gauge summary {
+    font-size: 0.8rem;
+    cursor: pointer;
+    color: #5371fd;
+}
+
+#reportsScreen .r1-gauge form {
+    display: grid;
+    gap: 8px;
+    margin-top: 10px;
+    text-align: left;
+}
+
+#reportsScreen .r1-gauge label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 0.8rem;
+}
+
+#reportsScreen .r1-gauge input {
+    width: 75px;
+    padding: 6px;
+}
+
+#reportsScreen select {
+    width: auto;
+    max-width: 100%;
+    background: white;
+    color: #094369;
+    border: 1px solid #cad7e4;
+    border-radius: 12px;
+    padding: 8px 10px;
+    font: inherit;
+    font-size: 0.85rem;
+}
+
+#reportsScreen .r1-picker {
+    position: relative;
+}
+
+#reportsScreen .r1-picker summary {
+    cursor: pointer;
+    padding: 9px 12px;
+    background: #edf4ff;
+    border-radius: 12px;
+    color: #094369;
+}
+
+#reportsScreen #r1StockChoices {
+    position: absolute;
+    right: 0;
+    z-index: 5;
+    width: 260px;
+    max-width: 75vw;
+    max-height: 300px;
+    overflow: auto;
+    background: white;
+    padding: 12px;
+    border: 1px solid #dce5ef;
+    border-radius: 14px;
+    box-shadow: 0 5px 20px rgb(9 67 105 / 12%);
+    scrollbar-color: rgba(83, 113, 253, 0.8) #edf1f6;
+}
+
+#reportsScreen #r1StockChoices label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px;
+    font-size: 0.9rem;
+}
+
+#reportsScreen #r1StockChoices input {
+    width: 16px;
+    height: 16px;
+    accent-color: #5371fd;
+}
+
+#reportsScreen .r1-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-size: 0.8rem;
+    margin-top: 10px;
+}
+
+#reportsScreen .r1-legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+#reportsScreen .r1-legend i {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+#reportsScreen [hidden] {
+    display: none !important;
+}
+
+@media (max-width: 800px) {
+    #reportsScreen .r1-result-top {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    #reportsScreen .r1-content {
+        padding: 10px;
+    }
+
+    #reportsScreen .r1-card {
+        padding: 12px;
+    }
+
+    #reportsScreen .r1-kpis {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    #reportsScreen .r1-kpi {
+        padding: 10px;
+    }
+
+    #reportsScreen .r1-kpi strong {
+        font-size: 1.3rem;
+    }
+}
