@@ -16864,6 +16864,92 @@ function updateProductUnitCostPreview() {
         </section>
     `;
 
+       /* Onglets Ergebnisse / Bestand */
+
+    const reportTabs =
+        root.querySelector('nav[aria-label="Berichte"]');
+
+    reportTabs.setAttribute("role", "tablist");
+
+    reportTabs.querySelectorAll("button").forEach(button => {
+        const results = button.dataset.r1Tab === "results";
+
+        button.id = "r2-tab-" + button.dataset.r1Tab;
+        button.setAttribute("role", "tab");
+        button.setAttribute("aria-selected", String(results));
+
+        button.setAttribute(
+            "aria-controls",
+            results ? "r1Results" : "r1Stock"
+        );
+
+        button.addEventListener("click", () => {
+            reportTabs.querySelectorAll("button").forEach(b => {
+                b.setAttribute(
+                    "aria-selected",
+                    String(b === button)
+                );
+            });
+        });
+    });
+
+    [
+        ["r1Results", "results"],
+        ["r1Stock", "stock"]
+    ].forEach(([id, tab]) => {
+        $(id).setAttribute("role", "tabpanel");
+
+        $(id).setAttribute(
+            "aria-labelledby",
+            "r2-tab-" + tab
+        );
+    });
+
+    reportTabs.addEventListener("keydown", event => {
+        if (
+            !["ArrowLeft", "ArrowRight"].includes(event.key)
+        ) return;
+
+        event.preventDefault();
+
+        const buttons = [
+            ...reportTabs.querySelectorAll("button")
+        ];
+
+        const i = buttons.indexOf(document.activeElement);
+
+        const next =
+            buttons[(i + 1 + buttons.length) % buttons.length];
+
+        next.focus();
+        next.click();
+    });
+
+    /* Même menu déroulant que le Top 3 */
+
+    root.querySelector(
+        '[data-r1-metric="revenue"]'
+    ).parentElement.outerHTML = `
+        <select
+            id="r2Metric"
+            aria-label="Kennzahl des Diagramms"
+        >
+            <option value="revenue">Umsatz</option>
+            <option value="profit">Gewinn</option>
+        </select>
+    `;
+
+    /* Inventurdifferenzen sous le graphique de stock */
+
+    const differenceCard =
+        $("r1DifferenceRows").closest(".r1-card");
+
+    differenceCard.querySelector("h2").insertAdjacentHTML(
+        "afterend",
+        '<p id="r2DifferencePeriod" class="r1-muted"></p>'
+    );
+
+    $("r1Stock").append(differenceCard);
     const productTotals = () => {
         const d = S.data;
         const n = wall(d.now);
@@ -16917,7 +17003,7 @@ function updateProductUnitCostPreview() {
         );
     };
 
-    const drawBars = () => {
+        const drawBars = () => {
         const n = wall(S.data.now);
         const bs = buckets(S.period, n);
 
@@ -16932,19 +17018,24 @@ function updateProductUnitCostPreview() {
         );
 
         const known = values.filter(v => v != null);
+
         const low = Math.min(0, ...known);
         const high = Math.max(1, ...known);
 
-        const y = v => 22 + (high - v) / (high - low) * 174;
+        const y = v =>
+            25 + (high - v) / (high - low) * 180;
+
         const zero = y(0);
-        const ticks = Array.from(
-            { length: 5 },
-            (_, i) => high - (high - low) * i / 4
-        );
+
+        const numberLabel = value =>
+            Number(value).toLocaleString("de-DE", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
 
         $("r1Bars").innerHTML = `
             <svg
-                viewBox="0 0 760 240"
+                viewBox="0 0 760 270"
                 role="img"
                 aria-label="${
                     S.metric === "revenue"
@@ -16952,21 +17043,23 @@ function updateProductUnitCostPreview() {
                         : "Geschätzter Verkaufsgewinn"
                 } der zwölf Perioden"
             >
-                ${ticks.map(t => `
-                    <line
-                        x1="72" x2="750"
-                        y1="${y(t)}" y2="${y(t)}"
-                        stroke="#e7edf4"
-                    />
-                    <text
-                        x="66" y="${y(t) + 4}"
-                        text-anchor="end"
-                        font-size="10"
-                    >${esc(money(t))}</text>
-                `).join("")}
+                <text
+                    x="12"
+                    y="14"
+                    font-size="11"
+                    fill="#094369"
+                >Werte in €</text>
+
+                <line
+                    x1="12"
+                    x2="750"
+                    y1="${zero}"
+                    y2="${zero}"
+                    stroke="#dce6f0"
+                />
 
                 ${bs.map((b, i) => {
-                    const x = 78 + i * 56;
+                    const x = 17 + i * 61;
 
                     const caption =
                         S.period === "month" ||
@@ -16974,51 +17067,102 @@ function updateProductUnitCostPreview() {
                             ? shortMonth(b.start)
                             : label(b.start);
 
+                    const axis = `
+                        <text
+                            x="${x + 25}"
+                            y="247"
+                            text-anchor="middle"
+                            font-size="11"
+                            fill="#094369"
+                        >${esc(caption)}</text>
+                    `;
+
                     if (values[i] == null) {
                         return `
                             <text
-                                x="${x + 22}" y="${zero - 8}"
-                                text-anchor="middle" font-size="12"
+                                x="${x + 25}"
+                                y="${zero - 8}"
+                                text-anchor="middle"
+                                fill="#094369"
                             >—</text>
-                            <text
-                                x="${x + 22}" y="218"
-                                text-anchor="middle" font-size="10"
-                            >${esc(caption)}</text>
+
+                            ${axis}
                         `;
                     }
 
-                    const running = b.end > n;
+                    const value = values[i];
+
+                    const top = Math.min(y(value), zero);
+
                     const height = Math.max(
-                        Math.abs(y(values[i]) - zero),
+                        Math.abs(y(value) - zero),
                         2
                     );
+
+                    const running = b.end > n;
+
+                    const fill = running
+                        ? "#5371fd"
+                        : "#094369";
+
+                    const small = height < 24;
+
+                    const badgeY = value >= 0
+                        ? top - 23
+                        : top + height + 4;
+
+                    const textY = small
+                        ? badgeY + 13
+                        : top + height / 2 + 3;
+
+                    const text = numberLabel(value);
 
                     return `
                         <rect
                             x="${x}"
-                            y="${Math.min(y(values[i]), zero)}"
-                            width="43"
+                            y="${top}"
+                            width="50"
                             height="${height}"
                             rx="5"
-                            fill="${running ? "#5371fd" : "#094369"}"
-                            opacity="${running ? ".65" : "1"}"
+                            fill="${fill}"
                         >
                             <title>
                                 ${esc(caption)}:
-                                ${esc(money(values[i]))}
+                                ${esc(money(value))}
                                 ${running ? " · laufend" : ""}
                             </title>
                         </rect>
 
+                        ${small ? `
+                            <rect
+                                x="${x}"
+                                y="${badgeY}"
+                                width="50"
+                                height="18"
+                                rx="6"
+                                fill="${fill}"
+                            />
+                        ` : ""}
+
                         <text
-                            x="${x + 22}" y="218"
-                            text-anchor="middle" font-size="10"
-                        >${esc(caption)}</text>
+                            class="r2-bar-value"
+                            x="${x + 25}"
+                            y="${textY}"
+                            text-anchor="middle"
+                            font-size="${text.length > 9 ? 8 : 10}"
+                            font-weight="700"
+                            fill="white"
+                        >${esc(text)}</text>
+
+                        ${axis}
 
                         ${running ? `
                             <text
-                                x="${x + 22}" y="234"
-                                text-anchor="middle" font-size="9"
+                                x="${x + 25}"
+                                y="262"
+                                text-anchor="middle"
+                                font-size="9"
+                                fill="#094369"
                             >laufend</text>
                         ` : ""}
                     `;
@@ -17055,26 +17199,79 @@ function updateProductUnitCostPreview() {
             ["Kostenlose Getränke", "free", false]
         ];
 
-        $("r1Kpis").innerHTML = cards.map(([title, k, euros]) => `
-            <article class="r1-kpi ${k === "free" ? "r1-green" : ""}">
-                <span>${title}</span>
+                $("r2DifferencePeriod").textContent =
+            "Zeitraum: " + $("r1PeriodLabel").textContent;
 
-                <strong>
-                    ${euros ? amount(current[k]) : int(current[k])}
-                </strong>
+        $("r1Kpis").innerHTML = cards.map(
+            ([title, k, euros]) => {
+                const text = comparison(
+                    current[k],
+                    previous[k],
+                    euros
+                );
 
-                <small>
-                    ${esc(comparison(current[k], previous[k], euros))}
-                </small>
+                const valid =
+                    current[k] != null &&
+                    previous[k] != null;
 
-                ${k === "free" ? `
-                    <small>
-                        Geschätzter Einkaufspreis:
-                        ${amount(current.freeCost)}
-                    </small>
-                ` : ""}
-            </article>
-        `).join("");
+                const delta = valid
+                    ? current[k] - previous[k]
+                    : 0;
+
+                const color = delta > 0
+                    ? "#05a85a"
+                    : delta < 0
+                        ? "#fa4343"
+                        : "#64748b";
+
+                const suffix = " zur Vorperiode";
+
+                const comparisonHtml =
+                    valid &&
+                    delta !== 0 &&
+                    text.endsWith(suffix)
+                        ? `
+                            <strong style="color:${color}">
+                                ${esc(
+                                    text.slice(0, -suffix.length)
+                                )}
+                            </strong>
+                            zur Vorperiode
+                        `
+                        : esc(text);
+
+                return `
+                    <div class="r2-kpi-wrap">
+                        <article
+                            class="r1-kpi ${
+                                k === "free" ? "r2-orange" : ""
+                            }"
+                        >
+                            <span>${title}</span>
+
+                            <strong>
+                                ${
+                                    euros
+                                        ? amount(current[k])
+                                        : int(current[k])
+                                }
+                            </strong>
+
+                            ${k === "free" ? `
+                                <small>
+                                    Geschätzter Einkaufspreis:
+                                    ${amount(current.freeCost)}
+                                </small>
+                            ` : ""}
+                        </article>
+
+                        <p class="r2-comparison">
+                            ${comparisonHtml}
+                        </p>
+                    </div>
+                `;
+            }
+        ).join("");
 
         const products = productTotals();
 
@@ -17151,8 +17348,75 @@ function updateProductUnitCostPreview() {
         "#094369", "#968032", "#457b9d", "#a660b4"
     ];
 
+        /* Courbe arrondie sans dépassement entre deux valeurs */
+
+    const smoothStockPath = points => {
+        if (!points.length) return "";
+
+        if (points.length === 1) {
+            return `M ${points[0].x} ${points[0].y}`;
+        }
+
+        const slopes = points.slice(1).map((p, i) =>
+            (p.y - points[i].y) /
+            (p.x - points[i].x)
+        );
+
+        const tangents = points.map((p, i) => {
+            if (!i) return slopes[0];
+
+            if (i === points.length - 1) {
+                return slopes[slopes.length - 1];
+            }
+
+            if (slopes[i - 1] * slopes[i] <= 0) {
+                return 0;
+            }
+
+            return (
+                2 * slopes[i - 1] * slopes[i] /
+                (slopes[i - 1] + slopes[i])
+            );
+        });
+
+        slopes.forEach((slope, i) => {
+            if (!slope) {
+                tangents[i] = 0;
+                tangents[i + 1] = 0;
+                return;
+            }
+
+            const norm = Math.hypot(
+                tangents[i] / slope,
+                tangents[i + 1] / slope
+            );
+
+            if (norm > 3) {
+                tangents[i] *= 3 / norm;
+                tangents[i + 1] *= 3 / norm;
+            }
+        });
+
+        let path = `M ${points[0].x} ${points[0].y}`;
+
+        for (let i = 0; i < points.length - 1; i++) {
+            const a = points[i];
+            const b = points[i + 1];
+            const dx = (b.x - a.x) / 3;
+
+            path += `
+                C ${a.x + dx} ${a.y + dx * tangents[i]},
+                  ${b.x - dx} ${b.y - dx * tangents[i + 1]},
+                  ${b.x} ${b.y}
+            `;
+        }
+
+        return path;
+    };
+
     const drawStock = () => {
         const n = wall(S.data.now);
+
         const last = Math.floor(n / DAY) * DAY;
         const start = last - (S.days - 1) * DAY;
 
@@ -17160,9 +17424,9 @@ function updateProductUnitCostPreview() {
             p => p.active && S.selected.has(p.key)
         );
 
-        const series = products.map(p => {
+        const series = products.map(product => {
             const history = S.data.history
-                .filter(h => h.product_key === p.key)
+                .filter(h => h.product_key === product.key)
                 .sort(
                     (a, b) =>
                         a.t - b.t ||
@@ -17181,14 +17445,19 @@ function updateProductUnitCostPreview() {
                         j < history.length &&
                         history[j].t < Math.min(t + DAY, n)
                     ) {
-                        value = Number(history[j++].quantity);
+                        value = Number(
+                            history[j++].quantity
+                        );
                     }
 
                     return { t, value };
                 }
             );
 
-            return { p, points };
+            return {
+                product,
+                points
+            };
         });
 
         const max = Math.max(
@@ -17202,42 +17471,73 @@ function updateProductUnitCostPreview() {
             58 + (t - start) /
             (Math.max(S.days - 1, 1) * DAY) * 680;
 
-        const y = value => 200 - value / max * 175;
+        const y = value =>
+            200 - value / max * 175;
+
+        const colorFor = i =>
+            colors[i] ||
+            `hsl(${(i * 137.5) % 360} 55% 42%)`;
 
         $("r1StockChart").innerHTML = products.length
             ? `
                 <svg
                     viewBox="0 0 760 235"
                     role="img"
-                    aria-label="Bestandsentwicklung"
+                    aria-label="Bestandsentwicklung mit Wareneingängen"
                 >
-                    ${Array.from({ length: 5 }, (_, i) => {
-                        const value = max * i / 4;
+                    ${Array.from(
+                        { length: 5 },
+                        (_, i) => {
+                            const value = max * i / 4;
 
-                        return `
-                            <line
-                                x1="58" x2="742"
-                                y1="${y(value)}" y2="${y(value)}"
-                                stroke="#e7edf4"
-                            />
-                            <text
-                                x="50" y="${y(value) + 4}"
-                                text-anchor="end" font-size="11"
-                            >${int(value)}</text>
-                        `;
-                    }).join("")}
+                            return `
+                                <line
+                                    x1="58"
+                                    x2="742"
+                                    y1="${y(value)}"
+                                    y2="${y(value)}"
+                                    stroke="#e7edf4"
+                                />
+
+                                <text
+                                    x="50"
+                                    y="${y(value) + 4}"
+                                    text-anchor="end"
+                                    font-size="11"
+                                    fill="#094369"
+                                >${int(value)}</text>
+                            `;
+                        }
+                    ).join("")}
 
                     ${series.map((s, i) => {
                         const known = s.points.filter(
                             p => p.value != null
                         );
 
-                        const color = colors[i % colors.length];
+                        const color = colorFor(i);
 
-                        const path = known.map((p, j) =>
-                            (j ? "L" : "M") +
-                            x(p.t) + " " + y(p.value)
-                        ).join(" ");
+                        const path = smoothStockPath(
+                            known.map(p => ({
+                                x: x(p.t),
+                                y: y(p.value)
+                            }))
+                        );
+
+                        const purchases =
+                            (S.data.purchases || []).filter(r =>
+                                r.product_key === s.product.key &&
+                                r.t >= start &&
+                                r.t <= n
+                            );
+
+                        const purchaseDays = [
+                            ...new Set(
+                                purchases.map(r =>
+                                    Math.floor(r.t / DAY) * DAY
+                                )
+                            )
+                        ];
 
                         return `
                             <path
@@ -17251,41 +17551,106 @@ function updateProductUnitCostPreview() {
                                 <circle
                                     cx="${x(p.t)}"
                                     cy="${y(p.value)}"
-                                    r="2.5"
+                                    r="2"
                                     fill="${color}"
                                 >
                                     <title>
-                                        ${esc(s.p.name)} ·
+                                        ${esc(s.product.name)} ·
                                         ${label(p.t)}:
                                         ${int(p.value)} Stück
                                     </title>
                                 </circle>
                             `).join("")}
+
+                            ${purchaseDays.map(day => {
+                                const point = s.points.find(
+                                    p => p.t === day
+                                );
+
+                                if (point?.value == null) {
+                                    return "";
+                                }
+
+                                const entries = purchases.filter(
+                                    r =>
+                                        Math.floor(r.t / DAY) *
+                                        DAY === day
+                                );
+
+                                const dates = [
+                                    ...new Set(
+                                        entries
+                                            .map(r => r.purchase_date)
+                                            .filter(Boolean)
+                                    )
+                                ];
+
+                                const tip =
+                                    s.product.name +
+                                    " · Wareneingang: " +
+                                    label(day) +
+                                    " · +" +
+                                    int(sum(entries, "quantity")) +
+                                    " Stück" +
+                                    (
+                                        dates.length
+                                            ? " · Einkaufsdatum: " +
+                                              dates.join(", ")
+                                            : ""
+                                    );
+
+                                return `
+                                    <circle
+                                        cx="${x(day)}"
+                                        cy="${y(point.value)}"
+                                        r="7"
+                                        fill="${color}"
+                                        stroke="white"
+                                        stroke-width="2.5"
+                                    >
+                                        <title>${esc(tip)}</title>
+                                    </circle>
+                                `;
+                            }).join("")}
                         `;
                     }).join("")}
 
-                    <text x="58" y="225" font-size="11">
-                        ${label(start)}
-                    </text>
+                    <text
+                        x="58"
+                        y="225"
+                        font-size="11"
+                        fill="#094369"
+                    >${label(start)}</text>
 
                     <text
-                        x="742" y="225"
-                        text-anchor="end" font-size="11"
+                        x="742"
+                        y="225"
+                        text-anchor="end"
+                        font-size="11"
+                        fill="#094369"
                     >${label(last)}</text>
                 </svg>
             `
-            : `<p class="r1-muted">
-                Bitte mindestens ein Produkt auswählen.
-               </p>`;
+            : `
+                <p class="r1-muted">
+                    Bitte mindestens ein Produkt auswählen.
+                </p>
+            `;
 
-        $("r1StockLegend").innerHTML = products.map((p, i) => `
-            <span>
-                <i style="background:${colors[i % colors.length]}"></i>
-                ${esc(p.name)}
-            </span>
-        `).join("");
+        $("r1StockLegend").innerHTML =
+            products.map((p, i) => `
+                <span>
+                    <i style="background:${colorFor(i)}"></i>
+                    ${esc(p.name)}
+                </span>
+            `).join("") +
+
+            `
+                <span class="r2-purchase-key">
+                    ● Großer Punkt: Wareneingang
+                </span>
+            `;
     };
-
     const renderStock = () => {
         const products = S.data.products.filter(p => p.active);
 
@@ -17442,7 +17807,7 @@ function updateProductUnitCostPreview() {
 
         try {
             const { data, error } = await db.rpc(
-                "teacher_reports_v1",
+                "teacher_reports_v2",
                 {
                     p_from: key(from),
                     p_to: key(Math.floor(n / DAY) * DAY + DAY)
@@ -17463,7 +17828,8 @@ function updateProductUnitCostPreview() {
                 ["ledger", "entry_date"],
                 ["differences", "reviewed_at"],
                 ["other_events", "date"],
-                ["history", "recorded_at"]
+                ["history", "recorded_at"],
+                ["purchases", "created_at"]
             ]) {
                 data[name] = (data[name] || []).map(r => ({
                     ...r,
@@ -17630,6 +17996,13 @@ function updateProductUnitCostPreview() {
         const el = event.target;
 
         if (!isTeacher()) return;
+               if (el.id === "r2Metric") {
+            S.metric = el.value;
+
+            if (S.data) {
+                drawBars();
+            }
+        }
 
         if (el.id === "r1Rank") {
             S.rank = el.value;
