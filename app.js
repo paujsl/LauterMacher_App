@@ -16406,3 +16406,1325 @@ function updateProductUnitCostPreview() {
         updateProductUnitCostPreview
     );
 });
+/* =========================================================
+   BERICHTE V1 — ERGEBNISSE UND BESTAND
+   ========================================================= */
+
+(() => {
+    const DAY = 86400000;
+
+    const S = {
+        tab: "results",
+        period: "day",
+        metric: "revenue",
+        rank: "quantity",
+        days: 30,
+        data: null,
+        selected: new Set(),
+        generation: 0
+    };
+
+    const fmt = new Intl.DateTimeFormat("en-GB", {
+        timeZone: "Europe/Berlin",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hourCycle: "h23"
+    });
+
+    const wall = value => {
+        if (/^\d{4}-\d{2}-\d{2}$/.test(String(value))) {
+            return Date.parse(value + "T00:00:00Z");
+        }
+
+        const p = Object.fromEntries(
+            fmt.formatToParts(new Date(value))
+                .map(x => [x.type, x.value])
+        );
+
+        return Date.UTC(
+            +p.year, +p.month - 1, +p.day,
+            +p.hour, +p.minute, +p.second
+        );
+    };
+
+    const key = t =>
+        new Date(t).toISOString().slice(0, 10);
+
+    const month = (t, n = 0) => {
+        const d = new Date(t);
+
+        return Date.UTC(
+            d.getUTCFullYear(),
+            d.getUTCMonth() + n,
+            1
+        );
+    };
+
+    const year = t => {
+        const d = new Date(t);
+
+        return Date.UTC(
+            d.getUTCFullYear() - (d.getUTCMonth() < 8 ? 1 : 0),
+            8,
+            1
+        );
+    };
+
+    const windowFor = (period, t) => {
+        const day = Math.floor(t / DAY) * DAY;
+
+        if (period === "day") {
+            return [day, day + DAY, day - DAY];
+        }
+
+        if (period === "week") {
+            const a = day -
+                ((new Date(day).getUTCDay() + 6) % 7) * DAY;
+
+            return [a, a + 7 * DAY, a - 7 * DAY];
+        }
+
+        if (period === "month") {
+            return [month(t), month(t, 1), month(t, -1)];
+        }
+
+        const a = year(t);
+        const d = new Date(a);
+
+        return [
+            a,
+            Date.UTC(d.getUTCFullYear() + 1, 8, 1),
+            Date.UTC(d.getUTCFullYear() - 1, 8, 1)
+        ];
+    };
+
+    const buckets = (period, t) => {
+        const [a] = windowFor(period, t);
+
+        return Array.from({ length: 12 }, (_, i) => {
+            const start =
+                period === "schoolyear"
+                    ? month(a, i)
+                    : period === "month"
+                        ? month(a, i - 11)
+                        : a + (i - 11) *
+                          (period === "week" ? 7 : 1) * DAY;
+
+            const end =
+                period === "month" || period === "schoolyear"
+                    ? month(start, 1)
+                    : start + (period === "week" ? 7 : 1) * DAY;
+
+            return { start, end };
+        });
+    };
+
+    const saleKey = r =>
+        r.product_id
+            ? "product:" + r.product_id
+            : r.event_product_id
+                ? "event:" + r.event_product_id
+                : "other:" + r.product_name;
+
+    const between = (rows, a, b) =>
+        rows.filter(r => r.t >= a && r.t < b);
+
+    const sum = (rows, field) =>
+        rows.reduce(
+            (total, row) => total + Number(row[field] || 0),
+            0
+        );
+
+    const stats = (data, a, b) => {
+        const lines = between(data.sales, a, b);
+        const free = between(data.free, a, b);
+        const direct = between(data.other_events, a, b);
+
+        return {
+            lines,
+
+            revenue:
+                sum(lines, "revenue") +
+                sum(direct, "amount"),
+
+            profit: lines.some(r => r.estimated_profit == null)
+                ? null
+                : sum(lines, "estimated_profit"),
+
+            tickets: new Set(
+                lines.map(r => r.order_id || r.event_order_id)
+                    .filter(Boolean)
+            ).size,
+
+            drinks: sum(
+                lines.filter(r => r.area === "getränke"),
+                "quantity"
+            ),
+
+            bakery: sum(
+                lines.filter(r => r.area === "bäckerei"),
+                "quantity"
+            ),
+
+            expenses: sum(
+                between(data.expenses, a, b),
+                "amount"
+            ),
+
+            other: sum(
+                between(data.ledger, a, b)
+                    .filter(r => r.kind === "other"),
+                "amount"
+            ),
+
+            free: sum(free, "quantity"),
+
+            freeCost: free.some(r => r.purchase_price == null)
+                ? null
+                : free.reduce(
+                    (total, r) =>
+                        total +
+                        Number(r.quantity) *
+                        Number(r.purchase_price),
+                    0
+                )
+        };
+    };
+
+    const amount = n => n == null ? "—" : money(n);
+
+    const int = n => new Intl.NumberFormat("de-DE", {
+        maximumFractionDigits: 0
+    }).format(n);
+
+    const label = t => new Intl.DateTimeFormat("de-DE", {
+        timeZone: "UTC",
+        day: "2-digit",
+        month: "2-digit"
+    }).format(new Date(t));
+
+    const shortMonth = t => new Intl.DateTimeFormat("de-DE", {
+        timeZone: "UTC",
+        month: "short",
+        year: "2-digit"
+    }).format(new Date(t));
+
+    const comparison = (current, previous, euros = false) => {
+        if (current == null || previous == null) {
+            return "Vergleich nicht verfügbar";
+        }
+
+        const delta = current - previous;
+
+        if (!delta) return "Unverändert zur Vorperiode";
+
+        if (previous <= 0) {
+            return (delta > 0 ? "+" : "") +
+                (euros ? money(delta) : int(delta)) +
+                " zur Vorperiode";
+        }
+
+        const p = delta / previous * 100;
+
+        return (p > 0 ? "+" : "") +
+            p.toLocaleString("de-DE", {
+                maximumFractionDigits: 1
+            }) +
+            " % zur Vorperiode";
+    };
+
+    const root = $("reportsScreen");
+
+    if (!root) return;
+
+    root.innerHTML = `
+        <header class="screen-header">
+            <button
+                type="button"
+                class="back-button"
+                data-r1-home
+            >← Startseite</button>
+
+            <h1>📊 Berichte</h1>
+        </header>
+
+        <section class="r1-content">
+            <div class="r1-toolbar">
+                <nav class="r1-tabs" aria-label="Berichte">
+                    <button
+                        type="button"
+                        data-r1-tab="results"
+                        class="active"
+                    >Ergebnisse</button>
+
+                    <button
+                        type="button"
+                        data-r1-tab="stock"
+                    >Bestand</button>
+                </nav>
+
+                <div class="r1-actions">
+                    <button
+                        type="button"
+                        class="secondary-action"
+                        data-r1-refresh
+                    >Aktualisieren</button>
+
+                    <button
+                        type="button"
+                        class="secondary-action"
+                        data-r1-export
+                    >Exportieren</button>
+                </div>
+            </div>
+
+            <p id="r1Status" role="status"></p>
+
+            <section id="r1Results">
+                <div
+                    class="r1-tabs r1-periods"
+                    aria-label="Zeitraum"
+                >
+                    ${[
+                        ["day", "Tag"],
+                        ["week", "Woche"],
+                        ["month", "Monat"],
+                        ["schoolyear", "Schuljahr"]
+                    ].map(([value, text]) => `
+                        <button
+                            type="button"
+                            data-r1-period="${value}"
+                            class="${value === "day" ? "active" : ""}"
+                        >${text}</button>
+                    `).join("")}
+                </div>
+
+                <p id="r1PeriodLabel" class="r1-muted"></p>
+
+                <div class="r1-result-top">
+                    <article class="r1-card">
+                        <div class="r1-heading">
+                            <h2>Entwicklung</h2>
+
+                            <div class="r1-tabs">
+                                <button
+                                    type="button"
+                                    data-r1-metric="revenue"
+                                    class="active"
+                                >Umsatz</button>
+
+                                <button
+                                    type="button"
+                                    data-r1-metric="profit"
+                                >Gewinn</button>
+                            </div>
+                        </div>
+
+                        <div id="r1Bars"></div>
+
+                        <p class="r1-muted">
+                            Die letzte begonnene Periode ist noch
+                            nicht vollständig. Schuljahr:
+                            September bis August.
+                        </p>
+                    </article>
+
+                    <article class="r1-card">
+                        <div class="r1-heading">
+                            <h2>Top 3</h2>
+
+                            <select
+                                id="r1Rank"
+                                aria-label="Rangliste"
+                            >
+                                <option value="quantity">
+                                    Nach verkaufter Menge
+                                </option>
+                                <option value="revenue">
+                                    Nach Umsatz
+                                </option>
+                            </select>
+                        </div>
+
+                        <div id="r1Podium"></div>
+                    </article>
+                </div>
+
+                <div id="r1Kpis" class="r1-kpis"></div>
+
+                <p class="r1-muted">
+                    Gewinn = geschätzter Verkaufsgewinn aus
+                    Produktverkäufen. Fehlende Einkaufspreise
+                    werden nicht als 0 € behandelt.
+                    Einkaufsausgaben, kostenlose Getränke und
+                    sonstige Einnahmen werden separat ausgewiesen.
+                    Der Umsatz enthält auch abgeschlossene
+                    Veranstaltungen mit direkt erfasstem Umsatz.
+                    Getränkeeinkäufe ohne Pfand.
+                </p>
+
+                <article class="r1-card">
+                    <h2>Produkte</h2>
+
+                    <div class="r1-scroll">
+                        <table class="r1-table">
+                            <thead>
+                                <tr>
+                                    <th>Produkt</th>
+                                    <th>Verkaufte Menge</th>
+                                    <th>Aktueller Bestand</th>
+                                    <th>Umsatz</th>
+                                    <th>Gewinn*</th>
+                                </tr>
+                            </thead>
+                            <tbody id="r1ProductRows"></tbody>
+                        </table>
+                    </div>
+
+                    <p class="r1-muted">
+                        * Geschätzt. Bestand: aktueller Wert,
+                        unabhängig vom gewählten Zeitraum.
+                    </p>
+                </article>
+
+                <article class="r1-card">
+                    <h2>Inventurdifferenzen</h2>
+
+                    <p class="r1-muted">
+                        Reguläre Produkte · bestätigte Zählungen ·
+                        maximal 100 Einträge. Eine Abweichung ist
+                        kein Nachweis für einen Fehler einer
+                        bestimmten Person.
+                    </p>
+
+                    <div class="r1-scroll">
+                        <table class="r1-table">
+                            <thead>
+                                <tr>
+                                    <th>Datum</th>
+                                    <th>Produkt</th>
+                                    <th>Vorheriger Bestand</th>
+                                    <th>Gezählt</th>
+                                    <th>Abweichung</th>
+                                </tr>
+                            </thead>
+                            <tbody id="r1DifferenceRows"></tbody>
+                        </table>
+                    </div>
+                </article>
+            </section>
+
+            <section id="r1Stock" hidden>
+                <h2>Aktuelle Bestände</h2>
+
+                <p class="r1-muted">
+                    Zielbestand und Mindestbestand können pro
+                    Produkt angepasst werden.
+                    Anfangswerte: 30 und 5 Stück.
+                </p>
+
+                <div id="r1Gauges" class="r1-gauges"></div>
+
+                <article class="r1-card">
+                    <div class="r1-heading">
+                        <h2>Bestandsentwicklung</h2>
+
+                        <div class="r1-actions">
+                            <select
+                                id="r1StockDays"
+                                aria-label="Zeitraum der Bestandsentwicklung"
+                            >
+                                <option value="30">Letzte 30 Tage</option>
+                                <option value="90">Letzte 90 Tage</option>
+                                <option value="365">Letzte 365 Tage</option>
+                            </select>
+
+                            <details class="r1-picker">
+                                <summary>Produkte auswählen</summary>
+                                <div id="r1StockChoices"></div>
+                            </details>
+                        </div>
+                    </div>
+
+                    <div id="r1StockChart"></div>
+                    <div id="r1StockLegend" class="r1-legend"></div>
+
+                    <p class="r1-muted">
+                        Die Aufzeichnung beginnt mit der Einrichtung
+                        dieser Ansicht. Frühere Bestände werden
+                        nicht geschätzt. Werte ohne Änderung
+                        werden fortgeführt.
+                    </p>
+                </article>
+            </section>
+        </section>
+    `;
+
+    const productTotals = () => {
+        const d = S.data;
+        const n = wall(d.now);
+        const [a] = windowFor(S.period, n);
+        const current = stats(d, a, n);
+
+        const map = new Map(
+            d.products.filter(p => p.active).map(p => [
+                p.key,
+                {
+                    ...p,
+                    sold: 0,
+                    revenue: 0,
+                    profit: 0,
+                    unknown: false
+                }
+            ])
+        );
+
+        current.lines.forEach(r => {
+            const k = saleKey(r);
+
+            if (!map.has(k)) {
+                const p = d.products.find(p => p.key === k);
+
+                map.set(k, {
+                    ...p,
+                    key: k,
+                    name: p?.name || r.product_name,
+                    icon: p?.icon || "📦",
+                    quantity: p?.quantity ?? null,
+                    sold: 0,
+                    revenue: 0,
+                    profit: 0,
+                    unknown: false
+                });
+            }
+
+            const p = map.get(k);
+
+            p.sold += Number(r.quantity);
+            p.revenue += Number(r.revenue);
+            p.profit += Number(r.estimated_profit || 0);
+            p.unknown ||= r.estimated_profit == null;
+        });
+
+        return [...map.values()].sort(
+            (a, b) =>
+                b.sold - a.sold ||
+                a.name.localeCompare(b.name, "de")
+        );
+    };
+
+    const drawBars = () => {
+        const n = wall(S.data.now);
+        const bs = buckets(S.period, n);
+
+        const values = bs.map(b =>
+            b.start >= n
+                ? null
+                : stats(
+                    S.data,
+                    b.start,
+                    Math.min(b.end, n)
+                )[S.metric]
+        );
+
+        const known = values.filter(v => v != null);
+        const low = Math.min(0, ...known);
+        const high = Math.max(1, ...known);
+
+        const y = v => 22 + (high - v) / (high - low) * 174;
+        const zero = y(0);
+        const ticks = Array.from(
+            { length: 5 },
+            (_, i) => high - (high - low) * i / 4
+        );
+
+        $("r1Bars").innerHTML = `
+            <svg
+                viewBox="0 0 760 240"
+                role="img"
+                aria-label="${
+                    S.metric === "revenue"
+                        ? "Umsatz"
+                        : "Geschätzter Verkaufsgewinn"
+                } der zwölf Perioden"
+            >
+                ${ticks.map(t => `
+                    <line
+                        x1="72" x2="750"
+                        y1="${y(t)}" y2="${y(t)}"
+                        stroke="#e7edf4"
+                    />
+                    <text
+                        x="66" y="${y(t) + 4}"
+                        text-anchor="end"
+                        font-size="10"
+                    >${esc(money(t))}</text>
+                `).join("")}
+
+                ${bs.map((b, i) => {
+                    const x = 78 + i * 56;
+
+                    const caption =
+                        S.period === "month" ||
+                        S.period === "schoolyear"
+                            ? shortMonth(b.start)
+                            : label(b.start);
+
+                    if (values[i] == null) {
+                        return `
+                            <text
+                                x="${x + 22}" y="${zero - 8}"
+                                text-anchor="middle" font-size="12"
+                            >—</text>
+                            <text
+                                x="${x + 22}" y="218"
+                                text-anchor="middle" font-size="10"
+                            >${esc(caption)}</text>
+                        `;
+                    }
+
+                    const running = b.end > n;
+                    const height = Math.max(
+                        Math.abs(y(values[i]) - zero),
+                        2
+                    );
+
+                    return `
+                        <rect
+                            x="${x}"
+                            y="${Math.min(y(values[i]), zero)}"
+                            width="43"
+                            height="${height}"
+                            rx="5"
+                            fill="${running ? "#5371fd" : "#094369"}"
+                            opacity="${running ? ".65" : "1"}"
+                        >
+                            <title>
+                                ${esc(caption)}:
+                                ${esc(money(values[i]))}
+                                ${running ? " · laufend" : ""}
+                            </title>
+                        </rect>
+
+                        <text
+                            x="${x + 22}" y="218"
+                            text-anchor="middle" font-size="10"
+                        >${esc(caption)}</text>
+
+                        ${running ? `
+                            <text
+                                x="${x + 22}" y="234"
+                                text-anchor="middle" font-size="9"
+                            >laufend</text>
+                        ` : ""}
+                    `;
+                }).join("")}
+            </svg>
+        `;
+    };
+
+    const renderResults = () => {
+        const d = S.data;
+        const n = wall(d.now);
+        const [a, end, previousStart] = windowFor(S.period, n);
+
+        const previousEnd = Math.min(
+            a,
+            previousStart + (n - a)
+        );
+
+        const current = stats(d, a, n);
+        const previous = stats(d, previousStart, previousEnd);
+
+        $("r1PeriodLabel").textContent =
+            label(a) + " – " + label(n) +
+            " · Vergleich bis zum entsprechenden Zeitpunkt der Vorperiode";
+
+        const cards = [
+            ["Umsatz", "revenue", true],
+            ["Geschätzter Verkaufsgewinn", "profit", true],
+            ["Verkäufe / Kassenbons", "tickets", false],
+            ["Verkaufte Getränke", "drinks", false],
+            ["Verkaufte Backwaren", "bakery", false],
+            ["Ausgaben für Getränkeeinkäufe", "expenses", true],
+            ["Sonstige Einnahmen", "other", true],
+            ["Kostenlose Getränke", "free", false]
+        ];
+
+        $("r1Kpis").innerHTML = cards.map(([title, k, euros]) => `
+            <article class="r1-kpi ${k === "free" ? "r1-green" : ""}">
+                <span>${title}</span>
+
+                <strong>
+                    ${euros ? amount(current[k]) : int(current[k])}
+                </strong>
+
+                <small>
+                    ${esc(comparison(current[k], previous[k], euros))}
+                </small>
+
+                ${k === "free" ? `
+                    <small>
+                        Geschätzter Einkaufspreis:
+                        ${amount(current.freeCost)}
+                    </small>
+                ` : ""}
+            </article>
+        `).join("");
+
+        const products = productTotals();
+
+        const top = products
+            .filter(p => p.sold > 0)
+            .sort((a, b) =>
+                b[S.rank === "quantity" ? "sold" : "revenue"] -
+                a[S.rank === "quantity" ? "sold" : "revenue"]
+            )
+            .slice(0, 3);
+
+        $("r1Podium").innerHTML = top.length
+            ? top.map((p, i) => `
+                <div class="r1-winner">
+                    <span class="r1-medal">
+                        ${["🥇", "🥈", "🥉"][i]}
+                    </span>
+
+                    <span class="r1-product-icon">
+                        ${esc(p.icon || "📦")}
+                    </span>
+
+                    <div>
+                        <strong>${esc(p.name)}</strong>
+                        <small>
+                            ${
+                                S.rank === "quantity"
+                                    ? int(p.sold) + " Stück"
+                                    : money(p.revenue)
+                            }
+                        </small>
+                    </div>
+                </div>
+            `).join("")
+            : `<p class="r1-muted">
+                Noch keine Verkäufe in diesem Zeitraum.
+               </p>`;
+
+        $("r1ProductRows").innerHTML = products.length
+            ? products.map(p => `
+                <tr>
+                    <td>${esc(p.icon || "📦")} ${esc(p.name)}</td>
+                    <td>${int(p.sold)}</td>
+                    <td>${p.quantity == null ? "—" : int(p.quantity)}</td>
+                    <td>${money(p.revenue)}</td>
+                    <td>${p.unknown ? "—" : money(p.profit)}</td>
+                </tr>
+            `).join("")
+            : `<tr><td colspan="5">Keine Produkte vorhanden.</td></tr>`;
+
+        const differences = between(d.differences, a, n);
+
+        $("r1DifferenceRows").innerHTML = differences.length
+            ? differences.map(r => `
+                <tr>
+                    <td>${label(r.t)}</td>
+                    <td>${esc(r.product_name)}</td>
+                    <td>${int(r.inventory_before)}</td>
+                    <td>${int(r.quantity)}</td>
+                    <td>
+                        ${r.difference > 0 ? "+" : ""}${int(r.difference)}
+                    </td>
+                </tr>
+            `).join("")
+            : `<tr><td colspan="5">
+                Keine bestätigten Zählabweichungen in diesem Zeitraum.
+               </td></tr>`;
+
+        drawBars();
+    };
+
+    const colors = [
+        "#5371fd", "#0f9f84", "#e0a42e", "#e05c70",
+        "#094369", "#968032", "#457b9d", "#a660b4"
+    ];
+
+    const drawStock = () => {
+        const n = wall(S.data.now);
+        const last = Math.floor(n / DAY) * DAY;
+        const start = last - (S.days - 1) * DAY;
+
+        const products = S.data.products.filter(
+            p => p.active && S.selected.has(p.key)
+        );
+
+        const series = products.map(p => {
+            const history = S.data.history
+                .filter(h => h.product_key === p.key)
+                .sort(
+                    (a, b) =>
+                        a.t - b.t ||
+                        Number(a.id) - Number(b.id)
+                );
+
+            let j = 0;
+            let value = null;
+
+            const points = Array.from(
+                { length: S.days },
+                (_, i) => {
+                    const t = start + i * DAY;
+
+                    while (
+                        j < history.length &&
+                        history[j].t < Math.min(t + DAY, n)
+                    ) {
+                        value = Number(history[j++].quantity);
+                    }
+
+                    return { t, value };
+                }
+            );
+
+            return { p, points };
+        });
+
+        const max = Math.max(
+            1,
+            ...series.flatMap(s =>
+                s.points.map(p => p.value || 0)
+            )
+        );
+
+        const x = t =>
+            58 + (t - start) /
+            (Math.max(S.days - 1, 1) * DAY) * 680;
+
+        const y = value => 200 - value / max * 175;
+
+        $("r1StockChart").innerHTML = products.length
+            ? `
+                <svg
+                    viewBox="0 0 760 235"
+                    role="img"
+                    aria-label="Bestandsentwicklung"
+                >
+                    ${Array.from({ length: 5 }, (_, i) => {
+                        const value = max * i / 4;
+
+                        return `
+                            <line
+                                x1="58" x2="742"
+                                y1="${y(value)}" y2="${y(value)}"
+                                stroke="#e7edf4"
+                            />
+                            <text
+                                x="50" y="${y(value) + 4}"
+                                text-anchor="end" font-size="11"
+                            >${int(value)}</text>
+                        `;
+                    }).join("")}
+
+                    ${series.map((s, i) => {
+                        const known = s.points.filter(
+                            p => p.value != null
+                        );
+
+                        const color = colors[i % colors.length];
+
+                        const path = known.map((p, j) =>
+                            (j ? "L" : "M") +
+                            x(p.t) + " " + y(p.value)
+                        ).join(" ");
+
+                        return `
+                            <path
+                                d="${path}"
+                                fill="none"
+                                stroke="${color}"
+                                stroke-width="2.5"
+                            />
+
+                            ${known.map(p => `
+                                <circle
+                                    cx="${x(p.t)}"
+                                    cy="${y(p.value)}"
+                                    r="2.5"
+                                    fill="${color}"
+                                >
+                                    <title>
+                                        ${esc(s.p.name)} ·
+                                        ${label(p.t)}:
+                                        ${int(p.value)} Stück
+                                    </title>
+                                </circle>
+                            `).join("")}
+                        `;
+                    }).join("")}
+
+                    <text x="58" y="225" font-size="11">
+                        ${label(start)}
+                    </text>
+
+                    <text
+                        x="742" y="225"
+                        text-anchor="end" font-size="11"
+                    >${label(last)}</text>
+                </svg>
+            `
+            : `<p class="r1-muted">
+                Bitte mindestens ein Produkt auswählen.
+               </p>`;
+
+        $("r1StockLegend").innerHTML = products.map((p, i) => `
+            <span>
+                <i style="background:${colors[i % colors.length]}"></i>
+                ${esc(p.name)}
+            </span>
+        `).join("");
+    };
+
+    const renderStock = () => {
+        const products = S.data.products.filter(p => p.active);
+
+        $("r1Gauges").innerHTML = products.map(p => {
+            const low = p.quantity <= p.low_stock_threshold;
+
+            const color =
+                p.quantity <= 0
+                    ? "#b42318"
+                    : low
+                        ? "#d8a326"
+                        : "#4b9b74";
+
+            const percent = Math.min(
+                100,
+                Math.max(0, p.quantity / p.stock_target * 100)
+            );
+
+            return `
+                <article class="r1-card r1-gauge">
+                    <h3>${esc(p.icon || "📦")} ${esc(p.name)}</h3>
+
+                    <svg
+                        viewBox="0 0 116 72"
+                        role="img"
+                        aria-label="${esc(p.name)}: ${p.quantity} Stück"
+                    >
+                        <path
+                            d="M 12 58 A 46 46 0 0 1 104 58"
+                            fill="none"
+                            stroke="#edf1f6"
+                            stroke-width="12"
+                        />
+
+                        <path
+                            d="M 12 58 A 46 46 0 0 1 104 58"
+                            fill="none"
+                            stroke="${color}"
+                            stroke-width="12"
+                            pathLength="100"
+                            stroke-dasharray="${percent} 100"
+                        />
+
+                        <text
+                            x="58" y="53"
+                            text-anchor="middle"
+                            font-size="22"
+                            font-weight="700"
+                            fill="#094369"
+                        >${int(p.quantity)}</text>
+                    </svg>
+
+                    <small>
+                        Stück · Zielbestand: ${int(p.stock_target)}
+                    </small>
+
+                    <p class="r1-stock-state" style="color:${color}">
+                        ${
+                            p.quantity <= 0
+                                ? "Nicht auf Lager"
+                                : low
+                                    ? "Nachkaufen"
+                                    : "Ausreichend vorhanden"
+                        }
+                    </p>
+
+                    <details>
+                        <summary>Grenzwerte</summary>
+
+                        <form data-r1-target="${esc(p.key)}">
+                            <label>
+                                Zielbestand
+                                <input
+                                    name="target"
+                                    type="number"
+                                    min="1"
+                                    max="2147483647"
+                                    value="${p.stock_target}"
+                                    required
+                                >
+                            </label>
+
+                            <label>
+                                Mindestbestand
+                                <input
+                                    name="low"
+                                    type="number"
+                                    min="0"
+                                    max="2147483646"
+                                    value="${p.low_stock_threshold}"
+                                    required
+                                >
+                            </label>
+
+                            <button
+                                type="submit"
+                                class="secondary-action"
+                            >Speichern</button>
+                        </form>
+                    </details>
+                </article>
+            `;
+        }).join("") || "<p>Keine Produkte vorhanden.</p>";
+
+        $("r1StockChoices").innerHTML = `
+            <label>
+                <input
+                    type="checkbox"
+                    data-r1-all
+                    ${
+                        products.length &&
+                        products.every(p => S.selected.has(p.key))
+                            ? "checked"
+                            : ""
+                    }
+                >
+                Alle Produkte
+            </label>
+        ` + products.map(p => `
+            <label>
+                <input
+                    type="checkbox"
+                    data-r1-product="${esc(p.key)}"
+                    ${S.selected.has(p.key) ? "checked" : ""}
+                >
+                ${esc(p.icon || "📦")} ${esc(p.name)}
+            </label>
+        `).join("");
+
+        drawStock();
+    };
+
+    const render = () => {
+        if (!S.data) return;
+
+        renderResults();
+        renderStock();
+    };
+
+    loadReports = async () => {
+        if (!isTeacher()) return;
+
+        const generation = ++S.generation;
+        const n = wall(new Date());
+        const [a, end, previous] = windowFor(S.period, n);
+
+        const from = Math.min(
+            buckets(S.period, n)[0].start,
+            previous,
+            Math.floor(n / DAY) * DAY - 365 * DAY
+        );
+
+        $("r1Status").textContent = "Berichte werden geladen …";
+
+        try {
+            const { data, error } = await db.rpc(
+                "teacher_reports_v1",
+                {
+                    p_from: key(from),
+                    p_to: key(Math.floor(n / DAY) * DAY + DAY)
+                }
+            );
+
+            if (error) throw error;
+
+            if (
+                generation !== S.generation ||
+                !isTeacher()
+            ) return;
+
+            for (const [name, field] of [
+                ["sales", "sold_at"],
+                ["free", "created_at"],
+                ["expenses", "date"],
+                ["ledger", "entry_date"],
+                ["differences", "reviewed_at"],
+                ["other_events", "date"],
+                ["history", "recorded_at"]
+            ]) {
+                data[name] = (data[name] || []).map(r => ({
+                    ...r,
+                    t: wall(r[field])
+                }));
+            }
+
+            S.data = data;
+
+            if (!S.selected.size) {
+                data.products.filter(p => p.active)
+                    .slice(0, 2)
+                    .forEach(p => S.selected.add(p.key));
+            }
+
+            render();
+
+            $("r1Status").textContent =
+                "Stand: " + new Date(data.now).toLocaleString(
+                    "de-DE",
+                    { timeZone: "Europe/Berlin" }
+                );
+
+        } catch (error) {
+            if (generation !== S.generation) return;
+
+            console.error(error);
+
+            $("r1Status").textContent =
+                "Berichte konnten nicht geladen werden. Bitte erneut versuchen.";
+        }
+    };
+
+    root.addEventListener("click", async event => {
+        const button = event.target.closest("button");
+
+        if (!button) return;
+
+        if (button.hasAttribute("data-r1-home")) {
+            goHome();
+            return;
+        }
+
+        if (!isTeacher()) return;
+
+        if (button.dataset.r1Tab) {
+            S.tab = button.dataset.r1Tab;
+
+            $("r1Results").hidden = S.tab !== "results";
+            $("r1Stock").hidden = S.tab !== "stock";
+
+            root.querySelectorAll("[data-r1-tab]")
+                .forEach(b => b.classList.toggle(
+                    "active",
+                    b.dataset.r1Tab === S.tab
+                ));
+        }
+
+        if (button.dataset.r1Period) {
+            S.period = button.dataset.r1Period;
+
+            root.querySelectorAll("[data-r1-period]")
+                .forEach(b => b.classList.toggle(
+                    "active",
+                    b.dataset.r1Period === S.period
+                ));
+
+            await loadReports();
+        }
+
+        if (button.dataset.r1Metric) {
+            S.metric = button.dataset.r1Metric;
+
+            root.querySelectorAll("[data-r1-metric]")
+                .forEach(b => b.classList.toggle(
+                    "active",
+                    b.dataset.r1Metric === S.metric
+                ));
+
+            if (S.data) drawBars();
+        }
+
+        if (button.hasAttribute("data-r1-refresh")) {
+            await loadReports();
+        }
+
+        if (
+            button.hasAttribute("data-r1-export") &&
+            S.data
+        ) {
+            if (!window.XLSX) {
+                toast(
+                    "Excel-Export ist nicht verfügbar. Bitte neu laden.",
+                    "error"
+                );
+                return;
+            }
+
+            const n = wall(S.data.now);
+            const [a] = windowFor(S.period, n);
+            const current = stats(S.data, a, n);
+
+            const workbook = XLSX.utils.book_new();
+
+            const add = (name, rows) => {
+                XLSX.utils.book_append_sheet(
+                    workbook,
+                    XLSX.utils.json_to_sheet(rows),
+                    name
+                );
+            };
+
+            add("Ergebnisse", [{
+                Von: key(a),
+                Bis: key(n),
+                Umsatz: current.revenue,
+                "Verkaufsgewinn geschätzt": current.profit,
+                Kassenbons: current.tickets,
+                "Getränke verkauft": current.drinks,
+                "Backwaren verkauft": current.bakery,
+                "Getränkeeinkäufe ohne Pfand": current.expenses,
+                "Sonstige Einnahmen": current.other,
+                "Kostenlose Getränke": current.free,
+                "Kosten kostenloser Getränke": current.freeCost
+            }]);
+
+            add("Produkte", productTotals().map(p => ({
+                Produkt: p.name,
+                "Verkaufte Menge": p.sold,
+                "Aktueller Bestand": p.quantity,
+                Umsatz: p.revenue,
+                "Gewinn geschätzt": p.unknown ? null : p.profit
+            })));
+
+            add(
+                "Bestand",
+                S.data.products.filter(p => p.active).map(p => ({
+                    Produkt: p.name,
+                    Bestand: p.quantity,
+                    Zielbestand: p.stock_target,
+                    Mindestbestand: p.low_stock_threshold
+                }))
+            );
+
+            add(
+                "Inventurdifferenzen",
+                between(S.data.differences, a, n).map(r => ({
+                    Datum: key(r.t),
+                    Produkt: r.product_name,
+                    "Vorheriger Bestand": r.inventory_before,
+                    Gezählt: r.quantity,
+                    Abweichung: r.difference
+                }))
+            );
+
+            XLSX.writeFile(
+                workbook,
+                "LauterMacher_Berichte_" + key(n) + ".xlsx"
+            );
+        }
+    });
+
+    root.addEventListener("change", event => {
+        const el = event.target;
+
+        if (!isTeacher()) return;
+
+        if (el.id === "r1Rank") {
+            S.rank = el.value;
+            if (S.data) renderResults();
+        }
+
+        if (el.id === "r1StockDays") {
+            S.days = Number(el.value);
+            if (S.data) drawStock();
+        }
+
+        if (el.hasAttribute("data-r1-all") && S.data) {
+            S.selected.clear();
+
+            if (el.checked) {
+                S.data.products.filter(p => p.active)
+                    .forEach(p => S.selected.add(p.key));
+            }
+
+            renderStock();
+        }
+
+        if (el.dataset.r1Product) {
+            if (el.checked) {
+                S.selected.add(el.dataset.r1Product);
+            } else {
+                S.selected.delete(el.dataset.r1Product);
+            }
+
+            drawStock();
+        }
+    });
+
+    root.addEventListener("submit", async event => {
+        const form = event.target.closest("[data-r1-target]");
+
+        if (!form) return;
+
+        event.preventDefault();
+
+        if (!isTeacher()) return;
+
+        const target = Number(form.elements.target.value);
+        const low = Number(form.elements.low.value);
+        const button = form.querySelector("button");
+
+        if (
+            !Number.isInteger(target) ||
+            !Number.isInteger(low) ||
+            target < 1 ||
+            low < 0 ||
+            low >= target
+        ) {
+            toast(
+                "Der Mindestbestand muss kleiner als der Zielbestand sein.",
+                "error"
+            );
+            return;
+        }
+
+        button.disabled = true;
+
+        try {
+            const { error } = await db.rpc(
+                "teacher_report_targets_v1",
+                {
+                    p_key: form.dataset.r1Target,
+                    p_target: target,
+                    p_low: low
+                }
+            );
+
+            if (error) throw error;
+
+            const product = S.data.products.find(
+                p => p.key === form.dataset.r1Target
+            );
+
+            product.stock_target = target;
+            product.low_stock_threshold = low;
+
+            renderStock();
+
+            toast("Grenzwerte gespeichert.", "success");
+
+        } catch (error) {
+            console.error(error);
+
+            toast(
+                "Grenzwerte konnten nicht gespeichert werden.",
+                "error"
+            );
+
+        } finally {
+            button.disabled = false;
+        }
+    });
+})();
