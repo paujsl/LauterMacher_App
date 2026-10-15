@@ -19122,3 +19122,770 @@ function renderProductPurchaseReferences(product) {
         }
     });
 })();
+/* =========================================================
+   RECHNUNGEN — SCAN ET IMPORT V1
+   ========================================================= */
+
+function parseInvoiceScanText(text) {
+    const lines = String(text)
+        .split(/\r?\n/)
+        .map(s => s.trim())
+        .filter(Boolean);
+
+    const amount = value => Number(
+        value.includes(",")
+            ? value.replace(/\./g, "").replace(",", ".")
+            : value
+    );
+
+    const amounts = line => (
+        line.match(
+            /-?\d+(?:\.\d{3})*,\d{2}|-?\d+\.\d{2}/g
+        ) || []
+    ).map(amount);
+
+    const brand = String(text).match(
+        /\b(ALDI(?:\s+(?:NORD|SÜD))?|LIDL|KAUFLAND|REWE|EDEKA|NETTO|PENNY)\b/i
+    );
+
+    let date = "";
+    let total = null;
+    let score = -1;
+    let pfand = 0;
+    let pfandKnown = false;
+    let pfandSeen = false;
+
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+
+        if (!date) {
+            const match = line.match(
+                /\b(\d{1,2})[./](\d{1,2})[./](\d{4}|\d{2})\b/
+            );
+
+            if (match) {
+                const year = match[3].length === 2
+                    ? 2000 + Number(match[3])
+                    : Number(match[3]);
+
+                const candidate = new Date(Date.UTC(
+                    year,
+                    Number(match[2]) - 1,
+                    Number(match[1])
+                ));
+
+                if (
+                    candidate.getUTCFullYear() === year &&
+                    candidate.getUTCMonth() === Number(match[2]) - 1 &&
+                    candidate.getUTCDate() === Number(match[1])
+                ) {
+                    date = candidate.toISOString().slice(0, 10);
+                }
+            }
+        }
+
+        if (
+            /\b(summe|gesamtsumme|gesamtbetrag|gesamt|endsumme|zu\s+zahlen|total)\b/i
+                .test(line) &&
+            !/netto|mwst|steuer|gegeben|rückgeld/i.test(line)
+        ) {
+            const candidates = amounts(line);
+
+            const rank =
+                /zu\s+zahlen|endsumme|gesamtbetrag|gesamtsumme/i
+                    .test(line)
+                    ? 2
+                    : 1;
+
+            if (candidates.length && rank >= score) {
+                const last = candidates[candidates.length - 1];
+
+                if (last > 0) {
+                    total = last;
+                    score = rank;
+                }
+            }
+        }
+
+        if (/pfand/i.test(line)) {
+            pfandSeen = true;
+        }
+
+        if (/pfand/i.test(line + " " + (lines[i - 1] || ""))) {
+            const match = line.match(
+                /\b(\d+)\s*[xX*]\s*0[,.]25\b/
+            );
+
+            if (match && !/-\s*\d/.test(line)) {
+                pfand += Number(match[1]);
+                pfandKnown = true;
+            }
+        }
+    }
+
+    return {
+        supplier: brand
+            ? brand[0].replace(/\s+/g, " ").toUpperCase()
+            : "",
+        date,
+        total,
+        pfand,
+        warning: pfandSeen && !pfandKnown
+    };
+}
+
+(() => {
+    const page = $("invoicesScreen");
+
+    if (!page || $("invoiceScanButton")) return;
+
+    const scanIcon = `
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="
+                M8 3H3v5
+                m13-5h5v5
+                M3 16v5h5
+                m13-5v5h-5
+                M7 7v10
+                m3-10v10
+                m3-10v10
+                m4-10v10
+            "/>
+        </svg>
+    `;
+
+    const actions = document.createElement("div");
+    actions.className = "invoice-scan-actions";
+
+    actions.innerHTML = `
+        <button type="button" id="invoiceScanButton">
+            ${scanIcon}
+            Rechnung scannen
+        </button>
+
+        <button type="button" id="invoiceUploadButton">
+            ${scanIcon}
+            Rechnung hochladen
+        </button>
+    `;
+
+    page.querySelector("header").append(actions);
+
+    const camera = document.createElement("input");
+    camera.type = "file";
+    camera.accept = "image/*";
+    camera.setAttribute("capture", "environment");
+    camera.hidden = true;
+
+    const upload = document.createElement("input");
+    upload.type = "file";
+    upload.accept = "image/*,application/pdf";
+    upload.hidden = true;
+
+    page.append(camera, upload);
+
+    const dialog = document.createElement("dialog");
+    dialog.className = "invoice-ocr-dialog";
+
+    dialog.innerHTML = `
+        <form id="invoiceOcrForm">
+            <div class="invoice-ocr-heading">
+                <h2>Rechnung prüfen</h2>
+
+                <button
+                    type="button"
+                    data-ocr-close
+                    aria-label="Schließen"
+                >×</button>
+            </div>
+
+            <p>
+                Automatisch erkannte Angaben sind Vorschläge.
+                Bitte mit dem Beleg vergleichen.
+                Eine Rechnung pro Datei auswählen.
+            </p>
+
+            <p id="invoiceOcrStatus" role="status"></p>
+
+            <progress
+                id="invoiceOcrProgress"
+                max="1"
+            ></progress>
+
+            <div class="invoice-ocr-layout">
+                <div>
+                    <img
+                        id="invoiceOcrImage"
+                        alt="Vorschau des Belegs"
+                    >
+
+                    <details>
+                        <summary>Erkannter Text</summary>
+
+                        <textarea
+                            id="invoiceOcrText"
+                            readonly
+                            aria-label="Erkannter Text"
+                        ></textarea>
+                    </details>
+                </div>
+
+                <div class="invoice-ocr-fields">
+                    <label>
+                        Laden
+                        <input name="supplier" maxlength="150">
+                    </label>
+
+                    <label>
+                        Rechnungsdatum
+                        <input name="date" type="date" required>
+                    </label>
+
+                    <label>
+                        Gesamtkosten inkl. Pfand (€)
+
+                        <input
+                            name="total"
+                            type="text"
+                            inputmode="decimal"
+                            required
+                        >
+                    </label>
+
+                    <label>
+                        Pfandanzahl · 0,25 € je Stück
+
+                        <input
+                            name="pfand"
+                            type="number"
+                            min="0"
+                            step="1"
+                            value="0"
+                            required
+                        >
+                    </label>
+
+                    <p id="invoiceOcrWarning"></p>
+
+                    <button
+                        type="submit"
+                        class="primary-action"
+                        id="invoiceOcrApply"
+                        disabled
+                    >In Formular übernehmen</button>
+
+                    <button
+                        type="button"
+                        class="secondary-action"
+                        data-ocr-close
+                    >Abbrechen</button>
+                </div>
+            </div>
+        </form>
+    `;
+
+    document.body.append(dialog);
+
+    const form = $("invoiceOcrForm");
+
+    let busy = false;
+    let job = 0;
+    let active = null;
+    let scriptPromise = null;
+
+    const say = text => {
+        $("invoiceOcrStatus").textContent = text;
+    };
+
+    const setBusy = value => {
+        busy = value;
+
+        actions.querySelectorAll("button").forEach(button => {
+            button.disabled = value;
+        });
+    };
+
+    const close = () => {
+        job++;
+
+        if (active) {
+            active.worker.terminate().catch(() => {});
+            active = null;
+        }
+
+        setBusy(false);
+        dialog.close();
+        form.reset();
+
+        $("invoiceOcrImage").removeAttribute("src");
+    };
+
+    dialog.querySelectorAll("[data-ocr-close]")
+        .forEach(button => button.onclick = close);
+
+    dialog.addEventListener("cancel", event => {
+        event.preventDefault();
+        close();
+    });
+
+    const loadOcr = () => {
+        if (window.Tesseract) {
+            return Promise.resolve();
+        }
+
+        if (scriptPromise) return scriptPromise;
+
+        scriptPromise = new Promise((resolve, reject) => {
+            const script = document.createElement("script");
+
+            script.src =
+                "https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js";
+
+            script.onload = () => resolve();
+
+            script.onerror = () => {
+                script.remove();
+                scriptPromise = null;
+
+                reject(Error(
+                    "Das Texterkennungsmodul konnte nicht geladen werden."
+                ));
+            };
+
+            document.head.append(script);
+        });
+
+        return scriptPromise;
+    };
+
+    const imageCanvas = async file => {
+        const url = URL.createObjectURL(file);
+
+        try {
+            const image = new Image();
+            image.src = url;
+
+            await image.decode();
+
+            const ratio = Math.min(
+                1,
+                2400 / image.naturalWidth,
+                Math.sqrt(
+                    6000000 /
+                    (image.naturalWidth * image.naturalHeight)
+                )
+            );
+
+            const canvas = document.createElement("canvas");
+
+            canvas.width = Math.max(
+                1,
+                Math.round(image.naturalWidth * ratio)
+            );
+
+            canvas.height = Math.max(
+                1,
+                Math.round(image.naturalHeight * ratio)
+            );
+
+            canvas.getContext("2d").drawImage(
+                image,
+                0,
+                0,
+                canvas.width,
+                canvas.height
+            );
+
+            return canvas;
+
+        } finally {
+            URL.revokeObjectURL(url);
+        }
+    };
+
+    const run = async file => {
+        if (!file || busy || !isTeacher()) return;
+
+        if (file.size > 25 * 1024 * 1024) {
+            toast(
+                "Bitte eine Datei mit höchstens 25 MB auswählen.",
+                "error"
+            );
+            return;
+        }
+
+        const id = ++job;
+        const personId = state.currentPerson.id;
+
+        let worker = null;
+        let pdf = null;
+
+        const guard = () => {
+            if (
+                id !== job ||
+                !isTeacher() ||
+                state.currentPerson?.id !== personId
+            ) {
+                throw Error("cancelled");
+            }
+        };
+
+        const recognize = async canvas => {
+            guard();
+
+            if (!worker) {
+                say(
+                    "Texterkennung wird vorbereitet. " +
+                    "Beim ersten Mal kann dies etwas dauern."
+                );
+
+                await loadOcr();
+                guard();
+
+                worker = await Tesseract.createWorker(
+                    ["deu", "eng"],
+                    1,
+                    {
+                        logger: message => {
+                            if (id !== job) return;
+
+                            if (
+                                message.status === "recognizing text"
+                            ) {
+                                say(
+                                    "Text wird erkannt … " +
+                                    Math.round(message.progress * 100) +
+                                    " %"
+                                );
+
+                                $("invoiceOcrProgress").value =
+                                    message.progress;
+                            }
+                        }
+                    }
+                );
+
+                guard();
+
+                active = { id, worker };
+
+                await worker.setParameters({
+                    preserve_interword_spaces: "1"
+                });
+            }
+
+            const result = await worker.recognize(canvas);
+
+            guard();
+
+            return result.data.text || "";
+        };
+
+        setBusy(true);
+        form.reset();
+
+        $("invoiceOcrApply").disabled = true;
+        $("invoiceOcrWarning").textContent = "";
+        $("invoiceOcrImage").removeAttribute("src");
+        $("invoiceOcrProgress").removeAttribute("value");
+
+        dialog.showModal();
+
+        say("Beleg wird geöffnet …");
+
+        try {
+            let text = "";
+
+            const isPdf =
+                file.type === "application/pdf" ||
+                /\.pdf$/i.test(file.name);
+
+            if (isPdf) {
+                const base =
+                    "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/";
+
+                const pdfjs = await import(
+                    base + "legacy/build/pdf.mjs"
+                );
+
+                guard();
+
+                pdfjs.GlobalWorkerOptions.workerSrc =
+                    base + "legacy/build/pdf.worker.mjs";
+
+                pdf = await pdfjs.getDocument({
+                    data: new Uint8Array(
+                        await file.arrayBuffer()
+                    ),
+                    cMapUrl: base + "cmaps/",
+                    cMapPacked: true,
+                    standardFontDataUrl: base + "standard_fonts/"
+                }).promise;
+
+                guard();
+
+                if (pdf.numPages > 8) {
+                    throw Error(
+                        "Bitte eine Rechnung mit höchstens 8 Seiten auswählen."
+                    );
+                }
+
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    guard();
+
+                    say(
+                        "PDF-Seite " + i +
+                        " von " + pdf.numPages +
+                        " wird gelesen …"
+                    );
+
+                    const pdfPage = await pdf.getPage(i);
+                    const content = await pdfPage.getTextContent();
+
+                    let lastY = null;
+
+                    let pageText = content.items.map(item => {
+                        if (!("str" in item)) return "";
+
+                        const y = item.transform[5];
+
+                        const newline =
+                            lastY != null &&
+                            Math.abs(y - lastY) > 2;
+
+                        lastY = y;
+
+                        return (
+                            (newline ? "\n" : " ") +
+                            item.str +
+                            (item.hasEOL ? "\n" : "")
+                        );
+                    }).join("");
+
+                    if (
+                        i === 1 ||
+                        pageText.trim().length < 60
+                    ) {
+                        const original = pdfPage.getViewport({
+                            scale: 1
+                        });
+
+                        const scale = Math.min(
+                            3,
+                            2400 / Math.max(
+                                original.width,
+                                original.height
+                            )
+                        );
+
+                        const viewport = pdfPage.getViewport({
+                            scale
+                        });
+
+                        const canvas =
+                            document.createElement("canvas");
+
+                        canvas.width =
+                            Math.ceil(viewport.width);
+
+                        canvas.height =
+                            Math.ceil(viewport.height);
+
+                        await pdfPage.render({
+                            canvasContext:
+                                canvas.getContext("2d"),
+                            viewport
+                        }).promise;
+
+                        guard();
+
+                        if (i === 1) {
+                            $("invoiceOcrImage").src =
+                                canvas.toDataURL(
+                                    "image/jpeg",
+                                    0.85
+                                );
+                        }
+
+                        if (pageText.trim().length < 60) {
+                            pageText = await recognize(canvas);
+                        }
+
+                        canvas.width = 1;
+                        canvas.height = 1;
+                    }
+
+                    text += "\n" + pageText;
+
+                    pdfPage.cleanup();
+                }
+
+            } else {
+                const canvas = await imageCanvas(file);
+
+                guard();
+
+                $("invoiceOcrImage").src =
+                    canvas.toDataURL("image/jpeg", 0.85);
+
+                text = await recognize(canvas);
+
+                canvas.width = 1;
+                canvas.height = 1;
+            }
+
+            guard();
+
+            $("invoiceOcrText").value = text;
+
+            if (!text.trim()) {
+                throw Error(
+                    "Kein Text erkannt. Bitte ein schärferes Foto " +
+                    "bei gutem Licht aufnehmen."
+                );
+            }
+
+            const draft = parseInvoiceScanText(text);
+
+            form.elements.supplier.value = draft.supplier;
+            form.elements.date.value = draft.date;
+
+            form.elements.total.value =
+                draft.total == null
+                    ? ""
+                    : draft.total.toFixed(2).replace(".", ",");
+
+            form.elements.pfand.value = draft.pfand;
+
+            $("invoiceOcrWarning").textContent =
+                draft.warning
+                    ? "Pfand nicht eindeutig erkannt. " +
+                      "Bitte die Anzahl prüfen. Das aktuelle " +
+                      "Formular berechnet 0,25 € je Stück."
+                    : "";
+
+            $("invoiceOcrProgress").value = 1;
+
+            say(
+                "Erkennung abgeschlossen. " +
+                "Bitte alle Angaben prüfen."
+            );
+
+            $("invoiceOcrApply").disabled = false;
+
+        } catch (error) {
+            if (
+                id === job &&
+                error.message !== "cancelled"
+            ) {
+                console.error(error);
+
+                say(
+                    /^(Bitte|Kein|Das)/.test(error.message || "")
+                        ? error.message
+                        : "Beleg konnte nicht gelesen werden. " +
+                          "Bitte JPEG, PNG oder PDF versuchen."
+                );
+            }
+
+        } finally {
+            if (worker) {
+                await worker.terminate().catch(() => {});
+            }
+
+            if (pdf) {
+                await pdf.destroy().catch(() => {});
+            }
+
+            if (active?.id === id) {
+                active = null;
+            }
+
+            if (id === job) {
+                setBusy(false);
+            }
+        }
+    };
+
+    $("invoiceScanButton").onclick = () => {
+        if (!isTeacher() || busy) return;
+
+        camera.value = "";
+        camera.click();
+    };
+
+    $("invoiceUploadButton").onclick = () => {
+        if (!isTeacher() || busy) return;
+
+        upload.value = "";
+        upload.click();
+    };
+
+    camera.onchange = () =>
+        run(camera.files?.[0]);
+
+    upload.onchange = () =>
+        run(upload.files?.[0]);
+
+    form.addEventListener("submit", event => {
+        event.preventDefault();
+
+        if (busy || !isTeacher()) return;
+
+        const rawTotal = form.elements.total.value
+            .trim()
+            .replace(",", ".");
+
+        const total = Number(rawTotal);
+
+        const count = Number(
+            form.elements.pfand.value
+        );
+
+        if (
+            !/^\d+(\.\d{1,2})?$/.test(rawTotal) ||
+            !Number.isFinite(total) ||
+            total <= 0 ||
+            !Number.isSafeInteger(count) ||
+            count < 0 ||
+            count * 0.25 > total
+        ) {
+            say(
+                "Bitte Gesamtkosten und Pfandanzahl prüfen."
+            );
+            return;
+        }
+
+        $("invoiceSupplierInput").value =
+            form.elements.supplier.value.trim();
+
+        $("invoiceDateInput").value =
+            form.elements.date.value;
+
+        $("invoiceTotalInput").value =
+            total.toFixed(2).replace(".", ",");
+
+        $("invoicePfandInput").value = count;
+
+        updateInvoicePfand();
+
+        close();
+
+        setText(
+            "invoiceFormMessage",
+            "Scan übernommen. Bitte prüfen und " +
+            "die Rechnung anschließend speichern."
+        );
+
+        $("invoiceForm").scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        });
+    });
+
+    db.auth.onAuthStateChange(event => {
+        if (event === "SIGNED_OUT") {
+            close();
+        }
+    });
+})();
