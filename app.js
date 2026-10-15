@@ -18434,7 +18434,7 @@ function addProductPurchaseReference(ref = {}) {
         </label>
 
         <label>
-            <span>IAN (Artikelnummer)</span>
+            <span>IAN</span>
 
             <input
                 type="text"
@@ -18447,7 +18447,7 @@ function addProductPurchaseReference(ref = {}) {
         </label>
 
         <label>
-            <span>Stück pro IAN</span>
+            <span>Stück/Packung</span>
 
             <input
                 type="number"
@@ -18462,7 +18462,7 @@ function addProductPurchaseReference(ref = {}) {
         </label>
 
         <label>
-            <span>Einkaufspreis (€)</span>
+            <span>Einkaufspreis</span>
 
             <input
                 type="text"
@@ -18511,7 +18511,22 @@ function addProductPurchaseReference(ref = {}) {
             aria-label="Diese Einkaufsreferenz entfernen"
         >×</button>
     `;
+    row.querySelectorAll(
+        "[data-ref-store], [data-ref-name]"
+    ).forEach(input => {
+        const updateTitle = () => {
+            input.title = input.value;
+        };
 
+        updateTitle();
+
+        input.addEventListener("input", updateTitle);
+
+        input.addEventListener("blur", () => {
+            input.scrollLeft = 0;
+        });
+    });
+   
     $("productPurchaseRefs").append(row);
 }
 
