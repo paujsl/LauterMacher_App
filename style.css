@@ -10936,3 +10936,65 @@ body * {
         width: 100%;
     }
 }
+/* Fenêtre caméra pour les factures */
+
+.invoice-camera-dialog {
+    box-sizing: border-box;
+    width: min(760px, calc(100vw - 24px));
+    max-height: 92vh;
+    overflow: auto;
+    padding: 20px;
+
+    border: 0;
+    border-radius: 20px;
+    background: white;
+    color: #094369;
+
+    scrollbar-color: rgba(83, 113, 253, 0.8) #edf1f6;
+}
+
+.invoice-camera-dialog::backdrop {
+    background: rgb(9 35 60 / 55%);
+}
+
+.invoice-camera-preview {
+    position: relative;
+    overflow: hidden;
+    border-radius: 16px;
+    background: #102332;
+}
+
+.invoice-camera-preview video {
+    display: block;
+    width: 100%;
+    min-height: 200px;
+    max-height: 55vh;
+    object-fit: contain;
+}
+
+.invoice-camera-frame {
+    position: absolute;
+    inset: 12px;
+
+    border: 2px solid rgb(255 255 255 / 75%);
+    border-radius: 12px;
+
+    pointer-events: none;
+}
+
+.invoice-camera-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.invoice-camera-actions .primary-action {
+    background: #5371fd;
+    color: white;
+}
+
+.invoice-camera-actions button {
+    min-height: 42px;
+    border-radius: 12px;
+}
