@@ -18300,6 +18300,10 @@ function updateProductUnitCostPreview() {
    PRODUITS — RÉFÉRENCES D’ACHAT MULTIPLES
    ========================================================= */
 
+/* =========================================================
+   RÉFÉRENCES D’ACHAT V2 — UNE LIGNE PAR RÉFÉRENCE
+   ========================================================= */
+
 function readProductPurchaseReferences() {
     const rows = [
         ...document.querySelectorAll(
@@ -18307,63 +18311,102 @@ function readProductPurchaseReferences() {
         )
     ];
 
-    const refs = rows.map(row => ({
-        ian: row.querySelector("[data-ref-ian]")
-            .value.trim(),
+    const refs = rows.map(row => {
+        const get = name =>
+            row.querySelector(
+                `[data-ref-${name}]`
+            ).value.trim();
 
-        name: row.querySelector("[data-ref-name]")
-            .value.trim(),
+        const rawPrice = get("price").replace(",", ".");
+        const units = Number(get("units"));
 
-        store: row.querySelector("[data-ref-store]")
-            .value.trim()
-    })).filter(ref =>
-        ref.ian || ref.name || ref.store
+        const packPrice =
+            rawPrice !== "" &&
+            /^\d+(\.\d{1,2})?$/.test(rawPrice)
+                ? Number(rawPrice)
+                : null;
+
+        const ref = {
+            store: get("store"),
+            name: get("name"),
+            ian: get("ian"),
+            ean: get("ean"),
+
+            units_per_ian: units,
+
+            purchase_pack_price: packPrice,
+
+            purchase_price:
+                packPrice != null && units > 0
+                    ? Number(
+                        (packPrice / units).toFixed(6)
+                    )
+                    : null
+        };
+
+        row.querySelector(
+            "[data-ref-unit-cost]"
+        ).value = ref.purchase_price == null
+            ? ""
+            : money(ref.purchase_price);
+
+        return ref;
+
+    }).filter(ref =>
+        ref.ian ||
+        ref.name ||
+        ref.store ||
+        ref.ean ||
+        ref.purchase_pack_price != null ||
+        (
+            Number.isFinite(ref.units_per_ian) &&
+            ref.units_per_ian !== 1
+        )
     );
 
+    /*
+     * La première référence reste compatible avec
+     * les fonctions actuelles de l’application.
+     */
+    const first = refs[0];
+
     $("productIanInput").value =
-        refs[0]?.ian || "";
+        first?.ian || "";
 
     $("productStoreNameInput").value =
-        refs[0]?.name || "";
+        first?.name || "";
+
+    $("productEanInput").value =
+        first?.ean || "";
+
+    $("productIanUnitsInput").value =
+        first?.units_per_ian ?? 1;
+
+    $("productPurchasePriceInput").value =
+        first?.purchase_pack_price == null
+            ? ""
+            : Number(first.purchase_pack_price)
+                .toFixed(2)
+                .replace(".", ",");
+
+    updateProductUnitCostPreview();
 
     return refs;
 }
 
 function addProductPurchaseReference(ref = {}) {
-    const box = $("productPurchaseRefs");
-
     const row = document.createElement("div");
 
     row.className = "product-purchase-ref";
     row.dataset.purchaseRef = "";
 
+    const price = ref.purchase_pack_price == null
+        ? ""
+        : Number(ref.purchase_pack_price)
+            .toFixed(2)
+            .replace(".", ",");
+
     row.innerHTML = `
-        <label>
-            <span>IAN</span>
-
-            <input
-                type="text"
-                data-ref-ian
-                maxlength="64"
-                autocomplete="off"
-                value="${esc(ref.ian || "")}"
-                placeholder="Artikelnummer"
-            >
-        </label>
-
-        <label>
-            <span>Name auf dem Kassenbon</span>
-
-            <input
-                type="text"
-                data-ref-name
-                maxlength="150"
-                autocomplete="off"
-                value="${esc(ref.name || "")}"
-                placeholder="Bezeichnung im Geschäft"
-            >
-        </label>
-
         <label>
             <span>Geschäft</span>
 
@@ -18371,9 +18414,93 @@ function addProductPurchaseReference(ref = {}) {
                 type="text"
                 data-ref-store
                 maxlength="80"
-                autocomplete="off"
                 value="${esc(ref.store || "")}"
-                placeholder="z. B. ALDI"
+                placeholder="ALDI"
+                autocomplete="off"
+            >
+        </label>
+
+        <label>
+            <span>Name im Geschäft</span>
+
+            <input
+                type="text"
+                data-ref-name
+                maxlength="150"
+                value="${esc(ref.name || "")}"
+                placeholder="Name auf dem Kassenbon"
+                autocomplete="off"
+            >
+        </label>
+
+        <label>
+            <span>IAN (Artikelnummer)</span>
+
+            <input
+                type="text"
+                data-ref-ian
+                maxlength="64"
+                value="${esc(ref.ian || "")}"
+                placeholder="123456"
+                autocomplete="off"
+            >
+        </label>
+
+        <label>
+            <span>Stück pro IAN</span>
+
+            <input
+                type="number"
+                data-ref-units
+                min="1"
+                max="2147483647"
+                step="1"
+                inputmode="numeric"
+                value="${esc(String(ref.units_per_ian ?? 1))}"
+                required
+            >
+        </label>
+
+        <label>
+            <span>Einkaufspreis (€)</span>
+
+            <input
+                type="text"
+                data-ref-price
+                inputmode="decimal"
+                pattern="[0-9]+([,.][0-9]{1,2})?"
+                value="${esc(price)}"
+                placeholder="Preis des Pakets"
+                title="Preis der gesamten Packung, z. B. 3,69"
+                autocomplete="off"
+            >
+        </label>
+
+        <label>
+            <span>EK pro Stück</span>
+
+            <input
+                type="text"
+                data-ref-unit-cost
+                readonly
+                placeholder="—"
+                aria-label="Berechneter Einkaufspreis pro Stück"
+            >
+        </label>
+
+        <label>
+            <span>EAN (Barcode)</span>
+
+            <input
+                type="text"
+                data-ref-ean
+                inputmode="numeric"
+                maxlength="13"
+                pattern="([0-9]{8}|[0-9]{13})"
+                value="${esc(ref.ean || "")}"
+                placeholder="8 oder 13 Ziffern"
+                title="Bitte 8 oder 13 Ziffern eingeben."
+                autocomplete="off"
             >
         </label>
 
@@ -18385,21 +18512,31 @@ function addProductPurchaseReference(ref = {}) {
         >×</button>
     `;
 
-    box.append(row);
+    $("productPurchaseRefs").append(row);
 }
 
 function renderProductPurchaseReferences(product) {
-    const box = $("productPurchaseRefs");
+    $("productPurchaseRefs").replaceChildren();
 
-    box.replaceChildren();
+    const legacyUnits =
+        Number(product?.units_per_ian ?? 1);
 
-    const saved = Array.isArray(product?.purchase_references)
-        ? product.purchase_references.filter(ref =>
-            ref &&
-            typeof ref === "object" &&
-            !Array.isArray(ref)
-        )
-        : [];
+    const legacyPack =
+        product?.purchase_pack_price ??
+        (
+            product?.purchase_price == null
+                ? null
+                : Number(product.purchase_price) * legacyUnits
+        );
+
+    const saved =
+        Array.isArray(product?.purchase_references)
+            ? product.purchase_references.filter(ref =>
+                ref &&
+                typeof ref === "object" &&
+                !Array.isArray(ref)
+            )
+            : [];
 
     const refs = saved.length
         ? saved
@@ -18409,7 +18546,27 @@ function renderProductPurchaseReferences(product) {
             store: ""
         }];
 
-    refs.forEach(addProductPurchaseReference);
+    refs.forEach((ref, index) => {
+        addProductPurchaseReference({
+            ...ref,
+
+            units_per_ian:
+                ref.units_per_ian ?? legacyUnits,
+
+            purchase_pack_price:
+                ref.purchase_pack_price === undefined
+                    ? legacyPack
+                    : ref.purchase_pack_price,
+
+            ean:
+                ref.ean ??
+                (
+                    index === 0
+                        ? product?.ean || ""
+                        : ""
+                )
+        });
+    });
 
     readProductPurchaseReferences();
 }
@@ -18419,12 +18576,6 @@ function renderProductPurchaseReferences(product) {
 
     const ianGroup =
         $("productIanInput").closest(".form-field");
-
-    const nameGroup =
-        $("productStoreNameInput").closest(".form-field");
-
-    const unitsLabel =
-        $("productIanUnitsInput").closest("label");
 
     const panel = document.createElement("div");
 
@@ -18442,44 +18593,47 @@ function renderProductPurchaseReferences(product) {
             >+</button>
         </div>
 
-        <div id="productPurchaseRefs"></div>
+        <div
+            id="productPurchaseRefs"
+            tabindex="0"
+            aria-label="Einkaufsreferenzen, horizontal scrollbar"
+        ></div>
 
         <small>
-            Mehrere Artikelnummern können zu demselben
-            Produkt gehören. Die erste Zeile ist die
-            Hauptreferenz.
+            Einkaufspreis = Preis der gesamten Packung.
+            Die erste Zeile ist die Hauptreferenz.
         </small>
     `;
 
     ianGroup.before(panel);
 
     /*
-     * Conserver les anciens champs pour les fonctions
-     * existantes, tout en utilisant le nouvel affichage.
+     * Conserver les anciens champs pour le code existant.
+     * Leur affichage est remplacé par les nouvelles lignes.
      */
-    ianGroup.style.display = "none";
-    nameGroup.style.display = "none";
+    [
+        "productIanInput",
+        "productStoreNameInput",
+        "productIanUnitsInput",
+        "productPurchasePriceInput",
+        "productEanInput"
+    ].forEach(id => {
+        const input = $(id);
 
-    // Garder le nombre d’unités et ses événements de calcul.
-    const unitsGroup = document.createElement("div");
+        input.closest(".form-field").style.display = "none";
 
-    unitsGroup.className =
-        "form-field product-ref-units";
-
-    unitsLabel.classList.remove("product-ian-units");
-
-    unitsLabel.querySelector("span").textContent =
-        "Stück pro Packung";
-
-    unitsGroup.append(unitsLabel);
-    panel.after(unitsGroup);
+        // Les nouveaux champs portent la validation du formulaire.
+        input.disabled = true;
+    });
 
     $("addProductPurchaseRef").addEventListener(
         "click",
         () => {
             if (productSaving) return;
 
-            if ($("productPurchaseRefs").children.length >= 50) {
+            if (
+                $("productPurchaseRefs").children.length >= 50
+            ) {
                 toast(
                     "Maximal 50 Einkaufsreferenzen pro Produkt.",
                     "error"
@@ -18500,9 +18654,7 @@ function renderProductPurchaseReferences(product) {
 
     $("productPurchaseRefs").addEventListener(
         "input",
-        () => {
-            readProductPurchaseReferences();
-        }
+        readProductPurchaseReferences
     );
 
     $("productPurchaseRefs").addEventListener(
