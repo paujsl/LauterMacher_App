@@ -19129,10 +19129,10 @@ function renderProductPurchaseReferences(product) {
 function parseInvoiceScanText(text) {
     const lines = String(text)
         .split(/\r?\n/)
-        .map(s => s.trim())
+        .map(line => line.trim())
         .filter(Boolean);
 
-    const amount = value => Number(
+    const toAmount = value => Number(
         value.includes(",")
             ? value.replace(/\./g, "").replace(",", ".")
             : value
@@ -19140,9 +19140,9 @@ function parseInvoiceScanText(text) {
 
     const amounts = line => (
         line.match(
-            /-?\d+(?:\.\d{3})*,\d{2}|-?\d+\.\d{2}/g
+            /-?\d+(?:\.\d{3})*,\d{2}(?!\d)|-?\d+\.\d{2}(?!\d)/g
         ) || []
-    ).map(amount);
+    ).map(toAmount);
 
     const brand = String(text).match(
         /\b(ALDI(?:\s+(?:NORD|SÜD))?|LIDL|KAUFLAND|REWE|EDEKA|NETTO|PENNY)\b/i
@@ -19151,13 +19151,12 @@ function parseInvoiceScanText(text) {
     let date = "";
     let total = null;
     let score = -1;
-    let pfand = 0;
-    let pfandKnown = false;
-    let pfandSeen = false;
+    let totalSource = "";
 
-    for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
+    const deposits = [];
 
+    lines.forEach((line, i) => {
+        // Date du ticket.
         if (!date) {
             const match = line.match(
                 /\b(\d{1,2})[./](\d{1,2})[./](\d{4}|\d{2})\b/
@@ -19168,69 +19167,191 @@ function parseInvoiceScanText(text) {
                     ? 2000 + Number(match[3])
                     : Number(match[3]);
 
-                const candidate = new Date(Date.UTC(
+                const parsedDate = new Date(Date.UTC(
                     year,
                     Number(match[2]) - 1,
                     Number(match[1])
                 ));
 
                 if (
-                    candidate.getUTCFullYear() === year &&
-                    candidate.getUTCMonth() === Number(match[2]) - 1 &&
-                    candidate.getUTCDate() === Number(match[1])
+                    parsedDate.getUTCFullYear() === year &&
+                    parsedDate.getUTCMonth() === Number(match[2]) - 1 &&
+                    parsedDate.getUTCDate() === Number(match[1])
                 ) {
-                    date = candidate.toISOString().slice(0, 10);
+                    date = parsedDate.toISOString().slice(0, 10);
                 }
             }
         }
 
+        const values = amounts(line);
+
+        const last = values.length
+            ? values[values.length - 1]
+            : null;
+
+        // Priorité au total explicitement indiqué sur le ticket.
         if (
-            /\b(summe|gesamtsumme|gesamtbetrag|gesamt|endsumme|zu\s+zahlen|total)\b/i
-                .test(line) &&
+            /\b(summe|gesamtsumme|gesamtbetrag|gesamt|endsumme|zu\s*zahlen|total)\b/i.test(line) &&
             !/netto|mwst|steuer|gegeben|rückgeld/i.test(line)
         ) {
-            const candidates = amounts(line);
-
             const rank =
-                /zu\s+zahlen|endsumme|gesamtbetrag|gesamtsumme/i
-                    .test(line)
+                /zu\s*zahlen|endsumme|gesamtbetrag|gesamtsumme/i.test(line)
                     ? 2
                     : 1;
 
-            if (candidates.length && rank >= score) {
-                const last = candidates[candidates.length - 1];
-
-                if (last > 0) {
-                    total = last;
-                    score = rank;
-                }
+            if (last > 0 && rank >= score) {
+                total = last;
+                score = rank;
+                totalSource = "total";
             }
         }
 
-        if (/pfand/i.test(line)) {
-            pfandSeen = true;
+        // À défaut : montant du paiement par carte, avec avertissement.
+        const context = lines
+            .slice(Math.max(0, i - 3), i + 1)
+            .join(" ")
+            .replace(/\s+/g, "")
+            .toLowerCase();
+
+        if (
+            score < 1 &&
+            /\bbetrag\b/i.test(line) &&
+            /EUR|€/i.test(line) &&
+            /kartenzahlung|girocard/.test(context) &&
+            last > 0
+        ) {
+            total = last;
+            score = 0;
+            totalSource = "payment";
         }
 
-        if (/pfand/i.test(line + " " + (lines[i - 1] || ""))) {
-            const match = line.match(
-                /\b(\d+)\s*[xX*]\s*0[,.]25\b/
+        if (!/pfand/i.test(line)) {
+            return;
+        }
+
+        // Sur les tickets ALDI, la quantité précède souvent Pfand.
+        let quantity = null;
+        let unit = null;
+
+        for (
+            let j = i;
+            j >= Math.max(0, i - 3);
+            j--
+        ) {
+            if (j < i && /pfand/i.test(lines[j])) {
+                break;
+            }
+
+            const quantityMatch = lines[j].match(
+                /^\s*[^0-9]{0,5}(\d{1,4})\s*[x×*]{1,2}(?=\s|$)/i
             );
 
-            if (match && !/-\s*\d/.test(line)) {
-                pfand += Number(match[1]);
-                pfandKnown = true;
+            if (quantityMatch) {
+                quantity = Number(quantityMatch[1]);
+
+                if (/\b0[,.]25\b/.test(lines[j])) {
+                    unit = 0.25;
+                }
+
+                break;
+            }
+
+            // Ne pas reprendre la quantité d'un autre produit.
+            if (
+                j < i &&
+                /\b\d{6,8}\b/.test(lines[j])
+            ) {
+                break;
             }
         }
-    }
+
+        const code =
+            line.match(/\b\d{6,8}\b/)?.[0] || "";
+
+        deposits.push({
+            quantity,
+            unit,
+            amount: last,
+            code,
+            resolved: false
+        });
+    });
+
+    const knownCodes = new Set();
+
+    // Identifier les références confirmées à 0,25 €.
+    deposits.forEach(row => {
+        if (!row.quantity || row.amount < 0) {
+            return;
+        }
+
+        const matches =
+            row.amount != null &&
+            Math.abs(row.quantity * 0.25 - row.amount) < 0.02;
+
+        if (
+            matches ||
+            (row.unit === 0.25 && row.amount == null)
+        ) {
+            row.resolved = true;
+
+            if (row.code) {
+                knownCodes.add(row.code);
+            }
+        }
+    });
+
+    // Compléter uniquement les lignes de références déjà confirmées.
+    deposits.forEach(row => {
+        if (
+            row.resolved ||
+            !row.code ||
+            !knownCodes.has(row.code) ||
+            row.amount < 0
+        ) {
+            return;
+        }
+
+        if (row.quantity && row.amount == null) {
+            row.resolved = true;
+
+        } else if (
+            !row.quantity &&
+            row.amount != null
+        ) {
+            const quantity = row.amount / 0.25;
+
+            if (
+                quantity > 0 &&
+                Number.isInteger(quantity)
+            ) {
+                row.quantity = quantity;
+                row.resolved = true;
+            }
+        }
+    });
+
+    const pfand = deposits.reduce(
+        (sum, row) =>
+            sum + (row.resolved ? row.quantity : 0),
+        0
+    );
 
     return {
         supplier: brand
             ? brand[0].replace(/\s+/g, " ").toUpperCase()
             : "",
+
         date,
         total,
+        total_source: totalSource,
         pfand,
-        warning: pfandSeen && !pfandKnown
+
+        pfand_amount: Number(
+            (pfand * 0.25).toFixed(2)
+        ),
+
+        warning: deposits.some(row => !row.resolved)
     };
 }
 
@@ -19757,12 +19878,26 @@ function parseInvoiceScanText(text) {
 
             form.elements.pfand.value = draft.pfand;
 
-            $("invoiceOcrWarning").textContent =
-                draft.warning
-                    ? "Pfand nicht eindeutig erkannt. " +
-                      "Bitte die Anzahl prüfen. Das aktuelle " +
-                      "Formular berechnet 0,25 € je Stück."
-                    : "";
+            const scanWarnings = [];
+
+if (draft.total_source === "payment") {
+    scanWarnings.push(
+        "Keine lesbare Summe gefunden. " +
+        "Der vorgeschlagene Gesamtbetrag stammt vom Kartenbeleg. " +
+        "Bitte mit dem Kassenbon vergleichen."
+    );
+}
+
+if (draft.warning) {
+    scanWarnings.push(
+        "Nicht alle Pfandzeilen konnten eindeutig gelesen werden. " +
+        "Die vorgeschlagene Anzahl kann unvollständig sein. " +
+        "Bitte prüfen; das Formular rechnet mit 0,25 € je Stück."
+    );
+}
+
+$("invoiceOcrWarning").textContent =
+    scanWarnings.join(" ");
 
             $("invoiceOcrProgress").value = 1;
 
