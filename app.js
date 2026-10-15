@@ -19807,12 +19807,321 @@ function parseInvoiceScanText(text) {
         }
     };
 
-    $("invoiceScanButton").onclick = () => {
+       /* Icône document pour le bouton d’import */
+
+    $("invoiceUploadButton").innerHTML = `
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="
+                M14 3H5v18h14V8L14 3Z
+                m0 0v5h5
+                M8 12h8
+                M8 16h8
+            "/>
+        </svg>
+        Rechnung hochladen
+    `;
+
+    /* Fenêtre caméra */
+
+    const cameraDialog = document.createElement("dialog");
+
+    cameraDialog.className = "invoice-camera-dialog";
+
+    cameraDialog.innerHTML = `
+        <div class="invoice-ocr-heading">
+            <h2>Rechnung scannen</h2>
+
+            <button
+                type="button"
+                data-camera-close
+                aria-label="Schließen"
+            >×</button>
+        </div>
+
+        <p>
+            Den gesamten Beleg gerade und gut beleuchtet
+            in die Kamera halten.
+        </p>
+
+        <div class="invoice-camera-preview">
+            <video autoplay muted playsinline></video>
+
+            <div
+                class="invoice-camera-frame"
+                aria-hidden="true"
+            ></div>
+        </div>
+
+        <p data-camera-status role="status"></p>
+
+        <div class="invoice-camera-actions">
+            <button
+                type="button"
+                class="primary-action"
+                data-camera-photo
+                disabled
+            >Foto aufnehmen</button>
+
+            <button
+                type="button"
+                class="secondary-action"
+                data-camera-upload
+            >Rechnung hochladen</button>
+
+            <button
+                type="button"
+                class="secondary-action"
+                data-camera-close
+            >Abbrechen</button>
+        </div>
+    `;
+
+    document.body.append(cameraDialog);
+
+    const video = cameraDialog.querySelector("video");
+
+    const photoButton = cameraDialog.querySelector(
+        "[data-camera-photo]"
+    );
+
+    const cameraStatus = cameraDialog.querySelector(
+        "[data-camera-status]"
+    );
+
+    video.muted = true;
+
+    let cameraStream = null;
+    let cameraJob = 0;
+    let capturing = false;
+
+    const closeCamera = () => {
+        cameraJob++;
+        capturing = false;
+        photoButton.disabled = true;
+
+        video.pause();
+
+        if (cameraStream) {
+            cameraStream.getTracks().forEach(track => {
+                track.stop();
+            });
+        }
+
+        cameraStream = null;
+        video.srcObject = null;
+
+        cameraDialog.close();
+    };
+
+    cameraDialog.querySelectorAll("[data-camera-close]")
+        .forEach(button => {
+            button.onclick = closeCamera;
+        });
+
+    cameraDialog.addEventListener("cancel", event => {
+        event.preventDefault();
+        closeCamera();
+    });
+
+    cameraDialog.querySelector(
+        "[data-camera-upload]"
+    ).onclick = () => {
+        closeCamera();
+
         if (!isTeacher() || busy) return;
 
-        camera.value = "";
-        camera.click();
+        upload.value = "";
+        upload.click();
     };
+
+    const openCamera = async () => {
+        if (
+            !isTeacher() ||
+            busy ||
+            cameraDialog.open
+        ) return;
+
+        const request = ++cameraJob;
+        const personId = state.currentPerson.id;
+
+        photoButton.disabled = true;
+
+        cameraStatus.textContent =
+            "Kamera wird geöffnet. " +
+            "Bitte den Kamerazugriff erlauben.";
+
+        cameraDialog.showModal();
+
+        if (
+            !window.isSecureContext ||
+            !navigator.mediaDevices?.getUserMedia
+        ) {
+            cameraStatus.textContent =
+                "Die Kamera ist hier nicht verfügbar. " +
+                "Bitte die HTTPS-Seite direkt in Safari öffnen " +
+                "oder eine Rechnung hochladen.";
+
+            return;
+        }
+
+        try {
+            const stream =
+                await navigator.mediaDevices.getUserMedia({
+                    audio: false,
+
+                    video: {
+                        facingMode: {
+                            ideal: "environment"
+                        },
+
+                        width: {
+                            ideal: 2560
+                        },
+
+                        height: {
+                            ideal: 1920
+                        }
+                    }
+                });
+
+            if (
+                request !== cameraJob ||
+                !isTeacher() ||
+                state.currentPerson?.id !== personId
+            ) {
+                stream.getTracks().forEach(track => {
+                    track.stop();
+                });
+
+                return;
+            }
+
+            cameraStream = stream;
+            video.srcObject = stream;
+
+            await video.play();
+
+            if (request !== cameraJob) return;
+
+            cameraStatus.textContent =
+                "Bitte warten, bis der Text scharf ist. " +
+                "Danach Foto aufnehmen.";
+
+            photoButton.disabled = false;
+
+        } catch (error) {
+            if (request !== cameraJob) return;
+
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(track => {
+                    track.stop();
+                });
+            }
+
+            cameraStream = null;
+            video.srcObject = null;
+
+            cameraStatus.textContent =
+                error.name === "NotAllowedError"
+                    ? "Kamerazugriff nicht erlaubt. Bitte die Kamera " +
+                      "in den Website-Einstellungen erlauben " +
+                      "und erneut öffnen."
+                    : error.name === "NotFoundError"
+                        ? "Keine Kamera gefunden. " +
+                          "Bitte eine Rechnung hochladen."
+                        : "Die Kamera konnte nicht gestartet werden. " +
+                          "Bitte andere Kamera-Apps schließen " +
+                          "und erneut versuchen.";
+        }
+    };
+
+    photoButton.onclick = async () => {
+        if (capturing || busy || !isTeacher()) return;
+
+        if (!video.videoWidth || !video.videoHeight) {
+            cameraStatus.textContent =
+                "Das Kamerabild ist noch nicht bereit. " +
+                "Bitte kurz warten.";
+
+            return;
+        }
+
+        const request = cameraJob;
+        const personId = state.currentPerson.id;
+
+        capturing = true;
+        photoButton.disabled = true;
+
+        try {
+            const canvas = document.createElement("canvas");
+
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+
+            canvas.getContext("2d").drawImage(video, 0, 0);
+
+            const blob = await new Promise(resolve => {
+                canvas.toBlob(
+                    resolve,
+                    "image/jpeg",
+                    0.94
+                );
+            });
+
+            canvas.width = 1;
+            canvas.height = 1;
+
+            if (
+                request !== cameraJob ||
+                !isTeacher() ||
+                state.currentPerson?.id !== personId
+            ) return;
+
+            if (!blob) {
+                throw Error("photo_failed");
+            }
+
+            const file = new File(
+                [blob],
+                "Rechnung.jpg",
+                { type: "image/jpeg" }
+            );
+
+            closeCamera();
+
+            // Lancer la reconnaissance déjà installée.
+            await run(file);
+
+        } catch (error) {
+            if (request === cameraJob) {
+                cameraStatus.textContent =
+                    "Foto konnte nicht aufgenommen werden. " +
+                    "Bitte erneut versuchen.";
+            }
+
+        } finally {
+            if (request === cameraJob) {
+                capturing = false;
+                photoButton.disabled = false;
+            }
+        }
+    };
+
+    $("invoiceScanButton").onclick = openCamera;
+
+    window.addEventListener("pagehide", closeCamera);
+
+    document.addEventListener("visibilitychange", () => {
+        if (document.hidden) {
+            closeCamera();
+        }
+    });
+
+    db.auth.onAuthStateChange(event => {
+        if (event === "SIGNED_OUT") {
+            closeCamera();
+        }
+    });
 
     $("invoiceUploadButton").onclick = () => {
         if (!isTeacher() || busy) return;
