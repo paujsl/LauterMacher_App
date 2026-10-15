@@ -10334,3 +10334,101 @@ body * {
     outline: 2px solid #5371fd;
     outline-offset: 4px;
 }
+/* Références multiples d’un produit */
+
+#productModal .product-refs-panel {
+    grid-column: 1 / -1;
+    min-width: 0;
+}
+
+#productModal .product-refs-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 10px;
+    color: #094369;
+}
+
+#productModal #addProductPurchaseRef {
+    min-width: 40px;
+    min-height: 40px;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 1.5rem;
+}
+
+#productModal .product-purchase-ref {
+    display: grid;
+    grid-template-columns:
+        minmax(100px, 1fr)
+        minmax(150px, 2fr)
+        minmax(100px, 1fr)
+        32px;
+
+    align-items: end;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+#productModal .product-purchase-ref label {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+    margin: 0;
+}
+
+#productModal .product-purchase-ref label span {
+    color: #094369;
+    font-size: 0.78rem;
+}
+
+#productModal .product-purchase-ref input {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+}
+
+#productModal .product-ref-remove {
+    width: 32px;
+    min-height: 40px;
+    padding: 0;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: #b42318;
+    font-size: 1.4rem;
+    cursor: pointer;
+}
+
+#productModal .product-refs-panel > small {
+    display: block;
+    color: #64748b;
+    font-size: 0.78rem;
+    line-height: 1.4;
+}
+
+#productModal .product-ref-units label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+@media (max-width: 650px) {
+    #productModal .product-purchase-ref {
+        grid-template-columns: minmax(0, 1fr) 32px;
+        padding: 10px;
+        border-radius: 14px;
+        background: #f3f7fc;
+    }
+
+    #productModal .product-purchase-ref label {
+        grid-column: 1;
+    }
+
+    #productModal .product-ref-remove {
+        grid-column: 2;
+        grid-row: 1;
+    }
+}
