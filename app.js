@@ -19127,10 +19127,20 @@ function renderProductPurchaseReferences(product) {
    ========================================================= */
 
 function parseInvoiceScanText(text) {
-    const lines = String(text)
-        .split(/\r?\n/)
-        .map(line => line.trim())
-        .filter(Boolean);
+   const lines = String(text)
+    .split(/\r?\n/)
+    .map(line => line
+        .replace(
+            /\bs\s*u\s*m\s*m\s*e\b/gi,
+            "Summe"
+        )
+        .replace(
+            /\bp\s*f\s*a\s*n\s*d\b/gi,
+            "Pfand"
+        )
+        .trim()
+    )
+    .filter(Boolean);
 
     const toAmount = value => Number(
         value.includes(",")
