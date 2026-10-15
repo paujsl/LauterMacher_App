@@ -18693,3 +18693,432 @@ function renderProductPurchaseReferences(product) {
         }
     );
 })();
+/* =========================================================
+   EINKAUFSLISTE V1 — PROFESSEUR
+   ========================================================= */
+
+(() => {
+    const screenId = "shoppingListScreen";
+
+    if ($(screenId)) return;
+
+    screenTitles[screenId] = "Einkaufsliste";
+    APP_SCREEN_ROUTES[screenId] = "/einkaufsliste";
+    APP_ROUTE_SCREENS["/einkaufsliste"] = screenId;
+
+    const homeButton = document.createElement("button");
+
+    homeButton.type = "button";
+    homeButton.id = "homeShoppingButton";
+    homeButton.className = "home-menu-card teacher-only";
+
+    homeButton.innerHTML = `
+        <span class="home-menu-icon">🛒</span>
+
+        <span class="home-menu-text">
+            <strong>Einkaufsliste</strong>
+            <small>Getränke nachkaufen</small>
+        </span>
+
+        <span class="home-menu-arrow">›</span>
+    `;
+
+    homeButton.hidden = !isTeacher();
+    homeButton.style.display = isTeacher() ? "" : "none";
+
+    $("homeReportsButton").after(homeButton);
+
+    const screen = document.createElement("main");
+
+    screen.id = screenId;
+    screen.className = "screen admin-page teacher-only";
+    screen.hidden = true;
+
+    screen.innerHTML = `
+        <header class="screen-header">
+            <button
+                type="button"
+                class="back-button"
+                id="shoppingBackButton"
+            >← Startseite</button>
+
+            <h1>🛒 Einkaufsliste</h1>
+        </header>
+
+        <section class="admin-content shopping-content">
+            <div class="shopping-toolbar">
+                <label>
+                    Vorrat für
+                    <input
+                        id="shoppingDays"
+                        type="number"
+                        min="1"
+                        max="30"
+                        value="10"
+                    >
+                    Schultage
+                </label>
+
+                <label>
+                    Sicherheitsreserve
+                    <input
+                        id="shoppingSafetyDays"
+                        type="number"
+                        min="0"
+                        max="14"
+                        value="2"
+                    >
+                    Schultage
+                </label>
+
+                <button
+                    type="button"
+                    class="secondary-action"
+                    id="shoppingRefreshButton"
+                >Aktualisieren</button>
+
+                <button
+                    type="button"
+                    class="secondary-action"
+                    id="shoppingResetButton"
+                >Neue Planung</button>
+            </div>
+
+            <p class="shopping-note">
+                Vorschlag aus Verbrauch und aktuellem Bestand.
+                Die Berechnung berücksichtigt Montag bis Freitag.
+                Ferien werden noch nicht automatisch ausgeschlossen.
+                Bei wenigen Verkaufsdaten wird der Zielbestand verwendet.
+            </p>
+
+            <p id="shoppingStatus" role="status"></p>
+
+            <div class="shopping-scroll">
+                <table class="shopping-table">
+                    <thead>
+                        <tr>
+                            <th>Gekauft</th>
+                            <th>Produkt</th>
+                            <th>Bestand</th>
+                            <th>Verbrauch / Tag</th>
+                            <th>Packungen</th>
+                            <th>Stück</th>
+                            <th>Geschätzter Preis</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="shoppingRows"></tbody>
+                </table>
+            </div>
+
+            <p id="shoppingTotal"></p>
+
+            <p class="shopping-note">
+                Änderungen und Häkchen werden für die Lehrkräfte
+                gemeinsam gespeichert. Ein Häkchen ändert den Bestand
+                noch nicht. Der Wareneingang wird später über die
+                bestätigte Rechnung gebucht.
+            </p>
+        </section>
+    `;
+
+    document.body.append(screen);
+
+    let rows = [];
+    let generation = 0;
+    let saving = false;
+
+    const packsFor = row =>
+        row.manual_packs ?? row.suggested_packs;
+
+    const render = () => {
+        $("shoppingRows").innerHTML = rows.map(row => {
+            const packs = packsFor(row);
+
+            const price = row.pack_price == null
+                ? null
+                : packs * Number(row.pack_price);
+
+            return `
+                <tr
+                    data-shopping-product="${esc(row.id)}"
+                    class="${row.checked ? "shopping-checked" : ""}"
+                >
+                    <td>
+                        <input
+                            type="checkbox"
+                            data-shopping-check
+                            aria-label="${esc(row.name)} gekauft"
+                            ${row.checked ? "checked" : ""}
+                        >
+                    </td>
+
+                    <td>
+                        <strong>
+                            ${esc(row.icon || "🥤")}
+                            ${esc(row.name)}
+                        </strong>
+
+                        <small>
+                            ${[
+                                row.store_name
+                                    ? esc(row.store_name)
+                                    : "",
+                                row.ian
+                                    ? "IAN: " + esc(row.ian)
+                                    : "",
+                                row.units + " Stück / Packung"
+                            ].filter(Boolean).join(" · ")}
+                        </small>
+
+                        <small>
+                            ${
+                                row.manual_packs != null
+                                    ? "Manuell angepasst"
+                                    : row.observed_days < 3
+                                        ? "Vorschlag aus Zielbestand"
+                                        : "Automatischer Vorschlag"
+                            }
+                        </small>
+                    </td>
+
+                    <td>${row.stock}</td>
+
+                    <td>
+                        ${
+                            row.observed_days < 3
+                                ? "—"
+                                : Number(row.average)
+                                    .toLocaleString("de-DE", {
+                                        maximumFractionDigits: 1
+                                    })
+                        }
+                    </td>
+
+                    <td>
+                        <input
+                            type="number"
+                            min="0"
+                            max="2147483647"
+                            step="1"
+                            value="${packs}"
+                            data-shopping-packs
+                            aria-label="Packungen für ${esc(row.name)}"
+                        >
+                    </td>
+
+                    <td>${packs * row.units}</td>
+
+                    <td>
+                        ${price == null ? "—" : money(price)}
+                    </td>
+                </tr>
+            `;
+        }).join("") || `
+            <tr>
+                <td colspan="7">Keine Getränke vorhanden.</td>
+            </tr>
+        `;
+
+        const open = rows.filter(
+            row => !row.checked && packsFor(row) > 0
+        );
+
+        const knownTotal = open.reduce(
+            (total, row) =>
+                total +
+                packsFor(row) * Number(row.pack_price || 0),
+            0
+        );
+
+        const missingPrices = open.some(
+            row => row.pack_price == null
+        );
+
+        $("shoppingTotal").textContent =
+            "Geschätzter Betrag für offene Einkäufe: " +
+            money(knownTotal) +
+            (
+                missingPrices
+                    ? " · Nicht vollständig: Einkaufspreise fehlen."
+                    : ""
+            );
+    };
+
+    const load = async (reset = false) => {
+        if (!isTeacher()) return;
+
+        const days = Number($("shoppingDays").value);
+        const safety = Number($("shoppingSafetyDays").value);
+
+        if (
+            !Number.isInteger(days) ||
+            days < 1 || days > 30 ||
+            !Number.isInteger(safety) ||
+            safety < 0 || safety > 14
+        ) {
+            toast("Bitte gültige Schultage eingeben.", "error");
+            return;
+        }
+
+        const request = ++generation;
+        const personId = state.currentPerson.id;
+
+        $("shoppingStatus").textContent =
+            "Einkaufsliste wird geladen …";
+
+        try {
+            const { data, error } = await db.rpc(
+                "teacher_shopping_list_v1",
+                {
+                    p_days: days,
+                    p_safety_days: safety,
+                    p_reset: reset
+                }
+            );
+
+            if (error) throw error;
+
+            if (
+                request !== generation ||
+                !isTeacher() ||
+                state.currentPerson?.id !== personId
+            ) return;
+
+            rows = data || [];
+            render();
+
+            $("shoppingStatus").textContent =
+                "Aktualisiert: " +
+                new Date().toLocaleString("de-DE", {
+                    timeZone: "Europe/Berlin"
+                });
+
+        } catch (error) {
+            console.error(error);
+
+            $("shoppingStatus").textContent =
+                "Einkaufsliste konnte nicht geladen werden.";
+        }
+    };
+
+    const previousShowScreen = showScreen;
+
+    showScreen = (id, ...args) => {
+        const result = previousShowScreen(id, ...args);
+
+        if (
+            state.currentScreenId === screenId &&
+            isTeacher()
+        ) {
+            load();
+        }
+
+        return result;
+    };
+
+    homeButton.addEventListener(
+        "click",
+        () => showScreen(screenId)
+    );
+
+    $("shoppingBackButton").addEventListener(
+        "click",
+        goHome
+    );
+
+    $("shoppingRefreshButton").addEventListener(
+        "click",
+        () => {
+            if (!saving) load();
+        }
+    );
+
+    $("shoppingResetButton").addEventListener(
+        "click",
+        () => {
+            if (saving) return;
+
+            if (confirm(
+                "Manuelle Mengen und Häkchen für alle Lehrkräfte " +
+                "zurücksetzen und die Liste neu berechnen?"
+            )) {
+                load(true);
+            }
+        }
+    );
+
+    $("shoppingRows").addEventListener("change", async event => {
+        if (!isTeacher()) return;
+
+        const line = event.target.closest(
+            "[data-shopping-product]"
+        );
+
+        if (!line) return;
+
+        if (saving) {
+            render();
+            return;
+        }
+
+        const row = rows.find(
+            row => row.id === line.dataset.shoppingProduct
+        );
+
+        const input = line.querySelector(
+            "[data-shopping-packs]"
+        );
+
+        const raw = input.value.trim();
+        const packs = Number(raw);
+
+        if (
+            !/^\d+$/.test(raw) ||
+            !Number.isSafeInteger(packs) ||
+            packs > 2147483647
+        ) {
+            toast("Bitte eine ganze Menge ab 0 eingeben.", "error");
+            render();
+            return;
+        }
+
+        const checked = line.querySelector(
+            "[data-shopping-check]"
+        ).checked;
+
+        saving = true;
+
+        screen.querySelectorAll("input, button")
+            .forEach(el => el.disabled = true);
+
+        try {
+            const { error } = await db.rpc(
+                "teacher_shopping_save_v1",
+                {
+                    p_product_id: row.id,
+                    p_packs: packs,
+                    p_checked: checked
+                }
+            );
+
+            if (error) throw error;
+
+            row.manual_packs = packs;
+            row.checked = checked;
+
+            render();
+
+        } catch (error) {
+            console.error(error);
+            toast("Änderung konnte nicht gespeichert werden.", "error");
+            render();
+
+        } finally {
+            saving = false;
+
+            screen.querySelectorAll("input, button")
+                .forEach(el => el.disabled = false);
+        }
+    });
+})();
