@@ -10432,3 +10432,115 @@ body * {
         grid-row: 1;
     }
 }
+/* Références : une seule ligne, champs compacts */
+
+#productModal .product-refs-panel {
+    grid-column: 1 / -1;
+    width: 100%;
+    min-width: 0;
+}
+
+#productModal .product-refs-heading {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    margin: 10px 0;
+}
+
+#productModal #productPurchaseRefs {
+    width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    padding-bottom: 8px;
+
+    scrollbar-color: rgba(83, 113, 253, 0.8) #edf1f6;
+    scrollbar-width: thin;
+}
+
+#productModal #productPurchaseRefs::-webkit-scrollbar {
+    height: 8px;
+}
+
+#productModal #productPurchaseRefs::-webkit-scrollbar-thumb {
+    background: rgba(83, 113, 253, 0.8);
+    border-radius: 999px;
+}
+
+#productModal .product-purchase-ref {
+    display: grid;
+
+    grid-template-columns:
+        90px
+        minmax(150px, 1fr)
+        140px
+        90px
+        120px
+        95px
+        130px
+        28px;
+
+    align-items: end;
+    gap: 8px;
+
+    min-width: 960px;
+    margin: 0 0 10px;
+    padding: 0;
+
+    background: transparent;
+    border-radius: 0;
+}
+
+#productModal .product-purchase-ref label {
+    grid-column: auto;
+    grid-row: auto;
+
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+
+    min-width: 0;
+    margin: 0;
+}
+
+#productModal .product-purchase-ref label span {
+    color: #094369;
+    font-size: 0.75rem;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+#productModal .product-purchase-ref input {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    min-height: 40px;
+    padding: 8px;
+    font-size: 0.9rem;
+}
+
+#productModal .product-purchase-ref [data-ref-units],
+#productModal .product-purchase-ref [data-ref-unit-cost] {
+    text-align: center;
+}
+
+#productModal .product-purchase-ref [data-ref-unit-cost] {
+    background: var(--blue-light);
+    color: var(--blue-dark);
+    font-weight: 800;
+}
+
+#productModal .product-purchase-ref .product-ref-remove {
+    grid-column: auto;
+    grid-row: auto;
+
+    align-self: end;
+    width: 28px;
+    min-height: 40px;
+    padding: 0;
+
+    border: 0;
+    background: transparent;
+    color: #b42318;
+    font-size: 1.4rem;
+}
