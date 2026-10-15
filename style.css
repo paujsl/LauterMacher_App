@@ -10658,3 +10658,108 @@ body * {
 #productModal .product-purchase-ref > label:focus-within::after {
     opacity: 0;
 }
+/* Einkaufsliste */
+
+#shoppingListScreen .shopping-content {
+    max-width: 1200px;
+    margin: auto;
+}
+
+#shoppingListScreen .shopping-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+#shoppingListScreen .shopping-toolbar label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #094369;
+}
+
+#shoppingListScreen .shopping-toolbar input {
+    width: 65px;
+    padding: 8px;
+    text-align: center;
+}
+
+#shoppingListScreen .shopping-note {
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: #64748b;
+}
+
+#shoppingListScreen .shopping-scroll {
+    max-height: 65vh;
+    overflow: auto;
+    border-radius: 18px;
+    background: white;
+    box-shadow: 0 5px 20px rgb(9 67 105 / 8%);
+    scrollbar-color: rgba(83, 113, 253, 0.8) #edf1f6;
+}
+
+#shoppingListScreen .shopping-table {
+    width: 100%;
+    border-collapse: collapse;
+    color: #094369;
+}
+
+#shoppingListScreen th,
+#shoppingListScreen td {
+    padding: 10px 12px;
+    text-align: right;
+    border-bottom: 1px solid #edf1f6;
+}
+
+#shoppingListScreen th {
+    position: sticky;
+    top: 0;
+    background: #edf4ff;
+    white-space: nowrap;
+}
+
+#shoppingListScreen th:nth-child(2),
+#shoppingListScreen td:nth-child(2) {
+    text-align: left;
+}
+
+#shoppingListScreen td small {
+    display: block;
+    margin-top: 4px;
+    font-size: 0.78rem;
+    color: #64748b;
+}
+
+#shoppingListScreen [data-shopping-packs] {
+    width: 76px;
+    min-height: 40px;
+    padding: 6px;
+    background: #edf4ff;
+    color: #094369;
+    border: 1px solid #cad7e4;
+    border-radius: 10px;
+    text-align: center;
+}
+
+#shoppingListScreen [data-shopping-check] {
+    width: 20px;
+    height: 20px;
+    accent-color: #05a85a;
+}
+
+#shoppingListScreen .shopping-checked {
+    background: #edf8f0;
+}
+
+#shoppingListScreen .shopping-checked td:nth-child(2) strong {
+    text-decoration: line-through;
+    opacity: 0.65;
+}
+
+#shoppingTotal {
+    color: #094369;
+    font-weight: 800;
+}
