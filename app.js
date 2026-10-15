@@ -20198,3 +20198,6 @@ function parseInvoiceScanText(text) {
         }
     });
 })();
+/* Un seul bouton : importer un document ou prendre une photo */
+
+$("invoiceScanButton")?.remove();
