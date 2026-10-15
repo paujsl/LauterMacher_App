@@ -19590,49 +19590,370 @@ function parseInvoiceScanText(text) {
     };
 
     const imageCanvas = async file => {
-        const url = URL.createObjectURL(file);
+    const url = URL.createObjectURL(file);
 
-        try {
-            const image = new Image();
-            image.src = url;
+    try {
+        const image = new Image();
+        image.src = url;
+        await image.decode();
 
-            await image.decode();
+        const selection = await new Promise(resolve => {
+            const dialog = document.createElement("dialog");
 
-            const ratio = Math.min(
+            dialog.style.cssText = `
+                box-sizing: border-box;
+                width: min(94vw, 820px);
+                max-height: 94dvh;
+                overflow: auto;
+                padding: 20px;
+                border: 0;
+                border-radius: 24px;
+                background: white;
+                color: #243568;
+                box-shadow: 0 18px 60px #0003;
+                font-family: inherit;
+            `;
+
+            dialog.innerHTML = `
+                <h2 style="margin:0 0 10px">
+                    Kassenbon zuschneiden
+                </h2>
+
+                <p style="margin:0 0 16px">
+                    Ziehe mit dem Finger oder der Maus einen Rahmen
+                    um den gesamten Kassenbon.
+                    Produkte, Pfand und Summe müssen im Rahmen bleiben.
+                </p>
+
+                <div style="
+                    display:flex;
+                    justify-content:center;
+                    padding:10px;
+                    border-radius:16px;
+                    background:#eef2ff;
+                ">
+                    <canvas
+                        aria-label="Foto des Kassenbons zum Zuschneiden"
+                        style="
+                            display:block;
+                            max-width:100%;
+                            max-height:60dvh;
+                            width:auto;
+                            height:auto;
+                            touch-action:none;
+                            cursor:crosshair;
+                        "
+                    ></canvas>
+                </div>
+
+                <p
+                    data-crop-message
+                    role="status"
+                    style="font-size:14px"
+                >
+                    Aktuell ist das gesamte Foto ausgewählt.
+                </p>
+
+                <div style="
+                    display:flex;
+                    justify-content:flex-end;
+                    flex-wrap:wrap;
+                    gap:10px;
+                    margin-top:16px;
+                ">
+                    <button type="button" data-crop-cancel>
+                        Abbrechen
+                    </button>
+
+                    <button type="button" data-crop-reset>
+                        Ganzes Foto
+                    </button>
+
+                    <button type="button" data-crop-apply>
+                        Ausschnitt erkennen
+                    </button>
+                </div>
+            `;
+
+            const canvas = dialog.querySelector("canvas");
+            const context = canvas.getContext("2d");
+            const message = dialog.querySelector("[data-crop-message]");
+            const apply = dialog.querySelector("[data-crop-apply]");
+
+            dialog.querySelectorAll("button").forEach(button => {
+                button.style.cssText = `
+                    padding:11px 16px;
+                    border:0;
+                    border-radius:14px;
+                    font:inherit;
+                    font-weight:600;
+                    cursor:pointer;
+                    background:#eef2ff;
+                    color:#243568;
+                `;
+            });
+
+            apply.style.background = "#5371fd";
+            apply.style.color = "#fff";
+
+            // L'aperçu est réduit, mais le découpage utilisera
+            // les pixels de la photo originale.
+            const previewRatio = Math.min(
                 1,
-                2400 / image.naturalWidth,
-                Math.sqrt(
-                    6000000 /
-                    (image.naturalWidth * image.naturalHeight)
+                1200 / Math.max(
+                    image.naturalWidth,
+                    image.naturalHeight
                 )
             );
 
-            const canvas = document.createElement("canvas");
-
             canvas.width = Math.max(
                 1,
-                Math.round(image.naturalWidth * ratio)
+                Math.round(image.naturalWidth * previewRatio)
             );
 
             canvas.height = Math.max(
                 1,
-                Math.round(image.naturalHeight * ratio)
+                Math.round(image.naturalHeight * previewRatio)
             );
 
-            canvas.getContext("2d").drawImage(
-                image,
-                0,
-                0,
-                canvas.width,
-                canvas.height
-            );
+            let box = {
+                x: 0,
+                y: 0,
+                width: canvas.width,
+                height: canvas.height
+            };
 
-            return canvas;
+            let start = null;
+            let pointerId = null;
+            let finished = false;
 
-        } finally {
-            URL.revokeObjectURL(url);
+            const draw = () => {
+                context.clearRect(
+                    0, 0, canvas.width, canvas.height
+                );
+
+                context.drawImage(
+                    image, 0, 0, canvas.width, canvas.height
+                );
+
+                context.fillStyle = "rgba(15, 25, 55, 0.5)";
+
+                context.beginPath();
+                context.rect(0, 0, canvas.width, canvas.height);
+
+                context.rect(
+                    box.x,
+                    box.y,
+                    box.width,
+                    box.height
+                );
+
+                context.fill("evenodd");
+
+                context.strokeStyle = "#5371fd";
+                context.lineWidth = 3;
+
+                context.strokeRect(
+                    box.x,
+                    box.y,
+                    box.width,
+                    box.height
+                );
+
+                const valid =
+                    box.width >= 10 &&
+                    box.height >= 10;
+
+                apply.disabled = !valid;
+                apply.style.opacity = valid ? "1" : "0.5";
+            };
+
+            const point = event => {
+                const rect = canvas.getBoundingClientRect();
+
+                return {
+                    x: Math.max(
+                        0,
+                        Math.min(
+                            canvas.width,
+                            (event.clientX - rect.left) *
+                            canvas.width / rect.width
+                        )
+                    ),
+
+                    y: Math.max(
+                        0,
+                        Math.min(
+                            canvas.height,
+                            (event.clientY - rect.top) *
+                            canvas.height / rect.height
+                        )
+                    )
+                };
+            };
+
+            const updateSelection = event => {
+                const end = point(event);
+
+                box = {
+                    x: Math.min(start.x, end.x),
+                    y: Math.min(start.y, end.y),
+                    width: Math.abs(end.x - start.x),
+                    height: Math.abs(end.y - start.y)
+                };
+
+                message.textContent =
+                    "Der helle Bereich wird gelesen. " +
+                    "Zum Ändern einen neuen Rahmen ziehen.";
+
+                draw();
+            };
+
+            canvas.addEventListener("pointerdown", event => {
+                if (pointerId !== null) return;
+                if (event.pointerType === "mouse" && event.button !== 0) {
+                    return;
+                }
+
+                event.preventDefault();
+
+                pointerId = event.pointerId;
+                start = point(event);
+
+                canvas.setPointerCapture(event.pointerId);
+                updateSelection(event);
+            });
+
+            canvas.addEventListener("pointermove", event => {
+                if (
+                    !start ||
+                    event.pointerId !== pointerId
+                ) {
+                    return;
+                }
+
+                event.preventDefault();
+                updateSelection(event);
+            });
+
+            const stopDragging = event => {
+                if (event.pointerId !== pointerId) return;
+
+                start = null;
+                pointerId = null;
+
+                if (canvas.hasPointerCapture(event.pointerId)) {
+                    canvas.releasePointerCapture(event.pointerId);
+                }
+            };
+
+            canvas.addEventListener("pointerup", stopDragging);
+            canvas.addEventListener("pointercancel", stopDragging);
+            canvas.addEventListener("lostpointercapture", () => {
+                start = null;
+                pointerId = null;
+            });
+
+            const finish = value => {
+                if (finished) return;
+                finished = true;
+
+                if (dialog.open) dialog.close();
+                dialog.remove();
+
+                resolve(value);
+            };
+
+            dialog.querySelector("[data-crop-cancel]")
+                .addEventListener("click", () => finish(null));
+
+            dialog.querySelector("[data-crop-reset]")
+                .addEventListener("click", () => {
+                    box = {
+                        x: 0,
+                        y: 0,
+                        width: canvas.width,
+                        height: canvas.height
+                    };
+
+                    message.textContent =
+                        "Das gesamte Foto ist ausgewählt.";
+
+                    draw();
+                });
+
+            apply.addEventListener("click", () => {
+                if (apply.disabled) return;
+
+                finish({
+                    x: box.x * image.naturalWidth / canvas.width,
+                    y: box.y * image.naturalHeight / canvas.height,
+                    width: box.width * image.naturalWidth / canvas.width,
+                    height: box.height * image.naturalHeight / canvas.height
+                });
+            });
+
+            dialog.addEventListener("cancel", event => {
+                event.preventDefault();
+                finish(null);
+            });
+
+            dialog.addEventListener("close", () => finish(null));
+
+            document.body.append(dialog);
+            draw();
+            dialog.showModal();
+        });
+
+        if (!selection) {
+            throw Error("cancelled");
         }
-    };
+
+        // Recadrer depuis l'original, puis limiter la mémoire utilisée.
+        const ratio = Math.min(
+            1,
+            3000 / selection.width,
+            Math.sqrt(
+                8000000 /
+                (selection.width * selection.height)
+            )
+        );
+
+        const canvas = document.createElement("canvas");
+
+        canvas.width = Math.max(
+            1,
+            Math.round(selection.width * ratio)
+        );
+
+        canvas.height = Math.max(
+            1,
+            Math.round(selection.height * ratio)
+        );
+
+        const context = canvas.getContext("2d");
+
+        context.fillStyle = "#fff";
+        context.fillRect(0, 0, canvas.width, canvas.height);
+
+        context.drawImage(
+            image,
+            selection.x,
+            selection.y,
+            selection.width,
+            selection.height,
+            0,
+            0,
+            canvas.width,
+            canvas.height
+        );
+
+        return canvas;
+
+    } finally {
+        URL.revokeObjectURL(url);
+    }
+};
 
     const run = async file => {
         if (!file || busy || !isTeacher()) return;
