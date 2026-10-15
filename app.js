@@ -2264,7 +2264,8 @@ function openProductModal(product) {
             ? "Produkt bearbeiten"
             : "Produkt hinzufügen"
     );
-
+    renderProductPurchaseReferences(product);
+   
     setText("productFormMessage", "");
 
     productEditorOpen = true;
@@ -2642,7 +2643,8 @@ async function saveProduct(event) {
         return;
     }
 
-
+    const purchaseReferences =
+        readProductPurchaseReferences();
        const ian = $("productIanInput").value.trim();
 
     const ean = $("productEanInput").value
@@ -2737,7 +2739,9 @@ async function saveProduct(event) {
                 active:
             $("productActiveInput").checked,
 
-                ian: ian || null,
+                        purchase_references: purchaseReferences,
+
+        ian: ian || null,
 
         ean: ean || null,
 
@@ -18291,4 +18295,234 @@ function updateProductUnitCostPreview() {
 
     // Écarts : date, de la plus récente à la plus ancienne.
     setup("r1DifferenceRows", 0);
+})();
+/* =========================================================
+   PRODUITS — RÉFÉRENCES D’ACHAT MULTIPLES
+   ========================================================= */
+
+function readProductPurchaseReferences() {
+    const rows = [
+        ...document.querySelectorAll(
+            "#productPurchaseRefs [data-purchase-ref]"
+        )
+    ];
+
+    const refs = rows.map(row => ({
+        ian: row.querySelector("[data-ref-ian]")
+            .value.trim(),
+
+        name: row.querySelector("[data-ref-name]")
+            .value.trim(),
+
+        store: row.querySelector("[data-ref-store]")
+            .value.trim()
+    })).filter(ref =>
+        ref.ian || ref.name || ref.store
+    );
+
+    $("productIanInput").value =
+        refs[0]?.ian || "";
+
+    $("productStoreNameInput").value =
+        refs[0]?.name || "";
+
+    return refs;
+}
+
+function addProductPurchaseReference(ref = {}) {
+    const box = $("productPurchaseRefs");
+
+    const row = document.createElement("div");
+
+    row.className = "product-purchase-ref";
+    row.dataset.purchaseRef = "";
+
+    row.innerHTML = `
+        <label>
+            <span>IAN</span>
+
+            <input
+                type="text"
+                data-ref-ian
+                maxlength="64"
+                autocomplete="off"
+                value="${esc(ref.ian || "")}"
+                placeholder="Artikelnummer"
+            >
+        </label>
+
+        <label>
+            <span>Name auf dem Kassenbon</span>
+
+            <input
+                type="text"
+                data-ref-name
+                maxlength="150"
+                autocomplete="off"
+                value="${esc(ref.name || "")}"
+                placeholder="Bezeichnung im Geschäft"
+            >
+        </label>
+
+        <label>
+            <span>Geschäft</span>
+
+            <input
+                type="text"
+                data-ref-store
+                maxlength="80"
+                autocomplete="off"
+                value="${esc(ref.store || "")}"
+                placeholder="z. B. ALDI"
+            >
+        </label>
+
+        <button
+            type="button"
+            class="product-ref-remove"
+            data-remove-ref
+            aria-label="Diese Einkaufsreferenz entfernen"
+        >×</button>
+    `;
+
+    box.append(row);
+}
+
+function renderProductPurchaseReferences(product) {
+    const box = $("productPurchaseRefs");
+
+    box.replaceChildren();
+
+    const saved = Array.isArray(product?.purchase_references)
+        ? product.purchase_references.filter(ref =>
+            ref &&
+            typeof ref === "object" &&
+            !Array.isArray(ref)
+        )
+        : [];
+
+    const refs = saved.length
+        ? saved
+        : [{
+            ian: product?.ian || "",
+            name: product?.store_name || "",
+            store: ""
+        }];
+
+    refs.forEach(addProductPurchaseReference);
+
+    readProductPurchaseReferences();
+}
+
+(() => {
+    if ($("productPurchaseRefs")) return;
+
+    const ianGroup =
+        $("productIanInput").closest(".form-field");
+
+    const nameGroup =
+        $("productStoreNameInput").closest(".form-field");
+
+    const unitsLabel =
+        $("productIanUnitsInput").closest("label");
+
+    const panel = document.createElement("div");
+
+    panel.className = "product-refs-panel";
+
+    panel.innerHTML = `
+        <div class="product-refs-heading">
+            <strong>Einkaufsreferenzen</strong>
+
+            <button
+                type="button"
+                class="secondary-action"
+                id="addProductPurchaseRef"
+                aria-label="Einkaufsreferenz hinzufügen"
+            >+</button>
+        </div>
+
+        <div id="productPurchaseRefs"></div>
+
+        <small>
+            Mehrere Artikelnummern können zu demselben
+            Produkt gehören. Die erste Zeile ist die
+            Hauptreferenz.
+        </small>
+    `;
+
+    ianGroup.before(panel);
+
+    /*
+     * Conserver les anciens champs pour les fonctions
+     * existantes, tout en utilisant le nouvel affichage.
+     */
+    ianGroup.style.display = "none";
+    nameGroup.style.display = "none";
+
+    // Garder le nombre d’unités et ses événements de calcul.
+    const unitsGroup = document.createElement("div");
+
+    unitsGroup.className =
+        "form-field product-ref-units";
+
+    unitsLabel.classList.remove("product-ian-units");
+
+    unitsLabel.querySelector("span").textContent =
+        "Stück pro Packung";
+
+    unitsGroup.append(unitsLabel);
+    panel.after(unitsGroup);
+
+    $("addProductPurchaseRef").addEventListener(
+        "click",
+        () => {
+            if (productSaving) return;
+
+            if ($("productPurchaseRefs").children.length >= 50) {
+                toast(
+                    "Maximal 50 Einkaufsreferenzen pro Produkt.",
+                    "error"
+                );
+                return;
+            }
+
+            addProductPurchaseReference();
+
+            productEditorDirty = true;
+
+            $("productPurchaseRefs")
+                .lastElementChild
+                .querySelector("input")
+                .focus();
+        }
+    );
+
+    $("productPurchaseRefs").addEventListener(
+        "input",
+        () => {
+            readProductPurchaseReferences();
+        }
+    );
+
+    $("productPurchaseRefs").addEventListener(
+        "click",
+        event => {
+            const button = event.target.closest(
+                "[data-remove-ref]"
+            );
+
+            if (!button || productSaving) return;
+
+            button.closest("[data-purchase-ref]").remove();
+
+            if (!$("productPurchaseRefs").children.length) {
+                addProductPurchaseReference();
+            }
+
+            readProductPurchaseReferences();
+
+            productEditorDirty = true;
+        }
+    );
 })();
