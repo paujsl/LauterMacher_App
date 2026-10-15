@@ -17327,7 +17327,9 @@ function updateProductUnitCostPreview() {
         $("r1DifferenceRows").innerHTML = differences.length
             ? differences.map(r => `
                 <tr>
-                    <td>${label(r.t)}</td>
+                                        <td data-sort-value="${r.t}">
+                        ${label(r.t)}
+                    </td>
                     <td>${esc(r.product_name)}</td>
                     <td>${int(r.inventory_before)}</td>
                     <td>${int(r.quantity)}</td>
@@ -17342,7 +17344,14 @@ function updateProductUnitCostPreview() {
 
         drawBars();
     };
-
+    const stockProducts = () =>
+        S.data.products.filter(product =>
+            product.active &&
+            [
+                "getränke",
+                "sonderveranstaltung"
+            ].includes(product.area)
+        );
     const colors = [
         "#5371fd", "#0f9f84", "#e0a42e", "#e05c70",
         "#094369", "#968032", "#457b9d", "#a660b4"
@@ -17420,8 +17429,8 @@ function updateProductUnitCostPreview() {
         const last = Math.floor(n / DAY) * DAY;
         const start = last - (S.days - 1) * DAY;
 
-        const products = S.data.products.filter(
-            p => p.active && S.selected.has(p.key)
+                const products = stockProducts().filter(
+            p => S.selected.has(p.key)
         );
 
         const series = products.map(product => {
@@ -17652,7 +17661,7 @@ function updateProductUnitCostPreview() {
             `;
     };
     const renderStock = () => {
-        const products = S.data.products.filter(p => p.active);
+        const products = stockProducts();
 
         $("r1Gauges").innerHTML = products.map(p => {
             const low = p.quantity <= p.low_stock_threshold;
@@ -17807,7 +17816,7 @@ function updateProductUnitCostPreview() {
 
         try {
             const { data, error } = await db.rpc(
-                "teacher_reports_v2",
+                "teacher_reports_v3",
                 {
                     p_from: key(from),
                     p_to: key(Math.floor(n / DAY) * DAY + DAY)
@@ -17840,7 +17849,7 @@ function updateProductUnitCostPreview() {
             S.data = data;
 
             if (!S.selected.size) {
-                data.products.filter(p => p.active)
+                                stockProducts()
                     .slice(0, 2)
                     .forEach(p => S.selected.add(p.key));
             }
@@ -17966,7 +17975,7 @@ function updateProductUnitCostPreview() {
 
             add(
                 "Bestand",
-                S.data.products.filter(p => p.active).map(p => ({
+                stockProducts().map(p => ({
                     Produkt: p.name,
                     Bestand: p.quantity,
                     Zielbestand: p.stock_target,
@@ -18018,7 +18027,7 @@ function updateProductUnitCostPreview() {
             S.selected.clear();
 
             if (el.checked) {
-                S.data.products.filter(p => p.active)
+                stockProducts()
                     .forEach(p => S.selected.add(p.key));
             }
 
@@ -18100,4 +18109,186 @@ function updateProductUnitCostPreview() {
             button.disabled = false;
         }
     });
+})();
+/* =========================================================
+   BERICHTE — TRI DES TABLEAUX
+   ========================================================= */
+
+(() => {
+    const setup = (id, defaultColumn) => {
+        const body = $(id);
+
+        if (!body) return;
+
+        const table = body.closest("table");
+
+        if (table.dataset.r3SortReady) return;
+
+        table.dataset.r3SortReady = "true";
+
+        const headers = [
+            ...table.querySelectorAll("thead th")
+        ];
+
+        let column = defaultColumn;
+        let descending = true;
+
+        const buttons = [];
+
+        const value = (row, index) => {
+            const cell = row.cells[index];
+
+            if (!cell) return null;
+
+            if (cell.dataset.sortValue !== undefined) {
+                const number = Number(cell.dataset.sortValue);
+
+                return Number.isFinite(number)
+                    ? number
+                    : null;
+            }
+
+            const text = cell.textContent.trim();
+
+            if (!text || text === "—") return null;
+
+            const numeric = text
+                .replace(/\s|€/g, "")
+                .replace(/−/g, "-")
+                .replace(/\./g, "")
+                .replace(",", ".");
+
+            return /^[+-]?\d+(\.\d+)?$/.test(numeric)
+                ? Number(numeric)
+                : null;
+        };
+
+        const updateHeaders = () => {
+            buttons.forEach(({ button, index, title }) => {
+                const active = index === column;
+
+                button.classList.toggle(
+                    "r3-sort-active",
+                    active
+                );
+
+                button.querySelector(
+                    ".r3-sort-triangle"
+                ).textContent = active
+                    ? descending ? "▼" : "▲"
+                    : "▽";
+
+                button.setAttribute(
+                    "aria-label",
+                    title + ": " + (
+                        active
+                            ? descending
+                                ? "absteigend sortiert"
+                                : "aufsteigend sortiert"
+                            : "absteigend sortieren"
+                    )
+                );
+
+                if (active) {
+                    headers[index].setAttribute(
+                        "aria-sort",
+                        descending
+                            ? "descending"
+                            : "ascending"
+                    );
+                } else {
+                    headers[index].removeAttribute(
+                        "aria-sort"
+                    );
+                }
+            });
+        };
+
+        const sortRows = () => {
+            observer.disconnect();
+
+            const rows = [...body.rows];
+
+            rows.sort((a, b) => {
+                const av = value(a, column);
+                const bv = value(b, column);
+
+                if (av == null && bv == null) return 0;
+
+                // Les valeurs inconnues restent à la fin.
+                if (av == null) return 1;
+                if (bv == null) return -1;
+
+                return descending
+                    ? bv - av
+                    : av - bv;
+            });
+
+            const fragment =
+                document.createDocumentFragment();
+
+            rows.forEach(row => fragment.append(row));
+
+            body.append(fragment);
+
+            observer.observe(body, {
+                childList: true
+            });
+
+            updateHeaders();
+        };
+
+        const observer =
+            new MutationObserver(sortRows);
+
+        headers.forEach((header, index) => {
+            const title = header.textContent.trim();
+
+            if (title === "Produkt") return;
+
+            const button =
+                document.createElement("button");
+
+            button.type = "button";
+            button.className = "r3-sort-button";
+
+            const triangle =
+                document.createElement("span");
+
+            triangle.className = "r3-sort-triangle";
+            triangle.setAttribute("aria-hidden", "true");
+
+            button.append(
+                document.createTextNode(title + " "),
+                triangle
+            );
+
+            header.replaceChildren(button);
+
+            buttons.push({
+                button,
+                index,
+                title
+            });
+
+            button.addEventListener("click", () => {
+                if (column === index) {
+                    descending = !descending;
+                } else {
+                    column = index;
+                    descending = true;
+                }
+
+                sortRows();
+            });
+        });
+
+        sortRows();
+    };
+
+    // Produits : quantité vendue, décroissante.
+    setup("r1ProductRows", 1);
+
+    // Écarts : date, de la plus récente à la plus ancienne.
+    setup("r1DifferenceRows", 0);
 })();
