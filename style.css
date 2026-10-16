@@ -10998,3 +10998,42 @@ body * {
     min-height: 42px;
     border-radius: 12px;
 }
+/* Einkaufsliste : lignes compactes */
+
+#shoppingListScreen .shopping-table th,
+#shoppingListScreen .shopping-table td {
+    padding: 8px 10px;
+    vertical-align: middle;
+}
+
+#shoppingListScreen .shopping-table td > strong {
+    display: block;
+    margin: 0;
+    line-height: 1.2;
+}
+
+#shoppingListScreen .shopping-product-reference {
+    display: block;
+    margin: 3px 0 0;
+    font-size: 0.78rem;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+#shoppingListScreen input[data-shopping-packs] {
+    box-sizing: border-box;
+    width: 64px;
+    min-width: 0;
+    min-height: 0;
+    margin: 0;
+    padding: 6px 8px;
+    border-radius: 10px;
+    text-align: center;
+}
+
+#shoppingListScreen input[data-shopping-check] {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    vertical-align: middle;
+}
