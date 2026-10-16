@@ -19597,7 +19597,14 @@ function parseInvoiceScanText(text) {
         image.src = url;
         await image.decode();
 
-        const selection = await new Promise(resolve => {
+        const selection = scannedReceipts.has(file)
+    ? {
+        x: 0,
+        y: 0,
+        width: image.naturalWidth,
+        height: image.naturalHeight
+    }
+    : await new Promise(resolve => {
             const dialog = document.createElement("dialog");
 
             dialog.style.cssText = `
@@ -20287,292 +20294,1015 @@ $("invoiceOcrWarning").textContent =
         Rechnung hochladen
     `;
 
-    /* Fenêtre caméra */
+    /* =========================================================
+   SCANNER DOCUMENT — V1
+   Détection, stabilité, redressement et validation
+   ========================================================= */
 
-    const cameraDialog = document.createElement("dialog");
+const scannedReceipts = new WeakSet();
 
-    cameraDialog.className = "invoice-camera-dialog";
+let documentScannerBusy = false;
+let openCvPromise = null;
 
-    cameraDialog.innerHTML = `
-        <div class="invoice-ocr-heading">
-            <h2>Rechnung scannen</h2>
+const loadDocumentOpenCv = () => {
+    if (openCvPromise) return openCvPromise;
 
-            <button
-                type="button"
-                data-camera-close
-                aria-label="Schließen"
-            >×</button>
-        </div>
+    openCvPromise = new Promise((resolve, reject) => {
+        let script = null;
+        let timer = null;
+        let finished = false;
+        const started = Date.now();
 
-        <p>
-            Den gesamten Beleg gerade und gut beleuchtet
-            in die Kamera halten.
-        </p>
+        const fail = () => {
+            if (finished) return;
+            finished = true;
 
-        <div class="invoice-camera-preview">
-            <video autoplay muted playsinline></video>
+            clearTimeout(timer);
 
-            <div
-                class="invoice-camera-frame"
-                aria-hidden="true"
-            ></div>
-        </div>
+            reject(Error(
+                "Dokumenterkennung konnte nicht geladen werden."
+            ));
+        };
 
-        <p data-camera-status role="status"></p>
+        const check = async () => {
+            if (finished) return;
 
-        <div class="invoice-camera-actions">
-            <button
-                type="button"
-                class="primary-action"
-                data-camera-photo
-                disabled
-            >Foto aufnehmen</button>
+            try {
+                if (window.cv) {
+                    const candidate =
+                        typeof window.cv.then === "function"
+                            ? await window.cv
+                            : window.cv;
 
-            <button
-                type="button"
-                class="secondary-action"
-                data-camera-upload
-            >Rechnung hochladen</button>
-
-            <button
-                type="button"
-                class="secondary-action"
-                data-camera-close
-            >Abbrechen</button>
-        </div>
-    `;
-
-    document.body.append(cameraDialog);
-
-    const video = cameraDialog.querySelector("video");
-
-    const photoButton = cameraDialog.querySelector(
-        "[data-camera-photo]"
-    );
-
-    const cameraStatus = cameraDialog.querySelector(
-        "[data-camera-status]"
-    );
-
-    video.muted = true;
-
-    let cameraStream = null;
-    let cameraJob = 0;
-    let capturing = false;
-
-    const closeCamera = () => {
-        cameraJob++;
-        capturing = false;
-        photoButton.disabled = true;
-
-        video.pause();
-
-        if (cameraStream) {
-            cameraStream.getTracks().forEach(track => {
-                track.stop();
-            });
-        }
-
-        cameraStream = null;
-        video.srcObject = null;
-
-        cameraDialog.close();
-    };
-
-    cameraDialog.querySelectorAll("[data-camera-close]")
-        .forEach(button => {
-            button.onclick = closeCamera;
-        });
-
-    cameraDialog.addEventListener("cancel", event => {
-        event.preventDefault();
-        closeCamera();
-    });
-
-    cameraDialog.querySelector(
-        "[data-camera-upload]"
-    ).onclick = () => {
-        closeCamera();
-
-        if (!isTeacher() || busy) return;
-
-        upload.value = "";
-        upload.click();
-    };
-
-    const openCamera = async () => {
-        if (
-            !isTeacher() ||
-            busy ||
-            cameraDialog.open
-        ) return;
-
-        const request = ++cameraJob;
-        const personId = state.currentPerson.id;
-
-        photoButton.disabled = true;
-
-        cameraStatus.textContent =
-            "Kamera wird geöffnet. " +
-            "Bitte den Kamerazugriff erlauben.";
-
-        cameraDialog.showModal();
-
-        if (
-            !window.isSecureContext ||
-            !navigator.mediaDevices?.getUserMedia
-        ) {
-            cameraStatus.textContent =
-                "Die Kamera ist hier nicht verfügbar. " +
-                "Bitte die HTTPS-Seite direkt in Safari öffnen " +
-                "oder eine Rechnung hochladen.";
-
-            return;
-        }
-
-        try {
-            const stream =
-                await navigator.mediaDevices.getUserMedia({
-                    audio: false,
-
-                    video: {
-                        facingMode: {
-                            ideal: "environment"
-                        },
-
-                        width: {
-                            ideal: 2560
-                        },
-
-                        height: {
-                            ideal: 1920
-                        }
+                    if (candidate?.Mat) {
+                        finished = true;
+                        clearTimeout(timer);
+                        resolve(candidate);
+                        return;
                     }
-                });
-
-            if (
-                request !== cameraJob ||
-                !isTeacher() ||
-                state.currentPerson?.id !== personId
-            ) {
-                stream.getTracks().forEach(track => {
-                    track.stop();
-                });
-
+                }
+            } catch {
+                fail();
                 return;
             }
 
-            cameraStream = stream;
-            video.srcObject = stream;
-
-            await video.play();
-
-            if (request !== cameraJob) return;
-
-            cameraStatus.textContent =
-                "Bitte warten, bis der Text scharf ist. " +
-                "Danach Foto aufnehmen.";
-
-            photoButton.disabled = false;
-
-        } catch (error) {
-            if (request !== cameraJob) return;
-
-            if (cameraStream) {
-                cameraStream.getTracks().forEach(track => {
-                    track.stop();
-                });
+            if (Date.now() - started > 30000) {
+                fail();
+                return;
             }
 
-            cameraStream = null;
-            video.srcObject = null;
+            timer = setTimeout(check, 100);
+        };
 
-            cameraStatus.textContent =
-                error.name === "NotAllowedError"
-                    ? "Kamerazugriff nicht erlaubt. Bitte die Kamera " +
-                      "in den Website-Einstellungen erlauben " +
-                      "und erneut öffnen."
-                    : error.name === "NotFoundError"
-                        ? "Keine Kamera gefunden. " +
-                          "Bitte eine Rechnung hochladen."
-                        : "Die Kamera konnte nicht gestartet werden. " +
-                          "Bitte andere Kamera-Apps schließen " +
-                          "und erneut versuchen.";
-        }
-    };
+        if (!window.cv) {
+            script = document.createElement("script");
 
-    photoButton.onclick = async () => {
-        if (capturing || busy || !isTeacher()) return;
+            script.src =
+                "https://docs.opencv.org/4.10.0/opencv.js";
 
-        if (!video.videoWidth || !video.videoHeight) {
-            cameraStatus.textContent =
-                "Das Kamerabild ist noch nicht bereit. " +
-                "Bitte kurz warten.";
+            script.async = true;
+            script.onerror = fail;
 
-            return;
+            document.head.append(script);
         }
 
-        const request = cameraJob;
-        const personId = state.currentPerson.id;
+        check();
+    });
 
-        capturing = true;
-        photoButton.disabled = true;
+    return openCvPromise;
+};
 
-        try {
-            const canvas = document.createElement("canvas");
+const scanDocumentWithCamera = async () => {
+    if (
+        documentScannerBusy ||
+        busy ||
+        !isTeacher()
+    ) {
+        return;
+    }
 
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
+    documentScannerBusy = true;
 
-            canvas.getContext("2d").drawImage(video, 0, 0);
+    const ownerId = state.currentPerson.id;
 
-            const blob = await new Promise(resolve => {
-                canvas.toBlob(
-                    resolve,
-                    "image/jpeg",
-                    0.94
-                );
+    try {
+        return await new Promise(resolve => {
+            const dialog = document.createElement("dialog");
+
+            dialog.style.cssText = `
+                box-sizing:border-box;
+                width:min(95vw,800px);
+                max-height:95dvh;
+                overflow:auto;
+                padding:20px;
+                border:0;
+                border-radius:24px;
+                background:white;
+                color:#243568;
+                box-shadow:0 18px 60px #0003;
+                font-family:inherit;
+            `;
+
+            dialog.innerHTML = `
+                <h2 style="margin:0 0 10px">
+                    Rechnung scannen
+                </h2>
+
+                <p>
+                    Lege den Kassenbon möglichst flach auf
+                    einen dunklen, einfarbigen Untergrund.
+                    Alle vier Ecken müssen sichtbar sein.
+                </p>
+
+                <div data-s="live">
+                    <label style="display:block;margin-bottom:12px">
+                        Kamera
+                        <select
+                            data-s="camera"
+                            style="width:100%;margin-top:5px"
+                        ></select>
+                    </label>
+
+                    <video
+                        data-s="video"
+                        autoplay
+                        muted
+                        playsinline
+                        style="
+                            position:absolute;
+                            width:1px;
+                            height:1px;
+                            opacity:0;
+                            pointer-events:none;
+                        "
+                    ></video>
+                </div>
+
+                <div style="
+                    display:flex;
+                    justify-content:center;
+                    background:#edf1ff;
+                    border-radius:16px;
+                    overflow:hidden;
+                    min-height:120px;
+                ">
+                    <canvas
+                        data-s="view"
+                        style="
+                            display:block;
+                            max-width:100%;
+                            max-height:55dvh;
+                            width:auto;
+                            height:auto;
+                        "
+                    ></canvas>
+                </div>
+
+                <p
+                    data-s="status"
+                    role="status"
+                    style="min-height:2.8em"
+                ></p>
+
+                <div data-s="review" hidden>
+                    <label style="display:flex;gap:10px;align-items:center">
+                        <input
+                            data-s="contrast"
+                            type="checkbox"
+                            checked
+                        >
+                        Kontrast verbessern
+                    </label>
+
+                    <p>
+                        Sind alle Produkte, Pfandzeilen und
+                        der Gesamtbetrag vollständig und lesbar?
+                    </p>
+                </div>
+
+                <div style="
+                    display:flex;
+                    justify-content:flex-end;
+                    flex-wrap:wrap;
+                    gap:10px;
+                ">
+                    <button type="button" data-s="cancel">
+                        Abbrechen
+                    </button>
+
+                    <button type="button" data-s="manual" disabled>
+                        Foto aufnehmen
+                    </button>
+
+                    <button type="button" data-s="retry" hidden>
+                        Erneut aufnehmen
+                    </button>
+
+                    <button type="button" data-s="use" hidden>
+                        Verwenden
+                    </button>
+                </div>
+            `;
+
+            const el = name =>
+                dialog.querySelector(`[data-s="${name}"]`);
+
+            const video = el("video");
+            const view = el("view");
+            const viewContext = view.getContext("2d");
+            const cameraSelect = el("camera");
+
+            const frame = document.createElement("canvas");
+            const frameContext = frame.getContext("2d", {
+                willReadFrequently: true
             });
 
-            canvas.width = 1;
-            canvas.height = 1;
+            const original = document.createElement("canvas");
 
-            if (
-                request !== cameraJob ||
-                !isTeacher() ||
-                state.currentPerson?.id !== personId
-            ) return;
+            let cv = null;
+            let stream = null;
+            let timer = null;
+            let lifecycleTimer = null;
+            let generation = 0;
+            let done = false;
+            let reviewing = false;
+            let capturing = false;
+            let anchor = null;
+            let stableSince = 0;
+            let lastCorners = null;
 
-            if (!blob) {
-                throw Error("photo_failed");
+            dialog.querySelectorAll("button").forEach(button => {
+                button.style.cssText = `
+                    padding:11px 16px;
+                    border:0;
+                    border-radius:14px;
+                    font:inherit;
+                    font-weight:600;
+                    background:#edf1ff;
+                    color:#243568;
+                    cursor:pointer;
+                `;
+            });
+
+            for (const name of ["manual", "use"]) {
+                el(name).style.background = "#5371fd";
+                el(name).style.color = "white";
             }
 
-            const file = new File(
-                [blob],
-                "Rechnung.jpg",
-                { type: "image/jpeg" }
+            const allowed = () =>
+                !done &&
+                isTeacher() &&
+                state.currentPerson?.id === ownerId;
+
+            const sayCamera = text => {
+                el("status").textContent = text;
+            };
+
+            const stopStream = () => {
+                clearTimeout(timer);
+                timer = null;
+
+                stream?.getTracks().forEach(track => track.stop());
+                stream = null;
+
+                video.pause();
+                video.srcObject = null;
+
+                anchor = null;
+                lastCorners = null;
+                stableSince = 0;
+            };
+
+            const finish = file => {
+                if (done) return;
+
+                done = true;
+                generation++;
+
+                stopStream();
+                clearInterval(lifecycleTimer);
+
+                window.removeEventListener("pagehide", onPageHide);
+                document.removeEventListener(
+                    "visibilitychange",
+                    onVisibility
+                );
+
+                if (dialog.open) dialog.close();
+                dialog.remove();
+
+                frame.width = frame.height = 1;
+                original.width = original.height = 1;
+                view.width = view.height = 1;
+
+                resolve(file);
+            };
+
+            const onPageHide = () => finish(null);
+
+            const onVisibility = () => {
+                if (document.hidden) finish(null);
+            };
+
+            const distance = (a, b) =>
+                Math.hypot(a.x - b.x, a.y - b.y);
+
+            const orderCorners = points => {
+                const center = {
+                    x: points.reduce((s, p) => s + p.x, 0) / 4,
+                    y: points.reduce((s, p) => s + p.y, 0) / 4
+                };
+
+                const sorted = [...points].sort((a, b) =>
+                    Math.atan2(a.y - center.y, a.x - center.x) -
+                    Math.atan2(b.y - center.y, b.x - center.x)
+                );
+
+                let first = 0;
+
+                sorted.forEach((point, i) => {
+                    if (
+                        point.x + point.y <
+                        sorted[first].x + sorted[first].y
+                    ) {
+                        first = i;
+                    }
+                });
+
+                return [
+                    ...sorted.slice(first),
+                    ...sorted.slice(0, first)
+                ];
+            };
+
+            const detectCorners = () => {
+                if (!cv) return null;
+
+                const allocated = [];
+                const keep = value => {
+                    allocated.push(value);
+                    return value;
+                };
+
+                try {
+                    const source = keep(cv.imread(frame));
+                    const gray = keep(new cv.Mat());
+                    const blurred = keep(new cv.Mat());
+                    const edges = keep(new cv.Mat());
+                    const contours = keep(new cv.MatVector());
+                    const hierarchy = keep(new cv.Mat());
+
+                    const kernel = keep(
+                        cv.getStructuringElement(
+                            cv.MORPH_RECT,
+                            new cv.Size(5, 5)
+                        )
+                    );
+
+                    cv.cvtColor(
+                        source,
+                        gray,
+                        cv.COLOR_RGBA2GRAY
+                    );
+
+                    cv.GaussianBlur(
+                        gray,
+                        blurred,
+                        new cv.Size(5, 5),
+                        0
+                    );
+
+                    cv.Canny(blurred, edges, 35, 100);
+
+                    cv.morphologyEx(
+                        edges,
+                        edges,
+                        cv.MORPH_CLOSE,
+                        kernel
+                    );
+
+                    cv.findContours(
+                        edges,
+                        contours,
+                        hierarchy,
+                        cv.RETR_LIST,
+                        cv.CHAIN_APPROX_SIMPLE
+                    );
+
+                    const imageArea = frame.width * frame.height;
+
+                    let best = null;
+                    let bestArea = 0;
+
+                    for (let i = 0; i < contours.size(); i++) {
+                        const contour = contours.get(i);
+                        const polygon = new cv.Mat();
+
+                        try {
+                            const area = Math.abs(
+                                cv.contourArea(contour)
+                            );
+
+                            if (
+                                area < imageArea * 0.12 ||
+                                area > imageArea * 0.95 ||
+                                area <= bestArea
+                            ) {
+                                continue;
+                            }
+
+                            cv.approxPolyDP(
+                                contour,
+                                polygon,
+                                cv.arcLength(contour, true) * 0.025,
+                                true
+                            );
+
+                            if (
+                                polygon.rows !== 4 ||
+                                !cv.isContourConvex(polygon)
+                            ) {
+                                continue;
+                            }
+
+                            const points = [];
+
+                            for (let j = 0; j < 8; j += 2) {
+                                points.push({
+                                    x: polygon.data32S[j],
+                                    y: polygon.data32S[j + 1]
+                                });
+                            }
+
+                            // Éviter une capture lorsque le document
+                            // touche le bord de l'image.
+                            if (points.some(point =>
+                                point.x < 4 ||
+                                point.y < 4 ||
+                                point.x > frame.width - 4 ||
+                                point.y > frame.height - 4
+                            )) {
+                                continue;
+                            }
+
+                            const ordered = orderCorners(points);
+
+                            const shortest = Math.min(
+                                ...ordered.map((point, j) =>
+                                    distance(
+                                        point,
+                                        ordered[(j + 1) % 4]
+                                    )
+                                )
+                            );
+
+                            if (shortest < 45) continue;
+
+                            bestArea = area;
+
+                            best = ordered.map(point => ({
+                                x: point.x / frame.width,
+                                y: point.y / frame.height
+                            }));
+
+                        } finally {
+                            polygon.delete();
+                            contour.delete();
+                        }
+                    }
+
+                    return best;
+
+                } finally {
+                    allocated.reverse().forEach(value => value.delete());
+                }
+            };
+
+            const drawLive = corners => {
+                view.width = frame.width;
+                view.height = frame.height;
+
+                viewContext.drawImage(frame, 0, 0);
+
+                if (!corners) return;
+
+                viewContext.beginPath();
+
+                corners.forEach((point, i) => {
+                    const x = point.x * view.width;
+                    const y = point.y * view.height;
+
+                    if (i === 0) viewContext.moveTo(x, y);
+                    else viewContext.lineTo(x, y);
+                });
+
+                viewContext.closePath();
+                viewContext.fillStyle = "rgba(83,113,253,.12)";
+                viewContext.fill();
+
+                viewContext.strokeStyle = "#5371fd";
+                viewContext.lineWidth = 3;
+                viewContext.stroke();
+            };
+
+            const drawReview = () => {
+                view.width = original.width;
+                view.height = original.height;
+
+                viewContext.drawImage(original, 0, 0);
+
+                if (!el("contrast").checked) return;
+
+                const pixels = viewContext.getImageData(
+                    0, 0, view.width, view.height
+                );
+
+                const data = pixels.data;
+
+                for (let i = 0; i < data.length; i += 4) {
+                    const gray =
+                        data[i] * 0.299 +
+                        data[i + 1] * 0.587 +
+                        data[i + 2] * 0.114;
+
+                    const value = Math.max(
+                        0,
+                        Math.min(255, gray * 1.15 - 8)
+                    );
+
+                    data[i] = value;
+                    data[i + 1] = value;
+                    data[i + 2] = value;
+                }
+
+                viewContext.putImageData(pixels, 0, 0);
+            };
+
+            const capture = async corners => {
+                if (
+                    !allowed() ||
+                    capturing ||
+                    reviewing ||
+                    !video.videoWidth
+                ) {
+                    return;
+                }
+
+                capturing = true;
+                el("manual").disabled = true;
+
+                clearTimeout(timer);
+
+                try {
+                    const raw = document.createElement("canvas");
+
+                    const ratio = Math.min(
+                        1,
+                        Math.sqrt(
+                            6000000 /
+                            (video.videoWidth * video.videoHeight)
+                        )
+                    );
+
+                    raw.width = Math.round(video.videoWidth * ratio);
+                    raw.height = Math.round(video.videoHeight * ratio);
+
+                    raw.getContext("2d").drawImage(
+                        video,
+                        0, 0,
+                        raw.width,
+                        raw.height
+                    );
+
+                    if (corners && cv) {
+                        const points = corners.map(point => ({
+                            x: point.x * raw.width,
+                            y: point.y * raw.height
+                        }));
+
+                        let width = Math.max(
+                            distance(points[0], points[1]),
+                            distance(points[3], points[2])
+                        );
+
+                        let height = Math.max(
+                            distance(points[0], points[3]),
+                            distance(points[1], points[2])
+                        );
+
+                        const limit = Math.min(
+                            1,
+                            6000 / Math.max(width, height),
+                            Math.sqrt(6000000 / (width * height))
+                        );
+
+                        width = Math.max(2, Math.round(width * limit));
+                        height = Math.max(2, Math.round(height * limit));
+
+                        const allocated = [];
+
+                        const keep = value => {
+                            allocated.push(value);
+                            return value;
+                        };
+
+                        try {
+                            const source = keep(cv.imread(raw));
+                            const output = keep(new cv.Mat());
+
+                            const from = keep(cv.matFromArray(
+                                4, 1, cv.CV_32FC2,
+                                points.flatMap(point => [
+                                    point.x, point.y
+                                ])
+                            ));
+
+                            const to = keep(cv.matFromArray(
+                                4, 1, cv.CV_32FC2,
+                                [
+                                    0, 0,
+                                    width - 1, 0,
+                                    width - 1, height - 1,
+                                    0, height - 1
+                                ]
+                            ));
+
+                            const transform = keep(
+                                cv.getPerspectiveTransform(from, to)
+                            );
+
+                            cv.warpPerspective(
+                                source,
+                                output,
+                                transform,
+                                new cv.Size(width, height),
+                                cv.INTER_LINEAR,
+                                cv.BORDER_REPLICATE
+                            );
+
+                            cv.imshow(original, output);
+
+                        } finally {
+                            allocated.reverse()
+                                .forEach(value => value.delete());
+                        }
+
+                    } else {
+                        original.width = raw.width;
+                        original.height = raw.height;
+
+                        original.getContext("2d").drawImage(raw, 0, 0);
+                    }
+
+                    raw.width = raw.height = 1;
+
+                    stopStream();
+                    reviewing = true;
+
+                    el("live").hidden = true;
+                    el("manual").hidden = true;
+                    el("review").hidden = false;
+                    el("retry").hidden = false;
+                    el("use").hidden = false;
+
+                    drawReview();
+
+                    sayCamera(
+                        corners
+                            ? "Kassenbon zugeschnitten und begradigt. " +
+                              "Bitte die Ränder und die Lesbarkeit prüfen."
+                            : "Foto ohne automatische Zuschneidung. " +
+                              "Bitte prüfen oder erneut aufnehmen."
+                    );
+
+                } catch (error) {
+                    console.error(error);
+
+                    sayCamera(
+                        "Foto konnte nicht verarbeitet werden. " +
+                        "Bitte erneut versuchen."
+                    );
+
+                    if (allowed()) {
+                        timer = setTimeout(tick, 250);
+                    }
+
+                } finally {
+                    capturing = false;
+                    el("manual").disabled = false;
+                }
+            };
+
+            const tick = () => {
+                if (
+                    !allowed() ||
+                    reviewing ||
+                    capturing ||
+                    !stream
+                ) {
+                    return;
+                }
+
+                if (!video.videoWidth || video.readyState < 2) {
+                    timer = setTimeout(tick, 250);
+                    return;
+                }
+
+                const ratio = Math.min(
+                    1,
+                    720 / Math.max(
+                        video.videoWidth,
+                        video.videoHeight
+                    )
+                );
+
+                frame.width = Math.round(video.videoWidth * ratio);
+                frame.height = Math.round(video.videoHeight * ratio);
+
+                frameContext.drawImage(
+                    video,
+                    0, 0,
+                    frame.width,
+                    frame.height
+                );
+
+                let corners = null;
+
+                try {
+                    corners = detectCorners();
+                } catch (error) {
+                    console.error(error);
+                    cv = null;
+                }
+
+                lastCorners = corners;
+                drawLive(corners);
+
+                if (!cv) {
+                    sayCamera(
+                        "Automatische Erkennung nicht verfügbar. " +
+                        "Bitte das Foto manuell aufnehmen."
+                    );
+
+                } else if (!corners) {
+                    anchor = null;
+                    stableSince = 0;
+
+                    sayCamera(
+                        "Den ganzen Kassenbon ins Bild bringen. " +
+                        "Alle vier Ecken müssen sichtbar sein."
+                    );
+
+                } else {
+                    const now = performance.now();
+
+                    const stable = anchor &&
+                        corners.every((point, i) =>
+                            distance(point, anchor[i]) < 0.018
+                        );
+
+                    if (!stable) {
+                        anchor = corners.map(point => ({ ...point }));
+                        stableSince = now;
+                    }
+
+                    const elapsed = now - stableSince;
+
+                    sayCamera(
+                        "Bitte ruhig halten … " +
+                        Math.max(
+                            1,
+                            Math.ceil((2000 - elapsed) / 1000)
+                        ) +
+                        " s"
+                    );
+
+                    if (elapsed >= 2000) {
+                        capture(corners);
+                        return;
+                    }
+                }
+
+                timer = setTimeout(tick, 250);
+            };
+
+            const startCamera = async deviceId => {
+                const request = ++generation;
+
+                stopStream();
+
+                reviewing = false;
+                capturing = false;
+
+                el("live").hidden = false;
+                el("manual").hidden = false;
+                el("manual").disabled = true;
+
+                el("review").hidden = true;
+                el("retry").hidden = true;
+                el("use").hidden = true;
+
+                sayCamera("Kamera wird geöffnet …");
+
+                try {
+                    const nextStream =
+                        await navigator.mediaDevices.getUserMedia({
+                            audio: false,
+
+                            video: {
+                                ...(deviceId
+                                    ? { deviceId: { exact: deviceId } }
+                                    : {
+                                        facingMode: {
+                                            ideal: "environment"
+                                        }
+                                    }),
+
+                                width: { ideal: 1920 },
+                                height: { ideal: 2560 }
+                            }
+                        });
+
+                    if (!allowed() || request !== generation) {
+                        nextStream.getTracks()
+                            .forEach(track => track.stop());
+                        return;
+                    }
+
+                    stream = nextStream;
+                    video.srcObject = stream;
+                    await video.play();
+
+                    if (!allowed() || request !== generation) return;
+
+                    const devices =
+                        await navigator.mediaDevices.enumerateDevices();
+
+                    if (!allowed() || request !== generation) return;
+
+                    const selectedId =
+                        stream.getVideoTracks()[0]
+                            ?.getSettings().deviceId;
+
+                    cameraSelect.replaceChildren();
+
+                    devices
+                        .filter(device => device.kind === "videoinput")
+                        .forEach((device, i) => {
+                            const option = document.createElement("option");
+
+                            option.value = device.deviceId;
+                            option.textContent =
+                                device.label || `Kamera ${i + 1}`;
+
+                            cameraSelect.append(option);
+                        });
+
+                    if (selectedId) cameraSelect.value = selectedId;
+
+                    el("manual").disabled = false;
+
+                    sayCamera(
+                        "Kassenbon ausrichten. " +
+                        "Die Aufnahme erfolgt automatisch."
+                    );
+
+                    tick();
+
+                } catch (error) {
+                    if (!allowed() || request !== generation) return;
+
+                    stopStream();
+
+                    sayCamera(
+                        error.name === "NotAllowedError"
+                            ? "Bitte den Kamerazugriff erlauben. " +
+                              "Alternativ eine Rechnung hochladen."
+                            : "Kamera konnte nicht geöffnet werden. " +
+                              "Bitte eine andere Kamera auswählen " +
+                              "oder eine Rechnung hochladen."
+                    );
+                }
+            };
+
+            el("cancel").onclick = () => finish(null);
+
+            el("manual").onclick = () => capture(lastCorners);
+
+            el("retry").onclick = () =>
+                startCamera(cameraSelect.value || undefined);
+
+            cameraSelect.onchange = () =>
+                startCamera(cameraSelect.value || undefined);
+
+            el("contrast").onchange = drawReview;
+
+            el("use").onclick = async () => {
+                if (!allowed() || !reviewing) return;
+
+                el("use").disabled = true;
+
+                try {
+                    const blob = await new Promise(callback => {
+                        view.toBlob(callback, "image/jpeg", 0.96);
+                    });
+
+                    if (!allowed()) return;
+
+                    if (!blob) {
+                        throw Error("image_failed");
+                    }
+
+                    const file = new File(
+                        [blob],
+                        "Kassenbon-Scan.jpg",
+                        { type: "image/jpeg" }
+                    );
+
+                    scannedReceipts.add(file);
+                    finish(file);
+
+                } catch {
+                    if (allowed()) {
+                        el("use").disabled = false;
+                        sayCamera(
+                            "Bild konnte nicht übernommen werden. " +
+                            "Bitte erneut versuchen."
+                        );
+                    }
+                }
+            };
+
+            dialog.addEventListener("cancel", event => {
+                event.preventDefault();
+                finish(null);
+            });
+
+            dialog.addEventListener("close", () => finish(null));
+
+            window.addEventListener("pagehide", onPageHide);
+
+            document.addEventListener(
+                "visibilitychange",
+                onVisibility
             );
 
-            closeCamera();
+            lifecycleTimer = setInterval(() => {
+                if (!allowed()) finish(null);
+            }, 500);
 
-            // Lancer la reconnaissance déjà installée.
-            await run(file);
+            document.body.append(dialog);
+            dialog.showModal();
 
-        } catch (error) {
-            if (request === cameraJob) {
-                cameraStatus.textContent =
-                    "Foto konnte nicht aufgenommen werden. " +
-                    "Bitte erneut versuchen.";
+            if (
+                !window.isSecureContext ||
+                !navigator.mediaDevices?.getUserMedia
+            ) {
+                sayCamera(
+                    "Die Kamera ist hier nicht verfügbar. " +
+                    "Bitte die HTTPS-Seite direkt in Safari öffnen."
+                );
+                return;
             }
 
-        } finally {
-            if (request === cameraJob) {
-                capturing = false;
-                photoButton.disabled = false;
-            }
-        }
-    };
+            sayCamera(
+                "Dokumenterkennung wird geladen. " +
+                "Beim ersten Mal kann dies etwas dauern …"
+            );
 
+            loadDocumentOpenCv()
+                .then(module => {
+                    cv = module;
+                })
+                .catch(error => {
+                    console.warn(error);
+                    cv = null;
+                })
+                .finally(() => {
+                    if (allowed()) startCamera();
+                });
+        });
+
+    } finally {
+        documentScannerBusy = false;
+    }
+};
+
+$("invoiceScanButton").onclick = async () => {
+    if (
+        busy ||
+        documentScannerBusy ||
+        !isTeacher()
+    ) {
+        return;
+    }
+
+    const file = await scanDocumentWithCamera();
+
+    if (file && isTeacher()) {
+        await run(file);
+    }
+};
     $("invoiceScanButton").onclick = openCamera;
 
     window.addEventListener("pagehide", closeCamera);
@@ -20666,4 +21396,3 @@ $("invoiceOcrWarning").textContent =
 })();
 /* Un seul bouton : importer un document ou prendre une photo */
 
-$("invoiceScanButton")?.remove();
