@@ -18859,27 +18859,14 @@ function renderProductPurchaseReferences(product) {
                             ${esc(row.name)}
                         </strong>
 
-                        <small>
-                            ${[
-                                row.store_name
-                                    ? esc(row.store_name)
-                                    : "",
-                                row.ian
-                                    ? "IAN: " + esc(row.ian)
-                                    : "",
-                                row.units + " Stück / Packung"
-                            ].filter(Boolean).join(" · ")}
-                        </small>
-
-                        <small>
-                            ${
-                                row.manual_packs != null
-                                    ? "Manuell angepasst"
-                                    : row.observed_days < 3
-                                        ? "Vorschlag aus Zielbestand"
-                                        : "Automatischer Vorschlag"
-                            }
-                        </small>
+                        <small class="shopping-product-reference">
+    ${[
+        row.ian
+            ? "IAN: " + esc(String(row.ian))
+            : "",
+        esc(String(row.units)) + " Stück / Packung"
+    ].filter(Boolean).join(" · ")}
+</small>
                     </td>
 
                     <td>${row.stock}</td>
