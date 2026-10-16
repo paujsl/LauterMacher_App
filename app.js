@@ -20511,6 +20511,8 @@ const scanDocumentWithCamera = async () => {
             const view = el("view");
             const viewContext = view.getContext("2d");
             const cameraSelect = el("camera");
+           // Le choix est automatique : aucun sélecteur visible.
+cameraSelect.closest("label").hidden = true;
 
             const frame = document.createElement("canvas");
             const frameContext = frame.getContext("2d", {
@@ -20672,14 +20674,22 @@ const scanDocumentWithCamera = async () => {
                         0
                     );
 
-                    cv.Canny(blurred, edges, 35, 100);
+                    // Séparer automatiquement le papier clair du fond sombre.
+cv.threshold(
+    blurred,
+    edges,
+    0,
+    255,
+    cv.THRESH_BINARY | cv.THRESH_OTSU
+);
 
-                    cv.morphologyEx(
-                        edges,
-                        edges,
-                        cv.MORPH_CLOSE,
-                        kernel
-                    );
+// Réunir les petites interruptions dues au texte et aux plis.
+cv.morphologyEx(
+    edges,
+    edges,
+    cv.MORPH_CLOSE,
+    kernel
+);
 
                     cv.findContours(
                         edges,
@@ -20704,7 +20714,7 @@ const scanDocumentWithCamera = async () => {
                             );
 
                             if (
-                                area < imageArea * 0.12 ||
+                                area < imageArea * 0.06 ||
                                 area > imageArea * 0.95 ||
                                 area <= bestArea
                             ) {
@@ -20714,7 +20724,7 @@ const scanDocumentWithCamera = async () => {
                             cv.approxPolyDP(
                                 contour,
                                 polygon,
-                                cv.arcLength(contour, true) * 0.025,
+                                cv.arcLength(contour, true) * 0.035,
                                 true
                             );
 
@@ -21085,6 +21095,104 @@ const scanDocumentWithCamera = async () => {
 
                 timer = setTimeout(tick, 250);
             };
+           const getRearCameraStream = async stillAllowed => {
+    let selectedStream = null;
+
+    const stop = () => {
+        selectedStream?.getTracks().forEach(track => track.stop());
+        selectedStream = null;
+    };
+
+    try {
+        // "exact" impose une caméra arrière.
+        selectedStream =
+            await navigator.mediaDevices.getUserMedia({
+                audio: false,
+
+                video: {
+                    facingMode: { exact: "environment" },
+                    width: { ideal: 1920 },
+                    height: { ideal: 2560 }
+                }
+            });
+
+        if (!stillAllowed()) {
+            throw Error("cancelled");
+        }
+
+        // Les noms des caméras sont généralement disponibles
+        // après l'autorisation.
+        const devices =
+            await navigator.mediaDevices.enumerateDevices();
+
+        if (!stillAllowed()) {
+            throw Error("cancelled");
+        }
+
+        const isRear = label =>
+            /back|rear|rück|arrière|trasera|posteriore/i.test(label);
+
+        const isExcluded = label =>
+            /front|user|selfie|avant|ultra|0[.,]5|tele|dual|triple/i.test(label);
+
+        const standard = devices
+            .filter(device =>
+                device.kind === "videoinput" &&
+                isRear(device.label) &&
+                !isExcluded(device.label)
+            )
+            .sort((a, b) => {
+                // "Wide Camera" seul désigne souvent l'objectif
+                // standard, contrairement à "Ultra Wide".
+                const priority = label =>
+                    /wide|standard|1[.,]0|1x/i.test(label) ? 1 : 0;
+
+                return priority(b.label) - priority(a.label);
+            })[0];
+
+        const currentTrack = selectedStream.getVideoTracks()[0];
+        const currentId = currentTrack?.getSettings().deviceId;
+
+        if (standard && standard.deviceId !== currentId) {
+            stop();
+
+            selectedStream =
+                await navigator.mediaDevices.getUserMedia({
+                    audio: false,
+
+                    video: {
+                        deviceId: { exact: standard.deviceId },
+                        facingMode: { exact: "environment" },
+                        width: { ideal: 1920 },
+                        height: { ideal: 2560 }
+                    }
+                });
+        }
+
+        if (!stillAllowed()) {
+            throw Error("cancelled");
+        }
+
+        const track = selectedStream.getVideoTracks()[0];
+        const settings = track?.getSettings();
+        const label = track?.label || "";
+
+        // Ne pas accepter une caméra explicitement identifiée
+        // comme avant, ultra grand-angle ou téléobjectif.
+        if (
+            settings?.facingMode === "user" ||
+            /front|selfie|avant|ultra|0[.,]5|tele/i.test(label)
+        ) {
+            throw Error("rear_camera_unavailable");
+        }
+
+        return selectedStream;
+
+    } catch (error) {
+        stop();
+        throw error;
+    }
+};
 
             const startCamera = async deviceId => {
                 const request = ++generation;
@@ -21105,23 +21213,9 @@ const scanDocumentWithCamera = async () => {
                 sayCamera("Kamera wird geöffnet …");
 
                 try {
-                    const nextStream =
-                        await navigator.mediaDevices.getUserMedia({
-                            audio: false,
-
-                            video: {
-                                ...(deviceId
-                                    ? { deviceId: { exact: deviceId } }
-                                    : {
-                                        facingMode: {
-                                            ideal: "environment"
-                                        }
-                                    }),
-
-                                width: { ideal: 1920 },
-                                height: { ideal: 2560 }
-                            }
-                        });
+                    const nextStream = await getRearCameraStream(() =>
+    allowed() && request === generation
+);
 
                     if (!allowed() || request !== generation) {
                         nextStream.getTracks()
