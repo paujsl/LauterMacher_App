@@ -21490,3 +21490,7 @@ $("invoiceScanButton").onclick = async () => {
 })();
 /* Un seul bouton : importer un document ou prendre une photo */
 
+/* Désactiver le scanner caméra et conserver l'import */
+(() => {
+    $("invoiceScanButton")?.remove();
+})();
