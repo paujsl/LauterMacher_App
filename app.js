@@ -19439,11 +19439,23 @@ function renderProductPurchaseReferences(product) {
         </section>
     `;
 
-    document.body.append(screen);
+        document.body.append(screen);
 
     let rows = [];
     let generation = 0;
     let saving = false;
+
+    const finishShoppingButton = document.createElement("button");
+    finishShoppingButton.type = "button";
+    finishShoppingButton.className = "secondary-action";
+    finishShoppingButton.id = "shoppingFinishButton";
+    finishShoppingButton.textContent = "🛒 Einkauf abschließen";
+
+    const shoppingTotal = $("shoppingTotal");
+    shoppingTotal.insertAdjacentElement(
+        "afterend",
+        finishShoppingButton
+    );
 
     const packsFor = row =>
         row.manual_packs ?? row.suggested_packs;
@@ -19638,6 +19650,111 @@ function renderProductPurchaseReferences(product) {
         }
     );
 
+    finishShoppingButton.addEventListener("click", async () => {
+        if (!isTeacher() || saving) return;
+
+        const items = rows
+            .filter(row => row.checked)
+            .map(row => ({
+                product_id: String(row.id),
+                product_name: String(row.store_name || row.name),
+                ian: row.ian ? String(row.ian) : null,
+                packs: Number(packsFor(row)),
+                units_per_pack: Number(row.units),
+                estimated_pack_price:
+                    row.pack_price == null
+                        ? null
+                        : Number(row.pack_price)
+            }))
+            .filter(item => item.packs > 0);
+
+        if (!items.length) {
+            toast(
+                "Bitte gekaufte Produkte zuerst anhaken.",
+                "error"
+            );
+            return;
+        }
+
+        const valid = items.every(item =>
+            Number.isSafeInteger(item.packs) &&
+            item.packs > 0 &&
+            item.packs <= 99999999 &&
+            Number.isSafeInteger(item.units_per_pack) &&
+            item.units_per_pack > 0
+        );
+
+        if (!valid) {
+            toast("Ungültige Einkaufsmenge.", "error");
+            return;
+        }
+
+        const supplierInput = prompt(
+            "In welchem Geschäft wurde eingekauft?",
+            ""
+        );
+
+        if (supplierInput === null) return;
+
+        const supplier = supplierInput.trim();
+
+        if (!supplier) {
+            toast("Bitte Geschäft eingeben.", "error");
+            return;
+        }
+
+        const summary = items
+            .map(item =>
+                `${item.product_name}: ${item.packs} Packung(en)`
+            )
+            .join("\n");
+
+        if (!confirm(
+            "Diesen Einkauf speichern?\n\n" +
+            summary +
+            "\n\nDie Rechnung kann später erfasst werden."
+        )) {
+            return;
+        }
+
+        saving = true;
+        finishShoppingButton.disabled = true;
+
+        try {
+            const { data, error } = await db.rpc(
+                "teacher_create_shopping_purchase",
+                {
+                    p_supplier: supplier,
+                    p_items: items
+                }
+            );
+
+            if (error) throw error;
+
+            toast(
+                "Einkauf gespeichert. Rechnung noch erfassen.",
+                "success"
+            );
+
+            console.info(
+                "Shopping purchase created:",
+                data
+            );
+
+        } catch (error) {
+            console.error(error);
+
+            toast(
+                "Einkauf konnte nicht gespeichert werden.",
+                "error"
+            );
+
+        } finally {
+            saving = false;
+            finishShoppingButton.disabled = false;
+        }
+    });
+   
     $("shoppingResetButton").addEventListener(
         "click",
         () => {
