@@ -17,6 +17,13 @@ const SCHOOL_CLOSE_HOUR = 14;
 const $ = id => document.getElementById(id);
 const $$ = selector => Array.from(document.querySelectorAll(selector));
 const esc = value => String(value ?? "").replace(/[&<>'"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]));
+const productEmojiClass = value => {
+    const emojis = String(value ?? "").match(
+        /\p{Extended_Pictographic}(?:\uFE0F|\uFE0E|\p{Emoji_Modifier}|\u200D\p{Extended_Pictographic})*/gu
+    ) || [];
+
+    return emojis.length >= 2 ? "product-icon-double" : "";
+};
 const integer = value => Number.parseInt(value, 10) || 0;
 const number = value => Number(value) || 0;
 const money = value => new Intl.NumberFormat("de-DE",{style:"currency",currency:"EUR"}).format(number(value));
@@ -902,7 +909,7 @@ function renderProductGrid(containerId,products,cart,onChange){
     products.filter(activeProduct).forEach(p=>{
         const btn=document.createElement("button");btn.type="button";btn.className="sale-product-card";
         const qty=integer(cart[p.id]?.quantity);
-        btn.innerHTML=`<span class="sale-product-icon">${esc(productIcon(p))}</span><strong>${esc(p.name)}</strong><span>${money(productPrice(p))}</span>${qty?`<b class="product-quantity-badge">${qty}</b>`:""}`;
+        btn.innerHTML=`<span class="sale-product-icon ${productEmojiClass(productIcon(p))}">${esc(productIcon(p))}</span><strong>${esc(p.name)}</strong><span>${money(productPrice(p))}</span>${qty?`<b class="product-quantity-badge">${qty}</b>`:""}`;
         btn.addEventListener("click",()=>{cartAdd(cart,p);onChange();});
         grid.appendChild(btn);
     });
