@@ -20299,46 +20299,6 @@ function renderProductPurchaseReferences(product) {
         $("shoppingFinishSupplier").focus();
     });
 
-        saving = true;
-        finishShoppingButton.disabled = true;
-
-        try {
-            const { data, error } = await db.rpc(
-                "teacher_create_shopping_purchase",
-                {
-                    p_supplier: supplier,
-                    p_items: items
-                }
-            );
-
-            if (error) throw error;
-
-            toast(
-                "Einkauf gespeichert. Rechnung noch erfassen.",
-                "success"
-            );
-
-            console.info(
-                "Shopping purchase created:",
-                data
-            );
-
-                       await loadPendingPurchases();
-
-        } catch (error) {
-            console.error(error);
-
-            toast(
-                "Einkauf konnte nicht gespeichert werden.",
-                "error"
-            );
-
-        } finally {
-            saving = false;
-            finishShoppingButton.disabled = false;
-        }
-    });
-
     $("shoppingFinishForm").addEventListener(
         "submit",
         async event => {
