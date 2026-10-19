@@ -4795,6 +4795,136 @@ function updateInvoiceItemsTotal() {
         : "Bitte Produkte, Pfand und Rechnungsbetrag prüfen.";
 }
 
+let shoppingInvoicePurchase = null;
+
+async function openShoppingPurchaseInvoice(purchase) {
+    if (!isTeacher() || !purchase) return;
+
+    if (
+        shoppingInvoicePurchase &&
+        shoppingInvoicePurchase.id !== purchase.id
+    ) {
+        toast(
+            "Bitte zuerst die vorbereitete Rechnung abschließen.",
+            "error"
+        );
+        return;
+    }
+
+    const items = purchase.items || [];
+
+    if (!items.length) {
+        toast("Dieser Einkauf enthält keine Produkte.", "error");
+        return;
+    }
+
+    const invalidItem = items.find(item =>
+        !/^\d{6}$/.test(String(item.ian || "")) ||
+        !Number.isSafeInteger(Number(item.packs)) ||
+        Number(item.packs) <= 0 ||
+        !Number.isSafeInteger(Number(item.units_per_pack)) ||
+        Number(item.units_per_pack) <= 0
+    );
+
+    if (invalidItem) {
+        toast(
+            "Bitte die IAN und Packungsgrößen dieses Einkaufs prüfen.",
+            "error"
+        );
+        return;
+    }
+
+    await initialiseInvoices();
+
+    const existingRows = document.querySelectorAll(
+        "#invoiceItemsList .invoice-item-row"
+    );
+
+    const hasExistingInput = [...existingRows].some(row =>
+        row.querySelector("[data-invoice-ian]").value.trim() ||
+        row.querySelector("[data-invoice-name]").value.trim() ||
+        row.querySelector("[data-invoice-price]").value.trim()
+    );
+
+    if (
+        hasExistingInput &&
+        !confirm(
+            "Die aktuelle Rechnungsvorbereitung ersetzen?"
+        )
+    ) {
+        return;
+    }
+
+    shoppingInvoicePurchase = purchase;
+
+    $("invoiceContextSelect").value = "getränke";
+    $("invoiceContextSelect").disabled = true;
+
+    $("invoiceSupplierInput").value = purchase.supplier || "";
+    $("invoiceDateInput").value = todayISO();
+    $("invoicePfandInput").value = "0";
+
+    $("invoiceItemsList").replaceChildren();
+
+    let subtotalCents = 0;
+
+    for (const item of items) {
+        addInvoiceItem();
+
+        const row = $("invoiceItemsList").lastElementChild;
+
+        row.dataset.productId = item.product_id;
+
+        row.querySelector("[data-invoice-ian]").value =
+            String(item.ian || "");
+
+        row.querySelector("[data-invoice-name]").value =
+            String(item.product_name || "");
+
+        row.querySelector("[data-invoice-quantity]").value =
+            String(item.packs);
+
+        row.querySelector("[data-invoice-units]").value =
+            String(item.units_per_pack);
+
+        const price = Number(item.estimated_pack_price);
+
+        const priceCents =
+            item.estimated_pack_price != null &&
+            Number.isFinite(price) &&
+            price >= 0
+                ? Math.round(price * 100)
+                : 0;
+
+        row.querySelector("[data-invoice-price]").value =
+            invoiceItemMoney(priceCents / 100);
+
+        subtotalCents += Number(item.packs) * priceCents;
+
+        invoiceItemUpdateRow(row);
+    }
+
+    $("invoiceTotalInput").value =
+        invoiceItemMoney(subtotalCents / 100);
+
+    updateInvoicePfand();
+    updateInvoiceItemsTotal();
+    updateInvoiceEventVisibility();
+
+    showScreen("invoicesScreen");
+
+    setText(
+        "invoiceFormMessage",
+        "🛒 Einkauf übernommen. Bitte Preise, Pfand " +
+        "und Rechnungsbetrag anhand des Kassenbons prüfen."
+    );
+
+    $("invoiceForm").scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+    });
+}
+
 async function saveInvoice(event) {
     event.preventDefault();
 
@@ -4869,6 +4999,16 @@ try {
     setText("invoiceFormMessage", error.message);
     return;
 }
+    if (
+        shoppingInvoicePurchase &&
+        context !== "getränke"
+    ) {
+        setText(
+            "invoiceFormMessage",
+            "Diese Einkaufsrechnung muss dem Bereich Getränke zugeordnet sein."
+        );
+        return;
+    }
    
     saveInvoice.busy = true;
     $("saveInvoiceButton").disabled = true;
@@ -4876,24 +5016,44 @@ try {
     let saved = false;
 
     try {
+              const rpcName = shoppingInvoicePurchase
+            ? "teacher_invoice_from_shopping_purchase"
+            : "create_bookkeeping_invoice_with_items";
+
+        const rpcParams = shoppingInvoicePurchase
+            ? {
+                p_purchase_id: shoppingInvoicePurchase.id,
+                p_invoice_date: invoiceDate,
+                p_supplier: supplier,
+                p_total_amount: total,
+                p_pfand_quantity: pfand,
+                p_items: invoiceItems
+            }
+            : {
+                p_context: context,
+                p_invoice_date: invoiceDate,
+                p_supplier: supplier,
+                p_total_amount: total,
+                p_event_id: eventId,
+                p_pfand_quantity: pfand,
+                p_items: invoiceItems
+            };
+
         const { data, error } = await db.rpc(
-    "create_bookkeeping_invoice_with_items",
-    {
-        p_context: context,
-        p_invoice_date: invoiceDate,
-        p_supplier: supplier,
-        p_total_amount: total,
-        p_event_id: eventId,
-        p_pfand_quantity: pfand,
-        p_items: invoiceItems
-    }
-);
+            rpcName,
+            rpcParams
+        );
 
         if (error) throw error;
 
-        saved = true;
+                saved = true;
 
         const invoice = Array.isArray(data) ? data[0] : data;
+
+        if (shoppingInvoicePurchase) {
+            shoppingInvoicePurchase = null;
+            $("invoiceContextSelect").disabled = false;
+        }
 
         $("invoiceSupplierInput").value = "";
         $("invoiceTotalInput").value = "";
@@ -19528,6 +19688,13 @@ function renderProductPurchaseReferences(product) {
                             >
                                 Einkauf bearbeiten
                             </button>
+                            <button
+    type="button"
+    class="secondary-action"
+    data-invoice-purchase="${esc(purchase.id)}"
+>
+    🧾 Rechnung erfassen
+</button>
                         </div>
                     `).join("")
                     : "<p>Keine offenen Einkäufe.</p>"
@@ -19840,6 +20007,35 @@ function renderProductPurchaseReferences(product) {
         }
     });
 
+    pendingPurchasesBox.addEventListener("click", async event => {
+        const button = event.target.closest(
+            "[data-invoice-purchase]"
+        );
+
+        if (!button || saving || !isTeacher()) return;
+
+        const purchase = pendingPurchases.find(
+            item => item.id === button.dataset.invoicePurchase
+        );
+
+        if (!purchase) return;
+
+        button.disabled = true;
+
+        try {
+            await openShoppingPurchaseInvoice(purchase);
+        } catch (error) {
+            console.error(error);
+
+            toast(
+                "Rechnung konnte nicht vorbereitet werden.",
+                "error"
+            );
+        } finally {
+            button.disabled = false;
+        }
+    });
+   
     pendingPurchasesBox.addEventListener("click", async event => {
         const button = event.target.closest(
             "[data-edit-purchase]"
