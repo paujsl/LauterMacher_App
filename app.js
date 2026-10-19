@@ -20152,7 +20152,106 @@ function renderProductPurchaseReferences(product) {
         }
     );
 
-    finishShoppingButton.addEventListener("click", async () => {
+       const shoppingFinishDialog = document.createElement("dialog");
+
+    shoppingFinishDialog.id = "shoppingFinishDialog";
+    shoppingFinishDialog.className = "shopping-finish-dialog";
+
+    shoppingFinishDialog.style.cssText = `
+        width: min(420px, calc(100vw - 32px));
+        max-width: 100%;
+        box-sizing: border-box;
+        border: none;
+        border-radius: 18px;
+        padding: 26px;
+        background: #ffffff;
+        color: #12496c;
+        box-shadow: 0 20px 70px rgba(0,0,0,.25);
+    `;
+
+    shoppingFinishDialog.innerHTML = `
+        <form id="shoppingFinishForm">
+            <h2 style="margin:0 0 10px">
+                🛒 Einkauf abschließen
+            </h2>
+
+            <p style="
+                color:#64748b;
+                margin:0 0 22px;
+                line-height:1.5;
+            ">
+                In welchem Geschäft wurde eingekauft?
+            </p>
+
+            <label
+                for="shoppingFinishSupplier"
+                style="display:block;margin-bottom:18px"
+            >
+                <strong>Geschäft</strong>
+
+                <input
+                    id="shoppingFinishSupplier"
+                    type="text"
+                    required
+                    maxlength="150"
+                    placeholder="z. B. ALDI, Lidl, REWE"
+                    autocomplete="off"
+                    style="
+                        display:block;
+                        width:100%;
+                        box-sizing:border-box;
+                        margin-top:8px;
+                        padding:11px;
+                    "
+                >
+            </label>
+
+            <p
+                id="shoppingFinishError"
+                role="alert"
+                style="color:#b91c1c"
+            ></p>
+
+            <div style="
+                display:flex;
+                justify-content:flex-end;
+                flex-wrap:wrap;
+                gap:10px;
+                margin-top:20px;
+            ">
+                <button
+                    type="button"
+                    class="secondary-action"
+                    id="shoppingFinishCancel"
+                >
+                    Abbrechen
+                </button>
+
+                <button
+                    type="submit"
+                    class="primary-action"
+                    id="shoppingFinishSave"
+                >
+                    Einkauf speichern
+                </button>
+            </div>
+        </form>
+    `;
+
+    document.body.appendChild(shoppingFinishDialog);
+
+    let shoppingFinishItems = null;
+
+    $("shoppingFinishCancel").addEventListener("click", () => {
+        if (!saving) shoppingFinishDialog.close();
+    });
+
+    shoppingFinishDialog.addEventListener("close", () => {
+        shoppingFinishItems = null;
+        $("shoppingFinishError").textContent = "";
+    });
+   
+        finishShoppingButton.addEventListener("click", () => {
         if (!isTeacher() || saving) return;
 
         const items = rows
@@ -20191,33 +20290,14 @@ function renderProductPurchaseReferences(product) {
             return;
         }
 
-        const supplierInput = prompt(
-            "In welchem Geschäft wurde eingekauft?",
-            ""
-        );
+        shoppingFinishItems = items;
 
-        if (supplierInput === null) return;
+        $("shoppingFinishSupplier").value = "";
+        $("shoppingFinishError").textContent = "";
 
-        const supplier = supplierInput.trim();
-
-        if (!supplier) {
-            toast("Bitte Geschäft eingeben.", "error");
-            return;
-        }
-
-        const summary = items
-            .map(item =>
-                `${item.product_name}: ${item.packs} Packung(en)`
-            )
-            .join("\n");
-
-        if (!confirm(
-            "Diesen Einkauf speichern?\n\n" +
-            summary +
-            "\n\nDie Rechnung kann später erfasst werden."
-        )) {
-            return;
-        }
+        shoppingFinishDialog.showModal();
+        $("shoppingFinishSupplier").focus();
+    });
 
         saving = true;
         finishShoppingButton.disabled = true;
@@ -20258,6 +20338,83 @@ function renderProductPurchaseReferences(product) {
             finishShoppingButton.disabled = false;
         }
     });
+
+    $("shoppingFinishForm").addEventListener(
+        "submit",
+        async event => {
+            event.preventDefault();
+
+            if (
+                !isTeacher() ||
+                saving ||
+                !shoppingFinishItems?.length
+            ) {
+                return;
+            }
+
+            const supplier =
+                $("shoppingFinishSupplier").value.trim();
+
+            if (!supplier) {
+                $("shoppingFinishError").textContent =
+                    "Bitte Geschäft eingeben.";
+                return;
+            }
+
+            saving = true;
+
+            const saveButton = $("shoppingFinishSave");
+            saveButton.disabled = true;
+            $("shoppingFinishCancel").disabled = true;
+            finishShoppingButton.disabled = true;
+
+            try {
+                const { data, error } = await db.rpc(
+                    "teacher_create_shopping_purchase",
+                    {
+                        p_supplier: supplier,
+                        p_items: shoppingFinishItems
+                    }
+                );
+
+                if (error) throw error;
+
+                shoppingFinishDialog.close();
+
+                toast(
+                    "Einkauf gespeichert. Rechnung noch erfassen.",
+                    "success"
+                );
+
+                console.info(
+                    "Shopping purchase created:",
+                    data
+                );
+
+                try {
+                    await loadPendingPurchases();
+                } catch (refreshError) {
+                    console.error(refreshError);
+                    toast(
+                        "Einkauf gespeichert. Bitte Liste aktualisieren.",
+                        "info"
+                    );
+                }
+
+            } catch (error) {
+                console.error(error);
+
+                $("shoppingFinishError").textContent =
+                    "Einkauf konnte nicht gespeichert werden.";
+
+            } finally {
+                saving = false;
+                saveButton.disabled = false;
+                $("shoppingFinishCancel").disabled = false;
+                finishShoppingButton.disabled = false;
+            }
+        }
+    );
 
     pendingPurchasesBox.addEventListener("click", async event => {
         const button = event.target.closest(
