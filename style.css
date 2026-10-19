@@ -11168,33 +11168,14 @@ body * {
         height: 36px;
     }
 }
-/* =====================================================
-   LAUTER MACHER — EMOJIS PRODUITS CENTRÉS
-   ===================================================== */
-
-/* Liste des produits : Bearbeiten */
-.product-admin-main > span:first-child,
-
-/* Inventur */
-.inventory-product-icon,
-
-/* Caisse et sélection des produits */
-.sale-product-icon,
-
-/* Autres affichages de produits */
-.r1-product-icon {
+/* Centrage des emojis de produits */
+.product-icon-double {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-
-    flex-shrink: 0;
-
-    font-size: 19px;
-    line-height: 1;
-
-    text-align: center;
     white-space: nowrap;
-
+    text-align: center;
+    font-size: 0.68em !important;
     letter-spacing: -2px;
-    overflow: hidden;
+    line-height: 1;
 }
