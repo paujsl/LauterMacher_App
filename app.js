@@ -9654,11 +9654,14 @@ function renderReportProducts(
                         0,
 
                     unknownProfit:
-                        false,
+    false,
 
-                    stock:
-                        line.current_stock ??
-                        null
+isBakery:
+    line.area === "bäckerei",
+
+stock:
+    line.current_stock ??
+    null
                 }
             );
         }
@@ -9667,6 +9670,9 @@ function renderReportProducts(
         const row =
             map.get(key);
 
+       row.isBakery =
+    row.isBakery ||
+    line.area === "bäckerei";
 
         row.quantity +=
             integer(
@@ -9810,11 +9816,11 @@ function renderReportProducts(
 
                             <span>
                                 ${
-                                    row.unknownProfit
-                                        ? "—"
-                                        : money(
-                                            row.profit
-                                        )
+                                    row.isBakery || row.unknownProfit
+    ? "—"
+    : money(
+        row.profit
+    )
                                 }
                             </span>
 
