@@ -11168,21 +11168,22 @@ body * {
         height: 36px;
     }
 }
-/* Deux emojis : côte à côte, petits et centrés */
-.product-icon-double {
-    display: inline-flex !important;
-    flex-direction: row !important;
+/* Deux emojis : centrés dans le carré existant */
+.product-admin-main > span.product-icon-double,
+.inventory-product-icon.product-icon-double,
+.sale-product-icon.product-icon-double {
+    display: flex !important;
     align-items: center !important;
     justify-content: center !important;
 
-    font-size: 0.68em !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+
+    font-size: 15px !important;
     line-height: 1 !important;
-    letter-spacing: -2px;
-
+    letter-spacing: 0 !important;
     white-space: nowrap !important;
-    overflow: hidden;
-    text-align: center;
 
-    /* Conserver les dimensions du carré existant */
-    box-sizing: border-box;
+    text-align: center;
+    overflow: hidden;
 }
