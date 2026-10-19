@@ -19629,6 +19629,258 @@ function renderProductPurchaseReferences(product) {
     const packsFor = row =>
         row.manual_packs ?? row.suggested_packs;
 
+       // Fenêtre interne pour modifier un achat en attente.
+    const purchaseEditDialog = document.createElement("dialog");
+
+    purchaseEditDialog.id = "purchaseEditDialog";
+
+    purchaseEditDialog.style.cssText = `
+        width: min(620px, calc(100vw - 32px));
+        max-height: 85vh;
+        overflow-y: auto;
+        box-sizing: border-box;
+        border: none;
+        border-radius: 20px;
+        padding: 24px;
+        background: white;
+        color: #12496c;
+        box-shadow: 0 20px 70px rgba(0,0,0,.25);
+    `;
+
+    purchaseEditDialog.innerHTML = `
+        <form id="purchaseEditForm">
+            <h2 style="margin-top:0">
+                🛒 Einkauf bearbeiten
+            </h2>
+
+            <p style="color:#64748b">
+                Mengen können bis zur Rechnungserfassung
+                geändert werden.
+            </p>
+
+            <label
+                for="purchaseEditSupplier"
+                style="display:block;margin-bottom:16px"
+            >
+                <strong>Geschäft</strong>
+
+                <input
+                    id="purchaseEditSupplier"
+                    type="text"
+                    style="
+                        display:block;
+                        width:100%;
+                        box-sizing:border-box;
+                        margin-top:6px;
+                    "
+                >
+            </label>
+
+            <div id="purchaseEditItems"></div>
+
+            <p
+                id="purchaseEditMessage"
+                role="alert"
+                style="color:#b91c1c"
+            ></p>
+
+            <div style="
+                display:flex;
+                justify-content:flex-end;
+                flex-wrap:wrap;
+                gap:10px;
+                margin-top:24px;
+            ">
+                <button
+                    type="button"
+                    class="secondary-action"
+                    id="purchaseEditCancel"
+                >
+                    Abbrechen
+                </button>
+
+                <button
+                    type="submit"
+                    id="purchaseEditSave"
+                >
+                    Änderungen speichern
+                </button>
+            </div>
+        </form>
+    `;
+
+    document.body.appendChild(purchaseEditDialog);
+
+    let editingPurchase = null;
+
+    const openPurchaseEditDialog = purchase => {
+        if (!purchase || saving) return;
+
+        editingPurchase = purchase;
+
+        $("purchaseEditSupplier").value =
+            purchase.supplier || "";
+
+        $("purchaseEditMessage").textContent = "";
+
+        $("purchaseEditItems").innerHTML = (
+            purchase.items || []
+        ).map((item, index) => `
+            <div style="
+                display:flex;
+                align-items:center;
+                justify-content:space-between;
+                gap:16px;
+                padding:12px 0;
+                border-bottom:1px solid #e2e8f0;
+            ">
+                <div style="flex:1;min-width:0">
+                    <strong>${esc(item.product_name)}</strong>
+
+                    <div style="
+                        color:#64748b;
+                        font-size:13px;
+                        margin-top:4px;
+                    ">
+                        ${esc(String(item.units_per_pack))}
+                        Stück / Packung
+                    </div>
+                </div>
+
+                <label style="width:105px;flex-shrink:0">
+                    <span style="font-size:12px">
+                        Packungen
+                    </span>
+
+                    <input
+                        type="number"
+                        min="0"
+                        max="99999999"
+                        step="1"
+                        required
+                        data-edit-item-index="${index}"
+                        value="${Number(item.packs)}"
+                        style="
+                            width:100%;
+                            box-sizing:border-box;
+                        "
+                    >
+                </label>
+            </div>
+        `).join("");
+
+        purchaseEditDialog.showModal();
+    };
+
+    $("purchaseEditCancel").addEventListener(
+        "click",
+        () => purchaseEditDialog.close()
+    );
+
+    purchaseEditDialog.addEventListener("close", () => {
+        editingPurchase = null;
+    });
+
+    $("purchaseEditForm").addEventListener(
+        "submit",
+        async event => {
+            event.preventDefault();
+
+            if (!editingPurchase || saving || !isTeacher()) {
+                return;
+            }
+
+            const purchase = editingPurchase;
+            const supplier =
+                $("purchaseEditSupplier").value.trim();
+
+            const inputs = [
+                ...$("purchaseEditItems").querySelectorAll(
+                    "[data-edit-item-index]"
+                )
+            ];
+
+            const items = [];
+
+            for (const input of inputs) {
+                const raw = input.value.trim();
+                const packs = Number(raw);
+
+                if (
+                    !/^\d+$/.test(raw) ||
+                    !Number.isSafeInteger(packs) ||
+                    packs > 99999999
+                ) {
+                    $("purchaseEditMessage").textContent =
+                        "Bitte gültige Packungsmengen eingeben.";
+                    return;
+                }
+
+                if (packs === 0) continue;
+
+                const original = purchase.items[
+                    Number(input.dataset.editItemIndex)
+                ];
+
+                items.push({
+                    product_id: original.product_id,
+                    product_name: original.product_name,
+                    ian: original.ian,
+                    packs,
+                    units_per_pack: original.units_per_pack,
+                    estimated_pack_price:
+                        original.estimated_pack_price
+                });
+            }
+
+            if (!items.length) {
+                $("purchaseEditMessage").textContent =
+                    "Mindestens ein Produkt muss übrig bleiben.";
+                return;
+            }
+
+            saving = true;
+
+            const saveButton = $("purchaseEditSave");
+            saveButton.disabled = true;
+
+            $("purchaseEditCancel").disabled = true;
+
+            try {
+                const { error } = await db.rpc(
+                    "teacher_update_shopping_purchase",
+                    {
+                        p_purchase_id: purchase.id,
+                        p_supplier: supplier,
+                        p_items: items
+                    }
+                );
+
+                if (error) throw error;
+
+                purchaseEditDialog.close();
+
+                toast(
+                    "Einkauf erfolgreich aktualisiert.",
+                    "success"
+                );
+
+                await loadPendingPurchases();
+
+            } catch (error) {
+                console.error(error);
+
+                $("purchaseEditMessage").textContent =
+                    "Änderungen konnten nicht gespeichert werden.";
+
+            } finally {
+                saving = false;
+                saveButton.disabled = false;
+                $("purchaseEditCancel").disabled = false;
+            }
+        }
+    );
+   
     let pendingPurchases = [];
 
     const loadPendingPurchases = async () => {
@@ -20036,7 +20288,7 @@ function renderProductPurchaseReferences(product) {
         }
     });
    
-    pendingPurchasesBox.addEventListener("click", async event => {
+        pendingPurchasesBox.addEventListener("click", event => {
         const button = event.target.closest(
             "[data-edit-purchase]"
         );
@@ -20049,44 +20301,8 @@ function renderProductPurchaseReferences(product) {
 
         if (!purchase) return;
 
-        const supplier = prompt(
-            "Geschäft bearbeiten:",
-            purchase.supplier || ""
-        );
-
-        if (supplier === null) return;
-
-        const items = [];
-
-        for (const item of purchase.items || []) {
-            const answer = prompt(
-                `Packungen für ${item.product_name}:`,
-                String(item.packs)
-            );
-
-            if (answer === null) return;
-
-            const packs = Number(answer.trim());
-
-            if (
-                !/^\d+$/.test(answer.trim()) ||
-                !Number.isSafeInteger(packs) ||
-                packs > 99999999
-            ) {
-                toast("Ungültige Menge.", "error");
-                return;
-            }
-
-            if (packs > 0) {
-                items.push({
-                    product_id: item.product_id,
-                    product_name: item.product_name,
-                    ian: item.ian,
-                    packs,
-                    units_per_pack: item.units_per_pack,
-                    estimated_pack_price:
-                        item.estimated_pack_price
-                });
+        openPurchaseEditDialog(purchase);
+    });
             }
         }
 
