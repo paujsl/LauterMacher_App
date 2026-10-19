@@ -2390,12 +2390,12 @@ async function renderProductsAdmin() {
                 fields.has("_created") ? "product-added" : ""
             }">
                 <div class="product-admin-main">
-                    <span
-                        data-product-field="icon"
-                        class="${marked("icon")}"
-                    >
-                        ${esc(productIcon(product))}
-                    </span>
+                   <span
+    data-product-field="icon"
+    class="${marked("icon")} ${productEmojiClass(productIcon(product))}"
+>
+    ${esc(productIcon(product))}
+</span>
 
                     <div>
                         <strong
