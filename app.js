@@ -17327,7 +17327,15 @@ function updateProductUnitCostPreview() {
                     <td>${int(p.sold)}</td>
                     <td>${p.quantity == null ? "—" : int(p.quantity)}</td>
                     <td>${money(p.revenue)}</td>
-                    <td>${p.unknown ? "—" : money(p.profit)}</td>
+                    <td>${
+    ["bäckerei", "bakery"].includes(
+        String(p.area || "").toLowerCase()
+    )
+        ? "—"
+        : p.unknown
+            ? "—"
+            : money(p.profit)
+}</td>
                 </tr>
             `).join("")
             : `<tr><td colspan="5">Keine Produkte vorhanden.</td></tr>`;
@@ -17980,7 +17988,14 @@ function updateProductUnitCostPreview() {
                 "Verkaufte Menge": p.sold,
                 "Aktueller Bestand": p.quantity,
                 Umsatz: p.revenue,
-                "Gewinn geschätzt": p.unknown ? null : p.profit
+                "Gewinn geschätzt":
+    ["bäckerei", "bakery"].includes(
+        String(p.area || "").toLowerCase()
+    )
+        ? null
+        : p.unknown
+            ? null
+            : p.profit
             })));
 
             add(
