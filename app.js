@@ -20303,45 +20303,6 @@ function renderProductPurchaseReferences(product) {
 
         openPurchaseEditDialog(purchase);
     });
-
-        if (!items.length) {
-            toast(
-                "Mindestens ein Produkt muss übrig bleiben.",
-                "error"
-            );
-            return;
-        }
-
-        saving = true;
-        button.disabled = true;
-
-        try {
-            const { error } = await db.rpc(
-                "teacher_update_shopping_purchase",
-                {
-                    p_purchase_id: purchase.id,
-                    p_supplier: supplier.trim(),
-                    p_items: items
-                }
-            );
-
-            if (error) throw error;
-
-            toast("Einkauf aktualisiert.", "success");
-            await loadPendingPurchases();
-
-        } catch (error) {
-            console.error(error);
-            toast(
-                "Einkauf konnte nicht geändert werden.",
-                "error"
-            );
-
-        } finally {
-            saving = false;
-            button.disabled = false;
-        }
-    });
    
     $("shoppingResetButton").addEventListener(
         "click",
