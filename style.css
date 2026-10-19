@@ -11168,14 +11168,21 @@ body * {
         height: 36px;
     }
 }
-/* Centrage des emojis de produits */
+/* Deux emojis : côte à côte, petits et centrés */
 .product-icon-double {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    white-space: nowrap;
-    text-align: center;
+    display: inline-flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: center !important;
+
     font-size: 0.68em !important;
+    line-height: 1 !important;
     letter-spacing: -2px;
-    line-height: 1;
+
+    white-space: nowrap !important;
+    overflow: hidden;
+    text-align: center;
+
+    /* Conserver les dimensions du carré existant */
+    box-sizing: border-box;
 }
