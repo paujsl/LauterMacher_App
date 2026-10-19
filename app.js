@@ -19457,9 +19457,84 @@ function renderProductPurchaseReferences(product) {
         finishShoppingButton
     );
 
+    const pendingPurchasesBox = document.createElement("section");
+    pendingPurchasesBox.id = "shoppingPendingPurchases";
+    pendingPurchasesBox.style.marginTop = "24px";
+
+    finishShoppingButton.insertAdjacentElement(
+        "afterend",
+        pendingPurchasesBox
+    );
+   
     const packsFor = row =>
         row.manual_packs ?? row.suggested_packs;
 
+    let pendingPurchases = [];
+
+    const loadPendingPurchases = async () => {
+        if (!isTeacher()) return;
+
+        const { data, error } = await db.rpc(
+            "teacher_list_pending_shopping_purchases"
+        );
+
+        if (error) throw error;
+
+        pendingPurchases = Array.isArray(data) ? data : [];
+
+        renderPendingPurchases();
+    };
+
+    const renderPendingPurchases = () => {
+        pendingPurchasesBox.innerHTML = `
+            <h3>
+                📋 Offene Einkäufe
+                (${pendingPurchases.length})
+            </h3>
+
+            ${
+                pendingPurchases.length
+                    ? pendingPurchases.map(purchase => `
+                        <div
+                            style="
+                                border:1px solid #ddd;
+                                border-radius:12px;
+                                padding:12px;
+                                margin:10px 0;
+                            "
+                        >
+                            <strong>
+                                ${esc(purchase.supplier || "Ohne Geschäft")}
+                            </strong>
+
+                            <p>
+                                ${esc(new Date(
+                                    purchase.purchased_at
+                                ).toLocaleDateString("de-DE"))}
+                                · Rechnung noch erfassen
+                            </p>
+
+                            <p>
+                                ${(purchase.items || []).map(item =>
+                                    `${esc(item.product_name)}:
+                                    ${item.packs} Packung(en)`
+                                ).join("<br>")}
+                            </p>
+
+                            <button
+                                type="button"
+                                class="secondary-action"
+                                data-edit-purchase="${esc(purchase.id)}"
+                            >
+                                Einkauf bearbeiten
+                            </button>
+                        </div>
+                    `).join("")
+                    : "<p>Keine offenen Einkäufe.</p>"
+            }
+        `;
+    };
+   
     const render = () => {
         $("shoppingRows").innerHTML = rows.map(row => {
             const packs = packsFor(row);
@@ -19601,8 +19676,16 @@ function renderProductPurchaseReferences(product) {
                 state.currentPerson?.id !== personId
             ) return;
 
-            rows = data || [];
+                        rows = data || [];
             render();
+
+            try {
+                await loadPendingPurchases();
+            } catch (pendingError) {
+                console.error(pendingError);
+                pendingPurchasesBox.textContent =
+                    "Offene Einkäufe konnten nicht geladen werden.";
+            }
 
             $("shoppingStatus").textContent =
                 "Aktualisiert: " +
@@ -19741,6 +19824,8 @@ function renderProductPurchaseReferences(product) {
                 data
             );
 
+                       await loadPendingPurchases();
+
         } catch (error) {
             console.error(error);
 
@@ -19752,6 +19837,99 @@ function renderProductPurchaseReferences(product) {
         } finally {
             saving = false;
             finishShoppingButton.disabled = false;
+        }
+    });
+
+    pendingPurchasesBox.addEventListener("click", async event => {
+        const button = event.target.closest(
+            "[data-edit-purchase]"
+        );
+
+        if (!button || saving || !isTeacher()) return;
+
+        const purchase = pendingPurchases.find(
+            item => item.id === button.dataset.editPurchase
+        );
+
+        if (!purchase) return;
+
+        const supplier = prompt(
+            "Geschäft bearbeiten:",
+            purchase.supplier || ""
+        );
+
+        if (supplier === null) return;
+
+        const items = [];
+
+        for (const item of purchase.items || []) {
+            const answer = prompt(
+                `Packungen für ${item.product_name}:`,
+                String(item.packs)
+            );
+
+            if (answer === null) return;
+
+            const packs = Number(answer.trim());
+
+            if (
+                !/^\d+$/.test(answer.trim()) ||
+                !Number.isSafeInteger(packs) ||
+                packs > 99999999
+            ) {
+                toast("Ungültige Menge.", "error");
+                return;
+            }
+
+            if (packs > 0) {
+                items.push({
+                    product_id: item.product_id,
+                    product_name: item.product_name,
+                    ian: item.ian,
+                    packs,
+                    units_per_pack: item.units_per_pack,
+                    estimated_pack_price:
+                        item.estimated_pack_price
+                });
+            }
+        }
+
+        if (!items.length) {
+            toast(
+                "Mindestens ein Produkt muss übrig bleiben.",
+                "error"
+            );
+            return;
+        }
+
+        saving = true;
+        button.disabled = true;
+
+        try {
+            const { error } = await db.rpc(
+                "teacher_update_shopping_purchase",
+                {
+                    p_purchase_id: purchase.id,
+                    p_supplier: supplier.trim(),
+                    p_items: items
+                }
+            );
+
+            if (error) throw error;
+
+            toast("Einkauf aktualisiert.", "success");
+            await loadPendingPurchases();
+
+        } catch (error) {
+            console.error(error);
+            toast(
+                "Einkauf konnte nicht geändert werden.",
+                "error"
+            );
+
+        } finally {
+            saving = false;
+            button.disabled = false;
         }
     });
    
