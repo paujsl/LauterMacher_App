@@ -3861,6 +3861,30 @@ $("invoiceForm")?.addEventListener(
     saveInvoice
 );
 
+$("addInvoiceItemButton")?.addEventListener(
+    "click",
+    addInvoiceItem
+);
+
+$("invoiceTotalInput")?.addEventListener(
+    "input",
+    updateInvoiceItemsTotal
+);
+
+$("invoicePfandInput")?.addEventListener(
+    "input",
+    updateInvoiceItemsTotal
+);
+
+$("invoiceSupplierInput")?.addEventListener(
+    "change",
+    () => {
+        document.querySelectorAll(
+            "#invoiceItemsList .invoice-item-row"
+        ).forEach(invoiceItemLookup);
+    }
+);
+
 $("receiptForm")?.addEventListener(
     "submit",
     saveBookkeepingReceipt
@@ -3906,6 +3930,12 @@ async function initialiseInvoices() {
     $("invoiceDateInput").value ||= todayISO();
     $("receiptDateInput").value ||= todayISO();
 
+if (!$("invoiceItemsList")?.children.length) {
+    addInvoiceItem();
+}
+
+updateInvoiceItemsTotal();
+   
     setText("invoiceFormMessage", "");
     setText("receiptFormMessage", "");
 
@@ -4229,6 +4259,379 @@ async function loadBookkeepingHistory() {
         }
     }
 }
+
+/* =========================================================
+   BUCHHALTUNG — RECHNUNGSPOSITIONEN
+   ========================================================= */
+
+function invoiceItemMoney(value) {
+    return Number(value).toFixed(2).replace(".", ",");
+}
+
+function invoiceItemCents(value) {
+    const parsed = accountingMoneyInput(String(value ?? ""));
+    return Number.isFinite(parsed)
+        ? Math.round(parsed * 100)
+        : null;
+}
+
+function invoiceItemReferences() {
+    const results = [];
+
+    for (const product of state.products || []) {
+        const saved = Array.isArray(product.purchase_references)
+            ? product.purchase_references
+            : [];
+
+        const refs = saved.length
+            ? saved
+            : [{
+                ian: product.ian,
+                name: product.store_name || product.name,
+                store: "",
+                units_per_ian: product.units_per_ian,
+                purchase_pack_price: product.purchase_pack_price
+            }];
+
+        for (const ref of refs) {
+            const ian = String(ref.ian ?? "").trim();
+
+            if (!/^\d{6}$/.test(ian)) continue;
+
+            const units = Number(
+                ref.units_per_ian ?? product.units_per_ian ?? 1
+            );
+
+            const packPrice = ref.purchase_pack_price
+                ?? (
+                    ref.purchase_price == null
+                        ? product.purchase_pack_price
+                        : Number(ref.purchase_price) * units
+                );
+
+            results.push({
+                product_id: product.id,
+                ian,
+                name: ref.name || product.name,
+                store: ref.store || "",
+                units: Number.isSafeInteger(units) && units > 0
+                    ? units
+                    : 1,
+                price: packPrice
+            });
+        }
+    }
+
+    return results;
+}
+
+function invoiceItemUpdateRow(row) {
+    const quantity = Number(
+        row.querySelector("[data-invoice-quantity]").value
+    );
+
+    const priceCents = invoiceItemCents(
+        row.querySelector("[data-invoice-price]").value
+    );
+
+    const totalInput = row.querySelector("[data-invoice-line-total]");
+
+    const validQuantity =
+        Number.isSafeInteger(quantity) && quantity > 0;
+
+    const validPrice = priceCents !== null && priceCents >= 0;
+
+    const cents = validQuantity && validPrice
+        ? quantity * priceCents
+        : null;
+
+    totalInput.value = cents === null
+        ? ""
+        : invoiceItemMoney(cents / 100);
+
+    updateInvoiceItemsTotal();
+}
+
+function invoiceItemLookup(row) {
+    const ian = row.querySelector("[data-invoice-ian]").value.trim();
+    const name = row.querySelector("[data-invoice-name]");
+    const units = row.querySelector("[data-invoice-units]");
+    const price = row.querySelector("[data-invoice-price]");
+
+    row.dataset.productId = "";
+
+    if (!/^\d{6}$/.test(ian)) {
+        updateInvoiceItemsTotal();
+        return;
+    }
+
+    const supplier = $("invoiceSupplierInput").value
+        .trim()
+        .toLocaleLowerCase("de");
+
+    const matches = invoiceItemReferences()
+        .filter(ref => ref.ian === ian);
+
+    const selected =
+        matches.find(ref =>
+            supplier &&
+            ref.store.trim().toLocaleLowerCase("de") === supplier
+        ) || (matches.length === 1 ? matches[0] : null);
+
+    if (!selected) {
+        if (matches.length > 1) {
+            setText(
+                "invoiceFormMessage",
+                "Diese IAN hat mehrere Einkaufsreferenzen. " +
+                "Bitte den passenden Laden eingeben."
+            );
+        }
+
+        updateInvoiceItemsTotal();
+        return;
+    }
+
+    row.dataset.productId = selected.product_id;
+    name.value = selected.name;
+    units.value = String(selected.units);
+
+    if (selected.price != null && Number.isFinite(Number(selected.price))) {
+        price.value = invoiceItemMoney(selected.price);
+    }
+
+    setText("invoiceFormMessage", "");
+    invoiceItemUpdateRow(row);
+}
+
+function addInvoiceItem() {
+    const list = $("invoiceItemsList");
+    if (!list) return;
+
+    const row = document.createElement("div");
+    row.className = "invoice-item-row";
+    row.dataset.productId = "";
+
+    row.innerHTML = `
+        <label>
+            <span>IAN</span>
+            <input
+                data-invoice-ian
+                type="text"
+                inputmode="numeric"
+                maxlength="6"
+                placeholder="123456"
+                autocomplete="off"
+            >
+        </label>
+
+        <label>
+            <span>Name im Geschäft</span>
+            <input
+                data-invoice-name
+                type="text"
+                maxlength="160"
+                placeholder="Produktname"
+            >
+        </label>
+
+        <label>
+            <span>Menge</span>
+            <input
+                data-invoice-quantity
+                type="number"
+                min="1"
+                step="1"
+                value="1"
+            >
+        </label>
+
+        <label>
+            <span>Einheit</span>
+            <input
+    data-invoice-units
+    type="number"
+    min="1"
+    step="1"
+    value="1"
+    title="Stück pro Packung"
+>
+        </label>
+
+        <label>
+            <span>EK (€)</span>
+            <input
+                data-invoice-price
+                type="text"
+                inputmode="decimal"
+                placeholder="0,00"
+            >
+        </label>
+
+        <label>
+            <span>Gesamt (€)</span>
+            <input
+                data-invoice-line-total
+                type="text"
+                readonly
+                tabindex="-1"
+            >
+        </label>
+
+        <button
+            type="button"
+            class="invoice-item-remove"
+            data-invoice-remove
+            aria-label="Produkt entfernen"
+        >×</button>
+    `;
+
+    list.append(row);
+
+    const ianInput = row.querySelector("[data-invoice-ian]");
+
+    ianInput.addEventListener("input", () => {
+        ianInput.value = ianInput.value.replace(/\D/g, "").slice(0, 6);
+        invoiceItemLookup(row);
+    });
+
+    row.querySelector("[data-invoice-quantity]")
+        .addEventListener("input", () => invoiceItemUpdateRow(row));
+
+    row.querySelector("[data-invoice-price]")
+        .addEventListener("input", () => invoiceItemUpdateRow(row));
+
+   row.querySelector("[data-invoice-units]")
+    .addEventListener("input", updateInvoiceItemsTotal);
+
+    row.querySelector("[data-invoice-remove]")
+        .addEventListener("click", () => {
+            row.remove();
+            updateInvoiceItemsTotal();
+        });
+
+    row.querySelector("[data-invoice-name]")
+        .addEventListener("input", updateInvoiceItemsTotal);
+
+    updateInvoiceItemsTotal();
+    ianInput.focus();
+}
+
+function collectInvoiceItems() {
+    const rows = [
+        ...document.querySelectorAll(
+            "#invoiceItemsList .invoice-item-row"
+        )
+    ];
+
+    if (!rows.length) {
+        throw new Error("Bitte mindestens ein Produkt hinzufügen.");
+    }
+
+    return rows.map((row, index) => {
+        const get = selector =>
+            row.querySelector(selector).value.trim();
+
+        const ian = get("[data-invoice-ian]");
+        const name = get("[data-invoice-name]");
+        const quantity = Number(get("[data-invoice-quantity]"));
+        const units = Number(get("[data-invoice-units]"));
+        const priceCents = invoiceItemCents(
+            get("[data-invoice-price]")
+        );
+
+        if (
+            !/^\d{6}$/.test(ian) ||
+            !name ||
+            !Number.isSafeInteger(quantity) ||
+            quantity <= 0 ||
+            !Number.isSafeInteger(units) ||
+            units <= 0 ||
+            priceCents === null ||
+            priceCents < 0
+        ) {
+            throw new Error(
+                `Produktzeile ${index + 1}: Bitte IAN, Name, ` +
+                "Menge, Einheit und EK prüfen."
+            );
+        }
+
+        return {
+            product_id: row.dataset.productId || null,
+            ian,
+            product_name: name,
+            quantity,
+            units_per_pack: units,
+            unit_purchase_price: priceCents / 100,
+            line_total: quantity * priceCents / 100
+        };
+    });
+}
+
+function updateInvoiceItemsTotal() {
+    const rows = [
+        ...document.querySelectorAll(
+            "#invoiceItemsList .invoice-item-row"
+        )
+    ];
+
+    let subtotalCents = 0;
+    let complete = rows.length > 0;
+
+    for (const row of rows) {
+        const quantity = Number(
+            row.querySelector("[data-invoice-quantity]").value
+        );
+
+        const priceCents = invoiceItemCents(
+            row.querySelector("[data-invoice-price]").value
+        );
+
+        if (
+            !Number.isSafeInteger(quantity) ||
+            quantity <= 0 ||
+            priceCents === null ||
+            priceCents < 0
+        ) {
+            complete = false;
+            continue;
+        }
+
+        subtotalCents += quantity * priceCents;
+    }
+
+    const pfandQuantity = Number($("invoicePfandInput").value);
+    const pfandCents =
+        Number.isSafeInteger(pfandQuantity) && pfandQuantity >= 0
+            ? pfandQuantity * 25
+            : 0;
+
+    const calculatedCents = subtotalCents + pfandCents;
+    const invoiceCents = invoiceItemCents(
+        $("invoiceTotalInput").value
+    );
+
+    setText("invoiceItemsSubtotal", invoiceItemMoney(subtotalCents / 100));
+    setText("invoiceItemsPfand", invoiceItemMoney(pfandCents / 100));
+    setText(
+        "invoiceItemsCalculatedTotal",
+        invoiceItemMoney(calculatedCents / 100)
+    );
+
+    const check = $("invoiceItemsCheck");
+    if (!check) return;
+
+    const valid =
+        complete &&
+        invoiceCents !== null &&
+        calculatedCents === invoiceCents;
+
+    check.dataset.valid = String(valid);
+
+    check.textContent = valid
+        ? "✓ Rechnungsbetrag stimmt überein."
+        : "Bitte Produkte, Pfand und Rechnungsbetrag prüfen.";
+}
+
 async function saveInvoice(event) {
     event.preventDefault();
 
@@ -4279,6 +4682,31 @@ async function saveInvoice(event) {
         return;
     }
 
+let invoiceItems;
+
+try {
+    invoiceItems = collectInvoiceItems();
+
+    const itemsCents = invoiceItems.reduce(
+        (sum, item) =>
+            sum + Math.round(item.line_total * 100),
+        0
+    );
+
+    const expectedCents = itemsCents + pfand * 25;
+    const actualCents = Math.round(total * 100);
+
+    if (expectedCents !== actualCents) {
+        throw new Error(
+            "Der Rechnungsbetrag stimmt nicht mit " +
+            "den Produkten und dem Pfand überein."
+        );
+    }
+} catch (error) {
+    setText("invoiceFormMessage", error.message);
+    return;
+}
+   
     saveInvoice.busy = true;
     $("saveInvoiceButton").disabled = true;
 
@@ -4286,16 +4714,17 @@ async function saveInvoice(event) {
 
     try {
         const { data, error } = await db.rpc(
-            "create_bookkeeping_invoice",
-            {
-                p_context: context,
-                p_invoice_date: invoiceDate,
-                p_supplier: supplier,
-                p_total_amount: total,
-                p_event_id: eventId,
-                p_pfand_quantity: pfand
-            }
-        );
+    "create_bookkeeping_invoice_with_items",
+    {
+        p_context: context,
+        p_invoice_date: invoiceDate,
+        p_supplier: supplier,
+        p_total_amount: total,
+        p_event_id: eventId,
+        p_pfand_quantity: pfand,
+        p_items: invoiceItems
+    }
+);
 
         if (error) throw error;
 
@@ -4306,6 +4735,10 @@ async function saveInvoice(event) {
         $("invoiceSupplierInput").value = "";
         $("invoiceTotalInput").value = "";
         $("invoicePfandInput").value = "0";
+
+       $("invoiceItemsList").replaceChildren();
+addInvoiceItem();
+updateInvoiceItemsTotal();
 
         updateInvoicePfand();
 
