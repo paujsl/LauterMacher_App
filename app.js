@@ -20303,8 +20303,6 @@ function renderProductPurchaseReferences(product) {
 
         openPurchaseEditDialog(purchase);
     });
-            }
-        }
 
         if (!items.length) {
             toast(
