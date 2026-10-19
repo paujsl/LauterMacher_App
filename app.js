@@ -4702,8 +4702,8 @@ function collectInvoiceItems() {
             get("[data-invoice-price]")
         );
 
-        if (
-            !/^\d{6}$/.test(ian) ||
+                if (
+            (ian !== "" && !/^\d{6}$/.test(ian)) ||
             !name ||
             !Number.isSafeInteger(quantity) ||
             quantity <= 0 ||
@@ -4818,8 +4818,8 @@ async function openShoppingPurchaseInvoice(purchase) {
         return;
     }
 
-    const invalidItem = items.find(item =>
-        !/^\d{6}$/.test(String(item.ian || "")) ||
+        const invalidItem = items.find(item =>
+        !String(item.product_id || "").trim() ||
         !Number.isSafeInteger(Number(item.packs)) ||
         Number(item.packs) <= 0 ||
         !Number.isSafeInteger(Number(item.units_per_pack)) ||
@@ -4827,8 +4827,8 @@ async function openShoppingPurchaseInvoice(purchase) {
     );
 
     if (invalidItem) {
-        toast(
-            "Bitte die IAN und Packungsgrößen dieses Einkaufs prüfen.",
+                toast(
+            "Bitte die Packungsgrößen und Mengen dieses Einkaufs prüfen.",
             "error"
         );
         return;
