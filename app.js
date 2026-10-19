@@ -3241,6 +3241,28 @@ if (inventoryHistory.error) {
         const items =
             submission?.inventory_submission_items || [];
 
+       let invoiceStockLines = [];
+
+if (state.currentInventoryInvoice?.id) {
+    const { data, error } = await db.rpc(
+        "teacher_invoice_stock_status",
+        {
+            p_invoice_id: state.currentInventoryInvoice.id
+        }
+    );
+
+    if (error) throw error;
+
+    invoiceStockLines = Array.isArray(data) ? data : [];
+}
+
+const invoiceStockByProduct = new Map(
+    invoiceStockLines.map(line => [
+        String(line.product_id),
+        line
+    ])
+);
+
         const stockFor = id => {
             return state.inventory.find(stock =>
                 String(stock.product_id) === String(id)
@@ -3473,6 +3495,108 @@ notice.innerHTML = `
             }
         }
 
+       // Bouton collectif pour les achats de la facture.
+if (
+    state.currentInventoryInvoice?.id &&
+    invoiceStockLines.some(
+        line => Number(line.remaining) > 0
+    )
+) {
+    const invoiceToolbar = document.createElement("div");
+
+    invoiceToolbar.className = "teacher-inventory-heading";
+
+    invoiceToolbar.innerHTML = `
+        <strong>
+            Wareneingang ·
+            ${esc(
+                state.currentInventoryInvoice.invoice_number ||
+                "Rechnung"
+            )}
+        </strong>
+
+        <button
+            type="button"
+            class="primary-action"
+            data-confirm-invoice-stock
+        >
+            Alle bestätigen
+        </button>
+    `;
+
+    box.appendChild(invoiceToolbar);
+
+    invoiceToolbar.querySelector(
+        "[data-confirm-invoice-stock]"
+    ).addEventListener("click", async () => {
+        const entries = [];
+
+        for (const row of box.querySelectorAll(
+            ".teacher-inventory-row[data-invoice-product-id]"
+        )) {
+            const quantityInput = row.querySelector(
+                "[data-stock-quantity]"
+            );
+
+            const costInput = row.querySelector(
+                "[data-stock-cost]"
+            );
+
+            const quantity = Number(quantityInput.value);
+            const rawCost = costInput.value.trim();
+
+            if (
+                !Number.isSafeInteger(quantity) ||
+                quantity <= 0
+            ) {
+                toast(
+                    "Bitte alle Mengen prüfen.",
+                    "error"
+                );
+                return;
+            }
+
+            if (
+                rawCost &&
+                !/^(?:\d+|\d{1,3}(?:\.\d{3})+)(?:,\d{1,2})?$/
+                    .test(rawCost.replace(/\s|€/g, ""))
+            ) {
+                toast(
+                    "Bitte alle Einkaufspreise prüfen.",
+                    "error"
+                );
+                return;
+            }
+
+            entries.push({
+                product_id: row.dataset.invoiceProductId,
+                quantity,
+                unit_purchase_price: rawCost
+                    ? parseMoney(rawCost)
+                    : null
+            });
+        }
+
+        if (!entries.length) {
+            toast(
+                "Keine offenen Rechnungsprodukte vorhanden.",
+                "error"
+            );
+            return;
+        }
+
+        await commitReview(
+            "teacher_receive_invoice_stock",
+            {
+                p_invoice_id:
+                    state.currentInventoryInvoice.id,
+                p_entries: entries
+            },
+            "Alle Rechnungsprodukte wurden übernommen."
+        );
+    });
+}
+
         products.forEach(product => {
             const stock = stockFor(product.id);
 
@@ -3513,15 +3637,31 @@ notice.innerHTML = `
                 : "add";
 
             const label = action === "add"
-                ? "+ Bestand"
-                : action === "confirm"
-                    ? "Bestätigen"
-                    : "Bestand übernehmen";
+    ? "+ Bestand"
+    : action === "confirm"
+        ? "Bestätigen"
+        : "Bestand übernehmen";
 
-            const row = document.createElement("div");
+const invoiceStockLine = invoiceStockByProduct.get(
+    String(product.id)
+);
 
-            row.className = "teacher-inventory-row";
-            row.dataset.stockCategory = productArea(product);
+const invoiceRemaining = Math.max(
+    0,
+    Number(invoiceStockLine?.remaining ?? 0)
+);
+
+const invoicePrefill =
+    action === "add" && invoiceRemaining > 0;
+
+const row = document.createElement("div");
+
+row.className = "teacher-inventory-row";
+row.dataset.stockCategory = productArea(product);
+
+if (invoicePrefill) {
+    row.dataset.invoiceProductId = String(product.id);
+}
 
             row.innerHTML = `
                 <div class="inventory-product-info">
@@ -3570,25 +3710,34 @@ notice.innerHTML = `
                 ` : ""}
 
                 <div class="teacher-stock-form">
-                    <input
-                        data-stock-quantity
-                        type="number"
-                        min="1"
-                        step="1"
-                        inputmode="numeric"
-                        placeholder="Menge"
-                        aria-label="Menge"
-                        ${pending ? "disabled" : ""}
-                    >
+                   <input
+    data-stock-quantity
+    type="number"
+    min="1"
+    step="1"
+    inputmode="numeric"
+    placeholder="Menge"
+    aria-label="Menge"
+    ${invoicePrefill
+        ? `value="${invoiceRemaining}"`
+        : ""}
+    ${pending ? "disabled" : ""}
+>
 
                     <input
-                        data-stock-cost
-                        type="text"
-                        inputmode="decimal"
-                        placeholder="EK optional"
-                        aria-label="Einkaufspreis optional"
-                        ${pending ? "disabled" : ""}
-                    >
+    data-stock-cost
+    type="text"
+    inputmode="decimal"
+    placeholder="EK optional"
+    aria-label="Einkaufspreis optional"
+    ${invoicePrefill &&
+      invoiceStockLine.unit_purchase_price != null
+        ? `value="${Number(
+            invoiceStockLine.unit_purchase_price
+          ).toFixed(2).replace(".", ",")}"`
+        : ""}
+    ${pending ? "disabled" : ""}
+>
 
                     <button
                         type="button"
@@ -3669,21 +3818,35 @@ notice.innerHTML = `
                     return;
                 }
 
-                await commitReview(
-                    "teacher_add_stock_v8",
-                    {
-                        p_product_id: product.id,
-                        p_quantity: quantity,
-                        p_invoice_id:
-                            state.currentInventoryInvoice
-                                ?.id || null,
-                        p_unit_purchase_price:
-                            rawCost
-                                ? parseMoney(rawCost)
-                                : null
-                    },
-                    "Bestand aktualisiert."
-                );
+                if (invoicePrefill) {
+    await commitReview(
+        "teacher_receive_invoice_stock",
+        {
+            p_invoice_id: state.currentInventoryInvoice.id,
+            p_entries: [{
+                product_id: product.id,
+                quantity,
+                unit_purchase_price: rawCost
+                    ? parseMoney(rawCost)
+                    : null
+            }]
+        },
+        "Bestand aktualisiert."
+    );
+} else {
+    await commitReview(
+        "teacher_add_stock_v8",
+        {
+            p_product_id: product.id,
+            p_quantity: quantity,
+            p_invoice_id: null,
+            p_unit_purchase_price: rawCost
+                ? parseMoney(rawCost)
+                : null
+        },
+        "Bestand aktualisiert."
+    );
+}
             });
 
             box.appendChild(row);
