@@ -1748,7 +1748,47 @@
                 </div>
 
             </div>
+<section class="invoice-items-section">
+    <div class="invoice-items-heading">
+        <strong>Gekaufte Produkte</strong>
 
+        <button
+            type="button"
+            class="secondary-action"
+            id="addInvoiceItemButton"
+        >
+            + Produkt
+        </button>
+    </div>
+
+    <div class="invoice-items-scroll">
+        <div class="invoice-items-list" id="invoiceItemsList"></div>
+    </div>
+
+    <div class="invoice-items-summary">
+        <span>
+            Produkte:
+            <strong id="invoiceItemsSubtotal">0,00 €</strong>
+        </span>
+
+        <span>
+            Pfand:
+            <strong id="invoiceItemsPfand">0,00 €</strong>
+        </span>
+
+        <span>
+            Berechnet:
+            <strong id="invoiceItemsCalculatedTotal">0,00 €</strong>
+        </span>
+    </div>
+
+    <p
+        class="invoice-items-check"
+        id="invoiceItemsCheck"
+        role="status"
+        aria-live="polite"
+    ></p>
+</section>
             <button
                 class="primary-action"
                 id="saveInvoiceButton"
