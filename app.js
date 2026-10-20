@@ -66,21 +66,37 @@ function isTeacher(){return state.currentPerson?.person_type==="lehrer";}
 
 /* Profil spécial du Bufdi — affichage uniquement */
 
+
+/* =========================================================
+   RÔLES UTILISATEURS — LEHRKRAFT / BUFDI / SCHÜLER
+   Le rôle provient directement de Supabase.
+   ========================================================= */
+
 function isBufdi(person) {
-    return person?.person_type === "schüler" &&
-        String(person?.first_name || "").trim().toLocaleLowerCase("de") === "lukas" &&
-        String(person?.last_name || "").trim().toLocaleLowerCase("de") === "knödler";
+    return person?.person_type === "bufdi";
 }
 
 function personRoleLabel(person) {
-    if (person?.person_type === "lehrer") return "Lehrkraft";
-    if (isBufdi(person)) return "Bufdi";
+    if (person?.person_type === "lehrer") {
+        return "Lehrkraft";
+    }
+
+    if (isBufdi(person)) {
+        return "Bufdi";
+    }
+
     return "Schüler";
 }
 
 function personRoleEmoji(person) {
-    if (person?.person_type === "lehrer") return "👨‍🏫";
-    if (isBufdi(person)) return "👨🏻‍💼";
+    if (person?.person_type === "lehrer") {
+        return "👨🏻‍🏫";
+    }
+
+    if (isBufdi(person)) {
+        return "👨🏻‍💼";
+    }
+
     return "👤";
 }
 
