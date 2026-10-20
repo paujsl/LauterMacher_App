@@ -11191,28 +11191,37 @@ body * {
    BEZAHLEN â€” PAIEMENT EXACT
    ================================================ */
 
-.exact-payment-button {
+
+/* =====================================================
+   PASSEND BEZAHLT — GETRÄNKE, BÄCKEREI, EVENTS
+   ===================================================== */
+
+:is(
+    #drinksPaymentScreen,
+    #bakeryPaymentScreen,
+    #eventPaymentScreen
+) .exact-payment-button {
     display: flex;
     align-items: center;
     justify-content: center;
 
     width: 100%;
-    max-width: 600px;
-    min-height: 70px;
+    min-height: 58px;
+    max-width: none;
 
     box-sizing: border-box;
-    margin: 0 auto 20px;
-    padding: 14px 20px;
+    margin: 12px 0 0;
+    padding: 12px 18px;
 
-    border: 2px solid #a9bb51;
-    border-radius: 24px;
+    border: 0;
+    border-radius: 30px;
 
-    background: #edf3c9;
-    color: #12496c;
+    background: #5974FD;
+    color: #ffffff;
 
     font: inherit;
-    font-size: clamp(20px, 3.5vw, 26px);
-    font-weight: 800;
+    font-size: 1.2rem;
+    font-weight: 850;
     line-height: 1.2;
     text-align: center;
 
@@ -11220,15 +11229,33 @@ body * {
     touch-action: manipulation;
 }
 
-.exact-payment-button:active {
+:is(
+    #drinksPaymentScreen,
+    #bakeryPaymentScreen,
+    #eventPaymentScreen
+) .exact-payment-button:active {
     transform: scale(0.98);
-    background: #dce9a6;
+    background: #435DE0;
 }
 
-.exact-payment-button:focus-visible {
+:is(
+    #drinksPaymentScreen,
+    #bakeryPaymentScreen,
+    #eventPaymentScreen
+) .exact-payment-button:focus-visible {
     outline: 3px solid #12496c;
     outline-offset: 3px;
 }
+
+:is(
+    #drinksPaymentScreen,
+    #bakeryPaymentScreen,
+    #eventPaymentScreen
+) .exact-payment-button:disabled {
+    opacity: 0.45;
+    cursor: wait;
+}
+
 /* PROFESSEUR â€” COMMUTATEUR TEST / RÃ‰EL */
 .teacher-test-toggle {
     display: block;
