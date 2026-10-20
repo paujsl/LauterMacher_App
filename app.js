@@ -5860,6 +5860,11 @@ function openStudentModal(student) {
         student?.last_name ||
         "";
 
+$("studentRoleInput").value =
+    student?.person_type === "bufdi"
+        ? "bufdi"
+        : "schüler";
+   
     $("studentNumberInput").value =
         student?.student_number ||
         "";
