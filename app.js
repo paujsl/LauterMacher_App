@@ -401,6 +401,7 @@ const TEACHER_TEST_SCREENS = new Set([
     "eventOutputScreen"
 ]);
 
+
 function updateTeacherTestUI() {
     const active = isTeacherTestMode();
 
@@ -412,13 +413,21 @@ function updateTeacherTestUI() {
     document.querySelectorAll(
         ".teacher-test-toggle"
     ).forEach(button => {
+        const screen = button.closest(".screen");
+
         const visible =
             isTeacher() &&
             TEACHER_TEST_SCREENS.has(state.currentScreenId) &&
-            button.closest(".screen")?.id === state.currentScreenId;
+            screen?.id === state.currentScreenId;
+
+        const group = button.closest(".teacher-test-group");
+        const warning = group?.querySelector(".teacher-test-warning");
+
+        if (group) {
+            group.hidden = !visible;
+        }
 
         button.hidden = !visible;
-        button.style.display = visible ? "block" : "none";
 
         button.textContent = active
             ? "Testumgebung aktiv"
@@ -428,6 +437,10 @@ function updateTeacherTestUI() {
             "aria-pressed",
             String(active)
         );
+
+        if (warning) {
+            warning.hidden = !(visible && active);
+        }
     });
 
     [
@@ -442,6 +455,7 @@ function updateTeacherTestUI() {
         }
     });
 }
+
 
 function installTeacherTestToggles() {
     for (const id of TEACHER_TEST_SCREENS) {
@@ -511,7 +525,30 @@ function installTeacherTestToggles() {
             }
         });
 
-        screen.prepend(button);
+        
+const group = document.createElement("div");
+group.className = "teacher-test-group";
+
+const warning = document.createElement("div");
+warning.className = "teacher-test-warning";
+warning.textContent =
+    "⚠️ Testumgebung – keine Daten werden gespeichert";
+warning.hidden = true;
+
+group.append(button, warning);
+
+const header =
+    screen.querySelector(":scope > .screen-header") ||
+    screen.querySelector(":scope > .page-header") ||
+    screen.querySelector("header.screen-header") ||
+    screen.querySelector("header.page-header");
+
+if (header) {
+    header.appendChild(group);
+} else {
+    screen.prepend(group);
+}
+
     }
 
     updateTeacherTestUI();
