@@ -5711,8 +5711,34 @@ async function loadStudents() {
     }
 
 
-    const students =
-        data || [];
+    
+const students = [...(data || [])];
+
+students.sort((a, b) => {
+    // Les Bufdis apparaissent avant les Schüler.
+    const priorityA = a.person_type === "bufdi" ? 0 : 1;
+    const priorityB = b.person_type === "bufdi" ? 0 : 1;
+
+    if (priorityA !== priorityB) {
+        return priorityA - priorityB;
+    }
+
+    // Ordre alphabétique par nom, puis prénom.
+    const nameA = [
+        a.last_name || "",
+        a.first_name || ""
+    ].join(" ");
+
+    const nameB = [
+        b.last_name || "",
+        b.first_name || ""
+    ].join(" ");
+
+    return nameA.localeCompare(nameB, "de", {
+        sensitivity: "base"
+    });
+});
+
 
 
     box.innerHTML =
@@ -5756,18 +5782,6 @@ async function loadStudents() {
 <small>
     ${personRoleLabel(student)}
 </small>
-
-
-
-                        <small>
-                            ${
-                                student.student_number
-                                    ? `Nr. ${esc(
-                                        student.student_number
-                                    )}`
-                                    : "Keine Schülernummer"
-                            }
-                        </small>
 
                     </div>
 
