@@ -63,6 +63,27 @@ function setHTML(id,value){const el=$(id);if(el)el.innerHTML=value??"";}
 function show(el,display=""){if(el){el.hidden=false;if(display)el.style.display=display;}}
 function hide(el){if(el){el.hidden=true;el.style.display="none";}}
 function isTeacher(){return state.currentPerson?.person_type==="lehrer";}
+
+/* Profil spécial du Bufdi — affichage uniquement */
+
+function isBufdi(person) {
+    return person?.person_type === "schüler" &&
+        String(person?.first_name || "").trim().toLocaleLowerCase("de") === "lukas" &&
+        String(person?.last_name || "").trim().toLocaleLowerCase("de") === "knödler";
+}
+
+function personRoleLabel(person) {
+    if (person?.person_type === "lehrer") return "Lehrkraft";
+    if (isBufdi(person)) return "Bufdi";
+    return "Schüler";
+}
+
+function personRoleEmoji(person) {
+    if (person?.person_type === "lehrer") return "👨‍🏫";
+    if (isBufdi(person)) return "👨🏻‍💼";
+    return "👤";
+}
+
 function personName(person){return [person?.first_name,person?.last_name].filter(Boolean).join(" ").trim()||person?.display_name||person?.name||"—";}
 function productArea(p){return String(p?.area||p?.category||p?.product_area||"").toLowerCase();}
 function productIcon(p){return p?.icon||p?.emoji||"•";}
@@ -750,8 +771,8 @@ function applyRoleUI(){
     });
     document.body.classList.toggle("teacher-mode",teacher);
     setText("currentPersonName",personName(state.currentPerson));
-    setText("currentPersonRole",teacher?"Lehrkraft":"Schüler");
-    setText("homeRoleLabel",teacher?"Lehrkraft":"Schüler");
+    setText("currentPersonRole", personRoleLabel(state.currentPerson));
+    setText("homeRoleLabel", personRoleLabel(state.currentPerson));
     $("currentPersonRole")?.classList.toggle("teacher-role",teacher);
     $("homeRoleLabel")?.classList.toggle("teacher-role",teacher);
     ["homeDrinksTestBadge","homeBakeryTestBadge"].forEach(id => {
@@ -784,36 +805,105 @@ function showSchoolClosed(){
    AUTH / LOGIN
    ===================================================================== */
 
-async function loadLoginPeople(){
-    try{
-        let {data,error}=await db.rpc("get_login_people");
-        if(error){
-            const fallback=await db.from("login_people").select("*");
-            data=fallback.data; error=fallback.error;
+
+async function loadLoginPeople() {
+    try {
+        let { data, error } = await db.rpc("get_login_people");
+
+        if (error) {
+            const fallback = await db
+                .from("login_people")
+                .select("*");
+
+            data = fallback.data;
+            error = fallback.error;
         }
-        if(error)throw error;
-        const grid=$("peopleGrid"); if(!grid)return;
-        grid.innerHTML="";
-        (data||[]).forEach(person=>{
-            const btn=document.createElement("button");
-            btn.type="button"; btn.className="person-card";
-            btn.innerHTML=`<span class="person-avatar">${person.person_type==="lehrer"?"👨‍🏫":"👤"}</span><strong>${esc(personName(person))}</strong><small>${person.person_type==="lehrer"?"Lehrkraft":"Schüler"}</small>`;
-            btn.addEventListener("click",()=>{
-                state.selectedLoginPerson=person;
-                if(!studentMayOpenPin(person)){showSchoolClosed();return;}
-                setText("selectedPersonName",personName(person));
-                $("loginPinInput").value="";
-                setText("pinLoginError","");
-                showScreen("pinLoginScreen",{login:true});
-                setTimeout(()=>$("loginPinInput")?.focus(),50);
+
+        if (error) throw error;
+
+        const grid = $("peopleGrid");
+        if (!grid) return;
+
+        grid.innerHTML = "";
+
+        const people = [...(data || [])];
+
+        // 1. Professeurs
+        // 2. Lukas (Bufdi)
+        // 3. Élèves par ordre alphabétique
+        people.sort((a, b) => {
+            const priority = person => {
+                if (person.person_type === "lehrer") return 0;
+                if (isBufdi(person)) return 1;
+                return 2;
+            };
+
+            const difference = priority(a) - priority(b);
+            if (difference !== 0) return difference;
+
+            const nameA = [
+                a.last_name || "",
+                a.first_name || ""
+            ].join(" ");
+
+            const nameB = [
+                b.last_name || "",
+                b.first_name || ""
+            ].join(" ");
+
+            return nameA.localeCompare(nameB, "de", {
+                sensitivity: "base"
             });
+        });
+
+        people.forEach(person => {
+            const btn = document.createElement("button");
+
+            btn.type = "button";
+            btn.className = "person-card";
+
+            btn.innerHTML = `
+                <span class="person-avatar">
+                    ${personRoleEmoji(person)}
+                </span>
+                <strong>${esc(personName(person))}</strong>
+                <small>${personRoleLabel(person)}</small>
+            `;
+
+            btn.addEventListener("click", () => {
+                state.selectedLoginPerson = person;
+
+                if (!studentMayOpenPin(person)) {
+                    showSchoolClosed();
+                    return;
+                }
+
+                setText("selectedPersonName", personName(person));
+                $("loginPinInput").value = "";
+                setText("pinLoginError", "");
+
+                showScreen("pinLoginScreen", { login: true });
+
+                setTimeout(
+                    () => $("loginPinInput")?.focus(),
+                    50
+                );
+            });
+
             grid.appendChild(btn);
         });
-        setText("identityError","");
-    }catch(error){
-        console.error(error); setText("identityError","Personen konnten nicht geladen werden.");
+
+        setText("identityError", "");
+
+    } catch (error) {
+        console.error(error);
+        setText(
+            "identityError",
+            "Personen konnten nicht geladen werden."
+        );
     }
 }
+
 
 $("loginBackButton")?.addEventListener("click",()=>{state.selectedLoginPerson=null;showScreen("identityScreen",{login:true});});
 $("loginConfirmButton")?.addEventListener("click",loginWithPin);
