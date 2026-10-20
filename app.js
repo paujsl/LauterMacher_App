@@ -161,7 +161,7 @@ const screenTitles = {
     studentInventoryScreen:"Bearbeiten · Inventur",
     teacherInventoryScreen:"Bearbeiten · Inventur",
     invoicesScreen:"Bearbeiten · Rechnungen",
-    studentsScreen:"Bearbeiten · Schüler",
+    studentsScreen:"Bearbeiten · 👤 Profile",
     notificationsScreen:"Benachrichtigungen",
     reportsScreen:"Berichte",
     eventsScreen:"Sonderveranstaltung",
@@ -6088,10 +6088,14 @@ p_person_type:
 
             await loadStudents();
 
-            toast(
-                "Schüler gespeichert.",
-                "success"
-            );
+            
+toast(
+    personType === "bufdi"
+        ? "Bufdi gespeichert."
+        : "Schüler gespeichert.",
+    "success"
+);
+
 
                } catch (error) {
 
