@@ -11345,3 +11345,10 @@ body.teacher-test-mode :is(
     border-radius: 24px;
     white-space: nowrap;
 }
+/* Sonderveranstaltung :
+   masquer les bulles TEST sur Kasse et Ausgabe */
+
+#eventDetailScreen .test-badge,
+#eventDetailScreen .test-badge:hover {
+    display: none !important;
+}
