@@ -5738,9 +5738,11 @@ async function loadStudents() {
             row.innerHTML = `
                 <div class="student-row-main">
 
-                    <span class="student-avatar">
-                        👤
-                    </span>
+                    
+<span class="student-avatar">
+    ${personRoleEmoji(student)}
+</span>
+
 
                     <div>
 
@@ -5749,6 +5751,11 @@ async function loadStudents() {
                                 personName(student)
                             )}
                         </strong>
+
+<small>
+    ${personRoleEmoji(student)} ${personRoleLabel(student)}
+</small>
+
 
                         <small>
                             ${
