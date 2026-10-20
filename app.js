@@ -8074,13 +8074,16 @@ $("closeEventButton")?.addEventListener(
         }
 
 
-        if (
-            !window.confirm(
-                `"${state.currentEvent.name}" wirklich abschließen? Danach wird die Veranstaltung nur noch als abgeschlossene Zeile angezeigt.`
-            )
-        ) {
-            return;
-        }
+       
+const confirmed = await confirmInApp(
+    `"${state.currentEvent.name}" wirklich abschließen? Danach wird die Veranstaltung nur noch als abgeschlossene Zeile angezeigt.`,
+    "Veranstaltung abschließen?"
+);
+
+if (!confirmed) {
+    return;
+}
+
 
 
         const button =
