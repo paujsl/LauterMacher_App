@@ -6029,12 +6029,14 @@ const personType =
                             studentNumber ||
                             null,
 
-                        p_pin:
-                            pin ||
-                            null
+                        
+p_pin:
+    pin ||
+    null,
 
-                       p_person_type:
-                         personType
+p_person_type:
+    personType
+
                     }
                 );
 
@@ -6061,10 +6063,13 @@ const personType =
                             studentNumber ||
                             null,
 
-                        p_pin:
-                            pin
+                       
+p_pin:
+    pin,
+
 p_person_type:
     personType
+
                        
                     }
                 );
