@@ -20562,6 +20562,15 @@ function renderProductPurchaseReferences(product) {
                                                 >
                                                     🧾 Rechnung erfassen
                                                 </button>
+                                                
+<button
+    type="button"
+    class="secondary-action shopping-cancel-button"
+    data-cancel-purchase="${esc(purchase.id)}"
+>
+    🗑️ Einkauf stornieren
+</button>
+
                                             </div>
                                         </div>
                                     </article>
@@ -20581,6 +20590,284 @@ function renderProductPurchaseReferences(product) {
     };
 
    
+    /* =====================================================
+       ETAPE 4 — ANNULATION ET HISTORIQUE DES ACHATS
+       ===================================================== */
+
+    const shoppingHistoryBox = document.createElement("section");
+    shoppingHistoryBox.id = "shoppingRecentPurchases";
+    shoppingHistoryBox.className = "shopping-history-section";
+
+    pendingPurchasesBox.insertAdjacentElement(
+        "afterend",
+        shoppingHistoryBox
+    );
+
+    let recentShoppingPurchases = [];
+    let shoppingActionBusy = false;
+
+    const shoppingHistoryDate = value => {
+        if (!value) return "—";
+
+        const date = new Date(value);
+
+        return Number.isNaN(date.getTime())
+            ? "—"
+            : date.toLocaleDateString("de-DE", {
+                timeZone: "Europe/Berlin"
+            });
+    };
+
+    const shoppingHistoryMoney = value =>
+        Number(value || 0).toLocaleString("de-DE", {
+            style: "currency",
+            currency: "EUR"
+        });
+
+    const renderShoppingHistory = () => {
+        shoppingHistoryBox.innerHTML = `
+            <div class="shopping-section-heading">
+                <div>
+                    <h2>🕘 Letzte Einkäufe</h2>
+                    <p>
+                        Abgeschlossene Einkäufe mit Rechnung.
+                    </p>
+                </div>
+                <span class="shopping-section-count">
+                    ${recentShoppingPurchases.length}
+                </span>
+            </div>
+
+            ${
+                recentShoppingPurchases.length
+                    ? `
+                        <div class="shopping-history-list">
+                            ${recentShoppingPurchases.map(purchase => {
+                                const items = purchase.items || [];
+
+                                return `
+                                    <article class="shopping-history-card">
+                                        <div class="shopping-history-main">
+                                            <div>
+                                                <strong>
+                                                    ${esc(
+                                                        purchase.supplier ||
+                                                        "Ohne Geschäft"
+                                                    )}
+                                                </strong>
+
+                                                <p>
+                                                    ${esc(
+                                                        shoppingHistoryDate(
+                                                            purchase.purchased_at
+                                                        )
+                                                    )}
+                                                    ·
+                                                    ${esc(
+                                                        purchase.invoice_number ||
+                                                        "Rechnung vorhanden"
+                                                    )}
+                                                </p>
+                                            </div>
+
+                                            <strong class="shopping-history-price">
+                                                ${shoppingHistoryMoney(
+                                                    purchase.total_amount
+                                                )}
+                                            </strong>
+                                        </div>
+
+                                        <div class="shopping-history-products">
+                                            ${items.map(item => `
+                                                <span>
+                                                    ${esc(item.product_name)}
+                                                    ·
+                                                    ${Number(item.packs || 0)}
+                                                    Packung(en)
+                                                </span>
+                                            `).join("")}
+                                        </div>
+
+                                        <div class="shopping-history-actions">
+                                            <span class="shopping-history-status">
+                                                ✓ Abgerechnet
+                                            </span>
+
+                                            <button
+                                                type="button"
+                                                class="secondary-action shopping-hide-button"
+                                                data-hide-purchase="${esc(
+                                                    purchase.id
+                                                )}"
+                                            >
+                                                Aus Verlauf ausblenden
+                                            </button>
+                                        </div>
+                                    </article>
+                                `;
+                            }).join("")}
+                        </div>
+                    `
+                    : `
+                        <div class="shopping-history-empty">
+                            Noch keine abgeschlossenen Einkäufe.
+                        </div>
+                    `
+            }
+        `;
+    };
+
+    const loadShoppingHistory = async () => {
+        if (!isTeacher()) return;
+
+        const personId = state.currentPerson?.id;
+
+        shoppingHistoryBox.innerHTML =
+            '<p class="shopping-note">Verlauf wird geladen …</p>';
+
+        const { data, error } = await db.rpc(
+            "teacher_list_recent_shopping_purchases"
+        );
+
+        if (error) throw error;
+
+        if (
+            !isTeacher() ||
+            state.currentPerson?.id !== personId
+        ) return;
+
+        recentShoppingPurchases =
+            Array.isArray(data) ? data : [];
+
+        renderShoppingHistory();
+    };
+
+    const refreshShoppingPurchases = async () => {
+        await loadPendingPurchases();
+        await loadShoppingHistory();
+    };
+
+    pendingPurchasesBox.addEventListener(
+        "click",
+        async event => {
+            const button = event.target.closest(
+                "[data-cancel-purchase]"
+            );
+
+            if (
+                !button ||
+                shoppingActionBusy ||
+                saving ||
+                !isTeacher()
+            ) return;
+
+            const purchase = pendingPurchases.find(
+                item => item.id === button.dataset.cancelPurchase
+            );
+
+            if (!purchase) return;
+
+            const confirmed = await confirmInApp(
+                "Diesen offenen Einkauf stornieren? " +
+                "Die Daten bleiben gespeichert. " +
+                "Es wird keine Rechnung gelöscht.",
+                "Einkauf stornieren"
+            );
+
+            if (!confirmed) return;
+
+            shoppingActionBusy = true;
+            button.disabled = true;
+
+            try {
+                const { error } = await db.rpc(
+                    "teacher_cancel_shopping_purchase",
+                    {
+                        p_purchase_id: purchase.id
+                    }
+                );
+
+                if (error) throw error;
+
+                await refreshShoppingPurchases();
+
+                toast("Einkauf wurde storniert.", "success");
+            } catch (error) {
+                console.error(error);
+
+                toast(
+                    "Einkauf konnte nicht storniert werden.",
+                    "error"
+                );
+            } finally {
+                shoppingActionBusy = false;
+                button.disabled = false;
+            }
+        }
+    );
+
+    shoppingHistoryBox.addEventListener(
+        "click",
+        async event => {
+            const button = event.target.closest(
+                "[data-hide-purchase]"
+            );
+
+            if (
+                !button ||
+                shoppingActionBusy ||
+                saving ||
+                !isTeacher()
+            ) return;
+
+            const purchase = recentShoppingPurchases.find(
+                item => item.id === button.dataset.hidePurchase
+            );
+
+            if (!purchase) return;
+
+            const confirmed = await confirmInApp(
+                "Diesen Einkauf aus dem Verlauf ausblenden? " +
+                "Die Rechnung und alle Buchhaltungsdaten " +
+                "bleiben erhalten.",
+                "Einkauf ausblenden"
+            );
+
+            if (!confirmed) return;
+
+            shoppingActionBusy = true;
+            button.disabled = true;
+
+            try {
+                const { error } = await db.rpc(
+                    "teacher_hide_shopping_purchase",
+                    {
+                        p_purchase_id: purchase.id
+                    }
+                );
+
+                if (error) throw error;
+
+                await loadShoppingHistory();
+
+                toast(
+                    "Einkauf wurde ausgeblendet.",
+                    "success"
+                );
+            } catch (error) {
+                console.error(error);
+
+                toast(
+                    "Einkauf konnte nicht ausgeblendet werden.",
+                    "error"
+                );
+            } finally {
+                shoppingActionBusy = false;
+                button.disabled = false;
+            }
+        }
+    );
+
     const render = () => {
         $("shoppingRows").innerHTML = rows.map(row => {
             const packs = packsFor(row);
@@ -20725,13 +21012,19 @@ function renderProductPurchaseReferences(product) {
                         rows = data || [];
             render();
 
+            
             try {
-                await loadPendingPurchases();
-            } catch (pendingError) {
-                console.error(pendingError);
+                await refreshShoppingPurchases();
+            } catch (purchaseError) {
+                console.error(purchaseError);
+
                 pendingPurchasesBox.textContent =
-                    "Offene Einkäufe konnten nicht geladen werden.";
+                    "Einkäufe konnten nicht vollständig geladen werden.";
+
+                shoppingHistoryBox.textContent =
+                    "Verlauf konnte nicht geladen werden.";
             }
+
 
             $("shoppingStatus").textContent =
                 "Aktualisiert: " +
