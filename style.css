@@ -11310,3 +11310,21 @@ body.teacher-test-mode :is(
     line-height: 1.25;
     text-align: center;
 }
+
+/* Rückgeld : plus discret sur l'écran de succès */
+
+:is(
+    #drinksSuccessScreen,
+    #bakerySuccessScreen,
+    #eventSuccessScreen
+) .success-content :is(.success-change, .change-amount) {
+    max-width: 560px;
+    margin: 12px auto 22px;
+    padding: 16px 22px;
+
+    border-radius: 26px;
+
+    font-size: clamp(1.15rem, 2.5vw, 1.65rem);
+    font-weight: 750;
+    line-height: 1.3;
+}
