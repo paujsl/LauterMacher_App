@@ -20036,43 +20036,55 @@ function renderProductPurchaseReferences(product) {
         </header>
 
         <section class="admin-content shopping-content">
-            <div class="shopping-toolbar">
-                <label>
-                    Vorrat für
-                    <input
-                        id="shoppingDays"
-                        type="number"
-                        min="1"
-                        max="30"
-                        value="10"
-                    >
-                    Schultage
-                </label>
+           
+<div class="shopping-toolbar">
+    <div class="shopping-settings">
+        <label>
+            Vorrat für
+            <span class="shopping-setting-control">
+                <select id="shoppingWeeks">
+                    <option value="1">1 Woche</option>
+                    <option value="2" selected>2 Wochen</option>
+                    <option value="3">3 Wochen</option>
+                    <option value="4">4 Wochen</option>
+                    <option value="5">5 Wochen</option>
+                    <option value="6">6 Wochen</option>
+                </select>
+            </span>
+        </label>
 
-                <label>
-                    Sicherheitsreserve
-                    <input
-                        id="shoppingSafetyDays"
-                        type="number"
-                        min="0"
-                        max="14"
-                        value="2"
-                    >
-                    Schultage
-                </label>
+        <label>
+            Sicherheitsreserve
+            <span class="shopping-setting-control">
+                <select id="shoppingSafetyDays">
+                    <option value="0">0 Tage</option>
+                    <option value="1">1 Tag</option>
+                    <option value="2" selected>2 Tage</option>
+                    <option value="3">3 Tage</option>
+                    <option value="4">4 Tage</option>
+                    <option value="5">5 Tage</option>
+                    <option value="6">6 Tage</option>
+                    <option value="7">7 Tage</option>
+                </select>
+            </span>
+        </label>
+    </div>
 
-                <button
-                    type="button"
-                    class="secondary-action"
-                    id="shoppingRefreshButton"
-                >Aktualisieren</button>
+    <div class="shopping-main-actions">
+        <button
+            type="button"
+            class="secondary-action"
+            id="shoppingRefreshButton"
+        >Aktualisieren</button>
+    </div>
 
-                <button
-                    type="button"
-                    class="secondary-action"
-                    id="shoppingResetButton"
-                >Neue Planung</button>
-            </div>
+    <button
+        type="button"
+        id="shoppingResetButton"
+        hidden
+    >Neue Planung</button>
+</div>
+
 
             <p class="shopping-note">
                 Vorschlag aus Verbrauch und aktuellem Bestand.
@@ -20086,15 +20098,15 @@ function renderProductPurchaseReferences(product) {
             <div class="shopping-scroll">
                 <table class="shopping-table">
                     <thead>
-                        <tr>
-                            <th>Gekauft</th>
-                            <th>Produkt</th>
-                            <th>Bestand</th>
-                            <th>Verbrauch / Tag</th>
-                            <th>Packungen</th>
-                            <th>Stück</th>
-                            <th>Geschätzter Preis</th>
-                        </tr>
+                       
+<tr>
+    <th aria-label="Gekauft">✓</th>
+    <th>Produkt</th>
+    <th>Bestand</th>
+    <th>Packungen</th>
+    <th>Stück</th>
+</tr>
+
                     </thead>
 
                     <tbody id="shoppingRows"></tbody>
@@ -20124,11 +20136,13 @@ function renderProductPurchaseReferences(product) {
     finishShoppingButton.id = "shoppingFinishButton";
     finishShoppingButton.textContent = "🛒 Einkauf abschließen";
 
-    const shoppingTotal = $("shoppingTotal");
-    shoppingTotal.insertAdjacentElement(
-        "afterend",
-        finishShoppingButton
-    );
+    
+const shoppingTotal = $("shoppingTotal");
+
+document.querySelector(
+    "#shoppingListScreen .shopping-main-actions"
+).append(finishShoppingButton);
+
 
     const pendingPurchasesBox = document.createElement("section");
     pendingPurchasesBox.id = "shoppingPendingPurchases";
@@ -20909,17 +20923,6 @@ function renderProductPurchaseReferences(product) {
                     <td>${row.stock}</td>
 
                     <td>
-                        ${
-                            row.observed_days < 3
-                                ? "—"
-                                : Number(row.average)
-                                    .toLocaleString("de-DE", {
-                                        maximumFractionDigits: 1
-                                    })
-                        }
-                    </td>
-
-                    <td>
                         <input
                             type="number"
                             min="0"
@@ -20932,15 +20935,11 @@ function renderProductPurchaseReferences(product) {
                     </td>
 
                     <td>${packs * row.units}</td>
-
-                    <td>
-                        ${price == null ? "—" : money(price)}
-                    </td>
                 </tr>
             `;
         }).join("") || `
             <tr>
-                <td colspan="7">Keine Getränke vorhanden.</td>
+                <td colspan="5">Keine Getränke vorhanden.</td>
             </tr>
         `;
 
@@ -20972,8 +20971,11 @@ function renderProductPurchaseReferences(product) {
     const load = async (reset = false) => {
         if (!isTeacher()) return;
 
-        const days = Number($("shoppingDays").value);
-        const safety = Number($("shoppingSafetyDays").value);
+        
+const weeks = Number($("shoppingWeeks").value);
+const days = weeks * 5;
+const safety = Number($("shoppingSafetyDays").value);
+
 
         if (
             !Number.isInteger(days) ||
