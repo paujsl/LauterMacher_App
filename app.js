@@ -12092,8 +12092,23 @@ window.addEventListener(
  * - ni rapports.
  */
 
-function clearTeacherTestEnvironment() {
+/* =====================================================
+   MODE DE VENTE PROFESSEUR
+   Normal par défaut, test sur demande
+   ===================================================== */
 
+let teacherTestMode = false;
+
+function isTeacherTestMode() {
+    return isTeacher() && teacherTestMode;
+}
+
+function isRealSalesMode() {
+    return !isTeacherTestMode();
+}
+
+function clearTeacherTestEnvironment() {
+    teacherTestMode = false;
     state.bakeryTestOrders =
         [];
 
