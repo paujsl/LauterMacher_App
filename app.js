@@ -20410,62 +20410,176 @@ function renderProductPurchaseReferences(product) {
         renderPendingPurchases();
     };
 
+    
     const renderPendingPurchases = () => {
+        pendingPurchasesBox.className = "shopping-pending-section";
+
         pendingPurchasesBox.innerHTML = `
-            <h3>
-                📋 Offene Einkäufe
-                (${pendingPurchases.length})
-            </h3>
+            <div class="shopping-section-heading">
+                <div>
+                    <h2>📋 Offene Einkäufe</h2>
+                    <p>
+                        Bereits eingekauft, aber noch nicht
+                        in der Buchhaltung erfasst.
+                    </p>
+                </div>
+
+                <span class="shopping-section-count">
+                    ${pendingPurchases.length}
+                </span>
+            </div>
 
             ${
                 pendingPurchases.length
-                    ? pendingPurchases.map(purchase => `
-                        <div
-                            style="
-                                border:1px solid #ddd;
-                                border-radius:12px;
-                                padding:12px;
-                                margin:10px 0;
-                            "
-                        >
-                            <strong>
-                                ${esc(purchase.supplier || "Ohne Geschäft")}
-                            </strong>
+                    ? `
+                        <div class="shopping-purchase-grid">
+                            ${pendingPurchases.map(purchase => {
+                                const items = purchase.items || [];
 
-                            <p>
-                                ${esc(new Date(
-                                    purchase.purchased_at
-                                ).toLocaleDateString("de-DE"))}
-                                · Rechnung noch erfassen
-                            </p>
+                                const totalPacks = items.reduce(
+                                    (sum, item) =>
+                                        sum + Number(item.packs || 0),
+                                    0
+                                );
 
-                            <p>
-                                ${(purchase.items || []).map(item =>
-                                    `${esc(item.product_name)}:
-                                    ${item.packs} Packung(en)`
-                                ).join("<br>")}
-                            </p>
+                                const estimatedTotal = items.reduce(
+                                    (sum, item) =>
+                                        sum +
+                                        Number(item.packs || 0) *
+                                        Number(
+                                            item.estimated_pack_price || 0
+                                        ),
+                                    0
+                                );
 
-                            <button
-                                type="button"
-                                class="secondary-action"
-                                data-edit-purchase="${esc(purchase.id)}"
-                            >
-                                Einkauf bearbeiten
-                            </button>
-                            <button
-    type="button"
-    class="secondary-action"
-    data-invoice-purchase="${esc(purchase.id)}"
->
-    🧾 Rechnung erfassen
-</button>
+                                const hasMissingPrices = items.some(
+                                    item =>
+                                        item.estimated_pack_price == null
+                                );
+
+                                return `
+                                    <article class="shopping-purchase-card">
+                                        <div class="shopping-purchase-header">
+                                            <div>
+                                                <span class="shopping-purchase-label">
+                                                    OFFENER EINKAUF
+                                                </span>
+
+                                                <h3>
+                                                    🛍️ ${esc(
+                                                        purchase.supplier ||
+                                                        "Ohne Geschäft"
+                                                    )}
+                                                </h3>
+
+                                                <time>
+                                                    ${esc(
+                                                        new Date(
+                                                            purchase.purchased_at
+                                                        ).toLocaleDateString(
+                                                            "de-DE"
+                                                        )
+                                                    )}
+                                                </time>
+                                            </div>
+
+                                            <span class="shopping-purchase-status">
+                                                Rechnung offen
+                                            </span>
+                                        </div>
+
+                                        <div class="shopping-purchase-summary">
+                                            <span>
+                                                ${items.length}
+                                                Produkte
+                                            </span>
+
+                                            <span>
+                                                ${totalPacks}
+                                                Packungen
+                                            </span>
+                                        </div>
+
+                                        <div class="shopping-purchase-items">
+                                            ${items.map(item => `
+                                                <div class="shopping-purchase-item">
+                                                    <span>
+                                                        ${esc(
+                                                            item.product_name
+                                                        )}
+                                                    </span>
+
+                                                    <strong>
+                                                        ${Number(item.packs)}
+                                                        ×
+                                                        ${Number(
+                                                            item.units_per_pack
+                                                        )}
+                                                    </strong>
+                                                </div>
+                                            `).join("")}
+                                        </div>
+
+                                        <div class="shopping-purchase-footer">
+                                            <div class="shopping-purchase-estimate">
+                                                <small>
+                                                    Geschätzter Betrag
+                                                </small>
+
+                                                <strong>
+                                                    ${money(estimatedTotal)}
+                                                </strong>
+
+                                                ${
+                                                    hasMissingPrices
+                                                        ? `
+                                                            <small>
+                                                                Preise teilweise
+                                                                unbekannt
+                                                            </small>
+                                                        `
+                                                        : ""
+                                                }
+                                            </div>
+
+                                            <div class="shopping-purchase-actions">
+                                                <button
+                                                    type="button"
+                                                    class="secondary-action"
+                                                    data-edit-purchase="${esc(
+                                                        purchase.id
+                                                    )}"
+                                                >
+                                                    ✏️ Bearbeiten
+                                                </button>
+
+                                                <button
+                                                    type="button"
+                                                    class="primary-action"
+                                                    data-invoice-purchase="${esc(
+                                                        purchase.id
+                                                    )}"
+                                                >
+                                                    🧾 Rechnung erfassen
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </article>
+                                `;
+                            }).join("")}
                         </div>
-                    `).join("")
-                    : "<p>Keine offenen Einkäufe.</p>"
+                    `
+                    : `
+                        <div class="shopping-empty-state">
+                            <span>✨</span>
+                            <strong>Alles erledigt!</strong>
+                            <p>Keine offenen Einkäufe vorhanden.</p>
+                        </div>
+                    `
             }
         `;
     };
+
    
     const render = () => {
         $("shoppingRows").innerHTML = rows.map(row => {
