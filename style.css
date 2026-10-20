@@ -11187,3 +11187,38 @@ body * {
     text-align: center;
     overflow: hidden;
 }
+/* ================================================
+   BEZAHLEN — PAIEMENT EXACT
+   ================================================ */
+
+.exact-payment-button {
+    display: block;
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto 20px;
+    padding: 17px 20px;
+
+    border: 2px solid #a9bb51;
+    border-radius: 20px;
+
+    background: #edf3c9;
+    color: #12496c;
+
+    font: inherit;
+    font-size: clamp(17px, 3.5vw, 23px);
+    font-weight: 800;
+    text-align: center;
+
+    cursor: pointer;
+    touch-action: manipulation;
+}
+
+.exact-payment-button:active {
+    transform: scale(0.98);
+    background: #dce9a6;
+}
+
+.exact-payment-button:focus-visible {
+    outline: 3px solid #12496c;
+    outline-offset: 3px;
+}
