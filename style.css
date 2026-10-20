@@ -11648,3 +11648,69 @@ body.teacher-test-mode :is(
     min-height: 0 !important;
     border-width: 0 !important;
 }
+
+/* ==========================================
+   LAUTER MACHER — EN-TÊTES HARMONISÉS
+   Titre centré, boutons presque alignés
+   ========================================== */
+
+.screen-header,
+.page-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+    column-gap: 12px;
+    position: relative;
+    padding-top: 14px;
+    padding-bottom: 14px;
+}
+
+/* Titre parfaitement centré */
+.screen-header > h1,
+.page-header > h1 {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: center;
+    text-align: center;
+    margin: 0;
+    font-size: clamp(1.8rem, 3vw, 2.5rem);
+    line-height: 1.2;
+}
+
+/* Bouton retour : à gauche */
+.screen-header > .back-button,
+.page-header > .back-button {
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: start;
+    align-self: center;
+    margin: 8px 0 0;
+}
+
+/* Boutons d'action : à droite */
+.screen-header > :is(button, .screen-mode-badge):not(.back-button),
+.page-header > :is(button, .screen-mode-badge):not(.back-button) {
+    grid-column: 3;
+    grid-row: 1;
+    justify-self: end;
+    align-self: center;
+    margin-top: 8px;
+}
+
+/* Sur petit écran, éviter les débordements */
+@media (max-width: 650px) {
+    .screen-header,
+    .page-header {
+        column-gap: 8px;
+    }
+
+    .screen-header > h1,
+    .page-header > h1 {
+        font-size: clamp(1.3rem, 4.5vw, 1.8rem);
+    }
+
+    .screen-header > .back-button,
+    .page-header > .back-button {
+        font-size: 0.8rem;
+    }
+}
