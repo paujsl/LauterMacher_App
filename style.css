@@ -1,9 +1,9 @@
 /* =========================================================
-   AUSGABE — EN-TÊTE DÉCALÉ ET HISTORIQUE À DROITE
+   AUSGABE â€” EN-TÃŠTE DÃ‰CALÃ‰ ET HISTORIQUE Ã€ DROITE
    ========================================================= */
 
 
-/* Trois niveaux distincts dans l’en-tête */
+/* Trois niveaux distincts dans lâ€™en-tÃªte */
 
 :is(#bakeryOutputScreen, #eventOutputScreen), #eventOutputScreen) {
     padding-top: 8px;
@@ -47,7 +47,7 @@
 }
 
 
-/* Commandes ouvertes à gauche, terminées à droite */
+/* Commandes ouvertes Ã  gauche, terminÃ©es Ã  droite */
 
 :is(#bakeryOutputScreen, #eventOutputScreen) .bakery-output-layout {
     display: grid;
@@ -76,7 +76,7 @@
 }
 
 
-/* Barre de menu déroulant violette */
+/* Barre de menu dÃ©roulant violette */
 
 :is(#bakeryOutputScreen, #eventOutputScreen) .bakery-completed-history {
     margin: 0;
@@ -109,17 +109,17 @@
 }
 
 :is(#bakeryOutputScreen, #eventOutputScreen) .bakery-completed-history summary::after {
-    content: "▸";
+    content: "â–¸";
     flex: 0 0 auto;
     color: #8b7ed4;
 }
 
 :is(#bakeryOutputScreen, #eventOutputScreen) .bakery-completed-history[open] summary::after {
-    content: "▾";
+    content: "â–¾";
 }
 
 
-/* Historique : numéro et date sur une seule ligne */
+/* Historique : numÃ©ro et date sur une seule ligne */
 
 :is(#bakeryOutputScreen, #eventOutputScreen) .bakery-completed-scroll {
     display: block;
@@ -175,7 +175,7 @@
 }
 
 
-/* Quand les deux panneaux ne tiennent plus côte à côte */
+/* Quand les deux panneaux ne tiennent plus cÃ´te Ã  cÃ´te */
 
 @media (max-width: 820px) {
 
@@ -203,7 +203,7 @@
 }
 
 
-/* Écrans particulièrement étroits */
+/* Ã‰crans particuliÃ¨rement Ã©troits */
 
 @media (max-width: 380px) {
 
@@ -373,7 +373,7 @@ p {
 }
 
 /* =====================================================================
-   ACCESSIBILITÃ‰ / FOCUS
+   ACCESSIBILITÃƒâ€° / FOCUS
    ===================================================================== */
 
 button:focus-visible,
@@ -495,7 +495,7 @@ textarea:focus-visible {
 }
 
 /*
- * Lehrkraft doit Ãªtre rouge et non violet.
+ * Lehrkraft doit ÃƒÂªtre rouge et non violet.
  */
 
 .current-person-role.teacher-role,
@@ -574,8 +574,8 @@ textarea:focus-visible {
    ===================================================================== */
 
 /*
- * Le fil d'Ariane est volontairement placÃ© SOUS le header.
- * Il est violet Ã  100 %, contrairement au header Ã  50 %.
+ * Le fil d'Ariane est volontairement placÃƒÂ© SOUS le header.
+ * Il est violet Ãƒ  100 %, contrairement au header Ãƒ  50 %.
  */
 
 .breadcrumb {
@@ -721,7 +721,7 @@ textarea:focus-visible {
 }
 
 /* =====================================================================
-   LOGIN / IDENTITÃ‰
+   LOGIN / IDENTITÃƒâ€°
    ===================================================================== */
 
 .login-screen {
@@ -1377,7 +1377,7 @@ textarea:focus-visible {
 }
 
 .test-banner::before {
-    content: "âš ï¸";
+    content: "Ã¢Å¡ Ã¯Â¸Â";
 
     flex: 0 0 auto;
 }
@@ -1389,7 +1389,7 @@ textarea:focus-visible {
 }
 
 /* =====================================================================
-   KASSE â€” LAYOUT
+   KASSE Ã¢â‚¬â€ LAYOUT
    ===================================================================== */
 
 .cashier-layout {
@@ -1451,7 +1451,7 @@ textarea:focus-visible {
 }
 
 /* =====================================================================
-   PRODUCT GRID â€” KASSE
+   PRODUCT GRID Ã¢â‚¬â€ KASSE
    ===================================================================== */
 
 .sale-product-grid {
@@ -2315,7 +2315,7 @@ textarea:focus-visible {
     gap: 12px;
 }
 /* =====================================================================
-   PRODUKTE â€” ADMINISTRATION
+   PRODUKTE Ã¢â‚¬â€ ADMINISTRATION
    ===================================================================== */
 
 .product-filter-tabs,
@@ -2531,7 +2531,7 @@ textarea:focus-visible {
 }
 
 /* =====================================================================
-   SCHÃœLER
+   SCHÃƒÅ“LER
    ===================================================================== */
 
 .students-list {
@@ -2612,7 +2612,7 @@ textarea:focus-visible {
 }
 
 /* =====================================================================
-   NOTIFICATIONS â€” HEADER POPOVER
+   NOTIFICATIONS Ã¢â‚¬â€ HEADER POPOVER
    ===================================================================== */
 
 .notification-popover {
@@ -2769,7 +2769,7 @@ textarea:focus-visible {
 
 /*
  * Non lue :
- * volontairement colorÃ©e pour attirer l'attention.
+ * volontairement colorÃƒÂ©e pour attirer l'attention.
  */
 
 .notification-new {
@@ -2787,7 +2787,7 @@ textarea:focus-visible {
 }
 
 /*
- * DÃ©jÃ  lue :
+ * DÃƒÂ©jÃƒ  lue :
  * volontairement grise.
  */
 
@@ -2900,7 +2900,7 @@ textarea:focus-visible {
 }
 
 /* =====================================================================
-   NOTIFICATIONS â€” ENVOI LEHRKRAFT
+   NOTIFICATIONS Ã¢â‚¬â€ ENVOI LEHRKRAFT
    ===================================================================== */
 
 .teacher-notification-composer {
@@ -2998,7 +2998,7 @@ textarea:focus-visible {
 }
 
 /* =====================================================================
-   BÃ„CKEREI / EVENT â€” AUSGABE
+   BÃƒâ€žCKEREI / EVENT Ã¢â‚¬â€ AUSGABE
    ===================================================================== */
 
 .output-layout {
@@ -3136,7 +3136,7 @@ textarea:focus-visible {
 }
 
 /* =====================================================================
-   EVENTS â€” LISTE
+   EVENTS Ã¢â‚¬â€ LISTE
    ===================================================================== */
 
 .event-list {
@@ -4041,7 +4041,7 @@ button.event-list-row:hover {
 }
 
 /* =====================================================================
-   RESPONSIVE â€” TABLET
+   RESPONSIVE Ã¢â‚¬â€ TABLET
    ===================================================================== */
 
 @media (
@@ -4086,7 +4086,7 @@ button.event-list-row:hover {
 }
 
 /* =====================================================================
-   RESPONSIVE â€” PETIT TABLET / MOBILE
+   RESPONSIVE Ã¢â‚¬â€ PETIT TABLET / MOBILE
    ===================================================================== */
 
 @media (
@@ -4371,7 +4371,7 @@ button.event-list-row:hover {
 }
 
 /* =====================================================================
-   RESPONSIVE â€” MOBILE Ã‰TROIT
+   RESPONSIVE Ã¢â‚¬â€ MOBILE Ãƒâ€°TROIT
    ===================================================================== */
 
 @media (
@@ -4666,8 +4666,8 @@ button.event-list-row:hover {
 }
 
 /*
- * Les rÃ¨gles suivantes conservent le rendu lorsque l'index utilise
- * certains noms de classes historiques des versions prÃ©cÃ©dentes.
+ * Les rÃƒÂ¨gles suivantes conservent le rendu lorsque l'index utilise
+ * certains noms de classes historiques des versions prÃƒÂ©cÃƒÂ©dentes.
  */
 
 .appHeader {
@@ -4798,8 +4798,8 @@ button.event-list-row:hover {
 }
 
 /*
- * L'Ã©cran fermÃ© ne contient volontairement aucun bouton
- * permettant Ã  un Ã©lÃ¨ve de revenir au PIN.
+ * L'ÃƒÂ©cran fermÃƒÂ© ne contient volontairement aucun bouton
+ * permettant Ãƒ  un ÃƒÂ©lÃƒÂ¨ve de revenir au PIN.
  */
 
 #schoolClosedScreen button {
@@ -4858,7 +4858,7 @@ input[type="number"]::-webkit-outer-spin-button {
 }
 
 /*
- * Cette rÃ¨gle est volontairement en fin de fichier.
+ * Cette rÃƒÂ¨gle est volontairement en fin de fichier.
  * Elle garantit que l'ancien CSS ne puisse plus remettre
  * le header en blanc semi-transparent.
  */
@@ -4890,7 +4890,7 @@ input[type="number"]::-webkit-outer-spin-button {
 
 /*
  * Logo LauterMacher :
- * hauteur exactement Ã©gale au header.
+ * hauteur exactement ÃƒÂ©gale au header.
  */
 
 #homeLogoButton,
@@ -4962,11 +4962,11 @@ input[type="number"]::-webkit-outer-spin-button {
 }
 
 /* =====================================================================
-   COMPATIBILITÃ‰ HTML ACTUEL â€” STYLE V4
-   SÃ©lecteurs correspondant aux classes prÃ©sentes dans index.html.
+   COMPATIBILITÃƒâ€° HTML ACTUEL Ã¢â‚¬â€ STYLE V4
+   SÃƒÂ©lecteurs correspondant aux classes prÃƒÂ©sentes dans index.html.
    ===================================================================== */
 
-/* Accueil : cartes et icÃ´nes dans la disposition V4 */
+/* Accueil : cartes et icÃƒÂ´nes dans la disposition V4 */
 .home-menu-grid, .admin-menu-grid, .choice-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
@@ -5023,7 +5023,7 @@ input[type="number"]::-webkit-outer-spin-button {
 }
 .home-menu-arrow { margin-left: auto; color: var(--blue); font-size: 1.8rem; }
 
-/* Badge du rÃ´le : en haut de la page, pas dans le header */
+/* Badge du rÃƒÂ´le : en haut de la page, pas dans le header */
 #homeRoleLabel.role-badge {
     display: inline-flex;
     align-items: center;
@@ -5049,7 +5049,7 @@ input[type="number"]::-webkit-outer-spin-button {
 .teacher-mode .admin-menu-card:hover .test-badge:not([hidden]),
 .teacher-mode .admin-menu-card:focus-visible .test-badge:not([hidden]) { opacity: 1; }
 
-/* PIN et sÃ©lection de profil : nuances de bleu */
+/* PIN et sÃƒÂ©lection de profil : nuances de bleu */
 #loginPinInput {
     display: block;
     width: 100%;
@@ -5126,7 +5126,7 @@ input[type="number"]::-webkit-outer-spin-button {
 }
 .back-button:hover { background: var(--blue-light); }
 
-/* Factures : une ligne par facture, sans dÃ©bordement */
+/* Factures : une ligne par facture, sans dÃƒÂ©bordement */
 #invoiceList { display: flex; flex-direction: column; min-width: 0; gap: 10px; }
 #invoiceList .invoice-row {
     display: flex;
@@ -5173,7 +5173,7 @@ button, .home-menu-text, .section-card, .panel { overflow-wrap: anywhere; }
 }
 
 /* =====================================================================
-   HEADER ET FIL D'ARIANE VALIDÃ‰S â€” NE PAS MODIFIER
+   HEADER ET FIL D'ARIANE VALIDÃƒâ€°S Ã¢â‚¬â€ NE PAS MODIFIER
    ===================================================================== */
 #appHeader.app-header {
     height: var(--header-height);
@@ -5272,7 +5272,7 @@ html body #breadcrumb.breadcrumb {
     #appHeader .app-header-actions { gap: 4px; }
 }
 /* =========================================================
-   INVENTUR PROFESSEUR — VF1.2
+   INVENTUR PROFESSEUR â€” VF1.2
    ========================================================= */
 
 #teacherInventoryScreen .submissions-section[hidden],
@@ -5418,7 +5418,7 @@ html body #breadcrumb.breadcrumb {
     opacity: 0.55;
 }
 /* =========================================================
-   PRODUKTE — LISTE COMPACTE ET FORMULAIRE INLINE
+   PRODUKTE â€” LISTE COMPACTE ET FORMULAIRE INLINE
    ========================================================= */
 
 #productsScreen #productAdminList {
@@ -5482,7 +5482,7 @@ html body #breadcrumb.breadcrumb {
 }
 
 
-/* Produit ajouté par un élève */
+/* Produit ajoutÃ© par un Ã©lÃ¨ve */
 
 #productsScreen .product-added {
     background: #e1f2fc;
@@ -5490,7 +5490,7 @@ html body #breadcrumb.breadcrumb {
 }
 
 
-/* Champ modifié par un élève */
+/* Champ modifiÃ© par un Ã©lÃ¨ve */
 
 #productsScreen .product-field-changed {
     background: #d2edfc;
@@ -5604,7 +5604,7 @@ html body #breadcrumb.breadcrumb {
 }
 
 
-/* Petites fenêtres : boutons toujours à droite */
+/* Petites fenÃªtres : boutons toujours Ã  droite */
 
 @media (max-width: 480px) {
     #productsScreen .product-admin-row {
@@ -5635,7 +5635,7 @@ html body #breadcrumb.breadcrumb {
         grid-template-columns: 1fr;
     }
 }
-/* PRODUKTE — supprimer l'ancienne sélection d'emojis.
+/* PRODUKTE â€” supprimer l'ancienne sÃ©lection d'emojis.
    Le champ de saisie au clavier reste disponible. */
 
 #productEmojiGrid,
@@ -5643,7 +5643,7 @@ html body #breadcrumb.breadcrumb {
     display: none !important;
 }
 /* =========================================================
-   RECHNUNGEN — DERNIÈRES FACTURES EN LIGNES COMPACTES
+   RECHNUNGEN â€” DERNIÃˆRES FACTURES EN LIGNES COMPACTES
    ========================================================= */
 
 #invoicesScreen .invoice-row {
@@ -5681,7 +5681,7 @@ html body #breadcrumb.breadcrumb {
     white-space: nowrap;
 }
 /* =========================================================
-   RECHNUNGEN — QUESTION DE MISE À JOUR DES STOCKS
+   RECHNUNGEN â€” QUESTION DE MISE Ã€ JOUR DES STOCKS
    ========================================================= */
 
 .invoice-stock-dialog {
@@ -5724,7 +5724,7 @@ html body #breadcrumb.breadcrumb {
     min-height: 44px;
 }
 /* =========================================================
-   INVENTUR PROFESSEUR — VF1.3
+   INVENTUR PROFESSEUR â€” VF1.3
    ========================================================= */
 
 /* Historique */
@@ -5894,7 +5894,7 @@ html body #breadcrumb.breadcrumb {
     overflow-wrap: anywhere;
 }
 
-/* Comptage et différence */
+/* Comptage et diffÃ©rence */
 
 #teacherInventoryScreen .teacher-student-count {
     display: flex;
@@ -6053,7 +6053,7 @@ html body #breadcrumb.breadcrumb {
 }
 
 
-/* Question après l'enregistrement d'une facture. */
+/* Question aprÃ¨s l'enregistrement d'une facture. */
 
 .invoice-stock-dialog {
     width: min(430px, calc(100vw - 32px));
@@ -6086,14 +6086,14 @@ html body #breadcrumb.breadcrumb {
 }
 
 
-/* Rapports : Pfand et recettes complémentaires. */
+/* Rapports : Pfand et recettes complÃ©mentaires. */
 
 #reportAccountingSummary {
     margin-top: 14px;
 }
 
 
-/* Graphique : valeurs positives et négatives. */
+/* Graphique : valeurs positives et nÃ©gatives. */
 
 .accounting-chart-plot {
     position: relative;
@@ -6129,13 +6129,13 @@ html body #breadcrumb.breadcrumb {
     border-radius: 0 0 6px 6px;
     background: #d77878;
 }
-/* Espacement du troisième bloc : Letzte Einträge. */
+/* Espacement du troisiÃ¨me bloc : Letzte EintrÃ¤ge. */
 
 #invoicesScreen #receiptForm + h2 {
     margin-top: 34px;
 }
 /* =====================================================================
-   BUCHHALTUNG — LETZTE EINTRÄGE
+   BUCHHALTUNG â€” LETZTE EINTRÃ„GE
    ===================================================================== */
 
 #invoicesScreen .bookkeeping-history-card {
@@ -6173,13 +6173,13 @@ html body #breadcrumb.breadcrumb {
 }
 
 #invoicesScreen .bookkeeping-history-summary::after {
-    content: "▾";
+    content: "â–¾";
     font-size: 1.1rem;
 }
 
 #invoicesScreen #bookkeepingHistory:not([open])
     .bookkeeping-history-summary::after {
-    content: "▸";
+    content: "â–¸";
 }
 
 #invoicesScreen .bookkeeping-table-scroll {
@@ -6260,7 +6260,7 @@ html body #breadcrumb.breadcrumb {
     display: none;
 }
 /* =====================================================================
-   SCHÜLER — LIGNES COMPACTES
+   SCHÃœLER â€” LIGNES COMPACTES
    ===================================================================== */
 
 #studentsScreen #studentsList {
@@ -6415,7 +6415,7 @@ html body #breadcrumb.breadcrumb {
 
 
 /* =====================================================================
-   FREISCHALTUNGEN — HISTORIQUE
+   FREISCHALTUNGEN â€” HISTORIQUE
    ===================================================================== */
 
 #studentsScreen .access-history-card {
@@ -6453,12 +6453,12 @@ html body #breadcrumb.breadcrumb {
 }
 
 #studentsScreen .access-history-summary::after {
-    content: "▾";
+    content: "â–¾";
 }
 
 #studentsScreen #accessHistory:not([open])
     .access-history-summary::after {
-    content: "▸";
+    content: "â–¸";
 }
 
 #studentsScreen .access-table-scroll {
@@ -6537,7 +6537,7 @@ html body #breadcrumb.breadcrumb {
 #studentsScreen #accessHistoryMessage:empty {
     display: none;
 }
-/* Sélection unique : bulles blanches ou colorées. */
+/* SÃ©lection unique : bulles blanches ou colorÃ©es. */
 
 #studentsScreen .access-student-choices {
     gap: 8px;
@@ -6567,7 +6567,7 @@ html body #breadcrumb.breadcrumb {
     outline-offset: 2px;
 }
 /* =====================================================================
-   PRODUKTE — PRIX PLUS VISIBLES
+   PRODUKTE â€” PRIX PLUS VISIBLES
    ===================================================================== */
 
 #productsScreen [data-product-field="price"] {
@@ -6579,7 +6579,7 @@ html body #breadcrumb.breadcrumb {
 
 
 /* =====================================================================
-   HISTORIQUES — STYLE COMMUN
+   HISTORIQUES â€” STYLE COMMUN
    ===================================================================== */
 
 #teacherInventoryNotice.admin-history-card,
@@ -6622,12 +6622,12 @@ html body #breadcrumb.breadcrumb {
 }
 
 .admin-history-card .admin-history-summary::after {
-    content: "▾";
+    content: "â–¾";
 }
 
 .admin-history-card details:not([open])
     > .admin-history-summary::after {
-    content: "▸";
+    content: "â–¸";
 }
 
 .admin-history-card .admin-history-scroll {
@@ -6712,7 +6712,7 @@ html body #breadcrumb.breadcrumb {
 .admin-history-card .form-message:empty {
     display: none;
 }
-/* Produkte — prix en vert accent, gras, taille intermédiaire. */
+/* Produkte â€” prix en vert accent, gras, taille intermÃ©diaire. */
 
 #productsScreen [data-product-field="price"] {
     color: #b2bd43;
@@ -6720,7 +6720,7 @@ html body #breadcrumb.breadcrumb {
     font-weight: 800;
     white-space: nowrap;
 }
-/* Bulles élèves : cercle après le nom. */
+/* Bulles Ã©lÃ¨ves : cercle aprÃ¨s le nom. */
 
 #studentsScreen #accessStudentChoices .access-chip {
     display: inline-flex;
@@ -6743,7 +6743,7 @@ html body #breadcrumb.breadcrumb {
 }
 
 #studentsScreen #accessStudentChoices .access-chip.is-selected::after {
-    content: "✓";
+    content: "âœ“";
     border-color: #8172cf;
     background: #8172cf;
     color: #fff;
@@ -6752,7 +6752,7 @@ html body #breadcrumb.breadcrumb {
     line-height: 1;
 }
 /* =====================================================================
-   BENACHRICHTIGUNGEN — LISTE COMPACTE
+   BENACHRICHTIGUNGEN â€” LISTE COMPACTE
    ===================================================================== */
 
 #notificationsScreen #notificationsList {
@@ -6841,7 +6841,7 @@ html body #breadcrumb.breadcrumb {
 
 
 /* =====================================================================
-   EMPFÄNGER — BULLES COMME DANS SCHÜLER
+   EMPFÃ„NGER â€” BULLES COMME DANS SCHÃœLER
    ===================================================================== */
 
 #notificationsScreen #notificationRecipientList {
@@ -6899,7 +6899,7 @@ html body #breadcrumb.breadcrumb {
 }
 
 /* Garder les cases accessibles au clavier,
-   tout en les présentant sous forme de bulles. */
+   tout en les prÃ©sentant sous forme de bulles. */
 
 #notificationsScreen .notification-recipient-chip input {
     position: absolute;
@@ -6945,7 +6945,7 @@ html body #breadcrumb.breadcrumb {
 
 #notificationsScreen .notification-recipient-chip
     input:checked + .recipient-chip-name .recipient-chip-circle::after {
-    content: "✓";
+    content: "âœ“";
     font-size: 13px;
     font-weight: 800;
     line-height: 1;
@@ -6956,7 +6956,7 @@ html body #breadcrumb.breadcrumb {
     outline-offset: 2px;
 }
 /* =====================================================================
-   GETRÄNKE + BÄCKEREI — CAISSES
+   GETRÃ„NKE + BÃ„CKEREI â€” CAISSES
    ===================================================================== */
 
 /* Boutons de paiement en vert accent. */
@@ -6981,10 +6981,10 @@ html body #breadcrumb.breadcrumb {
 
 
 /* =====================================================================
-   PROFESSEUR — UNIVERS TEST JAUNE
+   PROFESSEUR â€” UNIVERS TEST JAUNE
    ===================================================================== */
 
-body.teacher-mode :is(
+body.teacher-test-mode :is(
     #drinksSaleScreen,
     #drinksPaymentScreen,
     #drinksSuccessScreen,
@@ -7001,7 +7001,7 @@ body.teacher-mode :is(
     border-radius: 20px;
 }
 
-body.teacher-mode :is(
+body.teacher-test-mode :is(
     #drinksTestBanner,
     #drinksPaymentTestBanner,
     #freeDrinksTestBanner,
@@ -7020,7 +7020,7 @@ body.teacher-mode :is(
 
 
 /* =====================================================================
-   ZAHLUNG ERFOLGREICH — CENTRAGE
+   ZAHLUNG ERFOLGREICH â€” CENTRAGE
    ===================================================================== */
 
 #drinksSuccessScreen .success-content,
@@ -7054,11 +7054,11 @@ body.teacher-mode :is(
     margin-top: 22px;
 }
 
-body.teacher-mode :is(
+body.teacher-test-mode :is(
     #drinksSuccessScreen,
     :is(#bakerySuccessScreen, #eventSuccessScreen)
 ) .success-content::before {
-    content: "TESTUMGEBUNG — Keine echten Verkäufe oder Bestandsänderungen";
+    content: "TESTUMGEBUNG â€” Keine echten VerkÃ¤ufe oder BestandsÃ¤nderungen";
     display: block;
     margin-bottom: 28px;
     padding: 16px 20px;
@@ -7068,7 +7068,7 @@ body.teacher-mode :is(
     color: #665000;
     font-weight: 850;
 }
-/* Berichte — suivi séparé des boissons gratuites. */
+/* Berichte â€” suivi sÃ©parÃ© des boissons gratuites. */
 
 #reportsScreen #freeDrinksReportPanel {
     margin-top: 22px;
@@ -7097,10 +7097,10 @@ body.teacher-mode :is(
     font-weight: 850;
 }
 /* =====================================================================
-   PROFESSEUR — UNE SEULE ZONE TEST
+   PROFESSEUR â€” UNE SEULE ZONE TEST
    ===================================================================== */
 
-body.teacher-mode :is(
+body.teacher-test-mode :is(
     #drinksSaleScreen,
     #drinksPaymentScreen,
     #drinksSuccessScreen,
@@ -7119,7 +7119,7 @@ body.teacher-mode :is(
 
 /* Remplacer les anciennes bulles de test par un seul texte. */
 
-body.teacher-mode :is(
+body.teacher-test-mode :is(
     #drinksTestBanner,
     #drinksPaymentTestBanner,
     #freeDrinksTestBanner,
@@ -7130,7 +7130,7 @@ body.teacher-mode :is(
     display: none !important;
 }
 
-body.teacher-mode :is(
+body.teacher-test-mode :is(
     #drinksSaleScreen,
     #drinksPaymentScreen,
     #drinksSuccessScreen,
@@ -7140,7 +7140,7 @@ body.teacher-mode :is(
     :is(#bakerySuccessScreen, #eventSuccessScreen),
     :is(#bakeryOutputScreen, #eventOutputScreen)
 )::before {
-    content: "⚠️ Lehrer-Testumgebung";
+    content: "âš ï¸ Lehrer-Testumgebung";
     display: block;
     margin-bottom: 18px;
     color: #7a5b00;
@@ -7149,9 +7149,9 @@ body.teacher-mode :is(
     text-align: right;
 }
 
-/* Supprimer la seconde bulle ajoutée sur les écrans de succès. */
+/* Supprimer la seconde bulle ajoutÃ©e sur les Ã©crans de succÃ¨s. */
 
-body.teacher-mode :is(
+body.teacher-test-mode :is(
     #drinksSuccessScreen,
     :is(#bakerySuccessScreen, #eventSuccessScreen)
 ) .success-content::before {
@@ -7161,7 +7161,7 @@ body.teacher-mode :is(
 
 
 /* =====================================================================
-   BEZAHLEN — CALCULATRICE CENTRÉE
+   BEZAHLEN â€” CALCULATRICE CENTRÃ‰E
    ===================================================================== */
 
 :is(#drinksPaymentScreen, #bakeryPaymentScreen, #eventPaymentScreen) .screen-header {
@@ -7308,7 +7308,7 @@ body.teacher-mode :is(
 
 
 /* =====================================================================
-   ZAHLUNG ERFOLGREICH — CONTENU CENTRÉ
+   ZAHLUNG ERFOLGREICH â€” CONTENU CENTRÃ‰
    ===================================================================== */
 
 :is(#drinksSuccessScreen, :is(#bakerySuccessScreen, #eventSuccessScreen))
@@ -7402,7 +7402,7 @@ body.teacher-mode :is(
     font-weight: 800;
 }
 /* =========================================================
-   AUSGABE — TESTS PERSONNELS DU PROFESSEUR
+   AUSGABE â€” TESTS PERSONNELS DU PROFESSEUR
    ========================================================= */
 
 :is(#bakeryOutputScreen, #eventOutputScreen) .output-order-card.bakery-test-order,
@@ -7425,11 +7425,11 @@ body.teacher-mode :is(
     font-weight: 600;
 }
 /* =========================================================
-   AUSGABE — CARTES ADAPTÉES AU MOCK-UP
+   AUSGABE â€” CARTES ADAPTÃ‰ES AU MOCK-UP
    ========================================================= */
 
 
-/* Zone défilante, indépendante des colonnes de cartes */
+/* Zone dÃ©filante, indÃ©pendante des colonnes de cartes */
 
 :is(#bakeryOutputScreen, #eventOutputScreen) .bakery-output-orders {
     display: block;
@@ -7468,7 +7468,7 @@ body.teacher-mode :is(
 }
 
 
-/* Bandeau bleu foncé */
+/* Bandeau bleu foncÃ© */
 
 :is(#bakeryOutputScreen, #eventOutputScreen) .bakery-order-card-header {
     display: block;
@@ -7554,7 +7554,7 @@ body.teacher-mode :is(
 }
 
 
-/* Grand bouton vert intégré dans la carte */
+/* Grand bouton vert intÃ©grÃ© dans la carte */
 
 :is(#bakeryOutputScreen, #eventOutputScreen) .bakery-served-button {
     display: block;
@@ -7610,7 +7610,7 @@ body.teacher-mode :is(
     min-height: 180px;
 }
 /* =========================================================
-   AUSGABE — DISPOSITION FINALE DU DASHBOARD
+   AUSGABE â€” DISPOSITION FINALE DU DASHBOARD
    ========================================================= */
 
 :is(#bakeryOutputScreen, #eventOutputScreen) {
@@ -7620,7 +7620,7 @@ body.teacher-mode :is(
 }
 
 
-/* En-tête */
+/* En-tÃªte */
 
 :is(#bakeryOutputScreen, #eventOutputScreen) .bakery-dashboard-header {
     display: grid;
@@ -7664,7 +7664,7 @@ body.teacher-mode :is(
 }
 
 
-/* 20 % historique à gauche, 80 % commandes à droite */
+/* 20 % historique Ã  gauche, 80 % commandes Ã  droite */
 
 :is(#bakeryOutputScreen, #eventOutputScreen) .bakery-output-layout {
     display: grid;
@@ -7793,7 +7793,7 @@ body.teacher-mode :is(
 }
 
 
-/* Historique : barre déroulante */
+/* Historique : barre dÃ©roulante */
 
 :is(#bakeryOutputScreen, #eventOutputScreen) .bakery-completed-history {
     margin: 0;
@@ -7830,14 +7830,14 @@ body.teacher-mode :is(
 }
 
 :is(#bakeryOutputScreen, #eventOutputScreen) .bakery-completed-history summary::after {
-    content: "▸";
+    content: "â–¸";
     flex: 0 0 auto;
     margin-left: 0;
     color: #8b7ed4;
 }
 
 :is(#bakeryOutputScreen, #eventOutputScreen) .bakery-completed-history[open] summary::after {
-    content: "▾";
+    content: "â–¾";
 }
 
 :is(#bakeryOutputScreen, #eventOutputScreen) .bakery-completed-scroll {
@@ -7906,7 +7906,7 @@ body.teacher-mode :is(
 }
 
 
-/* Très petit écran : historique sous les commandes */
+/* TrÃ¨s petit Ã©cran : historique sous les commandes */
 
 @media (max-width: 600px) {
 
@@ -7952,11 +7952,11 @@ body.teacher-mode :is(
 
 }
 /* =========================================================
-   AUSGABE — EN-TÊTE DÉCALÉ ET HISTORIQUE À DROITE
+   AUSGABE â€” EN-TÃŠTE DÃ‰CALÃ‰ ET HISTORIQUE Ã€ DROITE
    ========================================================= */
 
 
-/* Trois niveaux distincts dans l’en-tête */
+/* Trois niveaux distincts dans lâ€™en-tÃªte */
 
 :is(#bakeryOutputScreen, #eventOutputScreen) {
     padding-top: 8px;
@@ -8000,7 +8000,7 @@ body.teacher-mode :is(
 }
 
 
-/* Commandes ouvertes à gauche, terminées à droite */
+/* Commandes ouvertes Ã  gauche, terminÃ©es Ã  droite */
 
 :is(#bakeryOutputScreen, #eventOutputScreen) .bakery-output-layout {
     display: grid;
@@ -8029,7 +8029,7 @@ body.teacher-mode :is(
 }
 
 
-/* Barre de menu déroulant violette */
+/* Barre de menu dÃ©roulant violette */
 
 :is(#bakeryOutputScreen, #eventOutputScreen) .bakery-completed-history {
     margin: 0;
@@ -8062,17 +8062,17 @@ body.teacher-mode :is(
 }
 
 :is(#bakeryOutputScreen, #eventOutputScreen) .bakery-completed-history summary::after {
-    content: "▸";
+    content: "â–¸";
     flex: 0 0 auto;
     color: #8b7ed4;
 }
 
 :is(#bakeryOutputScreen, #eventOutputScreen) .bakery-completed-history[open] summary::after {
-    content: "▾";
+    content: "â–¾";
 }
 
 
-/* Historique : numéro et date sur une seule ligne */
+/* Historique : numÃ©ro et date sur une seule ligne */
 
 :is(#bakeryOutputScreen, #eventOutputScreen) .bakery-completed-scroll {
     display: block;
@@ -8128,7 +8128,7 @@ body.teacher-mode :is(
 }
 
 
-/* Quand les deux panneaux ne tiennent plus côte à côte */
+/* Quand les deux panneaux ne tiennent plus cÃ´te Ã  cÃ´te */
 
 @media (max-width: 820px) {
 
@@ -8156,7 +8156,7 @@ body.teacher-mode :is(
 }
 
 
-/* Écrans particulièrement étroits */
+/* Ã‰crans particuliÃ¨rement Ã©troits */
 
 @media (max-width: 380px) {
 
@@ -8188,7 +8188,7 @@ body.teacher-mode :is(
     font-weight: 800;
 }
 /* =========================================================
-   PRODUKTE — FILTRES EN BULLES BLEUES
+   PRODUKTE â€” FILTRES EN BULLES BLEUES
    ========================================================= */
 
 #productsScreen .filter-tabs {
@@ -8240,14 +8240,14 @@ body.teacher-mode :is(
     outline: 3px solid #bab0f4;
     outline-offset: 3px;
 }
-/* Masquer les écrans tant que showScreen()
+/* Masquer les Ã©crans tant que showScreen()
    ne les a pas explicitement ouverts. */
 
 .screen:not(.screen-visible) {
     display: none !important;
 }
 /* =========================================================
-   SON DERVERANSTALTUNGEN — COMPLÉMENT V6
+   SON DERVERANSTALTUNGEN â€” COMPLÃ‰MENT V6
    ========================================================= */
 
 .event-v6-dialog {
@@ -8398,7 +8398,7 @@ button.event-v6-row {
     }
 }
 /* =========================================================
-   SONDERVERANSTALTUNG — BULLE IN BEARBEITUNG
+   SONDERVERANSTALTUNG â€” BULLE IN BEARBEITUNG
    ========================================================= */
 
 #homeEventsButton {
@@ -8433,8 +8433,8 @@ button.event-v6-row {
 }
 
 /* =========================================================
-   ACCUEIL — CARTES DIMENSIONNÉES PAR LEUR CONTENU
-   Élèves et professeur
+   ACCUEIL â€” CARTES DIMENSIONNÃ‰ES PAR LEUR CONTENU
+   Ã‰lÃ¨ves et professeur
    ========================================================= */
 
 #homeScreen .home-menu-grid {
@@ -8446,7 +8446,7 @@ button.event-v6-row {
 }
 
 #homeScreen .home-menu-card {
-    /* La carte ne s'étire pas et ne rétrécit pas */
+    /* La carte ne s'Ã©tire pas et ne rÃ©trÃ©cit pas */
     flex: 0 0 auto;
     width: max-content;
     min-width: 0;
@@ -8469,7 +8469,7 @@ button.event-v6-row {
     hyphens: none;
 }
 
-/* Icône de taille constante */
+/* IcÃ´ne de taille constante */
 #homeScreen .home-menu-icon {
     flex: 0 0 48px;
     width: 48px;
@@ -8511,7 +8511,7 @@ button.event-v6-row {
     hyphens: none;
 }
 
-/* Une place réservée à la flèche */
+/* Une place rÃ©servÃ©e Ã  la flÃ¨che */
 #homeScreen .home-menu-arrow {
     flex: 0 0 auto;
     margin-left: 0;
@@ -8519,7 +8519,7 @@ button.event-v6-row {
     line-height: 1;
 }
 /* =========================================================
-   CAISSES — PRODUITS COMPACTS ET PANIER À DROITE
+   CAISSES â€” PRODUITS COMPACTS ET PANIER Ã€ DROITE
    ========================================================= */
 
 /* Trois produits par ligne */
@@ -8547,7 +8547,7 @@ button.event-v6-row {
     margin-bottom: 2px;
 }
 
-/* Noms : retour à la ligne entre les mots */
+/* Noms : retour Ã  la ligne entre les mots */
 :is(#drinksSaleScreen, #bakerySaleScreen, #eventSaleScreen)
 .sale-product-card strong {
     font-size: 0.85rem;
@@ -8564,7 +8564,7 @@ button.event-v6-row {
     font-size: 0.8rem;
 }
 
-/* iPad : produits à gauche, panier à droite */
+/* iPad : produits Ã  gauche, panier Ã  droite */
 @media (min-width: 700px) {
     :is(#drinksSaleScreen, #bakerySaleScreen, #eventSaleScreen)
     .sale-layout {
@@ -8583,7 +8583,7 @@ button.event-v6-row {
     }
 }
 
-/* Téléphone ou fenêtre très étroite */
+/* TÃ©lÃ©phone ou fenÃªtre trÃ¨s Ã©troite */
 @media (max-width: 699px) {
     :is(#drinksSaleScreen, #bakerySaleScreen, #eventSaleScreen)
     .sale-layout {
@@ -8603,7 +8603,7 @@ button.event-v6-row {
     }
 }
 /* =========================================================
-   CAISSES — NOMS LISIBLES ET CARTES PRODUITS COMPACTES
+   CAISSES â€” NOMS LISIBLES ET CARTES PRODUITS COMPACTES
    ========================================================= */
 
 /* Panier : nom sur toute la largeur */
@@ -8641,8 +8641,8 @@ button.event-v6-row {
     white-space: nowrap;
 }
 /* =========================================================
-   PAIEMENT — MONTANT REÇU ET MONNAIE À RENDRE
-   Getränke et Bäckerei
+   PAIEMENT â€” MONTANT REÃ‡U ET MONNAIE Ã€ RENDRE
+   GetrÃ¤nke et BÃ¤ckerei
    ========================================================= */
 
 /* Les deux-points figurent maintenant directement dans le HTML */
@@ -8654,7 +8654,7 @@ button.event-v6-row {
     content: none;
 }
 
-/* Deux rectangles arrondis, plus étroits que le bouton Bezahlt */
+/* Deux rectangles arrondis, plus Ã©troits que le bouton Bezahlt */
 :is(#drinksPaymentScreen, #bakeryPaymentScreen, #eventPaymentScreen)
 .payment-received-card,
 
@@ -8676,19 +8676,19 @@ button.event-v6-row {
     box-shadow: none;
 }
 
-/* Montant donné par le client */
+/* Montant donnÃ© par le client */
 :is(#drinksPaymentScreen, #bakeryPaymentScreen, #eventPaymentScreen)
 .payment-received-card {
     background: #cfe7f7;
 }
 
-/* Monnaie à rendre */
+/* Monnaie Ã  rendre */
 :is(#drinksPaymentScreen, #bakeryPaymentScreen, #eventPaymentScreen)
 .change-container {
     background: #d8cff8;
 }
 
-/* Même taille de texte dans les deux bulles */
+/* MÃªme taille de texte dans les deux bulles */
 :is(#drinksPaymentScreen, #bakeryPaymentScreen, #eventPaymentScreen)
 .payment-received-card > span,
 
@@ -8706,7 +8706,7 @@ button.event-v6-row {
     line-height: 1.3;
     white-space: nowrap;
 }
-/* Bäckerei : numéro de commande bien visible */
+/* BÃ¤ckerei : numÃ©ro de commande bien visible */
 
 :is(#bakerySuccessScreen, #eventSuccessScreen) :is(#bakerySuccessOrderNumber, #eventSuccessOrderNumber) {
     display: inline-flex;
@@ -8729,12 +8729,12 @@ button.event-v6-row {
     font-variant-numeric: tabular-nums;
 }
 /* =========================================================
-   MENUS — CARTES ADAPTÉES À LEUR CONTENU
-   Bearbeiten, Bäckerei et Sonderveranstaltung
-   Élèves et professeur
+   MENUS â€” CARTES ADAPTÃ‰ES Ã€ LEUR CONTENU
+   Bearbeiten, BÃ¤ckerei et Sonderveranstaltung
+   Ã‰lÃ¨ves et professeur
    ========================================================= */
 
-/* Les cartes passent automatiquement à la ligne */
+/* Les cartes passent automatiquement Ã  la ligne */
 body .screen .admin-menu-grid,
 body .screen .choice-grid,
 body .screen .event-workspace-grid,
@@ -8746,7 +8746,7 @@ body .screen .event-workspace-grid,
     gap: 18px;
 }
 
-/* Chaque carte garde la largeur nécessaire à son contenu */
+/* Chaque carte garde la largeur nÃ©cessaire Ã  son contenu */
 body .screen :is(.admin-menu-card, .choice-card) {
     position: relative;
     flex: 0 0 auto;
@@ -8775,7 +8775,7 @@ body .screen :is(.admin-menu-card, .choice-card) {
     hyphens: none;
 }
 
-/* Icône à gauche du titre et du sous-titre */
+/* IcÃ´ne Ã  gauche du titre et du sous-titre */
 body .screen .admin-menu-card > .admin-menu-icon,
 body .screen .choice-card > span:first-child {
     grid-column: 1;
@@ -8794,7 +8794,7 @@ body .screen .choice-card > span:first-child {
     font-size: 1.8rem;
 }
 
-/* Titre entier, sur la première ligne */
+/* Titre entier, sur la premiÃ¨re ligne */
 body .screen :is(.admin-menu-card, .choice-card) > strong {
     grid-column: 2;
     grid-row: 1;
@@ -8826,12 +8826,12 @@ body .screen :is(.admin-menu-card, .choice-card) > small {
     hyphens: none;
 }
 
-/* Respecte les cartes masquées selon le rôle */
+/* Respecte les cartes masquÃ©es selon le rÃ´le */
 body .screen :is(.admin-menu-card, .choice-card)[hidden] {
     display: none !important;
 }
 /* =========================================================
-   CLOCHE — NOTIFICATIONS COMPACTES SUR UNE LIGNE
+   CLOCHE â€” NOTIFICATIONS COMPACTES SUR UNE LIGNE
    ========================================================= */
 
 #notificationPopover {
@@ -8875,7 +8875,7 @@ body .screen :is(.admin-menu-card, .choice-card)[hidden] {
     flex: 0 0 auto;
 }
 
-/* Message normal, avec une fin en dégradé */
+/* Message normal, avec une fin en dÃ©gradÃ© */
 #notificationPreviewList .notification-compact > small {
     display: block;
     flex: 1 1 0;
@@ -8905,7 +8905,7 @@ body .screen :is(.admin-menu-card, .choice-card)[hidden] {
     border: 1px solid #cfe3f3;
 }
 
-/* Notifications déjà lues : visibles pour les élèves */
+/* Notifications dÃ©jÃ  lues : visibles pour les Ã©lÃ¨ves */
 #notificationPreviewList .notification-compact.notification-read {
     background: #f1f3f5;
     color: #737b85;
@@ -8921,7 +8921,7 @@ body .screen :is(.admin-menu-card, .choice-card)[hidden] {
     cursor: pointer;
 }
 /* =========================================================
-   AUSGABE — HISTORIQUE DANS UNE CARTE BLANCHE
+   AUSGABE â€” HISTORIQUE DANS UNE CARTE BLANCHE
    ========================================================= */
 
 :is(#bakeryOutputScreen, #eventOutputScreen) .bakery-completed-orders-panel {
@@ -8932,18 +8932,18 @@ body .screen :is(.admin-menu-card, .choice-card)[hidden] {
     padding: 20px;
 }
 
-/* En-tête sans fond violet */
+/* En-tÃªte sans fond violet */
 :is(#bakeryOutputScreen, #eventOutputScreen) .bakery-completed-history summary {
     background: #ffffff;
     color: #094369;
 }
 
-/* Flèche du menu repliable */
+/* FlÃ¨che du menu repliable */
 :is(#bakeryOutputScreen, #eventOutputScreen) .bakery-completed-history summary::after {
     color: rgba(83, 113, 253, 0.8);
 }
 
-/* Défilement à l'intérieur de la carte */
+/* DÃ©filement Ã  l'intÃ©rieur de la carte */
 :is(#bakeryOutputScreen, #eventOutputScreen) .bakery-completed-scroll {
     max-height: min(360px, 45vh);
     margin-top: 14px;
@@ -8955,7 +8955,7 @@ body .screen :is(.admin-menu-card, .choice-card)[hidden] {
 }
 
 /* =========================================================
-   SITE ENTIER — BARRES DE DÉFILEMENT BLEUES
+   SITE ENTIER â€” BARRES DE DÃ‰FILEMENT BLEUES
    ========================================================= */
 
 html,
@@ -8987,7 +8987,7 @@ body * {
 *::-webkit-scrollbar-thumb:hover {
     background: rgba(83, 113, 253, 0.9) !important;
 }
-/* Bäckerei : historique toujours ouvert, sans triangle */
+/* BÃ¤ckerei : historique toujours ouvert, sans triangle */
 
 :is(#bakeryOutputScreen, #eventOutputScreen), #eventOutputScreen) .bakery-completed-heading {
     padding: 12px 0;
@@ -9013,7 +9013,7 @@ body * {
     font-weight: 800;
     line-height: 1.5;
 }
-/* Champ PIN avec crayon gris à droite */
+/* Champ PIN avec crayon gris Ã  droite */
 
 #studentModal .student-pin-editor {
     position: relative;
@@ -9056,7 +9056,7 @@ body * {
 #studentModal .student-pin-pencil[hidden] {
     display: none;
 }
-/* Inventaire élève : lignes compactes, saisie toujours à droite */
+/* Inventaire Ã©lÃ¨ve : lignes compactes, saisie toujours Ã  droite */
 
 #studentInventoryScreen .inventory-count-row {
     display: grid;
@@ -9093,7 +9093,7 @@ body * {
     padding: 8px;
 }
 
-/* Très petites fenêtres : champ légèrement moins large */
+/* TrÃ¨s petites fenÃªtres : champ lÃ©gÃ¨rement moins large */
 @media (max-width: 420px) {
     #studentInventoryScreen .inventory-count-row {
         grid-template-columns: minmax(0, 1fr) 72px;
@@ -9150,7 +9150,7 @@ body * {
     outline: 2px solid #094369;
     outline-offset: 2px;
 }
-/* Notifications : lignes compactes sans défilement horizontal */
+/* Notifications : lignes compactes sans dÃ©filement horizontal */
 
 #notificationsScreen #notificationsList {
     min-width: 0;
@@ -9170,7 +9170,7 @@ body * {
     padding: 9px 12px;
 }
 
-/* Réserve la place de la croix professeur */
+/* RÃ©serve la place de la croix professeur */
 #notificationsScreen #notificationsList
 .notification-card.notification-removable {
     padding-right: 52px;
@@ -9205,7 +9205,7 @@ body * {
     white-space: nowrap;
 }
 
-/* Message normal, coupé progressivement en fin de ligne */
+/* Message normal, coupÃ© progressivement en fin de ligne */
 #notificationsScreen #notificationsList .notification-card p {
     min-width: 0;
     overflow: hidden;
@@ -9225,7 +9225,7 @@ body * {
     white-space: nowrap;
 }
 
-/* Petite fenêtre : date sous le titre et le message */
+/* Petite fenÃªtre : date sous le titre et le message */
 @media (max-width: 700px) {
     #notificationsScreen #notificationsList
     .notification-card-main > div:last-child {
@@ -9239,10 +9239,10 @@ body * {
     }
 }
 /* =========================================================
-   SON DERVERANSTALTUNG V7 — PRÉSENTATION COMPLÉMENTAIRE
+   SON DERVERANSTALTUNG V7 â€” PRÃ‰SENTATION COMPLÃ‰MENTAIRE
    ========================================================= */
 
-/* Angebot en haut à droite */
+/* Angebot en haut Ã  droite */
 :is(#eventWorkspaceScreen, #eventSaleScreen, #eventOutputScreen)
 .screen-header {
     display: grid;
@@ -9286,7 +9286,7 @@ body * {
     color: #55738b;
 }
 
-/* Produits sélectionnés : bleu foncé */
+/* Produits sÃ©lectionnÃ©s : bleu foncÃ© */
 #eventProductsScreen #eventGlobalChips button.is-selected,
 #eventProductsScreen #eventGlobalChips button.is-selected:disabled {
     background: #094369;
@@ -9299,7 +9299,7 @@ body * {
     margin: 12px 0 0;
 }
 
-/* Lignes compactes, Bearbeiten à droite */
+/* Lignes compactes, Bearbeiten Ã  droite */
 #eventProductsScreen .event-v7-product-row {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
@@ -9373,7 +9373,7 @@ body * {
     text-overflow: ellipsis;
 }
 
-/* Saisie des produits gratuits : lignes comme dans Getränke */
+/* Saisie des produits gratuits : lignes comme dans GetrÃ¤nke */
 #eventV6Dialog #eventFreeProductList .quantity-product-row {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;
@@ -9408,7 +9408,7 @@ body * {
     }
 }
 /* =========================================================
-   V8 — ANGEBOT ET INVENTUR DES PRODUITS SPÉCIFIQUES
+   V8 â€” ANGEBOT ET INVENTUR DES PRODUITS SPÃ‰CIFIQUES
    ========================================================= */
 
 #eventV6Dialog .event-offer-row-v8 {
@@ -9526,7 +9526,7 @@ body * {
         width: 72px;
     }
 }
-/* Inventur : même design des filtres que dans Produkte */
+/* Inventur : mÃªme design des filtres que dans Produkte */
 
 #studentInventoryFiltersV8,
 #teacherInventoryFiltersV8 {
@@ -9590,7 +9590,7 @@ body * {
 #teacherInventoryFiltersV8 button[hidden] {
     display: none !important;
 }
-/* Produits spécifiques : lignes compactes dans Inventur */
+/* Produits spÃ©cifiques : lignes compactes dans Inventur */
 
 #teacherEventStockV8 {
     display: flex;
@@ -9673,7 +9673,7 @@ body * {
     white-space: nowrap;
 }
 
-/* Petite fenêtre : les actions restent à droite */
+/* Petite fenÃªtre : les actions restent Ã  droite */
 
 @media (max-width: 760px) {
     #teacherEventStockV8 .event-stock-review-v8:last-child {
@@ -9689,7 +9689,7 @@ body * {
         font-size: 0.75rem;
     }
 }
-/* Produits spécifiques : même disposition que le stock habituel */
+/* Produits spÃ©cifiques : mÃªme disposition que le stock habituel */
 
 #teacherEventStockV8 .event-stock-card-v8 {
     grid-template-columns:
@@ -9755,12 +9755,12 @@ body * {
         font-size: 0.8rem;
     }
 }
-/* Message d’erreur de connexion */
+/* Message dâ€™erreur de connexion */
 
 #pinLoginError {
     color: #b42318 !important;
 }
-/* Petit champ : nombre d’unités par IAN */
+/* Petit champ : nombre dâ€™unitÃ©s par IAN */
 
 #productModal .product-ian-fields {
     display: flex;
@@ -10197,7 +10197,7 @@ body * {
     }
 }
 /* =========================================================
-   BERICHTE V2 — ONGLETS ET COMPARAISONS
+   BERICHTE V2 â€” ONGLETS ET COMPARAISONS
    ========================================================= */
 
 /* Onglets avec apparence Chrome / Excel */
@@ -10294,7 +10294,7 @@ body * {
     color: #094369;
     font-weight: 700;
 }
-/* En-têtes de tableaux avec triangles de tri */
+/* En-tÃªtes de tableaux avec triangles de tri */
 
 #reportsScreen .r3-sort-button {
     display: inline-flex;
@@ -10334,7 +10334,7 @@ body * {
     outline: 2px solid #5371fd;
     outline-offset: 4px;
 }
-/* Références multiples d’un produit */
+/* RÃ©fÃ©rences multiples dâ€™un produit */
 
 #productModal .product-refs-panel {
     grid-column: 1 / -1;
@@ -10432,7 +10432,7 @@ body * {
         grid-row: 1;
     }
 }
-/* Références : une seule ligne, champs compacts */
+/* RÃ©fÃ©rences : une seule ligne, champs compacts */
 
 #productModal .product-refs-panel {
     grid-column: 1 / -1;
@@ -10544,7 +10544,7 @@ body * {
     color: #b42318;
     font-size: 1.4rem;
 }
-/* Références : ligne compacte, magasin en premier */
+/* RÃ©fÃ©rences : ligne compacte, magasin en premier */
 
 #productModal .product-purchase-ref {
     grid-template-columns:
@@ -10564,7 +10564,7 @@ body * {
     padding: 0;
 }
 
-/* Ordre visuel : Geschäft, IAN, nom, quantité, prix, EK, EAN */
+/* Ordre visuel : GeschÃ¤ft, IAN, nom, quantitÃ©, prix, EK, EAN */
 
 #productModal .product-purchase-ref > label {
     grid-row: 1;
@@ -10813,7 +10813,7 @@ body * {
     stroke-linejoin: round;
 }
 
-/* Fenêtre de vérification */
+/* FenÃªtre de vÃ©rification */
 
 .invoice-ocr-dialog {
     box-sizing: border-box;
@@ -10936,7 +10936,7 @@ body * {
         width: 100%;
     }
 }
-/* Fenêtre caméra pour les factures */
+/* FenÃªtre camÃ©ra pour les factures */
 
 .invoice-camera-dialog {
     box-sizing: border-box;
@@ -11038,7 +11038,7 @@ body * {
     vertical-align: middle;
 }
 /* =========================================================
-   BUCHHALTUNG — GEKAUFTE PRODUKTE
+   BUCHHALTUNG â€” GEKAUFTE PRODUKTE
    ========================================================= */
 
 .invoice-items-section {
@@ -11168,7 +11168,7 @@ body * {
         height: 36px;
     }
 }
-/* Deux emojis : centrés dans le carré existant */
+/* Deux emojis : centrÃ©s dans le carrÃ© existant */
 .product-admin-main > span.product-icon-double,
 .inventory-product-icon.product-icon-double,
 .sale-product-icon.product-icon-double {
@@ -11188,35 +11188,33 @@ body * {
     overflow: hidden;
 }
 /* ================================================
-   BEZAHLEN — PAIEMENT EXACT
+   BEZAHLEN â€” PAIEMENT EXACT
    ================================================ */
 
-/* Même dimensions que Kunde gibt et Rückgeld */
 .exact-payment-button {
     display: flex;
     align-items: center;
     justify-content: center;
 
+    width: 100%;
+    max-width: 600px;
+    min-height: 70px;
+
     box-sizing: border-box;
-
-    width: min(300px, 100%);
-    min-height: 52px;
-
     margin: 0 auto 20px;
-    padding: 12px 14px;
+    padding: 14px 20px;
 
     border: 2px solid #a9bb51;
-    border-radius: 20px;
+    border-radius: 24px;
 
     background: #edf3c9;
     color: #12496c;
 
-    font-family: inherit;
-    font-size: 1.5rem;
+    font: inherit;
+    font-size: clamp(20px, 3.5vw, 26px);
     font-weight: 800;
-    line-height: 1.3;
+    line-height: 1.2;
     text-align: center;
-    white-space: nowrap;
 
     cursor: pointer;
     touch-action: manipulation;
@@ -11231,3 +11229,24 @@ body * {
     outline: 3px solid #12496c;
     outline-offset: 3px;
 }
+/* PROFESSEUR â€” COMMUTATEUR TEST / RÃ‰EL */
+.teacher-test-toggle {
+    display: block;
+    width: fit-content;
+    margin: 0 0 14px auto;
+    padding: 11px 17px;
+    border: 2px solid #e5bd39;
+    border-radius: 14px;
+    background: #fff0ae;
+    color: #665000;
+    font: inherit;
+    font-weight: 850;
+    cursor: pointer;
+}
+.teacher-test-toggle:hover { background: #ffe68c; }
+.teacher-test-toggle[aria-pressed="true"] { background: #efd575; }
+body.teacher-test-mode :is(
+    #drinksSaleScreen,#drinksPaymentScreen,#drinksSuccessScreen,#freeDrinksScreen,
+    #bakerySaleScreen,#bakeryPaymentScreen,#bakerySuccessScreen,#bakeryOutputScreen,
+    #eventSaleScreen,#eventPaymentScreen,#eventSuccessScreen,#eventOutputScreen
+)::before { content: none !important; display: none !important; }
