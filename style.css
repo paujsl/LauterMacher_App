@@ -11978,3 +11978,317 @@ body.teacher-test-mode .teacher-test-toggle {
 .teacher-test-warning[hidden] {
     display: none !important;
 }
+
+/* =========================================================
+   ETAPE 4 — EINKAUFSLISTE
+   Carnet pastel + achats ouverts lavande
+   ========================================================= */
+
+#shoppingListScreen .shopping-content {
+    width: min(1120px, 100%);
+    margin: 0 auto;
+    padding: 20px;
+}
+
+#shoppingListScreen .shopping-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: 12px;
+    padding: 18px;
+    background: #fff9e8;
+    border: 1px solid #f1e5bd;
+    border-radius: 20px;
+}
+
+#shoppingListScreen .shopping-toolbar label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-weight: 700;
+    color: #594c32;
+}
+
+#shoppingListScreen .shopping-toolbar input {
+    width: 110px;
+    padding: 9px 11px;
+    border: 1px solid #d8cba7;
+    border-radius: 11px;
+    background: white;
+    color: #243347;
+}
+
+#shoppingListScreen .shopping-note {
+    color: #657184;
+    font-size: 0.88rem;
+    line-height: 1.55;
+}
+
+#shoppingListScreen .shopping-scroll {
+    overflow-x: auto;
+    margin-top: 16px;
+    border: 1px solid #e6dfce;
+    border-radius: 18px;
+    background: #fffdf8;
+}
+
+#shoppingListScreen .shopping-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 750px;
+}
+
+#shoppingListScreen .shopping-table th {
+    padding: 14px 12px;
+    background: #fff1c9;
+    color: #574b32;
+    font-size: 0.82rem;
+    text-align: left;
+    white-space: nowrap;
+}
+
+#shoppingListScreen .shopping-table td {
+    padding: 13px 12px;
+    border-bottom: 1px solid #f1ebdf;
+    vertical-align: middle;
+}
+
+#shoppingListScreen .shopping-table tbody tr:nth-child(even) {
+    background: #fffcf4;
+}
+
+#shoppingListScreen .shopping-table tbody tr:hover {
+    background: #fff5dd;
+}
+
+#shoppingListScreen .shopping-table input[type="number"] {
+    max-width: 90px;
+    padding: 8px;
+    border: 1px solid #d9d3c4;
+    border-radius: 9px;
+    background: white;
+}
+
+#shoppingListScreen .shopping-table input[type="checkbox"] {
+    width: 19px;
+    height: 19px;
+    accent-color: #8a76ca;
+}
+
+#shoppingListScreen #shoppingTotal {
+    padding: 15px 18px;
+    border-radius: 14px;
+    background: #eaf4ff;
+    color: #24466b;
+    font-weight: 800;
+}
+
+#shoppingListScreen #shoppingFinishButton {
+    margin: 12px 0 6px;
+    padding: 12px 18px;
+    border-radius: 13px;
+    font-weight: 700;
+}
+
+/* Offene Einkäufe */
+
+#shoppingListScreen .shopping-pending-section {
+    margin-top: 30px;
+}
+
+#shoppingListScreen .shopping-section-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+#shoppingListScreen .shopping-section-heading h2 {
+    margin: 0 0 5px;
+    color: #4d4076;
+    font-size: 1.3rem;
+}
+
+#shoppingListScreen .shopping-section-heading p {
+    margin: 0;
+    color: #756c8d;
+    font-size: 0.9rem;
+}
+
+#shoppingListScreen .shopping-section-count {
+    display: grid;
+    place-items: center;
+    min-width: 38px;
+    height: 38px;
+    padding: 0 10px;
+    border-radius: 12px;
+    background: #e7ddff;
+    color: #57428c;
+    font-weight: 800;
+}
+
+#shoppingListScreen .shopping-purchase-grid {
+    display: grid;
+    grid-template-columns: repeat(
+        auto-fit,
+        minmax(min(100%, 340px), 1fr)
+    );
+    gap: 16px;
+}
+
+#shoppingListScreen .shopping-purchase-card {
+    padding: 19px;
+    border: 1px solid #dcd0f6;
+    border-radius: 20px;
+    background: #f4efff;
+    box-shadow: 0 4px 14px rgba(65, 45, 105, 0.05);
+}
+
+#shoppingListScreen .shopping-purchase-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+#shoppingListScreen .shopping-purchase-label {
+    color: #7862a5;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+}
+
+#shoppingListScreen .shopping-purchase-header h3 {
+    margin: 7px 0;
+    color: #49376c;
+    font-size: 1.15rem;
+}
+
+#shoppingListScreen .shopping-purchase-header time {
+    color: #786e8d;
+    font-size: 0.85rem;
+}
+
+#shoppingListScreen .shopping-purchase-status {
+    padding: 7px 10px;
+    border-radius: 999px;
+    background: #e3d6ff;
+    color: #5d438e;
+    font-size: 0.75rem;
+    font-weight: 800;
+}
+
+#shoppingListScreen .shopping-purchase-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 16px 0;
+}
+
+#shoppingListScreen .shopping-purchase-summary span {
+    padding: 7px 10px;
+    border-radius: 10px;
+    background: white;
+    color: #615477;
+    font-size: 0.83rem;
+    font-weight: 700;
+}
+
+#shoppingListScreen .shopping-purchase-items {
+    overflow: hidden;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.7);
+}
+
+#shoppingListScreen .shopping-purchase-item {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 12px;
+    border-bottom: 1px solid #e9e1f5;
+    color: #493f59;
+    font-size: 0.9rem;
+}
+
+#shoppingListScreen .shopping-purchase-item:last-child {
+    border-bottom: none;
+}
+
+#shoppingListScreen .shopping-purchase-item strong {
+    white-space: nowrap;
+}
+
+#shoppingListScreen .shopping-purchase-footer {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 17px;
+}
+
+#shoppingListScreen .shopping-purchase-estimate {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+#shoppingListScreen .shopping-purchase-estimate small {
+    color: #796f89;
+}
+
+#shoppingListScreen .shopping-purchase-estimate strong {
+    color: #48356e;
+    font-size: 1.25rem;
+}
+
+#shoppingListScreen .shopping-purchase-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px;
+}
+
+#shoppingListScreen .shopping-purchase-actions button {
+    flex: 1 1 145px;
+    min-height: 42px;
+    border-radius: 11px;
+}
+
+#shoppingListScreen .shopping-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 28px 16px;
+    border: 1px dashed #d6c8ef;
+    border-radius: 18px;
+    background: #f7f3ff;
+    color: #65537f;
+    text-align: center;
+}
+
+#shoppingListScreen .shopping-empty-state > span {
+    font-size: 1.8rem;
+}
+
+#shoppingListScreen .shopping-empty-state p {
+    margin: 0;
+}
+
+@media (max-width: 600px) {
+    #shoppingListScreen .shopping-content {
+        padding: 12px;
+    }
+
+    #shoppingListScreen .shopping-toolbar {
+        padding: 14px;
+    }
+
+    #shoppingListScreen .shopping-purchase-card {
+        padding: 15px;
+    }
+
+    #shoppingListScreen .shopping-section-heading h2 {
+        font-size: 1.15rem;
+    }
+}
