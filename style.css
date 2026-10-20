@@ -11277,3 +11277,36 @@ body.teacher-test-mode :is(
     #bakerySaleScreen,#bakeryPaymentScreen,#bakerySuccessScreen,#bakeryOutputScreen,
     #eventSaleScreen,#eventPaymentScreen,#eventSuccessScreen,#eventOutputScreen
 )::before { content: none !important; display: none !important; }
+
+/* ==========================================
+   ZAHLUNG ERFOLGREICH — RÜCKGELD VISIBLE
+   ========================================== */
+
+:is(
+    #drinksSuccessScreen,
+    #bakerySuccessScreen,
+    #eventSuccessScreen
+) .success-content .success-change,
+:is(
+    #drinksSuccessScreen,
+    #bakerySuccessScreen,
+    #eventSuccessScreen
+) .success-content .change-amount {
+    display: block;
+    box-sizing: border-box;
+
+    width: 100%;
+    max-width: 650px;
+
+    margin: 20px auto 26px;
+    padding: 22px 24px;
+
+    border-radius: 36px;
+    background: #dcd3fa;
+    color: #10476b;
+
+    font-size: clamp(1.5rem, 4.5vw, 2.2rem);
+    font-weight: 850;
+    line-height: 1.25;
+    text-align: center;
+}
