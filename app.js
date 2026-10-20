@@ -5752,9 +5752,11 @@ async function loadStudents() {
                             )}
                         </strong>
 
+
 <small>
-    ${personRoleEmoji(student)} ${personRoleLabel(student)}
+    ${personRoleLabel(student)}
 </small>
+
 
 
                         <small>
