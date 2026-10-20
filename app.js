@@ -16075,11 +16075,14 @@ if (document.readyState === "loading") {
         }
 
         for (const order of open) {
-            const test = isTeacher() && (
-                state.eventTestOrders[state.currentEvent.id] || []
-            ).some(item => item.id === order.id);
+            
+const test = isTeacherTestMode() && (
+    state.eventTestOrders[state.currentEvent.id] || []
+).some(item => item.id === order.id);
 
-            const canServe = test || !isTeacher();
+const canServe = isTeacherTestMode()
+    ? test
+    : true;
 
             const items =
                 order.items || order.event_order_items || [];
@@ -16201,7 +16204,8 @@ if (document.readyState === "loading") {
     };
 
 
-    serveEventOrder = async id => {
+    
+serveEventOrder = async id => {
     if (
         serving.has(id) ||
         !state.currentPerson ||
@@ -16210,12 +16214,13 @@ if (document.readyState === "loading") {
         return;
     }
 
-    serving.add(id);
-
+    const testMode = isTeacherTestMode();
     const saved = context();
 
+    serving.add(id);
+
     try {
-        if (isTeacherTestMode()) {
+        if (testMode) {
             const order = (
                 state.eventTestOrders[saved.event] || []
             ).find(item => item.id === id);
@@ -16224,16 +16229,14 @@ if (document.readyState === "loading") {
 
             order.status = "ausgegeben";
             order.served_at = new Date().toISOString();
-
         } else {
             await rpc("serve_event_order", {
                 p_order_id: id
             });
         }
-
     } catch (error) {
+        console.error(error);
         toast(errorText(error), "error");
-
     } finally {
         serving.delete(id);
 
