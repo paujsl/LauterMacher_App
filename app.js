@@ -1128,9 +1128,22 @@ function openCashierPayment(area) {
     if (cashierCartCents(state[`${area}Cart`]) <= 0) return;
 
     state[`${area}PaymentInput`] = "";
-    state[`${area}ReceivedCents`] = 0;
+state[`${area}ReceivedCents`] = 0;
 
-    renderCashierPayment(area);
+// Réinitialiser Passend bezahlt.
+const exactButton = $(`${area}ExactPaymentButton`);
+
+if (exactButton) {
+    exactButton.disabled = false;
+}
+
+const paidButton = $(`${area}PaidButton`);
+
+if (paidButton) {
+    delete paidButton.dataset.exactPaymentPending;
+}
+
+renderCashierPayment(area);
     showScreen(`${area}PaymentScreen`);
 }
 
@@ -1139,14 +1152,15 @@ function openCashierPayment(area) {
    Getränke + Bäckerei, Lehrer + Schüler
    ===================================================== */
 
+
 function installExactPaymentButton(area) {
+    const paidButton = $(`${area}PaidButton`);
     const keypad = $(`${area}PaymentKeypad`);
 
-    if (!keypad) return;
+    if (!paidButton || !keypad) return;
 
     const buttonId = `${area}ExactPaymentButton`;
 
-    // Ne jamais créer le bouton deux fois.
     if ($(buttonId)) return;
 
     const button = document.createElement("button");
@@ -1156,33 +1170,68 @@ function installExactPaymentButton(area) {
     button.className = "exact-payment-button";
     button.textContent = "✓ Passend bezahlt";
 
-    // Placer le bouton au-dessus du clavier.
-    keypad.parentNode.insertBefore(button, keypad);
+    // Le raccourci se trouve sous le bouton Bezahlt.
+    paidButton.insertAdjacentElement("afterend", button);
 
     button.addEventListener("click", () => {
-        if (state.cashierSaving) return;
+        if (
+            state.cashierSaving ||
+            button.disabled ||
+            paidButton.dataset.exactPaymentPending === "true"
+        ) {
+            return;
+        }
 
-        const total = cashierCartCents(
-            state[`${area}Cart`]
-        );
+        let totalCents;
 
-        if (total <= 0) return;
+        if (area === "event") {
+            totalCents = Math.round(eventCartTotal() * 100);
+        } else {
+            totalCents = cashierCartCents(
+                state[`${area}Cart`]
+            );
+        }
 
-        // Montant exact donné, en centimes.
-        state[`${area}ReceivedCents`] = total;
+        if (totalCents <= 0) return;
 
-        // Synchroniser également la saisie du clavier.
-        state[`${area}PaymentInput`] =
-            `${Math.floor(total / 100)},${String(
-                total % 100
-            ).padStart(2, "0")}`;
+        // Le client a donné exactement le montant dû.
+        if (area === "event") {
+            state.eventReceivedCents = totalCents;
+            renderEventPayment();
+        } else {
+            state[`${area}ReceivedCents`] = totalCents;
 
-        renderCashierPayment(area);
+            state[`${area}PaymentInput`] =
+                `${Math.floor(totalCents / 100)},${String(
+                    totalCents % 100
+                ).padStart(2, "0")}`;
+
+            renderCashierPayment(area);
+        }
+
+        // Utiliser le paiement existant : aucune
+        // deuxième logique de vente ou de stock.
+        if (paidButton.disabled) return;
+
+        paidButton.dataset.exactPaymentPending = "true";
+        button.disabled = true;
+
+        paidButton.click();
+
+        // La prochaine ouverture de l'écran de paiement
+        // réinitialisera le raccourci.
     });
 }
 
+
 function renderCashierPayment(area) {
     installExactPaymentButton(area);
+
+       const exactButton = $(`${area}ExactPaymentButton`);
+
+    if (exactButton && !state.cashierSaving) {
+        exactButton.disabled = false;
+    }
 
     const total = cashierCartCents(state[`${area}Cart`]);
     const received = state[`${area}ReceivedCents`] || 0;
@@ -9038,16 +9087,26 @@ $("eventPayButton")?.addEventListener(
         }
 
 
-        state.eventReceivedCents =
-            0;
+        state.eventReceivedCents = 0;
 
+// Réinitialiser Passend bezahlt pour une nouvelle vente.
+const exactButton = $("eventExactPaymentButton");
 
-        renderEventPayment();
+if (exactButton) {
+    exactButton.disabled = false;
+}
 
+const paidButton = $("eventPaidButton");
 
-        showScreen(
-            "eventPaymentScreen"
-        );
+if (paidButton) {
+    delete paidButton.dataset.exactPaymentPending;
+}
+
+renderEventPayment();
+
+showScreen(
+    "eventPaymentScreen"
+);
     }
 );
 
@@ -9061,6 +9120,7 @@ $("eventPaymentBackButton")?.addEventListener(
 
 
 function renderEventPayment() {
+       installExactPaymentButton("event");
 
     const total =
         eventCartTotal();
