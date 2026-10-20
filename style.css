@@ -11649,64 +11649,111 @@ body.teacher-test-mode :is(
     border-width: 0 !important;
 }
 
+
 /* ==========================================
-   LAUTER MACHER — EN-TÊTES HARMONISÉS
-   Titre centré, boutons presque alignés
+   LAUTER MACHER — EN-TÊTES UNIFORMES
    ========================================== */
 
 .screen-header,
 .page-header {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
     align-items: center;
-    column-gap: 12px;
+    gap: 12px;
     position: relative;
-    padding-top: 14px;
-    padding-bottom: 14px;
+    padding: 16px 0 20px;
 }
 
-/* Titre parfaitement centré */
+/* Titres principaux */
 .screen-header > h1,
 .page-header > h1 {
     grid-column: 2;
     grid-row: 1;
     justify-self: center;
-    text-align: center;
-    margin: 0;
-    font-size: clamp(1.8rem, 3vw, 2.5rem);
+    align-self: center;
+
+    width: max-content;
+    max-width: 100%;
+    margin: 0 !important;
+
+    text-align: center !important;
+    font-size: clamp(1.9rem, 3.2vw, 2.6rem) !important;
+    font-weight: 850;
     line-height: 1.2;
 }
 
-/* Bouton retour : à gauche */
+/* Retour à gauche */
 .screen-header > .back-button,
 .page-header > .back-button {
     grid-column: 1;
     grid-row: 1;
     justify-self: start;
     align-self: center;
-    margin: 8px 0 0;
+    margin: 8px 0 0 !important;
 }
 
-/* Boutons d'action : à droite */
-.screen-header > :is(button, .screen-mode-badge):not(.back-button),
-.page-header > :is(button, .screen-mode-badge):not(.back-button) {
+/* Action à droite */
+.screen-header > button:not(.back-button),
+.page-header > button:not(.back-button) {
     grid-column: 3;
     grid-row: 1;
     justify-self: end;
     align-self: center;
-    margin-top: 8px;
+    margin: 8px 0 0 !important;
 }
 
-/* Sur petit écran, éviter les débordements */
-@media (max-width: 650px) {
+/* ==========================================
+   TESTUMGEBUNG — BULLE JAUNE
+   ========================================== */
+
+.teacher-test-toggle {
+    border: 0 !important;
+    border-radius: 999px !important;
+    background: #ffdc58 !important;
+    color: #654d00 !important;
+
+    padding: 12px 22px !important;
+    font: inherit;
+    font-weight: 850 !important;
+    box-shadow: none !important;
+
+    width: auto !important;
+    min-height: 0 !important;
+    cursor: pointer;
+}
+
+.teacher-test-toggle:hover {
+    background: #ffdc58 !important;
+}
+
+.teacher-test-toggle[aria-pressed="true"] {
+    background: #ffdc58 !important;
+    color: #654d00 !important;
+}
+
+/* Message visible uniquement quand son attribut
+   hidden est retiré par JavaScript */
+.test-environment-banner[hidden] {
+    display: none !important;
+}
+
+.test-environment-banner:not([hidden]) {
+    color: #654d00;
+    font-weight: 650;
+    font-size: 0.95rem;
+}
+
+/* Petits écrans */
+@media (max-width: 700px) {
     .screen-header,
     .page-header {
-        column-gap: 8px;
+        gap: 6px;
     }
 
     .screen-header > h1,
     .page-header > h1 {
-        font-size: clamp(1.3rem, 4.5vw, 1.8rem);
+        font-size: clamp(1.25rem, 4vw, 1.8rem) !important;
+        white-space: normal;
     }
 
     .screen-header > .back-button,
