@@ -12424,3 +12424,591 @@ body.teacher-test-mode .teacher-test-toggle {
         font-size: 1rem;
     }
 }
+
+/* =========================================================
+   EINKAUFSLISTE — FEUILLE DE CAHIER SCOLAIRE
+   ========================================================= */
+
+#shoppingListScreen {
+    --paper-blue: #a8c3dc;
+    --paper-pink: #e7a6bf;
+    --paper-ink: #174b72;
+}
+
+/* En-tête compact */
+
+#shoppingListScreen .screen-header {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 18px;
+    margin-bottom: 14px;
+}
+
+#shoppingListScreen .screen-header h1 {
+    margin: 0;
+    font-size: clamp(1.15rem, 2.5vw, 1.8rem);
+    color: var(--paper-ink);
+}
+
+/* Feuille blanche, lignes bleues et marge rose */
+
+#shoppingListScreen .shopping-content {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+
+    padding: 20px 20px 35px 66px;
+
+    border: 1px solid #d8e2ed;
+    border-radius: 12px;
+
+    background-color: #fffdfd;
+
+    background-image:
+        linear-gradient(
+            to right,
+            transparent 0,
+            transparent 46px,
+            rgba(231, 166, 191, .8) 46px,
+            rgba(231, 166, 191, .8) 48px,
+            transparent 48px
+        ),
+        repeating-linear-gradient(
+            to bottom,
+            transparent 0,
+            transparent 31px,
+            rgba(125, 164, 203, .42) 32px,
+            transparent 33px
+        );
+
+    box-shadow:
+        0 8px 26px rgba(38, 73, 110, .10);
+}
+
+/* Petits dessins scolaires en haut */
+
+#shoppingListScreen .shopping-content::before {
+    content: "☁️  ☆  🌈";
+    display: block;
+
+    margin: 0 0 8px;
+
+    color: #8fa7c6;
+    font-size: clamp(1.2rem, 3vw, 2rem);
+    letter-spacing: .3em;
+    text-align: right;
+
+    opacity: .8;
+    pointer-events: none;
+}
+
+/* Titre manuscrit, comme le mock-up */
+
+#shoppingListScreen .shopping-content::after {
+    content: "TO BUY LIST";
+
+    display: block;
+    position: absolute;
+
+    top: 72px;
+    left: 50%;
+    z-index: 0;
+
+    transform: translateX(-50%) rotate(-2deg);
+
+    font-family:
+        "Comic Sans MS",
+        "Segoe Print",
+        "Bradley Hand",
+        cursive;
+
+    font-size: clamp(1.5rem, 4vw, 3.1rem);
+    font-weight: 900;
+    letter-spacing: .06em;
+    line-height: 1.2;
+
+    color: #b38dc7;
+    text-shadow:
+        -2px 2px 0 #e6b5d1,
+        2px -1px 0 #9eb4e9;
+
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+/* Les réglages et les deux boutons en haut */
+
+#shoppingListScreen .shopping-toolbar {
+    position: relative;
+    z-index: 1;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+
+    gap: 12px;
+
+    min-height: 52px;
+    margin: 0 0 96px;
+    padding: 0;
+
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+#shoppingListScreen .shopping-settings {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px 18px;
+}
+
+#shoppingListScreen .shopping-settings label {
+    display: inline-flex;
+    flex-direction: row;
+    align-items: center;
+
+    gap: 7px;
+
+    color: #244e73;
+
+    font-family:
+        "Comic Sans MS",
+        "Segoe Print",
+        cursive;
+
+    font-size: .92rem;
+    font-weight: 700;
+}
+
+#shoppingListScreen .shopping-setting-control {
+    display: inline-flex;
+}
+
+#shoppingListScreen .shopping-setting-control select {
+    min-height: 36px;
+    max-width: 120px;
+
+    padding: 5px 8px;
+
+    background: #fff;
+    color: #244e73;
+
+    border: 1px solid #b8c8d9;
+    border-radius: 9px;
+
+    font-family: inherit;
+    font-size: .88rem;
+    font-weight: 700;
+}
+
+#shoppingListScreen .shopping-main-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: nowrap;
+
+    gap: 9px;
+}
+
+#shoppingListScreen .shopping-main-actions button {
+    width: auto;
+    min-height: 39px;
+
+    margin: 0;
+    padding: 8px 15px;
+
+    border: 0;
+    border-radius: 999px;
+
+    color: white;
+
+    font-family:
+        "Comic Sans MS",
+        "Segoe Print",
+        cursive;
+
+    font-size: .9rem;
+    font-weight: 800;
+    line-height: 1.2;
+    white-space: nowrap;
+
+    box-shadow: 0 3px 7px rgba(0,0,0,.08);
+}
+
+#shoppingListScreen #shoppingRefreshButton {
+    background: #637cf4;
+    color: white;
+}
+
+#shoppingListScreen #shoppingFinishButton {
+    background: #aab83b;
+    color: white;
+}
+
+#shoppingListScreen #shoppingRefreshButton:hover {
+    background: #4c65e2;
+}
+
+#shoppingListScreen #shoppingFinishButton:hover {
+    background: #94a22e;
+}
+
+#shoppingListScreen #shoppingResetButton {
+    display: none !important;
+}
+
+/* Textes explicatifs discrets */
+
+#shoppingListScreen .shopping-note {
+    position: relative;
+    z-index: 1;
+
+    margin: 9px 0;
+
+    color: #667f98;
+    font-size: .76rem;
+    line-height: 1.4;
+}
+
+#shoppingListScreen #shoppingStatus {
+    position: relative;
+    z-index: 1;
+
+    margin: 9px 0;
+
+    color: #315e81;
+    font-size: .8rem;
+}
+
+/* Tableau intégré directement dans la feuille */
+
+#shoppingListScreen .shopping-scroll {
+    position: relative;
+    z-index: 1;
+
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+
+    margin-top: 14px;
+    overflow-x: auto;
+
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+
+    -webkit-overflow-scrolling: touch;
+}
+
+#shoppingListScreen .shopping-table {
+    width: 100%;
+    min-width: 0;
+
+    table-layout: fixed;
+    border-collapse: collapse;
+
+    background: transparent;
+}
+
+#shoppingListScreen .shopping-table th {
+    padding: 8px 4px;
+
+    background: transparent;
+    color: #214f77;
+
+    border-bottom: 2px solid #8fb1d0;
+
+    font-family:
+        "Comic Sans MS",
+        "Segoe Print",
+        cursive;
+
+    font-size: .86rem;
+    font-weight: 800;
+    text-align: center;
+    white-space: normal;
+}
+
+#shoppingListScreen .shopping-table th:nth-child(1) {
+    width: 7%;
+}
+
+#shoppingListScreen .shopping-table th:nth-child(2) {
+    width: 48%;
+    text-align: left;
+}
+
+#shoppingListScreen .shopping-table th:nth-child(3) {
+    width: 13%;
+}
+
+#shoppingListScreen .shopping-table th:nth-child(4) {
+    width: 19%;
+}
+
+#shoppingListScreen .shopping-table th:nth-child(5) {
+    width: 13%;
+}
+
+#shoppingListScreen .shopping-table td {
+    height: 58px;
+    padding: 7px 4px;
+
+    background: transparent;
+    color: #174b72;
+
+    border-bottom: 1px solid rgba(127, 167, 205, .55);
+
+    font-size: .92rem;
+    text-align: center;
+    vertical-align: middle;
+    overflow-wrap: anywhere;
+}
+
+#shoppingListScreen .shopping-table td:nth-child(2) {
+    text-align: left;
+}
+
+#shoppingListScreen .shopping-table td strong {
+    display: block;
+
+    font-family:
+        "Comic Sans MS",
+        "Segoe Print",
+        cursive;
+
+    font-size: .98rem;
+    font-weight: 800;
+    line-height: 1.25;
+}
+
+#shoppingListScreen .shopping-product-reference {
+    display: block;
+
+    margin-top: 2px;
+
+    color: #71839b;
+    font-size: .72rem;
+    line-height: 1.2;
+}
+
+#shoppingListScreen .shopping-table tbody tr,
+#shoppingListScreen .shopping-table tbody tr:nth-child(even) {
+    background: transparent;
+}
+
+#shoppingListScreen .shopping-table tbody tr:hover {
+    background: rgba(225, 237, 255, .35);
+}
+
+/* Cases à cocher vert menthe */
+
+#shoppingListScreen .shopping-table input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+
+    margin: 0;
+    accent-color: #8dbbaa;
+}
+
+/* Quantités éditables */
+
+#shoppingListScreen .shopping-table input[data-shopping-packs] {
+    width: min(100%, 72px);
+    min-width: 0;
+    max-width: 72px;
+
+    padding: 6px 3px;
+
+    background: rgba(255, 255, 255, .88);
+    color: #174b72;
+
+    border: 1px solid #b8ccdd;
+    border-radius: 8px;
+
+    font-size: .95rem;
+    text-align: center;
+}
+
+/* Produits cochés */
+
+#shoppingListScreen .shopping-table tr.shopping-checked {
+    background: rgba(213, 239, 226, .45);
+}
+
+#shoppingListScreen .shopping-table tr.shopping-checked td:nth-child(2) strong {
+    color: #7895a1;
+    text-decoration: line-through;
+}
+
+/* Total : discret, sans gros encadré */
+
+#shoppingListScreen #shoppingTotal {
+    position: relative;
+    z-index: 1;
+
+    margin: 15px 0;
+    padding: 7px 0;
+
+    background: transparent;
+    color: #315a7d;
+
+    border: 0;
+    border-radius: 0;
+
+    font-size: .85rem;
+    font-weight: 700;
+}
+
+/* Les sections suivantes gardent leur identité */
+
+#shoppingListScreen .shopping-pending-section {
+    background: #f3eeff;
+    border: 1px solid #dcd0fb;
+    border-radius: 18px;
+}
+
+#shoppingListScreen .shopping-history-section {
+    background: #eaf4ff;
+    border: 1px solid #c8e1f6;
+    border-radius: 18px;
+}
+
+/* =========================================================
+   TELEPHONE
+   ========================================================= */
+
+@media (max-width: 650px) {
+
+    #shoppingListScreen {
+        width: calc(100% - 12px);
+    }
+
+    #shoppingListScreen .screen-header {
+        gap: 8px;
+    }
+
+    #shoppingListScreen .screen-header h1 {
+        font-size: 1.1rem;
+    }
+
+    #shoppingListScreen .shopping-content {
+        padding: 12px 6px 24px 19px;
+
+        background-image:
+            linear-gradient(
+                to right,
+                transparent 0,
+                transparent 11px,
+                rgba(231,166,191,.8) 11px,
+                rgba(231,166,191,.8) 12px,
+                transparent 12px
+            ),
+            repeating-linear-gradient(
+                to bottom,
+                transparent 0,
+                transparent 28px,
+                rgba(125,164,203,.38) 29px,
+                transparent 30px
+            );
+    }
+
+    #shoppingListScreen .shopping-content::before {
+        font-size: 1.15rem;
+    }
+
+    #shoppingListScreen .shopping-content::after {
+        top: 102px;
+        font-size: clamp(1.45rem, 6vw, 2rem);
+    }
+
+    #shoppingListScreen .shopping-toolbar {
+        gap: 8px;
+        margin-bottom: 76px;
+    }
+
+    #shoppingListScreen .shopping-settings {
+        width: 100%;
+        gap: 6px 10px;
+    }
+
+    #shoppingListScreen .shopping-settings label {
+        font-size: .7rem;
+        gap: 4px;
+    }
+
+    #shoppingListScreen .shopping-setting-control select {
+        max-width: 95px;
+        min-height: 32px;
+        padding: 4px;
+        font-size: .72rem;
+    }
+
+    #shoppingListScreen .shopping-main-actions {
+        width: 100%;
+        justify-content: flex-end;
+        gap: 6px;
+    }
+
+    #shoppingListScreen .shopping-main-actions button {
+        min-height: 34px;
+        padding: 7px 10px;
+        font-size: .73rem;
+    }
+
+    #shoppingListScreen .shopping-table th {
+        padding: 7px 1px;
+        font-size: .61rem;
+    }
+
+    #shoppingListScreen .shopping-table td {
+        height: 54px;
+        padding: 6px 2px;
+        font-size: .72rem;
+    }
+
+    #shoppingListScreen .shopping-table td strong {
+        font-size: .72rem;
+    }
+
+    #shoppingListScreen .shopping-product-reference {
+        font-size: .57rem;
+    }
+
+    #shoppingListScreen .shopping-table input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+    }
+
+    #shoppingListScreen .shopping-table input[data-shopping-packs] {
+        width: 100%;
+        max-width: 54px;
+        padding: 5px 1px;
+        font-size: 16px;
+    }
+
+    #shoppingListScreen .shopping-table th:nth-child(1) {
+        width: 8%;
+    }
+
+    #shoppingListScreen .shopping-table th:nth-child(2) {
+        width: 43%;
+    }
+
+    #shoppingListScreen .shopping-table th:nth-child(3) {
+        width: 14%;
+    }
+
+    #shoppingListScreen .shopping-table th:nth-child(4) {
+        width: 21%;
+    }
+
+    #shoppingListScreen .shopping-table th:nth-child(5) {
+        width: 14%;
+    }
+}
