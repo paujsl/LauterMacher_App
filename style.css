@@ -11823,3 +11823,80 @@ body.teacher-test-mode :is(
         font-size: 0.72rem;
     }
 }
+
+/* =========================================================
+   ETAPE 1 — TITRES SUR UNE SEULE LIGNE
+   Lauter Macher
+   ========================================================= */
+
+/* Donner plus de place au titre central */
+.screen-header,
+.page-header {
+    grid-template-columns:
+        minmax(0, 1fr)
+        minmax(0, 2.5fr)
+        minmax(0, 1fr) !important;
+}
+
+/* Centrer les titres sans les couper */
+.screen-header > h1,
+.page-header > h1,
+.screen-header > .screen-header-copy,
+.page-header > .screen-header-copy,
+#eventWorkspaceScreen .screen-title-stack {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+
+    width: max-content;
+    max-width: 100%;
+
+    justify-self: center !important;
+    text-align: center !important;
+}
+
+/* Emoji et texte toujours ensemble */
+.screen-header h1,
+.page-header h1,
+#eventWorkspaceScreen .screen-title-stack h1 {
+    display: block !important;
+
+    width: max-content;
+    max-width: 100%;
+
+    margin: 0 auto !important;
+
+    white-space: nowrap !important;
+    word-break: normal !important;
+    overflow-wrap: normal !important;
+
+    font-size: clamp(1.5rem, 2.8vw, 2.6rem) !important;
+    line-height: 1.2 !important;
+}
+
+/* Les emojis intégrés au titre restent sur la même ligne */
+.screen-header h1 span,
+.page-header h1 span,
+#eventWorkspaceScreen .screen-title-stack h1 span {
+    white-space: nowrap !important;
+}
+
+/* Smartphone : titre plus petit si nécessaire */
+@media (max-width: 700px) {
+
+    .screen-header,
+    .page-header {
+        grid-template-columns:
+            minmax(0, 1fr)
+            minmax(0, 3fr)
+            minmax(0, 1fr) !important;
+
+        gap: 5px !important;
+    }
+
+    .screen-header h1,
+    .page-header h1,
+    #eventWorkspaceScreen .screen-title-stack h1 {
+        font-size: clamp(0.9rem, 3.5vw, 1.5rem) !important;
+        letter-spacing: -0.025em;
+    }
+}
