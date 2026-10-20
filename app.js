@@ -6174,13 +6174,16 @@ async function deactivateStudent(student) {
     }
 
 
-    if (
-        !window.confirm(
-            `${personName(student)} wirklich löschen?`
-        )
-    ) {
-        return;
-    }
+    
+const confirmed = await confirmInApp(
+    `${personName(student)} wirklich deaktivieren?`,
+    "Profil deaktivieren?"
+);
+
+if (!confirmed) {
+    return;
+}
+
 
 
     try {
