@@ -11377,3 +11377,29 @@ body.teacher-test-mode :is(
     object-fit: contain;
     object-position: left center;
 }
+
+/* ==========================================
+   LOGO LAUTER MACHER — AGRANDISSEMENT VISUEL
+   ========================================== */
+
+#appHeader #homeLogoButton {
+    overflow: visible !important;
+    flex-shrink: 0;
+}
+
+#appHeader #homeLogoButton img.app-header-logo {
+    height: 100% !important;
+    width: auto !important;
+    max-width: none !important;
+    max-height: none !important;
+
+    transform: scale(1.8) !important;
+    transform-origin: left center !important;
+}
+
+/* Sur les petits écrans, agrandissement plus modéré */
+@media (max-width: 760px) {
+    #appHeader #homeLogoButton img.app-header-logo {
+        transform: scale(1.3) !important;
+    }
+}
