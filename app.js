@@ -992,8 +992,56 @@ function openCashierPayment(area) {
     showScreen(`${area}PaymentScreen`);
 }
 
+/* =====================================================
+   BEZAHLEN — BOUTON "PASSEND BEZAHLT"
+   Getränke + Bäckerei, Lehrer + Schüler
+   ===================================================== */
+
+function installExactPaymentButton(area) {
+    const keypad = $(`${area}PaymentKeypad`);
+
+    if (!keypad) return;
+
+    const buttonId = `${area}ExactPaymentButton`;
+
+    // Ne jamais créer le bouton deux fois.
+    if ($(buttonId)) return;
+
+    const button = document.createElement("button");
+
+    button.id = buttonId;
+    button.type = "button";
+    button.className = "exact-payment-button";
+    button.textContent = "✓ Passend bezahlt";
+
+    // Placer le bouton au-dessus du clavier.
+    keypad.parentNode.insertBefore(button, keypad);
+
+    button.addEventListener("click", () => {
+        if (state.cashierSaving) return;
+
+        const total = cashierCartCents(
+            state[`${area}Cart`]
+        );
+
+        if (total <= 0) return;
+
+        // Montant exact donné, en centimes.
+        state[`${area}ReceivedCents`] = total;
+
+        // Synchroniser également la saisie du clavier.
+        state[`${area}PaymentInput`] =
+            `${Math.floor(total / 100)},${String(
+                total % 100
+            ).padStart(2, "0")}`;
+
+        renderCashierPayment(area);
+    });
+}
 
 function renderCashierPayment(area) {
+    installExactPaymentButton(area);
+
     const total = cashierCartCents(state[`${area}Cart`]);
     const received = state[`${area}ReceivedCents`] || 0;
 
