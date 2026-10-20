@@ -11900,3 +11900,81 @@ body.teacher-test-mode :is(
         letter-spacing: -0.025em;
     }
 }
+
+/* =========================================================
+   ETAPE 2 — TESTUMGEBUNG
+   FOND JAUNE SUR TOUTE LA PAGE
+   ========================================================= */
+
+/* Toute la page devient jaune en mode test */
+html:has(body.teacher-test-mode),
+body.teacher-test-mode {
+    background: #fff4b8 !important;
+    background-image: none !important;
+    min-height: 100% !important;
+}
+
+/* Le jaune continue sur toute la hauteur de l'écran */
+body.teacher-test-mode {
+    min-height: 100vh !important;
+}
+
+/* Les écrans de caisse n'ont plus de cadre jaune
+   qui s'arrête au niveau des produits */
+body.teacher-test-mode :is(
+    #drinksSaleScreen,
+    #drinksPaymentScreen,
+    #drinksSuccessScreen,
+    #freeDrinksScreen,
+    #bakerySaleScreen,
+    #bakeryPaymentScreen,
+    #bakerySuccessScreen,
+    #bakeryOutputScreen,
+    #eventSaleScreen,
+    #eventPaymentScreen,
+    #eventSuccessScreen,
+    #eventOutputScreen
+) {
+    background: transparent !important;
+    background-image: none !important;
+
+    border: 0 !important;
+    box-shadow: none !important;
+}
+
+/* Conserver les cartes et les boutons blancs
+   pour qu'ils restent faciles à lire */
+body.teacher-test-mode :is(
+    .sale-product-card,
+    .cashier-cart,
+    .payment-summary,
+    .payment-key,
+    .success-card,
+    .panel,
+    .card
+) {
+    background: #ffffff;
+}
+
+/* Le bandeau supérieur et le fil d'Ariane
+   conservent leurs couleurs habituelles */
+body.teacher-test-mode .app-header {
+    background: var(--header-purple);
+}
+
+body.teacher-test-mode .breadcrumb {
+    background: #ffffff;
+}
+
+/* La bulle Testumgebung reste jaune et arrondie */
+body.teacher-test-mode .teacher-test-toggle {
+    background: #ffdc58 !important;
+    color: #654d00 !important;
+    border-radius: 999px !important;
+}
+
+/* Le message d'avertissement reste visible
+   uniquement lorsque le JavaScript l'affiche */
+.teacher-test-warning[hidden] {
+    display: none !important;
+}
