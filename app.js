@@ -6145,11 +6145,13 @@ async function deactivateStudent(student) {
         const {
             error
         } = await db.rpc(
-            "teacher_deactivate_student",
-            {
-                p_person_id:
-                    student.id
-            }
+            
+"teacher_deactivate_student",
+{
+    p_student_id:
+        student.id
+}
+
         );
 
 
