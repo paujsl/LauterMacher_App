@@ -12292,3 +12292,135 @@ body.teacher-test-mode .teacher-test-toggle {
         font-size: 1.15rem;
     }
 }
+
+/* =========================================================
+   ETAPE 4 — HISTORIQUE ET ANNULATION
+   ========================================================= */
+
+#shoppingListScreen .shopping-cancel-button {
+    background: #fff5f4;
+    color: #a34c56;
+    border: 1px solid #efcbd0;
+}
+
+#shoppingListScreen .shopping-cancel-button:hover {
+    background: #ffe8e8;
+}
+
+#shoppingListScreen .shopping-history-section {
+    margin-top: 34px;
+    margin-bottom: 24px;
+}
+
+#shoppingListScreen .shopping-history-section
+.shopping-section-heading h2 {
+    color: #285a7d;
+}
+
+#shoppingListScreen .shopping-history-section
+.shopping-section-heading p {
+    color: #617c92;
+}
+
+#shoppingListScreen .shopping-history-section
+.shopping-section-count {
+    background: #dcefff;
+    color: #285a7d;
+}
+
+#shoppingListScreen .shopping-history-list {
+    display: grid;
+    gap: 12px;
+}
+
+#shoppingListScreen .shopping-history-card {
+    padding: 16px 19px;
+    border: 1px solid #cfe4f5;
+    border-radius: 17px;
+    background: #eff8ff;
+}
+
+#shoppingListScreen .shopping-history-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+#shoppingListScreen .shopping-history-main strong {
+    color: #244c69;
+}
+
+#shoppingListScreen .shopping-history-main p {
+    margin: 5px 0 0;
+    color: #6c8295;
+    font-size: 0.84rem;
+}
+
+#shoppingListScreen .shopping-history-price {
+    white-space: nowrap;
+    font-size: 1.1rem;
+}
+
+#shoppingListScreen .shopping-history-products {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin: 14px 0;
+}
+
+#shoppingListScreen .shopping-history-products span {
+    padding: 6px 9px;
+    border-radius: 9px;
+    background: white;
+    color: #536f86;
+    font-size: 0.8rem;
+}
+
+#shoppingListScreen .shopping-history-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding-top: 12px;
+    border-top: 1px solid #d9e9f5;
+}
+
+#shoppingListScreen .shopping-history-status {
+    color: #427d68;
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+#shoppingListScreen .shopping-hide-button {
+    padding: 8px 12px;
+    border-radius: 10px;
+    background: #fff;
+    border: 1px solid #cbddeb;
+    color: #49677e;
+    font-size: 0.83rem;
+}
+
+#shoppingListScreen .shopping-history-empty {
+    padding: 25px 16px;
+    border: 1px dashed #c6deef;
+    border-radius: 16px;
+    background: #f3faff;
+    color: #607f97;
+    text-align: center;
+}
+
+@media (max-width: 600px) {
+    #shoppingListScreen .shopping-history-card {
+        padding: 14px;
+    }
+
+    #shoppingListScreen .shopping-history-main {
+        flex-wrap: wrap;
+    }
+
+    #shoppingListScreen .shopping-history-price {
+        font-size: 1rem;
+    }
+}
