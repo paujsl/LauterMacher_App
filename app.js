@@ -16202,43 +16202,46 @@ if (document.readyState === "loading") {
 
 
     serveEventOrder = async id => {
-        if (
-            serving.has(id) ||
-            !state.currentPerson ||
-            !state.currentEvent
-        ) {
-            return;
+    if (
+        serving.has(id) ||
+        !state.currentPerson ||
+        !state.currentEvent
+    ) {
+        return;
+    }
+
+    serving.add(id);
+
+    const saved = context();
+
+    try {
+        if (isTeacherTestMode()) {
+            const order = (
+                state.eventTestOrders[saved.event] || []
+            ).find(item => item.id === id);
+
+            if (!order) return;
+
+            order.status = "ausgegeben";
+            order.served_at = new Date().toISOString();
+
+        } else {
+            await rpc("serve_event_order", {
+                p_order_id: id
+            });
         }
 
-        serving.add(id);
+    } catch (error) {
+        toast(errorText(error), "error");
 
-        const saved = context();
+    } finally {
+        serving.delete(id);
 
-        try {
-            if (isTeacher()) {
-                const order = (
-                    state.eventTestOrders[saved.event] || []
-                ).find(item => item.id === id);
-
-                if (!order) return;
-
-                order.status = "ausgegeben";
-                order.served_at = new Date().toISOString();
-            } else {
-                await rpc("serve_event_order", {
-                    p_order_id: id
-                });
-            }
-        } catch (error) {
-            toast(errorText(error), "error");
-        } finally {
-            serving.delete(id);
-
-            if (unchanged(saved)) {
-                await loadEventOrders();
-            }
+        if (unchanged(saved)) {
+            await loadEventOrders();
         }
-    };
+    }
+};
 
 
     /* Produits gratuits de l'événement */
