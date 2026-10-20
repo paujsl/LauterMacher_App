@@ -303,7 +303,8 @@ function showScreen(
         state.previousScreenId = state.currentScreenId;
     }
 
-    state.currentScreenId = id;
+        state.currentScreenId = id;
+    updateTeacherTestUI();
 
     const loginScreen = [
         "identityScreen",
@@ -360,6 +361,140 @@ function showScreen(
     });
 }
 
+/* =====================================================
+   PROFESSEUR — BOUTON MODE NORMAL / TEST
+   ===================================================== */
+
+const TEACHER_TEST_SCREENS = new Set([
+    "drinksSaleScreen",
+    "drinksPaymentScreen",
+    "drinksSuccessScreen",
+    "freeDrinksScreen",
+    "bakerySaleScreen",
+    "bakeryPaymentScreen",
+    "bakerySuccessScreen",
+    "bakeryOutputScreen",
+    "eventSaleScreen",
+    "eventPaymentScreen",
+    "eventSuccessScreen",
+    "eventOutputScreen"
+]);
+
+function updateTeacherTestUI() {
+    const active = isTeacherTestMode();
+
+    document.body.classList.toggle(
+        "teacher-test-mode",
+        active
+    );
+
+    document.querySelectorAll(
+        ".teacher-test-toggle"
+    ).forEach(button => {
+        const visible =
+            isTeacher() &&
+            TEACHER_TEST_SCREENS.has(state.currentScreenId) &&
+            button.closest(".screen")?.id === state.currentScreenId;
+
+        button.hidden = !visible;
+        button.style.display = visible ? "block" : "none";
+
+        button.textContent = active
+            ? "Testumgebung aktiv"
+            : "Testumgebung";
+
+        button.setAttribute(
+            "aria-pressed",
+            String(active)
+        );
+    });
+
+    [
+        "homeDrinksTestBadge",
+        "homeBakeryTestBadge"
+    ].forEach(id => {
+        const badge = $(id);
+
+        if (badge) {
+            badge.hidden = !active;
+            badge.style.display = active ? "" : "none";
+        }
+    });
+}
+
+function installTeacherTestToggles() {
+    for (const id of TEACHER_TEST_SCREENS) {
+        const screen = $(id);
+
+        if (
+            !screen ||
+            screen.querySelector(".teacher-test-toggle")
+        ) {
+            continue;
+        }
+
+        const button = document.createElement("button");
+
+        button.type = "button";
+        button.className = "teacher-test-toggle";
+
+        button.addEventListener("click", async () => {
+            if (!isTeacher() || state.cashierSaving) return;
+
+            if (
+                cashierCartCents(state.drinksCart) > 0 ||
+                cashierCartCents(state.bakeryCart) > 0 ||
+                Object.keys(state.eventCart).length > 0
+            ) {
+                toast(
+                    "Bitte zuerst den Warenkorb leeren, bevor du den Modus wechselst.",
+                    "error"
+                );
+                return;
+            }
+
+            teacherTestMode = !teacherTestMode;
+
+            updateTeacherTestUI();
+
+            if (state.currentScreenId === "bakeryOutputScreen") {
+                await loadBakeryOrders();
+            }
+
+            if (state.currentScreenId === "eventOutputScreen") {
+                await loadEventOrders();
+            }
+
+            if (state.currentScreenId === "drinksSaleScreen") {
+                renderDrinksSale();
+            }
+
+            if (state.currentScreenId === "bakerySaleScreen") {
+                renderBakerySale();
+            }
+
+            if (state.currentScreenId === "drinksPaymentScreen") {
+                renderCashierPayment("drinks");
+            }
+
+            if (state.currentScreenId === "bakeryPaymentScreen") {
+                renderCashierPayment("bakery");
+            }
+
+            if (state.currentScreenId === "eventSaleScreen") {
+                renderEventSale();
+            }
+
+            if (state.currentScreenId === "eventPaymentScreen") {
+                renderEventPayment();
+            }
+        });
+
+        screen.prepend(button);
+    }
+
+    updateTeacherTestUI();
+}
 
 function goHome() {
     showScreen("homeScreen");
@@ -619,8 +754,14 @@ function applyRoleUI(){
     setText("homeRoleLabel",teacher?"Lehrkraft":"Schüler");
     $("currentPersonRole")?.classList.toggle("teacher-role",teacher);
     $("homeRoleLabel")?.classList.toggle("teacher-role",teacher);
-    ["homeDrinksTestBadge","homeBakeryTestBadge"].forEach(id=>{const el=$(id);if(el){el.hidden=!teacher;el.style.display=teacher?"":"none";}});
-}
+    ["homeDrinksTestBadge","homeBakeryTestBadge"].forEach(id => {
+        const el = $(id);
+
+        if (el) {
+            el.hidden = !isTeacherTestMode();
+            el.style.display = isTeacherTestMode() ? "" : "none";
+        }
+    });}
 
 /* =====================================================================
    SCHULZEITEN
@@ -808,8 +949,9 @@ async function initialiseAuthenticatedApp() {
             return;
         }
 
-        applyRoleUI();
+                applyRoleUI();
         enforceTeacherOnlyUI();
+        installTeacherTestToggles();
 
         await Promise.all([
             loadProducts(),
@@ -1147,7 +1289,7 @@ async function completeCashierPayment(area, event) {
 
     if (total <= 0 || received < total) return;
 
-    const teacherTest = isTeacher();
+        const teacherTest = isTeacherTestMode();
     const personId = state.currentPerson.id;
 
     state.cashierSaving = true;
@@ -1305,8 +1447,8 @@ function renderDrinksSale() {
     const banner = $("drinksTestBanner");
 
     if (banner) {
-        banner.hidden = !isTeacher();
-        banner.style.display = isTeacher() ? "" : "none";
+                banner.hidden = !isTeacherTestMode();
+        banner.style.display = isTeacherTestMode() ? "" : "none";
     }
 }
 
@@ -1455,7 +1597,7 @@ async function finishFreeDrinks(items) {
     let saved = false;
 
     try {
-        if (!isTeacher()) {
+                if (!isTeacherTestMode()) {
             const { error } = await db.rpc(
                 "record_free_drinks",
                 {
@@ -1475,7 +1617,7 @@ async function finishFreeDrinks(items) {
         renderFreeDrinks();
 
         toast(
-            isTeacher()
+                        isTeacherTestMode()
                 ? "Testeingabe abgeschlossen. Weitere Getränke können eingetragen werden."
                 : "Getränke gespeichert. Weitere Getränke können eingetragen werden.",
             "success"
@@ -1664,7 +1806,7 @@ function askShiftEnd(backScreen) {
 
         } else if (action === "finish") {
             toast(
-                isTeacher()
+                                isTeacherTestMode()
                     ? "Test beendet – keine echten Daten wurden geändert."
                     : "Gut gemacht heute, Team! 🎉",
                 "success"
@@ -1897,11 +2039,11 @@ function bakeryCardDate(value) {
 function renderBakeryOrders(orders) {
     const teacherView = isTeacher();
 
-    const visibleOrders = orders.filter(order => {
-        return !order.is_teacher_test || (
-            teacherView &&
-            order.owner_id === state.currentPerson?.id
-        );
+        const visibleOrders = orders.filter(order => {
+        return order.is_teacher_test
+            ? isTeacherTestMode() &&
+                order.owner_id === state.currentPerson?.id
+            : !isTeacherTestMode();
     });
 
     const open = visibleOrders
@@ -1949,10 +2091,10 @@ function renderBakeryOrders(orders) {
 
         const testOrder = Boolean(order.is_teacher_test);
 
-        const canServe = teacherView
-            ? testOrder &&
+                const canServe = testOrder
+            ? isTeacherTestMode() &&
                 order.owner_id === state.currentPerson?.id
-            : !testOrder;
+            : !isTeacherTestMode();
 
         const heading = testOrder
             ? bakeryOrderLabel(order)
@@ -2073,7 +2215,7 @@ async function serveBakeryOrder(id) {
 
     let testOrder = null;
 
-    if (teacherView) {
+        if (isTeacherTestMode()) {
         testOrder = (state.bakeryTestOrders || [])
             .find(order =>
                 order.id === id &&
@@ -2097,8 +2239,8 @@ async function serveBakeryOrder(id) {
         }
     }
 
-    try {
-        if (teacherView) {
+        try {
+        if (isTeacherTestMode()) {
             if (testOrder.status === "offen") {
                 testOrder.status = "ausgegeben";
                 testOrder.served_at = new Date().toISOString();
@@ -8495,11 +8637,11 @@ $("eventCashierButton")?.addEventListener(
 
         if (banner) {
 
-            banner.hidden =
-                !isTeacher();
+                        banner.hidden =
+                !isTeacherTestMode();
 
             banner.style.display =
-                isTeacher()
+                isTeacherTestMode()
                     ? ""
                     : "none";
         }
@@ -8970,11 +9112,11 @@ function renderEventPayment() {
 
     if (banner) {
 
-        banner.hidden =
-            !isTeacher();
+                banner.hidden =
+            !isTeacherTestMode();
 
         banner.style.display =
-            isTeacher()
+            isTeacherTestMode()
                 ? ""
                 : "none";
     }
@@ -9070,7 +9212,7 @@ $("eventPaidButton")?.addEventListener(
              * d'affaires réel ne sont modifiés.
              */
 
-            if (isTeacher()) {
+                        if (isTeacherTestMode()) {
 
                 const testOrder = {
 
@@ -9300,17 +9442,17 @@ async function loadEventOrders() {
 
     if (banner) {
 
-        banner.hidden =
-            !isTeacher();
+                banner.hidden =
+            !isTeacherTestMode();
 
         banner.style.display =
-            isTeacher()
+            isTeacherTestMode()
                 ? ""
                 : "none";
     }
 
 
-    if (isTeacher()) {
+        if (isTeacherTestMode()) {
 
         const orders =
             state.eventTestOrders[
@@ -9625,7 +9767,7 @@ async function serveEventOrder(
          * Aucune écriture métier.
          */
 
-        if (isTeacher()) {
+                if (isTeacherTestMode()) {
 
             const orders =
                 state.eventTestOrders[
@@ -13243,7 +13385,7 @@ if (document.readyState === "loading") {
         invoice: null,
         invoiceMode: false,
         busy: false,
-        outputMode: "test"
+        outputMode: "real"
     };
 
     const dialog = $("eventV6Dialog");
@@ -14043,9 +14185,9 @@ if (document.readyState === "loading") {
     renderEventSale = () => {
         oldRenderSale();
 
-        $("eventSaleScreen").classList.toggle(
+                $("eventSaleScreen").classList.toggle(
             "event-v6-test",
-            isTeacher()
+            isTeacherTestMode()
         );
     };
 
@@ -14054,9 +14196,9 @@ if (document.readyState === "loading") {
     renderEventPayment = () => {
         oldRenderPayment();
 
-        $("eventPaymentScreen").classList.toggle(
+                $("eventPaymentScreen").classList.toggle(
             "event-v6-test",
-            isTeacher()
+            isTeacherTestMode()
         );
     };
 
@@ -14069,9 +14211,9 @@ if (document.readyState === "loading") {
 
         if (total <= 0 || received < total) return;
 
-        let order;
+                let order;
 
-        if (isTeacher()) {
+        if (isTeacherTestMode()) {
             order = {
                 id: crypto.randomUUID(),
                 event_id: state.currentEvent.id,
@@ -14181,7 +14323,7 @@ if (document.readyState === "loading") {
                     }))
                     .filter(i => i.quantity > 0);
 
-                if (!isTeacher()) {
+                                if (!isTeacherTestMode()) {
                     await rpc("record_event_free_v6", {
                         p_event_id: state.currentEvent.id,
                         p_items: items
@@ -14198,7 +14340,7 @@ if (document.readyState === "loading") {
                 );
             },
 
-            isTeacher()
+                        isTeacherTestMode()
                 ? "Test: Schicht beenden"
                 : "Speichern und Schicht beenden"
         );
@@ -14259,19 +14401,19 @@ if (document.readyState === "loading") {
     loadEventOrders = async () => {
         if (!state.currentEvent) return;
 
-        visible(toolbar, isTeacher());
+                visible(toolbar, false);
 
-        $("eventOutputScreen").classList.toggle(
+                $("eventOutputScreen").classList.toggle(
             "event-v6-test",
-            isTeacher()
+            isTeacherTestMode()
         );
 
-        const readOnly =
-            isTeacher() && V.outputMode === "real";
+                V.outputMode = isTeacherTestMode() ? "test" : "real";
+        const readOnly = false;
 
         let orders;
 
-        if (isTeacher() && !readOnly) {
+                if (isTeacherTestMode()) {
             orders =
                 state.eventTestOrders[
                     state.currentEvent.id
@@ -14309,22 +14451,15 @@ if (document.readyState === "loading") {
                 : "⚠️ Testumgebung – keine echten Verkäufe"
         );
 
-        visible(
+                visible(
             $("eventOutputTestBanner"),
-            isTeacher()
+            isTeacherTestMode()
         );
     };
 
     const oldServe = serveEventOrder;
 
-    serveEventOrder = async id => {
-        if (
-            isTeacher() &&
-            V.outputMode === "real"
-        ) {
-            return;
-        }
-
+        serveEventOrder = async id => {
         await oldServe(id);
     };
 
