@@ -11550,3 +11550,101 @@ body.teacher-test-mode :is(
         font-size: 1.2rem;
     }
 }
+
+/* ==========================================
+   TESTUMGEBUNG — BOUTON JAUNE ARRONDI
+   ========================================== */
+
+.teacher-test-toggle {
+    display: block;
+    width: fit-content;
+    max-width: 100%;
+
+    margin: 0 0 14px auto;
+    padding: 12px 24px;
+
+    border: 0;
+    border-radius: 999px;
+
+    background: #fdbe3f;
+    color: #094369;
+
+    font: inherit;
+    font-weight: 850;
+
+    cursor: pointer;
+}
+
+.teacher-test-toggle:hover {
+    background: #f4b52d;
+}
+
+.teacher-test-toggle[aria-pressed="true"] {
+    background: #fdbe3f;
+    color: #094369;
+}
+
+.teacher-test-toggle:focus-visible {
+    outline: 3px solid #094369;
+    outline-offset: 3px;
+}
+
+/* ==========================================
+   TESTUMGEBUNG — MÊME DISPOSITION
+   Aucun padding ou bordure supplémentaire
+   ========================================== */
+
+body.teacher-test-mode :is(
+    #drinksSaleScreen,
+    #drinksPaymentScreen,
+    #drinksSuccessScreen,
+    #freeDrinksScreen,
+    #bakerySaleScreen,
+    #bakeryPaymentScreen,
+    #bakerySuccessScreen,
+    #bakeryOutputScreen,
+    #eventSaleScreen,
+    #eventPaymentScreen,
+    #eventSuccessScreen,
+    #eventOutputScreen
+) {
+    background: #fff4b8 !important;
+    border-color: transparent !important;
+}
+
+/* Pas de texte supplémentaire qui décale le contenu */
+
+body.teacher-test-mode :is(
+    #drinksSaleScreen,
+    #drinksPaymentScreen,
+    #drinksSuccessScreen,
+    #freeDrinksScreen,
+    #bakerySaleScreen,
+    #bakeryPaymentScreen,
+    #bakerySuccessScreen,
+    #bakeryOutputScreen,
+    #eventSaleScreen,
+    #eventPaymentScreen,
+    #eventSuccessScreen
+)::before {
+    content: none !important;
+    display: none !important;
+}
+
+/* Neutraliser les anciens ajouts d'espace
+   uniquement lorsqu'ils proviennent du mode test */
+
+body.teacher-test-mode :is(
+    #drinksSaleScreen,
+    #drinksPaymentScreen,
+    #drinksSuccessScreen,
+    #freeDrinksScreen,
+    #bakerySaleScreen,
+    #bakeryPaymentScreen,
+    #bakerySuccessScreen,
+    #bakeryOutputScreen
+) {
+    padding: clamp(22px, 4vw, 42px) 0 60px !important;
+    min-height: 0 !important;
+    border-width: 0 !important;
+}
