@@ -5678,10 +5678,12 @@ async function loadStudents() {
         .select(
             "id,first_name,last_name,student_number,person_type,active,created_at"
         )
-        .eq(
-            "person_type",
-            "schüler"
-        )
+        
+.in(
+    "person_type",
+    ["schüler", "bufdi"]
+)
+
         .eq(
             "active",
             true
