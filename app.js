@@ -5950,6 +5950,9 @@ $("studentForm")?.addEventListener(
                 ?.value
                 .trim();
 
+const personType =
+    $("studentRoleInput").value;
+       
         const pin =
             $("studentPinInput")
                 ?.value
@@ -6029,6 +6032,9 @@ $("studentForm")?.addEventListener(
                         p_pin:
                             pin ||
                             null
+
+                       p_person_type:
+                         personType
                     }
                 );
 
@@ -6057,6 +6063,9 @@ $("studentForm")?.addEventListener(
 
                         p_pin:
                             pin
+p_person_type:
+    personType
+                       
                     }
                 );
 
