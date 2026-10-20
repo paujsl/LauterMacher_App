@@ -110,6 +110,49 @@ function toast(message,type="info"){
     const el=document.createElement("div"); el.className=`toast toast-${type}`; el.textContent=message; box.appendChild(el);
     setTimeout(()=>el.remove(),3500);
 }
+
+function confirmInApp(message, title = "Bestätigung") {
+    return new Promise(resolve => {
+        const dialog = document.createElement("dialog");
+
+        dialog.className = "shift-end-drinks-dialog";
+        dialog.setAttribute("aria-labelledby", "appConfirmTitle");
+
+        dialog.innerHTML = `
+            <h2 id="appConfirmTitle"></h2>
+            <p id="appConfirmMessage"></p>
+            <form method="dialog">
+                <button
+                    type="submit"
+                    value="cancel"
+                    class="secondary-action"
+                >
+                    Abbrechen
+                </button>
+                <button
+                    type="submit"
+                    value="confirm"
+                    class="primary-action"
+                >
+                    Bestätigen
+                </button>
+            </form>
+        `;
+
+        dialog.querySelector("h2").textContent = title;
+        dialog.querySelector("p").textContent = message;
+
+        document.body.appendChild(dialog);
+
+        dialog.addEventListener("close", () => {
+            const confirmed = dialog.returnValue === "confirm";
+            dialog.remove();
+            resolve(confirmed);
+        }, { once: true });
+
+        dialog.showModal();
+    });
+}
 function parseMoney(value){
     if(typeof value==="number")return value;
     const s=String(value??"").trim().replace(/\s/g,"").replace("€","").replace(/\./g,"").replace(",",".");
