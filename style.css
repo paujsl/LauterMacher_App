@@ -14621,3 +14621,22 @@ body.teacher-test-mode .teacher-test-toggle {
         font-size: .77rem;
     }
 }
+
+/* Supprimer les anciennes flèches parasites */
+#bakeryOutputScreen .bakery-completed-summary::before,
+#bakeryOutputScreen .bakery-completed-summary::after {
+    content: none !important;
+    display: none !important;
+}
+
+#bakeryOutputScreen .bakery-completed-summary {
+    list-style: none !important;
+}
+
+#bakeryOutputScreen .bakery-completed-summary::marker {
+    content: "" !important;
+}
+
+#bakeryOutputScreen .bakery-completed-summary::-webkit-details-marker {
+    display: none !important;
+}
