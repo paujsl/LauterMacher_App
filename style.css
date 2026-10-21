@@ -14246,3 +14246,186 @@ body.teacher-test-mode .teacher-test-toggle {
         font-size: .73rem !important;
     }
 }
+
+/* =========================================================
+   BUCHHALTUNG — LETZTE EINTRÄGE
+   Harmonisation avec les autres historiques
+   ========================================================= */
+
+/* Cadre général */
+#invoicesScreen .bookkeeping-history-card {
+    padding: 12px !important;
+    background: #f5f6f8 !important;
+    border-radius: 15px !important;
+}
+
+/* Titre cliquable, conservant le repli existant */
+#invoicesScreen .bookkeeping-history-summary {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+
+    min-height: 32px !important;
+    margin: 0 !important;
+    padding: 3px 4px 10px !important;
+
+    list-style: none !important;
+    cursor: pointer !important;
+}
+
+#invoicesScreen .bookkeeping-history-summary::-webkit-details-marker {
+    display: none !important;
+}
+
+/* Titre de taille identique aux autres historiques */
+#invoicesScreen
+.bookkeeping-history-summary > span:first-child {
+    flex: 1;
+    min-width: 0;
+
+    color: #094369 !important;
+    font-size: 1rem !important;
+    font-weight: 850 !important;
+    line-height: 1.2 !important;
+}
+
+/* Petit carré bleu : compteur */
+#invoicesScreen
+.bookkeeping-history-summary > span:last-child {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    flex: 0 0 auto;
+
+    min-width: 23px !important;
+    height: 23px !important;
+
+    margin: 0 4px 0 auto !important;
+    padding: 0 6px !important;
+
+    background: #5974fd !important;
+    color: #ffffff !important;
+
+    border-radius: 6px !important;
+
+    font-size: .72rem !important;
+    font-weight: 800 !important;
+    line-height: 1 !important;
+    white-space: nowrap !important;
+}
+
+/* Afficher uniquement le nombre, sans "Einträge".
+   Le texte original reste présent pour l'accessibilité. */
+#invoicesScreen
+.bookkeeping-history-summary > span:last-child {
+    font-size: 0 !important;
+}
+
+#invoicesScreen
+.bookkeeping-history-summary > span:last-child::first-letter {
+    font-size: .72rem !important;
+}
+
+/* Flèche propre */
+#invoicesScreen .bookkeeping-history-summary::after {
+    content: "⌄" !important;
+    flex: 0 0 auto;
+    color: #5974fd !important;
+    font-size: 1.1rem !important;
+    line-height: 1 !important;
+}
+
+#invoicesScreen
+#bookkeepingHistory:not([open])
+.bookkeeping-history-summary::after {
+    content: "›" !important;
+}
+
+/* Zone de défilement */
+#invoicesScreen .bookkeeping-table-scroll {
+    max-height: 320px !important;
+    overflow-y: auto !important;
+    overflow-x: auto !important;
+
+    scrollbar-width: thin !important;
+    scrollbar-color: #5974fd transparent !important;
+}
+
+#invoicesScreen
+.bookkeeping-table-scroll::-webkit-scrollbar {
+    width: 6px !important;
+    height: 6px !important;
+}
+
+#invoicesScreen
+.bookkeeping-table-scroll::-webkit-scrollbar-thumb {
+    background: #5974fd !important;
+    border-radius: 8px !important;
+}
+
+/* Tableau : lignes compactes */
+#invoicesScreen .bookkeeping-table {
+    border-collapse: separate !important;
+    border-spacing: 0 4px !important;
+
+    font-size: .78rem !important;
+}
+
+/* En-têtes de colonnes */
+#invoicesScreen .bookkeeping-table thead th {
+    padding: 6px 9px !important;
+
+    background: #f5f6f8 !important;
+    font-size: .72rem !important;
+    line-height: 1.2 !important;
+}
+
+/* Chaque entrée = une bulle blanche compacte */
+#invoicesScreen .bookkeeping-table td {
+    height: auto !important;
+    min-height: 0 !important;
+
+    padding: 7px 9px !important;
+
+    background: #ffffff !important;
+    border-top: 1px solid #e4e8ef !important;
+    border-bottom: 1px solid #e4e8ef !important;
+
+    font-size: .78rem !important;
+    line-height: 1.3 !important;
+    vertical-align: middle !important;
+}
+
+#invoicesScreen .bookkeeping-table td:first-child {
+    border-left: 1px solid #e4e8ef !important;
+    border-radius: 9px 0 0 9px !important;
+}
+
+#invoicesScreen .bookkeeping-table td:last-child {
+    border-right: 1px solid #e4e8ef !important;
+    border-radius: 0 9px 9px 0 !important;
+}
+
+/* Montants bien alignés */
+#invoicesScreen .bookkeeping-table th:last-child,
+#invoicesScreen .bookkeeping-table .bookkeeping-amount {
+    text-align: right !important;
+}
+
+/* Téléphone */
+@media (max-width: 650px) {
+    #invoicesScreen .bookkeeping-history-card {
+        padding: 10px !important;
+    }
+
+    #invoicesScreen .bookkeeping-table td {
+        padding: 6px 7px !important;
+        font-size: .73rem !important;
+    }
+
+    #invoicesScreen .bookkeeping-table-scroll {
+        max-height: 280px !important;
+    }
+}
