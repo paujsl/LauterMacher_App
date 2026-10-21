@@ -2415,29 +2415,93 @@ function renderBakeryOrders(orders) {
             </div>
         `;
 
+    
+    // Fertige Bestellungen :
+    // conserver les commandes compactes, mais permettre
+    // de consulter leur contenu en cliquant dessus.
+
+    const previouslyOpenOrders = new Set(
+        Array.from(
+            doneBox.querySelectorAll(
+                ".bakery-completed-detail[open]"
+            )
+        ).map(element => element.dataset.orderId)
+    );
+
     for (const order of done) {
-        const row = document.createElement("div");
+        const row = document.createElement("details");
 
         row.className =
-            "completed-order-row" +
+            "bakery-completed-detail" +
             (order.is_teacher_test ? " bakery-test-order" : "");
 
-        row.innerHTML = `
-            <strong>
-                ${esc(bakeryOrderLabel(order))}
-            </strong>
+        row.dataset.orderId = String(order.id);
 
-            <time>
-                ${esc(
-                    bakeryOrderDate(
-                        order.served_at || order.created_at
-                    )
-                )}
-            </time>
+        row.open = previouslyOpenOrders.has(String(order.id));
+
+        const items = bakeryOrderItems(order);
+
+        row.innerHTML = `
+            <summary class="bakery-completed-summary">
+                <strong>
+                    ${esc(bakeryOrderLabel(order))}
+                </strong>
+
+                <span class="bakery-completed-summary-right">
+                    <time>
+                        ${esc(
+                            bakeryOrderDate(
+                                order.served_at ||
+                                order.created_at
+                            )
+                        )}
+                    </time>
+
+                    <span
+                        class="bakery-completed-chevron"
+                        aria-hidden="true"
+                    >⌄</span>
+                </span>
+            </summary>
+
+            <div class="bakery-completed-content">
+                <div class="bakery-completed-content-title">
+                    Bestellinhalt
+                </div>
+
+                <div class="bakery-completed-items">
+                    ${
+                        items.length
+                            ? items.map(item => `
+                                <div class="bakery-completed-item">
+                                    <span class="bakery-completed-item-name">
+                                        <strong>
+                                            ${integer(item.quantity)}×
+                                        </strong>
+                                        ${esc(bakeryOrderItemName(item))}
+                                    </span>
+                                </div>
+                            `).join("")
+                            : `
+                                <p class="bakery-completed-empty">
+                                    Keine Artikeldetails verfügbar.
+                                </p>
+                            `
+                    }
+                </div>
+
+                <div class="bakery-completed-total">
+                    <span>Gesamt</span>
+                    <strong>
+                        ${esc(money(bakeryOrderTotal(order)))}
+                    </strong>
+                </div>
+            </div>
         `;
 
         doneBox.appendChild(row);
     }
+
 }
 
 async function serveBakeryOrder(id) {
