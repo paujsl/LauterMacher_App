@@ -14318,15 +14318,6 @@ body.teacher-test-mode .teacher-test-toggle {
 
 /* Afficher uniquement le nombre, sans "Einträge".
    Le texte original reste présent pour l'accessibilité. */
-#invoicesScreen
-.bookkeeping-history-summary > span:last-child {
-    font-size: 0 !important;
-}
-
-#invoicesScreen
-.bookkeeping-history-summary > span:last-child::first-letter {
-    font-size: .72rem !important;
-}
 
 /* Flèche propre */
 #invoicesScreen .bookkeeping-history-summary::after {
