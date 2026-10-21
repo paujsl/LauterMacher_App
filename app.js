@@ -23142,3 +23142,619 @@ $("invoiceOcrWarning").textContent =
         subtree: true
     });
 })();
+
+/* =========================================================
+   BÄCKEREI — TAGESBESTAND
+   ========================================================= */
+
+const bakeryDailyStock = {
+    date: null,
+    initialized: false,
+    items: [],
+    busy: false,
+    modalOpen: false
+};
+
+function bakeryStockItem(productId) {
+    return bakeryDailyStock.items.find(
+        item => String(item.product_id) === String(productId)
+    );
+}
+
+function bakeryAvailable(productId) {
+    return Number(
+        bakeryStockItem(productId)?.quantity ?? 0
+    );
+}
+
+function bakeryStockIsActive() {
+    return bakeryDailyStock.initialized &&
+        bakeryDailyStock.date === bakeryBerlinDay();
+}
+
+async function refreshBakeryDailyStock() {
+    if (!state.currentPerson || isTeacherTestMode()) {
+        return null;
+    }
+
+    const { data, error } = await db.rpc(
+        "get_bakery_daily_stock"
+    );
+
+    if (error) throw error;
+
+    bakeryDailyStock.date = data.date;
+    bakeryDailyStock.initialized =
+        data.initialized === true;
+    bakeryDailyStock.items = data.items || [];
+
+    if (bakeryDailyStock.initialized) {
+        closeBakeryStockModal();
+    }
+
+    if (
+        typeof renderBakerySale === "function" &&
+        $("bakeryProductGrid")
+    ) {
+        renderBakerySale();
+    }
+
+    return data;
+}
+
+function closeBakeryStockModal() {
+    const modal = document.getElementById(
+        "bakeryDailyStockModal"
+    );
+
+    if (modal) modal.remove();
+
+    bakeryDailyStock.modalOpen = false;
+}
+
+function bakeryStockModalShell() {
+    let modal = document.getElementById(
+        "bakeryDailyStockModal"
+    );
+
+    if (modal) return modal;
+
+    modal = document.createElement("div");
+    modal.id = "bakeryDailyStockModal";
+    modal.className = "bakery-stock-overlay";
+
+    modal.innerHTML = `
+        <section
+            class="bakery-stock-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="bakeryStockTitle"
+        >
+            <div class="bakery-stock-heading">
+                <span class="bakery-stock-symbol">🥨</span>
+                <div>
+                    <h2 id="bakeryStockTitle">
+                        Tagesbestand Bäckerei
+                    </h2>
+                    <p>
+                        Wie viele Produkte haben wir heute?
+                    </p>
+                </div>
+            </div>
+
+            <form id="bakeryDailyStockForm">
+                <div
+                    class="bakery-stock-fields"
+                    id="bakeryDailyStockFields"
+                ></div>
+
+                <p
+                    class="bakery-stock-message"
+                    id="bakeryDailyStockMessage"
+                    aria-live="polite"
+                ></p>
+
+                <button
+                    type="submit"
+                    class="bakery-stock-save"
+                    id="bakeryDailyStockSave"
+                >
+                    Tagesbestand speichern
+                </button>
+            </form>
+        </section>
+    `;
+
+    document.body.appendChild(modal);
+
+    modal.querySelector("form").addEventListener(
+        "submit",
+        saveBakeryMorningStock
+    );
+
+    return modal;
+}
+
+function openBakeryMorningStock() {
+    if (
+        bakeryDailyStock.modalOpen ||
+        bakeryStockIsActive() ||
+        isTeacherTestMode()
+    ) {
+        return;
+    }
+
+    bakeryDailyStock.modalOpen = true;
+
+    const modal = bakeryStockModalShell();
+    const fields = modal.querySelector(
+        "#bakeryDailyStockFields"
+    );
+
+    fields.innerHTML = bakeryDailyStock.items.map(
+        item => `
+            <label class="bakery-stock-field">
+                <span>${esc(item.name)}</span>
+                <input
+                    type="number"
+                    inputmode="numeric"
+                    min="0"
+                    step="1"
+                    required
+                    placeholder="Menge"
+                    data-stock-product="${esc(item.product_id)}"
+                >
+            </label>
+        `
+    ).join("");
+
+    if (!bakeryDailyStock.items.length) {
+        fields.innerHTML = `
+            <p>Keine aktiven Bäckerei-Produkte.</p>
+        `;
+    }
+}
+
+async function saveBakeryMorningStock(event) {
+    event.preventDefault();
+
+    if (bakeryDailyStock.busy) return;
+
+    const modal = document.getElementById(
+        "bakeryDailyStockModal"
+    );
+
+    if (!modal) return;
+
+    const inputs = [
+        ...modal.querySelectorAll(
+            "[data-stock-product]"
+        )
+    ];
+
+    const items = inputs.map(input => ({
+        product_id: input.dataset.stockProduct,
+        quantity: Number(input.value)
+    }));
+
+    if (
+        items.length !== bakeryDailyStock.items.length ||
+        items.some(item =>
+            !Number.isSafeInteger(item.quantity) ||
+            item.quantity < 0
+        )
+    ) {
+        modal.querySelector(
+            "#bakeryDailyStockMessage"
+        ).textContent = "Bitte alle Mengen eingeben.";
+        return;
+    }
+
+    bakeryDailyStock.busy = true;
+
+    const saveButton = modal.querySelector(
+        "#bakeryDailyStockSave"
+    );
+
+    saveButton.disabled = true;
+
+    try {
+        const { error } = await db.rpc(
+            "initialize_bakery_daily_stock",
+            { p_items: items }
+        );
+
+        if (error) throw error;
+
+        await refreshBakeryDailyStock();
+
+        toast(
+            "Tagesbestand wurde gespeichert.",
+            "success"
+        );
+    } catch (error) {
+        console.error(error);
+
+        await refreshBakeryDailyStock().catch(
+            console.error
+        );
+
+        const message = document.getElementById(
+            "bakeryDailyStockMessage"
+        );
+
+        if (message) {
+            message.textContent =
+                bakeryStockIsActive()
+                    ? "Der Tagesbestand wurde bereits gespeichert."
+                    : "Speichern fehlgeschlagen. Bitte erneut versuchen.";
+        }
+    } finally {
+        bakeryDailyStock.busy = false;
+
+        if (saveButton.isConnected) {
+            saveButton.disabled = false;
+        }
+    }
+}
+
+async function enterBakeryWithStock(targetScreen) {
+    if (isTeacherTestMode()) {
+        showScreen(targetScreen);
+
+        if (targetScreen === "bakerySaleScreen") {
+            clearCart(state.bakeryCart);
+            renderBakerySale();
+        } else {
+            await loadBakeryOrders();
+        }
+
+        return;
+    }
+
+    try {
+        await refreshBakeryDailyStock();
+    } catch (error) {
+        console.error(error);
+
+        toast(
+            "Tagesbestand konnte nicht geladen werden.",
+            "error"
+        );
+
+        return;
+    }
+
+    if (targetScreen === "bakerySaleScreen") {
+        clearCart(state.bakeryCart);
+        renderBakerySale();
+    }
+
+    showScreen(targetScreen);
+
+    if (targetScreen === "bakeryOutputScreen") {
+        await loadBakeryOrders();
+    }
+
+    if (!bakeryStockIsActive()) {
+        openBakeryMorningStock();
+    }
+}
+
+/* Ouverture de Kasse et Ausgabe :
+   interception avant les anciens gestionnaires. */
+
+[
+    ["bakeryCashierButton", "bakerySaleScreen"],
+    ["bakeryOutputButton", "bakeryOutputScreen"]
+].forEach(([buttonId, screenId]) => {
+    const button = $(buttonId);
+
+    if (!button) return;
+
+    button.addEventListener(
+        "click",
+        event => {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+
+            enterBakeryWithStock(screenId);
+        },
+        true
+    );
+});
+
+/* Cartes produits : disponibilité et Ausverkauft. */
+
+const originalBakeryRenderProductGrid =
+    renderProductGrid;
+
+renderProductGrid = function (
+    containerId,
+    products,
+    cart,
+    onChange
+) {
+    originalBakeryRenderProductGrid(
+        containerId,
+        products,
+        cart,
+        onChange
+    );
+
+    if (
+        containerId !== "bakeryProductGrid" ||
+        isTeacherTestMode()
+    ) {
+        return;
+    }
+
+    const grid = $(containerId);
+
+    if (!grid) return;
+
+    const cards = [
+        ...grid.querySelectorAll(".sale-product-card")
+    ];
+
+    const activeProducts = products.filter(activeProduct);
+
+    cards.forEach((card, index) => {
+        const product = activeProducts[index];
+
+        if (!product) return;
+
+        const available = bakeryAvailable(product.id);
+        const selected = integer(
+            cart[product.id]?.quantity
+        );
+
+        card.classList.toggle(
+            "bakery-sold-out",
+            available <= 0
+        );
+
+        card.disabled =
+            !bakeryStockIsActive() ||
+            available <= selected;
+
+        if (available <= 0) {
+            const badge = document.createElement("small");
+            badge.className = "bakery-sold-out-badge";
+            badge.textContent = "Ausverkauft";
+            card.appendChild(badge);
+        } else if (bakeryStockIsActive()) {
+            const badge = document.createElement("small");
+            badge.className = "bakery-available-badge";
+            badge.textContent =
+                `Noch ${available} verfügbar`;
+            card.appendChild(badge);
+        }
+    });
+};
+
+/* Bloquer également le bouton + dans le panier. */
+
+$("bakeryCartItems")?.addEventListener(
+    "click",
+    event => {
+        const plus = event.target.closest(
+            "[data-plus]"
+        );
+
+        if (!plus || isTeacherTestMode()) return;
+
+        const row = plus.closest(".cart-row");
+
+        if (!row) return;
+
+        const index = [
+            ...row.parentElement.querySelectorAll(
+                ".cart-row"
+            )
+        ].indexOf(row);
+
+        const item = Object.values(
+            state.bakeryCart
+        )[index];
+
+        if (!item) return;
+
+        if (
+            !bakeryStockIsActive() ||
+            integer(item.quantity) >=
+                bakeryAvailable(item.id)
+        ) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+
+            toast(
+                "Nicht genügend Bestand verfügbar.",
+                "error"
+            );
+        }
+    },
+    true
+);
+
+/* Vérification avant l'écran de paiement. */
+
+$("bakeryPayButton")?.addEventListener(
+    "click",
+    event => {
+        if (isTeacherTestMode()) return;
+
+        const valid =
+            bakeryStockIsActive() &&
+            Object.values(state.bakeryCart).every(
+                item =>
+                    integer(item.quantity) <=
+                    bakeryAvailable(item.id)
+            );
+
+        if (!valid) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+
+            toast(
+                "Bestand geändert. Bitte Warenkorb prüfen.",
+                "error"
+            );
+
+            refreshBakeryDailyStock().catch(
+                console.error
+            );
+        }
+    },
+    true
+);
+
+/* Synchronisation entre les postes :
+   actualisation toutes les 5 secondes. */
+
+setInterval(async () => {
+    if (
+        !state.currentPerson ||
+        isTeacherTestMode() ||
+        bakeryDailyStock.busy
+    ) {
+        return;
+    }
+
+    const screenVisible = [
+        "bakerySaleScreen",
+        "bakeryOutputScreen",
+        "bakeryPaymentScreen"
+    ].some(id => {
+        const element = $(id);
+        return element &&
+            !element.hidden &&
+            getComputedStyle(element).display !== "none";
+    });
+
+    if (
+        !screenVisible &&
+        !bakeryDailyStock.modalOpen
+    ) {
+        return;
+    }
+
+    try {
+        await refreshBakeryDailyStock();
+    } catch (error) {
+        console.error(
+            "Bäckerei stock refresh:",
+            error
+        );
+    }
+}, 5000);
+
+/* Correction réservée aux professeurs. */
+
+async function editBakeryDailyStock() {
+    if (!isTeacher() || !bakeryStockIsActive()) {
+        return;
+    }
+
+    const names = bakeryDailyStock.items.map(
+        (item, index) =>
+            `${index + 1}. ${item.name}: ${item.quantity}`
+    ).join("\n");
+
+    const choice = prompt(
+        "Tagesbestand bearbeiten\n\n" +
+        names +
+        "\n\nProduktnummer eingeben:"
+    );
+
+    if (choice === null) return;
+
+    const index = Number(choice) - 1;
+
+    if (
+        !Number.isInteger(index) ||
+        index < 0 ||
+        index >= bakeryDailyStock.items.length
+    ) {
+        toast("Ungültige Produktnummer.", "error");
+        return;
+    }
+
+    const item = bakeryDailyStock.items[index];
+
+    const value = prompt(
+        `Neuer verfügbarer Bestand für ${item.name}:`,
+        String(item.quantity)
+    );
+
+    if (value === null) return;
+
+    const quantity = Number(value);
+
+    if (
+        value.trim() === "" ||
+        !Number.isSafeInteger(quantity) ||
+        quantity < 0
+    ) {
+        toast("Ungültige Menge.", "error");
+        return;
+    }
+
+    try {
+        const { error } = await db.rpc(
+            "set_bakery_daily_stock",
+            {
+                p_product_id: item.product_id,
+                p_quantity: quantity
+            }
+        );
+
+        if (error) throw error;
+
+        await refreshBakeryDailyStock();
+
+        toast("Bestand aktualisiert.", "success");
+    } catch (error) {
+        console.error(error);
+
+        toast(
+            "Bestand konnte nicht geändert werden.",
+            "error"
+        );
+    }
+}
+
+const originalBakeryRenderSale = renderBakerySale;
+
+renderBakerySale = function () {
+    originalBakeryRenderSale();
+
+    const grid = $("bakeryProductGrid");
+
+    if (
+        !grid ||
+        !isTeacher() ||
+        isTeacherTestMode() ||
+        !bakeryStockIsActive()
+    ) {
+        return;
+    }
+
+    let button = document.getElementById(
+        "bakeryEditStockButton"
+    );
+
+    if (!button) {
+        button = document.createElement("button");
+        button.id = "bakeryEditStockButton";
+        button.type = "button";
+        button.className = "bakery-edit-stock-button";
+        button.textContent = "✏️ Tagesbestand bearbeiten";
+        button.addEventListener(
+            "click",
+            editBakeryDailyStock
+        );
+
+        grid.before(button);
+    }
+};
