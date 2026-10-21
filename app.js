@@ -20968,8 +20968,17 @@ document.querySelector(
         }
     );
 
-    const render = () => {
-        $("shoppingRows").innerHTML = rows.map(row => {
+    
+const render = () => {
+    // Afficher uniquement les produits qui nécessitent
+    // réellement un réapprovisionnement.
+    // La suggestion est recalculée à partir du stock réel.
+    const visibleRows = rows.filter(row =>
+        Number(row.suggested_packs) > 0
+    );
+
+    $("shoppingRows").innerHTML = visibleRows.map(row => {
+
             const packs = packsFor(row);
 
             const price = row.pack_price == null
@@ -21025,8 +21034,9 @@ document.querySelector(
             `;
         }).join("") || `
             <tr>
-                <td colspan="5">Keine Getränke vorhanden.</td>
-            </tr>
+<td colspan="5">
+    ✅ Alles auf Lager – aktuell kein Einkauf nötig!
+</td>            </tr>
         `;
 
         const open = rows.filter(
