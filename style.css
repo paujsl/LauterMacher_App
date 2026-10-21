@@ -13495,3 +13495,376 @@ body.teacher-test-mode .teacher-test-toggle {
         border-radius: 15px !important;
     }
 }
+
+/* =========================================================
+   EINKAUFSLISTE — VERSION FINALE ÉPURÉE
+   Feuille scolaire + tableau 100 % transparent
+   ========================================================= */
+
+/* 1. Supprimer les décorations et les deux titres */
+
+#shoppingListScreen .shopping-content::before,
+#shoppingListScreen .shopping-content::after,
+#shoppingListScreen .shopping-paper-title {
+    display: none !important;
+    content: none !important;
+}
+
+/* 2. Conserver uniquement le papier scolaire en fond */
+
+#shoppingListScreen .shopping-content {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+
+    min-height: 0 !important;
+    height: auto !important;
+
+    padding: 24px 24px 30px 75px !important;
+
+    background-color: #fffdfd !important;
+
+    background-image:
+        linear-gradient(
+            to right,
+            transparent 0,
+            transparent 49px,
+            rgba(226, 151, 181, .85) 49px,
+            rgba(226, 151, 181, .85) 51px,
+            transparent 51px
+        ),
+        repeating-linear-gradient(
+            to bottom,
+            transparent 0,
+            transparent 30px,
+            rgba(138, 175, 211, .38) 31px,
+            transparent 32px
+        ) !important;
+
+    border: 1px solid #d9e3ed !important;
+    border-radius: 13px !important;
+
+    overflow: hidden !important;
+}
+
+/* 3. Réglages et boutons : rapprocher le contenu */
+
+#shoppingListScreen .shopping-toolbar {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    flex-wrap: wrap !important;
+
+    order: 1 !important;
+
+    min-height: 0 !important;
+    height: auto !important;
+
+    margin: 0 0 12px !important;
+    padding: 0 !important;
+
+    gap: 10px !important;
+
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+#shoppingListScreen .shopping-settings {
+    display: flex !important;
+    align-items: center !important;
+    flex-wrap: wrap !important;
+
+    gap: 8px 15px !important;
+}
+
+#shoppingListScreen .shopping-settings label {
+    margin: 0 !important;
+    white-space: nowrap;
+}
+
+#shoppingListScreen .shopping-main-actions {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    flex-wrap: nowrap !important;
+
+    gap: 8px !important;
+    margin: 0 !important;
+}
+
+/* 4. Phrase explicative juste sous les réglages */
+
+#shoppingListScreen .shopping-content > .shopping-note:first-of-type {
+    order: 2 !important;
+
+    margin: 2px 0 6px !important;
+    padding: 0 !important;
+
+    background: transparent !important;
+}
+
+/* 5. Date d'actualisation */
+
+#shoppingListScreen #shoppingStatus {
+    order: 3 !important;
+
+    margin: 0 0 10px !important;
+    padding: 0 !important;
+
+    background: transparent !important;
+}
+
+/* 6. Tableau statique : pas de bloc défilant interne */
+
+#shoppingListScreen .shopping-scroll {
+    display: block !important;
+
+    order: 4 !important;
+
+    position: static !important;
+
+    width: 100% !important;
+    max-width: 100% !important;
+
+    min-height: 0 !important;
+    max-height: none !important;
+    height: auto !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    overflow: visible !important;
+
+    background: transparent !important;
+    background-image: none !important;
+
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+}
+
+/* 7. Tableau entièrement transparent */
+
+#shoppingListScreen .shopping-table,
+#shoppingListScreen .shopping-table thead,
+#shoppingListScreen .shopping-table tbody,
+#shoppingListScreen .shopping-table tr,
+#shoppingListScreen .shopping-table th,
+#shoppingListScreen .shopping-table td {
+    background: transparent !important;
+    background-color: transparent !important;
+    background-image: none !important;
+
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* Aucun trait ajouté par le tableau */
+
+#shoppingListScreen .shopping-table {
+    width: 100% !important;
+    min-width: 0 !important;
+
+    table-layout: fixed !important;
+    border-collapse: collapse !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Colonnes toujours alignées */
+
+#shoppingListScreen .shopping-table th {
+    padding: 8px 3px !important;
+
+    color: #214f77 !important;
+
+    font-weight: 800 !important;
+    text-align: center;
+    vertical-align: middle;
+}
+
+#shoppingListScreen .shopping-table th:nth-child(2) {
+    text-align: left !important;
+}
+
+#shoppingListScreen .shopping-table td {
+    height: 58px !important;
+    padding: 7px 3px !important;
+
+    color: #174b72 !important;
+
+    text-align: center;
+    vertical-align: middle;
+}
+
+#shoppingListScreen .shopping-table td:nth-child(2) {
+    text-align: left !important;
+}
+
+/* Supprimer tout effet de survol sur les lignes */
+
+#shoppingListScreen .shopping-table tbody tr:hover,
+#shoppingListScreen .shopping-table tbody tr:nth-child(even),
+#shoppingListScreen .shopping-table tbody tr:nth-child(odd) {
+    background: transparent !important;
+}
+
+/* Les produits cochés restent lisibles,
+   sans fond coloré ni trait ajouté */
+
+#shoppingListScreen .shopping-table tr.shopping-checked,
+#shoppingListScreen .shopping-table tr.shopping-checked:hover {
+    background: transparent !important;
+}
+
+#shoppingListScreen .shopping-table tr.shopping-checked td:nth-child(2) strong {
+    color: #8294a5 !important;
+    text-decoration: line-through !important;
+}
+
+/* Conserver les cases à cocher et les inputs visibles */
+
+#shoppingListScreen .shopping-table input[type="checkbox"] {
+    accent-color: #8dbbaa;
+}
+
+#shoppingListScreen .shopping-table input[data-shopping-packs] {
+    background: #ffffff !important;
+    border: 1px solid #b8ccdd !important;
+    border-radius: 8px !important;
+}
+
+/* 8. Total et note finale */
+
+#shoppingListScreen #shoppingTotal {
+    order: 5 !important;
+
+    margin: 15px 0 8px !important;
+    padding: 0 !important;
+
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+#shoppingListScreen .shopping-content > .shopping-note:last-of-type {
+    order: 6 !important;
+
+    margin: 5px 0 0 !important;
+    padding: 0 !important;
+
+    background: transparent !important;
+}
+
+/* 9. Achats en attente : cadre lavande indépendant */
+
+#shoppingListScreen #shoppingPendingPurchases {
+    position: static !important;
+
+    width: 100% !important;
+    max-width: 100% !important;
+
+    margin: 24px 0 0 !important;
+    padding: 20px !important;
+
+    background: #f4efff !important;
+    background-image: none !important;
+
+    border: 1px solid #d9cdf9 !important;
+    border-radius: 20px !important;
+}
+
+/* 10. Historique : cadre bleu indépendant */
+
+#shoppingListScreen #shoppingRecentPurchases {
+    position: static !important;
+
+    width: 100% !important;
+    max-width: 100% !important;
+
+    margin: 24px 0 0 !important;
+    padding: 20px !important;
+
+    background: #eaf5ff !important;
+    background-image: none !important;
+
+    border: 1px solid #c6e0f5 !important;
+    border-radius: 20px !important;
+}
+
+/* 11. Téléphone */
+
+@media (max-width: 650px) {
+
+    #shoppingListScreen .shopping-content {
+        padding: 14px 8px 22px 23px !important;
+
+        background-image:
+            linear-gradient(
+                to right,
+                transparent 0,
+                transparent 13px,
+                rgba(226, 151, 181, .85) 13px,
+                rgba(226, 151, 181, .85) 14px,
+                transparent 14px
+            ),
+            repeating-linear-gradient(
+                to bottom,
+                transparent 0,
+                transparent 28px,
+                rgba(138, 175, 211, .38) 29px,
+                transparent 30px
+            ) !important;
+    }
+
+    #shoppingListScreen .shopping-toolbar {
+        flex-direction: column !important;
+        align-items: stretch !important;
+
+        margin-bottom: 8px !important;
+        gap: 8px !important;
+    }
+
+    #shoppingListScreen .shopping-settings {
+        gap: 6px 10px !important;
+    }
+
+    #shoppingListScreen .shopping-main-actions {
+        width: 100% !important;
+        justify-content: flex-start !important;
+    }
+
+    #shoppingListScreen .shopping-scroll {
+        overflow: visible !important;
+        max-height: none !important;
+    }
+
+    #shoppingListScreen .shopping-table th {
+        padding: 7px 1px !important;
+        font-size: .62rem !important;
+    }
+
+    #shoppingListScreen .shopping-table td {
+        height: 54px !important;
+        padding: 6px 2px !important;
+        font-size: .73rem !important;
+    }
+
+    #shoppingListScreen .shopping-table td strong {
+        font-size: .74rem !important;
+    }
+
+    #shoppingListScreen .shopping-table input[data-shopping-packs] {
+        max-width: 52px !important;
+        font-size: 16px !important;
+    }
+
+    #shoppingListScreen #shoppingPendingPurchases,
+    #shoppingListScreen #shoppingRecentPurchases {
+        margin-top: 18px !important;
+        padding: 14px !important;
+    }
+}
