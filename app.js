@@ -20431,7 +20431,7 @@ document.querySelector(
         pendingPurchasesBox.innerHTML = `
             <div class="shopping-section-heading">
                 <div>
-                    <h2>📋 Offene Einkäufe</h2>
+                    <h2>Offene Einkäufe</h2>
                     <p>
                         Bereits eingekauft, aber noch nicht
                         in der Buchhaltung erfasst.
@@ -20728,7 +20728,7 @@ document.querySelector(
         shoppingHistoryBox.innerHTML = `
             <div class="shopping-section-heading">
                 <div>
-                    <h2>🕘 Letzte Einkäufe</h2>
+                    <h2>Letzte Einkäufe</h2>
                     <p>
                         Abgeschlossene Einkäufe mit Rechnung.
                     </p>
