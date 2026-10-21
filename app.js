@@ -22767,3 +22767,282 @@ $("invoiceOcrWarning").textContent =
 /* Désactiver le scanner caméra et conserver l'import */
 (() => {
 })();
+
+/* =========================================================
+   LAUTER MACHER — HISTORIQUES UNIFIÉS
+   Six rubriques, titres repliables et compteurs compacts.
+   Aucun changement des données.
+   ========================================================= */
+
+(() => {
+    "use strict";
+
+    const historyConfigs = [
+        {
+            selector: "#productChangeHistoryPanel",
+            title: "Letzte Änderungen",
+            count: "#productChangeHistoryCount",
+            scroll: ".admin-history-scroll"
+        },
+        {
+            selector: "#teacherInventoryNotice",
+            title: "Letzte Inventuren",
+            scroll: ".admin-history-scroll"
+        },
+        {
+            selector: "#freeDrinksHistoryPanel",
+            title: "Letzte Einträge",
+            scroll: ".admin-history-scroll"
+        },
+        {
+            selector: ".access-history-card",
+            title: "Freischaltungen",
+            count: "#accessHistoryCount",
+            scroll: ".access-table-scroll"
+        },
+        {
+            selector: "#shoppingRecentPurchases",
+            title: "Letzte Einkäufe",
+            scroll: ".shopping-history-list"
+        },
+        {
+            selector: "#eventsScreen .event-v7-history",
+            title: "Letzte Veranstaltungen",
+            scroll: "#pastEventsList"
+        }
+    ];
+
+    function makeBadge(summary, value) {
+        let badge = summary.querySelector(
+            ".lm-history-count"
+        );
+
+        if (!badge) {
+            badge = document.createElement("span");
+            badge.className = "lm-history-count";
+            summary.appendChild(badge);
+        }
+
+        const next = String(value);
+
+        if (badge.textContent !== next) {
+            badge.textContent = next;
+        }
+    }
+
+    function extractCount(text) {
+        const match = String(text || "").match(/\d+/);
+        return match ? match[0] : "0";
+    }
+
+    function normalizeExistingDetails(panel, config) {
+        const details = panel.querySelector("details");
+        const summary = details?.querySelector(
+            ":scope > summary"
+        );
+
+        if (!details || !summary) return;
+
+        panel.classList.add("lm-history-panel");
+        details.classList.add("lm-history-details");
+        summary.classList.add("lm-history-summary");
+
+        const spans = Array.from(summary.children)
+            .filter(el => el.tagName === "SPAN");
+
+        const title = spans.find(el =>
+            el.textContent.trim() === config.title
+        );
+
+        if (title) {
+            title.classList.add("lm-history-title");
+        }
+
+        const originalCount = config.count
+            ? panel.querySelector(config.count)
+            : spans.find(el =>
+                el !== title &&
+                /\d/.test(el.textContent)
+            );
+
+        if (originalCount) {
+            originalCount.classList.add(
+                "lm-history-original-count"
+            );
+
+            const count = extractCount(
+                originalCount.textContent
+            );
+
+            makeBadge(summary, count);
+        }
+
+        const scroll = panel.querySelector(config.scroll);
+
+        if (scroll) {
+            scroll.classList.add("lm-history-scroll");
+        }
+    }
+
+    function normalizeShopping(panel) {
+        const heading = panel.querySelector(
+            ".shopping-section-heading"
+        );
+
+        if (!heading) return;
+
+        panel.classList.add("lm-history-panel");
+
+        let details = panel.querySelector(
+            ":scope > details.lm-history-details"
+        );
+
+        if (!details) {
+            details = document.createElement("details");
+            details.className = "lm-history-details";
+            details.open = true;
+
+            const summary = document.createElement("summary");
+            summary.className = "lm-history-summary";
+
+            const title = document.createElement("span");
+            title.className = "lm-history-title";
+            title.textContent = "Letzte Einkäufe";
+
+            summary.appendChild(title);
+            details.appendChild(summary);
+
+            panel.prepend(details);
+        }
+
+        const summary = details.querySelector("summary");
+
+        makeBadge(
+            summary,
+            extractCount(
+                heading.querySelector(
+                    ".shopping-section-count"
+                )?.textContent
+            )
+        );
+
+        const list = panel.querySelector(
+            ".shopping-history-list"
+        );
+
+        const empty = panel.querySelector(
+            ".shopping-history-empty"
+        );
+
+        for (const element of [list, empty]) {
+            if (element && element.parentElement !== details) {
+                details.appendChild(element);
+            }
+        }
+
+        if (list) {
+            list.classList.add("lm-history-scroll");
+        }
+
+        heading.remove();
+    }
+
+    function normalizeEvents(panel) {
+        panel.classList.add("lm-history-panel");
+
+        const list = panel.querySelector("#pastEventsList");
+
+        if (!list) return;
+
+        let details = panel.querySelector(
+            ":scope > details.lm-history-details"
+        );
+
+        if (!details) {
+            details = document.createElement("details");
+            details.className = "lm-history-details";
+            details.open = true;
+
+            const summary = document.createElement("summary");
+            summary.className = "lm-history-summary";
+
+            const title = document.createElement("span");
+            title.className = "lm-history-title";
+            title.textContent = "Letzte Veranstaltungen";
+
+            summary.appendChild(title);
+            details.appendChild(summary);
+            panel.prepend(details);
+        }
+
+        const oldHeading = panel.querySelector(
+            ":scope > .section-heading"
+        );
+
+        if (oldHeading) oldHeading.remove();
+
+        if (list.parentElement !== details) {
+            details.appendChild(list);
+        }
+
+        list.classList.add("lm-history-scroll");
+
+        // Compter les événements réellement affichés.
+        makeBadge(
+            details.querySelector("summary"),
+            list.querySelectorAll(".event-v6-row").length
+        );
+    }
+
+    let scheduled = false;
+
+    function refreshHistories() {
+        scheduled = false;
+
+        for (const config of historyConfigs) {
+            const panel = document.querySelector(
+                config.selector
+            );
+
+            if (!panel) continue;
+
+            if (config.title === "Letzte Einkäufe") {
+                normalizeShopping(panel);
+            } else if (
+                config.title === "Letzte Veranstaltungen"
+            ) {
+                normalizeEvents(panel);
+            } else {
+                normalizeExistingDetails(panel, config);
+            }
+        }
+    }
+
+    function scheduleRefresh() {
+        if (scheduled) return;
+
+        scheduled = true;
+
+        requestAnimationFrame(refreshHistories);
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener(
+            "DOMContentLoaded",
+            scheduleRefresh,
+            { once: true }
+        );
+    } else {
+        scheduleRefresh();
+    }
+
+    // Les historiques sont parfois reconstruits après
+    // un chargement Supabase : réappliquer le design.
+    const observer = new MutationObserver(scheduleRefresh);
+
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+        characterData: true
+    });
+})();
