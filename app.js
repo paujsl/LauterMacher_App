@@ -20616,6 +20616,92 @@ document.querySelector(
         "afterend",
         shoppingHistoryBox
     );
+   
+    /* =====================================================
+       EINKAUFSLISTE — STRUCTURE FEUILLE DE CAHIER
+       La feuille contient uniquement la liste.
+       Les achats restent dans deux sections séparées.
+       ===================================================== */
+
+    const shoppingContent = screen.querySelector(
+        ".shopping-content"
+    );
+
+    const shoppingToolbar = screen.querySelector(
+        ".shopping-toolbar"
+    );
+
+    const shoppingScroll = screen.querySelector(
+        ".shopping-scroll"
+    );
+
+    // 1. Les deux boutons ensemble, en haut.
+    let shoppingActions = shoppingToolbar.querySelector(
+        ".shopping-main-actions"
+    );
+
+    if (!shoppingActions) {
+        shoppingActions = document.createElement("div");
+        shoppingActions.className = "shopping-main-actions";
+        shoppingToolbar.appendChild(shoppingActions);
+    }
+
+    shoppingActions.appendChild(
+        $("shoppingRefreshButton")
+    );
+
+    shoppingActions.appendChild(
+        finishShoppingButton
+    );
+
+    // 2. Le titre appartient à la feuille,
+    // et non au fond de toute la page.
+    let shoppingPaperTitle = screen.querySelector(
+        ".shopping-paper-title"
+    );
+
+    if (!shoppingPaperTitle) {
+        shoppingPaperTitle = document.createElement("div");
+        shoppingPaperTitle.className = "shopping-paper-title";
+        shoppingPaperTitle.setAttribute(
+            "aria-label",
+            "To Buy List"
+        );
+
+        shoppingPaperTitle.innerHTML = `
+            <span>TO</span>
+            <span>BUY</span>
+            <span>LIST</span>
+        `;
+    }
+
+    shoppingScroll.insertAdjacentElement(
+        "beforebegin",
+        shoppingPaperTitle
+    );
+
+    // 3. Les achats en attente sortent de la feuille.
+    shoppingContent.insertAdjacentElement(
+        "afterend",
+        pendingPurchasesBox
+    );
+
+    // 4. L'historique vient après les achats en attente.
+    pendingPurchasesBox.insertAdjacentElement(
+        "afterend",
+        shoppingHistoryBox
+    );
+
+    pendingPurchasesBox.classList.add(
+        "shopping-pending-section"
+    );
+
+    shoppingHistoryBox.classList.add(
+        "shopping-history-section"
+    );
+
+    pendingPurchasesBox.style.marginTop = "";
+
 
     let recentShoppingPurchases = [];
     let shoppingActionBusy = false;
