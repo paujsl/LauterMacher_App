@@ -23046,3 +23046,35 @@ $("invoiceOcrWarning").textContent =
         characterData: true
     });
 })();
+
+/* Buchhaltung — compteur numérique compact */
+(() => {
+    const observer = new MutationObserver(() => {
+        const summary = document.querySelector(
+            "#invoicesScreen .bookkeeping-history-summary"
+        );
+
+        if (!summary) return;
+
+        const badge = summary.querySelector(
+            ":scope > span:last-child"
+        );
+
+        if (!badge) return;
+
+        const match = badge.textContent.match(/^\s*(\d+)\s+Einträge\s*$/);
+
+        if (match) {
+            badge.textContent = match[1];
+            badge.setAttribute(
+                "aria-label",
+                `${match[1]} Einträge`
+            );
+        }
+    });
+
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
+})();
